@@ -16,7 +16,6 @@ export default function MeuPerfilSection() {
     discord: "",
     id_personagem: "",
     telefone_ingame: "",
-    cpf: "",
   });
 
   useEffect(() => {
@@ -26,7 +25,6 @@ export default function MeuPerfilSection() {
         discord: profile.discord || "",
         id_personagem: profile.id_personagem || "",
         telefone_ingame: profile.telefone_ingame || "",
-        cpf: profile.cpf || "",
       });
     }
   }, [profile]);
@@ -47,7 +45,6 @@ export default function MeuPerfilSection() {
           discord: form.discord.trim() || null,
           id_personagem: form.id_personagem.trim() || null,
           telefone_ingame: form.telefone_ingame.trim() || null,
-          cpf: form.cpf.trim() || null,
         })
         .eq("user_id", user.id);
 
@@ -117,16 +114,6 @@ export default function MeuPerfilSection() {
               onChange={(e) => setForm({ ...form, telefone_ingame: e.target.value })}
               placeholder="Ex: 555-1234"
               maxLength={20}
-            />
-          </div>
-
-          <div>
-            <Label>CPF</Label>
-            <Input
-              value={form.cpf}
-              onChange={(e) => setForm({ ...form, cpf: e.target.value })}
-              placeholder="000.000.000-00"
-              maxLength={14}
             />
           </div>
 
