@@ -268,6 +268,44 @@ export type Database = {
           },
         ]
       }
+      envolvidos_bo: {
+        Row: {
+          bo_id: string
+          created_at: string
+          id: string
+          id_personagem: string | null
+          nome: string
+          observacoes: string | null
+          tipo: string
+        }
+        Insert: {
+          bo_id: string
+          created_at?: string
+          id?: string
+          id_personagem?: string | null
+          nome: string
+          observacoes?: string | null
+          tipo?: string
+        }
+        Update: {
+          bo_id?: string
+          created_at?: string
+          id?: string
+          id_personagem?: string | null
+          nome?: string
+          observacoes?: string | null
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "envolvidos_bo_bo_id_fkey"
+            columns: ["bo_id"]
+            isOneToOne: false
+            referencedRelation: "boletins_ocorrencia"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       envolvidos_inquerito: {
         Row: {
           created_at: string
