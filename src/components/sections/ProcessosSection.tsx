@@ -100,7 +100,7 @@ export default function ProcessosSection() {
         autor_nome: autorDisplay,
         reu_nome: reuDisplay,
         vara: form.vara,
-        valor_causa: form.valor_causa ? parseFloat(form.valor_causa) : null,
+        valor_causa: parseCurrencyToNumber(form.valor_causa),
       });
       if (error) throw error;
     },
