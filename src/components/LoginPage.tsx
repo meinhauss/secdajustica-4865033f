@@ -54,6 +54,7 @@ export default function LoginPage() {
   { id: "institucional", label: "Institucional" },
   { id: "servicos", label: "Serviços" },
   { id: "transparencia", label: "Transparência" },
+  { id: "concursos", label: "Concursos" },
   { id: "contato", label: "Contato" }];
 
 
