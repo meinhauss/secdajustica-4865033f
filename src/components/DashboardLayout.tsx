@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Scale, Shield, Gavel, BookOpen, FileText, Users, BarChart3,
-  LogOut, Menu, X, Home, Briefcase, AlertTriangle, Award, Calendar
+  LogOut, Menu, X, Home, Briefcase, AlertTriangle, Award, Calendar, Crown
 } from "lucide-react";
 import logoTjsp from "@/assets/logo-tjsp.png";
 
@@ -22,6 +22,7 @@ const menuItems = [
   { id: "oab", label: "Portal OAB", icon: Briefcase, roles: ["admin", "advogado"] },
   { id: "audiencias", label: "Audiências", icon: Calendar, roles: ["admin", "magistrado", "ministerio_publico", "advogado"] },
   { id: "consulta", label: "Consulta Pública", icon: BookOpen, roles: ["admin", "magistrado", "ministerio_publico", "delegado", "oficial_justica", "advogado", "cidadao"] },
+  { id: "cargos", label: "Cargos e Hierarquia", icon: Crown, roles: ["admin"] },
   { id: "usuarios", label: "Usuários", icon: Users, roles: ["admin"] },
   { id: "estatisticas", label: "Estatísticas", icon: BarChart3, roles: ["admin", "magistrado"] },
 ];
@@ -37,10 +38,14 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
   const getRoleLabel = (role: string) => {
     const labels: Record<string, string> = {
       admin: "Administrador",
+      presidente_tribunal: "Presidente do Tribunal",
+      desembargador: "Desembargador(a)",
       magistrado: "Magistrado(a)",
       ministerio_publico: "Promotor(a)",
       delegado: "Delegado(a)",
+      investigador: "Investigador(a)",
       oficial_justica: "Oficial de Justiça",
+      presidente_oab: "Presidente da OAB",
       advogado: "Advogado(a)",
       cidadao: "Cidadão",
     };

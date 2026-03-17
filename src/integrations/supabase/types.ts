@@ -100,6 +100,42 @@ export type Database = {
         }
         Relationships: []
       }
+      cargo_historico: {
+        Row: {
+          created_at: string
+          data_fim: string | null
+          data_inicio: string
+          id: string
+          nomeado_por: string | null
+          observacoes: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          tipo: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string
+          id?: string
+          nomeado_por?: string | null
+          observacoes?: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          tipo?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string
+          id?: string
+          nomeado_por?: string | null
+          observacoes?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          tipo?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       movimentacoes: {
         Row: {
           autor_id: string | null
@@ -289,6 +325,10 @@ export type Database = {
         | "oficial_justica"
         | "advogado"
         | "cidadao"
+        | "presidente_tribunal"
+        | "desembargador"
+        | "investigador"
+        | "presidente_oab"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -438,6 +478,10 @@ export const Constants = {
         "oficial_justica",
         "advogado",
         "cidadao",
+        "presidente_tribunal",
+        "desembargador",
+        "investigador",
+        "presidente_oab",
       ],
     },
   },
