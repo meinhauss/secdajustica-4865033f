@@ -1,12 +1,16 @@
 import { motion } from "framer-motion";
-import { FileText, Scale, Shield, Users, Clock, AlertTriangle, CheckCircle, Gavel } from "lucide-react";
+import {
+  FileText, Scale, Shield, Users, Clock, CheckCircle, Gavel, Send,
+  Briefcase, GraduationCap, Stamp, BarChart3, Bell, ArrowRight
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
-// Roles that can see judicial stats
 const JUDICIAL_ROLES = ["admin", "magistrado", "presidente_tribunal", "desembargador", "ministerio_publico", "advogado"];
-const POLICE_ROLES = ["admin", "delegado", "investigador", "cidadao"];
+const POLICE_ROLES = ["admin", "delegado", "investigador"];
 
 interface DashboardHomeProps {
   onNavigate?: (section: string) => void;
@@ -18,66 +22,101 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
   const isJudicial = roles.some((r) => JUDICIAL_ROLES.includes(r));
   const isPolice = roles.some((r) => POLICE_ROLES.includes(r));
   const isAdmin = roles.includes("admin");
-  const isCidadao = roles.includes("cidadao") && roles.length === 1;
+  const isAdvogado = roles.includes("advogado");
+  const isMagistrado = roles.includes("magistrado") || roles.includes("desembargador") || roles.includes("presidente_tribunal");
+  const isMP = roles.includes("ministerio_publico");
 
   const { data: processosCount } = useQuery({
-    queryKey: ["processos-count"],
-    queryFn: async () => {
+    queryKey: ["dash-processos"], queryFn: async () => {
       const { count } = await supabase.from("processos").select("*", { count: "exact", head: true });
       return count || 0;
-    },
-    enabled: isJudicial || isAdmin,
+    }, enabled: isJudicial || isAdmin,
+  });
+
+  const { data: processosConclusos } = useQuery({
+    queryKey: ["dash-conclusos"], queryFn: async () => {
+      const { count } = await supabase.from("processos").select("*", { count: "exact", head: true }).eq("status", "concluso");
+      return count || 0;
+    }, enabled: isMagistrado || isAdmin,
   });
 
   const { data: bosCount } = useQuery({
-    queryKey: ["bos-count"],
-    queryFn: async () => {
+    queryKey: ["dash-bos"], queryFn: async () => {
       const { count } = await supabase.from("boletins_ocorrencia").select("*", { count: "exact", head: true });
       return count || 0;
     },
   });
 
   const { data: audienciasCount } = useQuery({
-    queryKey: ["audiencias-count"],
-    queryFn: async () => {
-      const { count } = await supabase.from("audiencias").select("*", { count: "exact", head: true });
+    queryKey: ["dash-audiencias"], queryFn: async () => {
+      const { count } = await supabase.from("audiencias").select("*", { count: "exact", head: true }).eq("status", "agendada");
       return count || 0;
-    },
-    enabled: isJudicial || isAdmin,
+    }, enabled: isJudicial || isAdmin,
   });
 
-  // Build stats based on role
-  const stats = [];
-  if (isJudicial || isAdmin) {
-    stats.push({ label: "Processos Ativos", value: processosCount ?? 0, icon: FileText, color: "text-institutional" });
-  }
-  stats.push({ label: "Boletins de Ocorrência", value: bosCount ?? 0, icon: Shield, color: "text-gold" });
-  if (isJudicial || isAdmin) {
-    stats.push({ label: "Audiências Agendadas", value: audienciasCount ?? 0, icon: Clock, color: "text-institutional-light" });
-  }
+  const { data: intimacoesPendentes } = useQuery({
+    queryKey: ["dash-intimacoes"], queryFn: async () => {
+      const { count } = await supabase.from("intimacoes").select("*", { count: "exact", head: true }).eq("status", "pendente");
+      return count || 0;
+    }, enabled: isJudicial || isAdmin,
+  });
 
-  // Build quick actions based on role
-  const quickActions: { label: string; icon: any; section: string }[] = [];
+  const { data: concursosAbertos } = useQuery({
+    queryKey: ["dash-concursos"], queryFn: async () => {
+      const { count } = await supabase.from("concursos").select("*", { count: "exact", head: true }).eq("status", "inscricoes_abertas");
+      return count || 0;
+    },
+  });
 
-  if (isJudicial && !isCidadao) {
-    quickActions.push({ label: "Novo Processo", icon: FileText, section: "processos" });
-    quickActions.push({ label: "Consultar Processo", icon: Scale, section: "consulta" });
-  }
-  if (isPolice || isCidadao) {
-    quickActions.push({ label: "Registrar B.O.", icon: Shield, section: "delegacia" });
-  }
-  if (isJudicial && !isCidadao) {
-    quickActions.push({ label: "Agendar Audiência", icon: Clock, section: "audiencias" });
-  }
+  const { data: recentMovimentacoes } = useQuery({
+    queryKey: ["dash-movimentacoes"], queryFn: async () => {
+      const { data } = await supabase.from("movimentacoes").select("id, tipo, descricao, created_at, processo_id").order("created_at", { ascending: false }).limit(8);
+      return data || [];
+    },
+  });
 
-  const handleAction = (section: string) => {
-    if (onNavigate) {
-      onNavigate(section);
-    }
+  const { data: recentProcessos } = useQuery({
+    queryKey: ["dash-recent-processos"], queryFn: async () => {
+      const { data } = await supabase.from("processos").select("id, numero, autor_nome, reu_nome, status, classe, assunto").order("created_at", { ascending: false }).limit(5);
+      return data || [];
+    }, enabled: isJudicial || isAdmin,
+  });
+
+  const nav = (s: string) => onNavigate?.(s);
+
+  // Build stats cards
+  const stats: { label: string; value: number; icon: any; onClick?: string }[] = [];
+  if (isJudicial || isAdmin) stats.push({ label: "Processos", value: processosCount ?? 0, icon: FileText, onClick: "processos" });
+  if (isMagistrado || isAdmin) stats.push({ label: "Conclusos p/ Decisão", value: processosConclusos ?? 0, icon: Gavel, onClick: "magistrado" });
+  stats.push({ label: "Boletins de Ocorrência", value: bosCount ?? 0, icon: Shield, onClick: "delegacia" });
+  if (isJudicial || isAdmin) stats.push({ label: "Audiências Agendadas", value: audienciasCount ?? 0, icon: Clock, onClick: "audiencias" });
+  if (isJudicial || isAdmin) stats.push({ label: "Intimações Pendentes", value: intimacoesPendentes ?? 0, icon: Bell, onClick: "cartorio" });
+  stats.push({ label: "Concursos Abertos", value: concursosAbertos ?? 0, icon: GraduationCap, onClick: "concursos" });
+
+  // Quick actions based on role
+  const quickActions: { label: string; icon: any; section: string; desc: string }[] = [];
+  if (isJudicial) quickActions.push({ label: "Processos", icon: FileText, section: "processos", desc: "Gerenciar processos judiciais" });
+  if (isMagistrado || isAdmin) quickActions.push({ label: "Portal Magistrado", icon: Gavel, section: "magistrado", desc: "Despachos, sentenças e mandados" });
+  if (isMP || isAdmin) quickActions.push({ label: "Ministério Público", icon: Scale, section: "mp", desc: "Denúncias e pareceres" });
+  if (isPolice || isAdmin) quickActions.push({ label: "Delegacia Virtual", icon: Shield, section: "delegacia", desc: "B.O.s e inquéritos" });
+  if (isAdvogado || isAdmin) quickActions.push({ label: "Portal OAB", icon: Briefcase, section: "oab", desc: "Inscrição e carteira digital" });
+  if (isJudicial || isAdmin) quickActions.push({ label: "Cartório", icon: Stamp, section: "cartorio", desc: "Protocolos e intimações" });
+  if (isJudicial || isAdmin) quickActions.push({ label: "Audiências", icon: Clock, section: "audiencias", desc: "Agenda de audiências" });
+  quickActions.push({ label: "Concursos", icon: GraduationCap, section: "concursos", desc: "Editais e inscrições" });
+  quickActions.push({ label: "Consulta Pública", icon: Scale, section: "consulta", desc: "Consultar andamento processual" });
+
+  const statusColor = (s: string) => {
+    const m: Record<string, string> = {
+      novo: "bg-blue-100 text-blue-800", em_andamento: "bg-amber-100 text-amber-800",
+      concluso: "bg-emerald-100 text-emerald-800", sentenciado: "bg-purple-100 text-purple-800",
+      arquivado: "bg-muted text-muted-foreground", suspenso: "bg-destructive/10 text-destructive",
+    };
+    return m[s] || "bg-muted text-muted-foreground";
   };
 
   return (
     <div className="space-y-6">
+      {/* Welcome */}
       <div>
         <h2 className="font-display text-2xl font-bold text-foreground">
           Bem-vindo, {profile?.nome_completo?.split(" ")[0] || "Usuário"}
@@ -87,54 +126,103 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
         </p>
       </div>
 
-      {/* Stats */}
-      <div className={`grid grid-cols-1 sm:grid-cols-2 ${stats.length >= 3 ? "lg:grid-cols-3" : ""} gap-4`}>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {stats.map((stat, i) => (
           <motion.div
             key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-            className="bg-card rounded-xl p-5 shadow-institutional border border-border"
+            transition={{ delay: i * 0.05 }}
+            onClick={() => stat.onClick && nav(stat.onClick)}
+            className="bg-card rounded-xl p-4 shadow-institutional border border-border cursor-pointer hover:border-accent transition-colors"
           >
-            <div className="flex items-center justify-between mb-3">
-              <stat.icon className={`h-5 w-5 ${stat.color}`} />
-              <span className="text-2xl font-bold text-foreground">{stat.value}</span>
+            <div className="flex items-center gap-2 mb-2">
+              <stat.icon className="h-4 w-4 text-accent" />
+              <span className="text-xl font-bold text-foreground">{stat.value}</span>
             </div>
-            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider leading-tight">
               {stat.label}
             </p>
           </motion.div>
         ))}
       </div>
 
-      {/* Quick actions */}
-      {quickActions.length > 0 && (
-        <div className="bg-card rounded-xl p-6 shadow-institutional border border-border">
-          <h3 className="font-display text-lg font-semibold mb-4 text-foreground">Ações Rápidas</h3>
-          <div className={`grid grid-cols-2 ${quickActions.length >= 4 ? "lg:grid-cols-4" : `lg:grid-cols-${quickActions.length}`} gap-3`}>
-            {quickActions.map((action) => (
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Quick Actions */}
+        <Card className="lg:col-span-1">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Módulos</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1">
+            {quickActions.map((a) => (
               <button
-                key={action.label}
-                onClick={() => handleAction(action.section)}
-                className="flex flex-col items-center gap-2 p-4 rounded-xl bg-secondary hover:bg-accent/20 transition-colors border border-border cursor-pointer"
+                key={a.section}
+                onClick={() => nav(a.section)}
+                className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/80 transition-colors text-left group"
               >
-                <action.icon className="h-6 w-6 text-institutional" />
-                <span className="text-xs font-medium text-foreground">{action.label}</span>
+                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <a.icon className="h-4 w-4 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground">{a.label}</p>
+                  <p className="text-[10px] text-muted-foreground truncate">{a.desc}</p>
+                </div>
+                <ArrowRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
               </button>
             ))}
-          </div>
-        </div>
-      )}
+          </CardContent>
+        </Card>
 
-      {/* Recent activity */}
-      <div className="bg-card rounded-xl p-6 shadow-institutional border border-border">
-        <h3 className="font-display text-lg font-semibold mb-4 text-foreground">
-          Últimas Movimentações
-        </h3>
-        <div className="text-sm text-muted-foreground text-center py-8">
-          Nenhuma movimentação recente registrada.
-        </div>
+        {/* Recent Processos */}
+        {(isJudicial || isAdmin) && (
+          <Card className="lg:col-span-1">
+            <CardHeader className="pb-3 flex flex-row items-center justify-between">
+              <CardTitle className="text-base">Últimos Processos</CardTitle>
+              <button onClick={() => nav("processos")} className="text-xs text-primary hover:underline">Ver todos</button>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {(!recentProcessos || recentProcessos.length === 0) && (
+                <p className="text-sm text-muted-foreground text-center py-6">Nenhum processo registrado.</p>
+              )}
+              {recentProcessos?.map((p) => (
+                <div key={p.id} className="p-2.5 rounded-lg bg-muted/40 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono font-medium text-foreground">{p.numero}</span>
+                    <Badge className={`text-[10px] ${statusColor(p.status)}`}>{p.status.replace(/_/g, " ")}</Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{p.autor_nome} vs {p.reu_nome}</p>
+                  <p className="text-[10px] text-muted-foreground truncate">{p.assunto}</p>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Recent Movimentacoes */}
+        <Card className="lg:col-span-1">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Últimas Movimentações</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {(!recentMovimentacoes || recentMovimentacoes.length === 0) && (
+              <p className="text-sm text-muted-foreground text-center py-6">Nenhuma movimentação recente.</p>
+            )}
+            {recentMovimentacoes?.map((m) => (
+              <div key={m.id} className="flex items-start gap-2 p-2 rounded-lg hover:bg-muted/40 transition-colors">
+                <div className="h-1.5 w-1.5 rounded-full bg-accent mt-1.5 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs text-foreground truncate">{m.descricao}</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {new Date(m.created_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                    {" • "}
+                    <span className="capitalize">{m.tipo.replace(/_/g, " ")}</span>
+                  </p>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
