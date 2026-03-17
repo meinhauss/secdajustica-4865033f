@@ -498,6 +498,59 @@ export type Database = {
           },
         ]
       }
+      mandados: {
+        Row: {
+          created_at: string
+          cumprido_em: string | null
+          cumprido_por: string | null
+          descricao: string
+          destinatario_nome: string
+          id: string
+          magistrado_id: string
+          observacoes: string | null
+          processo_id: string
+          status: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          cumprido_em?: string | null
+          cumprido_por?: string | null
+          descricao: string
+          destinatario_nome: string
+          id?: string
+          magistrado_id: string
+          observacoes?: string | null
+          processo_id: string
+          status?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          cumprido_em?: string | null
+          cumprido_por?: string | null
+          descricao?: string
+          destinatario_nome?: string
+          id?: string
+          magistrado_id?: string
+          observacoes?: string | null
+          processo_id?: string
+          status?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mandados_processo_id_fkey"
+            columns: ["processo_id"]
+            isOneToOne: false
+            referencedRelation: "processos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       movimentacoes: {
         Row: {
           autor_id: string | null
@@ -805,6 +858,53 @@ export type Database = {
             columns: ["inquerito_id"]
             isOneToOne: false
             referencedRelation: "inqueritos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sentencas: {
+        Row: {
+          assinado: boolean
+          created_at: string
+          data_publicacao: string | null
+          dispositivo: string
+          ementa: string | null
+          fundamentacao: string
+          id: string
+          magistrado_id: string
+          processo_id: string
+          tipo: string
+        }
+        Insert: {
+          assinado?: boolean
+          created_at?: string
+          data_publicacao?: string | null
+          dispositivo: string
+          ementa?: string | null
+          fundamentacao: string
+          id?: string
+          magistrado_id: string
+          processo_id: string
+          tipo?: string
+        }
+        Update: {
+          assinado?: boolean
+          created_at?: string
+          data_publicacao?: string | null
+          dispositivo?: string
+          ementa?: string | null
+          fundamentacao?: string
+          id?: string
+          magistrado_id?: string
+          processo_id?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sentencas_processo_id_fkey"
+            columns: ["processo_id"]
+            isOneToOne: false
+            referencedRelation: "processos"
             referencedColumns: ["id"]
           },
         ]
