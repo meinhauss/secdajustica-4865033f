@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      atos_judiciais: {
+        Row: {
+          assinado: boolean
+          autor_id: string | null
+          autor_nome: string | null
+          conteudo: string
+          created_at: string
+          data_assinatura: string | null
+          id: string
+          processo_id: string
+          tipo: string
+          titulo: string
+        }
+        Insert: {
+          assinado?: boolean
+          autor_id?: string | null
+          autor_nome?: string | null
+          conteudo: string
+          created_at?: string
+          data_assinatura?: string | null
+          id?: string
+          processo_id: string
+          tipo?: string
+          titulo: string
+        }
+        Update: {
+          assinado?: boolean
+          autor_id?: string | null
+          autor_nome?: string | null
+          conteudo?: string
+          created_at?: string
+          data_assinatura?: string | null
+          id?: string
+          processo_id?: string
+          tipo?: string
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atos_judiciais_processo_id_fkey"
+            columns: ["processo_id"]
+            isOneToOne: false
+            referencedRelation: "processos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audiencias: {
         Row: {
           created_at: string
@@ -136,6 +183,47 @@ export type Database = {
         }
         Relationships: []
       }
+      documentos_processo: {
+        Row: {
+          arquivo_url: string | null
+          autor_id: string | null
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+          processo_id: string
+          tipo: string
+        }
+        Insert: {
+          arquivo_url?: string | null
+          autor_id?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+          processo_id: string
+          tipo?: string
+        }
+        Update: {
+          arquivo_url?: string | null
+          autor_id?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+          processo_id?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_processo_processo_id_fkey"
+            columns: ["processo_id"]
+            isOneToOne: false
+            referencedRelation: "processos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       movimentacoes: {
         Row: {
           autor_id: string | null
@@ -164,6 +252,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "movimentacoes_processo_id_fkey"
+            columns: ["processo_id"]
+            isOneToOne: false
+            referencedRelation: "processos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prazos_processuais: {
+        Row: {
+          created_at: string
+          data_fim: string
+          data_inicio: string
+          descricao: string
+          dias_uteis: number
+          id: string
+          processo_id: string
+          responsavel_id: string | null
+          status: string
+          tipo: string
+        }
+        Insert: {
+          created_at?: string
+          data_fim: string
+          data_inicio?: string
+          descricao: string
+          dias_uteis?: number
+          id?: string
+          processo_id: string
+          responsavel_id?: string | null
+          status?: string
+          tipo?: string
+        }
+        Update: {
+          created_at?: string
+          data_fim?: string
+          data_inicio?: string
+          descricao?: string
+          dias_uteis?: number
+          id?: string
+          processo_id?: string
+          responsavel_id?: string | null
+          status?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prazos_processuais_processo_id_fkey"
             columns: ["processo_id"]
             isOneToOne: false
             referencedRelation: "processos"
