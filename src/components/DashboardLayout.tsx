@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Scale, Shield, Gavel, BookOpen, FileText, Users, BarChart3,
-  LogOut, Menu, X, Home, Briefcase, AlertTriangle, Award, Calendar, Crown, GraduationCap
+  LogOut, Menu, X, Home, Briefcase, AlertTriangle, Award, Calendar, Crown, GraduationCap, Stamp
 } from "lucide-react";
 import logoTjsp from "@/assets/logo-tjsp.png";
 
@@ -23,6 +23,7 @@ const menuItems = [
   { id: "audiencias", label: "Audiências", icon: Calendar, roles: ["admin", "magistrado", "ministerio_publico", "advogado", "presidente_tribunal", "desembargador"] },
   { id: "consulta", label: "Consulta Pública", icon: BookOpen, roles: ["admin", "magistrado", "ministerio_publico", "delegado", "oficial_justica", "advogado", "presidente_tribunal", "desembargador", "presidente_oab"] },
   { id: "concursos", label: "Concursos", icon: GraduationCap, roles: ["admin", "magistrado", "ministerio_publico", "delegado", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "investigador", "presidente_oab"] },
+  { id: "cartorio", label: "Cartório", icon: Stamp, roles: ["admin", "oficial_justica", "magistrado", "ministerio_publico", "advogado", "presidente_tribunal", "desembargador"] },
   { id: "cargos", label: "Cargos e Hierarquia", icon: Crown, roles: ["admin"] },
   { id: "usuarios", label: "Usuários", icon: Users, roles: ["admin"] },
   { id: "estatisticas", label: "Estatísticas", icon: BarChart3, roles: ["admin", "magistrado", "presidente_tribunal"] },

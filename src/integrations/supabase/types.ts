@@ -268,6 +268,50 @@ export type Database = {
           },
         ]
       }
+      certificacoes: {
+        Row: {
+          assinado: boolean
+          conteudo: string
+          created_at: string
+          data_assinatura: string | null
+          emitido_por: string | null
+          emitido_por_nome: string | null
+          id: string
+          processo_id: string
+          tipo: string
+        }
+        Insert: {
+          assinado?: boolean
+          conteudo: string
+          created_at?: string
+          data_assinatura?: string | null
+          emitido_por?: string | null
+          emitido_por_nome?: string | null
+          id?: string
+          processo_id: string
+          tipo?: string
+        }
+        Update: {
+          assinado?: boolean
+          conteudo?: string
+          created_at?: string
+          data_assinatura?: string | null
+          emitido_por?: string | null
+          emitido_por_nome?: string | null
+          id?: string
+          processo_id?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "certificacoes_processo_id_fkey"
+            columns: ["processo_id"]
+            isOneToOne: false
+            referencedRelation: "processos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comunicados_concurso: {
         Row: {
           autor_id: string | null
@@ -804,6 +848,59 @@ export type Database = {
         }
         Relationships: []
       }
+      intimacoes: {
+        Row: {
+          conteudo: string
+          created_at: string
+          data_envio: string
+          data_leitura: string | null
+          data_limite: string | null
+          destinatario_id: string | null
+          destinatario_nome: string
+          id: string
+          prazo_dias: number
+          processo_id: string
+          status: string
+          tipo: string
+        }
+        Insert: {
+          conteudo: string
+          created_at?: string
+          data_envio?: string
+          data_leitura?: string | null
+          data_limite?: string | null
+          destinatario_id?: string | null
+          destinatario_nome: string
+          id?: string
+          prazo_dias?: number
+          processo_id: string
+          status?: string
+          tipo?: string
+        }
+        Update: {
+          conteudo?: string
+          created_at?: string
+          data_envio?: string
+          data_leitura?: string | null
+          data_limite?: string | null
+          destinatario_id?: string | null
+          destinatario_nome?: string
+          id?: string
+          prazo_dias?: number
+          processo_id?: string
+          status?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "intimacoes_processo_id_fkey"
+            columns: ["processo_id"]
+            isOneToOne: false
+            referencedRelation: "processos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mandados: {
         Row: {
           created_at: string
@@ -1162,6 +1259,50 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      protocolos: {
+        Row: {
+          created_at: string
+          descricao: string
+          documento_url: string | null
+          id: string
+          numero: string
+          processo_id: string | null
+          remetente_id: string | null
+          remetente_nome: string
+          tipo: string
+        }
+        Insert: {
+          created_at?: string
+          descricao: string
+          documento_url?: string | null
+          id?: string
+          numero?: string
+          processo_id?: string | null
+          remetente_id?: string | null
+          remetente_nome: string
+          tipo?: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          documento_url?: string | null
+          id?: string
+          numero?: string
+          processo_id?: string | null
+          remetente_id?: string | null
+          remetente_nome?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "protocolos_processo_id_fkey"
+            columns: ["processo_id"]
+            isOneToOne: false
+            referencedRelation: "processos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       questoes_concurso: {
         Row: {
