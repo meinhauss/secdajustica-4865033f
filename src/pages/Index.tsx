@@ -11,6 +11,7 @@ import MPSection from "@/components/sections/MPSection";
 import AudienciasSection from "@/components/sections/AudienciasSection";
 import OABSection from "@/components/sections/OABSection";
 import UsuariosSection from "@/components/sections/UsuariosSection";
+import CargosSection from "@/components/sections/CargosSection";
 import EstatisticasSection from "@/components/sections/EstatisticasSection";
 
 const Index = () => {
