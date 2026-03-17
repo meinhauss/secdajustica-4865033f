@@ -563,7 +563,7 @@ function TabLogin(props: LoginProps) {
 
 }
 
-function TabConcursos() {
+function TabConcursos({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
       <h2 className="font-display text-2xl font-bold text-foreground mb-2">Concursos Públicos</h2>
@@ -580,7 +580,8 @@ function TabConcursos() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
-            className="bg-card rounded-xl p-5 border border-border shadow-institutional"
+            onClick={() => onNavigate("login")}
+            className="bg-card rounded-xl p-5 border border-border shadow-institutional cursor-pointer hover:border-accent transition-colors"
           >
             <item.icon className="h-6 w-6 text-gold mb-3" />
             <h4 className="font-display text-sm font-semibold text-foreground mb-1">{item.title}</h4>
