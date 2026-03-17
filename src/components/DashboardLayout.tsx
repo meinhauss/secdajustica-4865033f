@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Scale, Shield, Gavel, BookOpen, FileText, Users, BarChart3,
-  LogOut, Menu, X, Home, Briefcase, AlertTriangle, Award, Calendar
+  LogOut, Menu, X, Home, Briefcase, AlertTriangle, Award, Calendar, Crown
 } from "lucide-react";
 import logoTjsp from "@/assets/logo-tjsp.png";
 
