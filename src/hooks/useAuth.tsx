@@ -8,7 +8,7 @@ interface AuthContextType {
   loading: boolean;
   roles: string[];
   profile: any;
-  signUp: (email: string, password: string, nomeCompleto: string) => Promise<any>;
+  signUp: (email: string, password: string, nomeCompleto: string, extra?: { discord?: string; id_personagem?: string; telefone_ingame?: string }) => Promise<any>;
   signIn: (email: string, password: string) => Promise<any>;
   signOut: () => Promise<void>;
 }
