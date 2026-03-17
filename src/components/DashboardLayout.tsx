@@ -5,7 +5,7 @@ import {
   Scale, Shield, Gavel, BookOpen, FileText, Users, BarChart3,
   LogOut, Menu, X, Home, Briefcase, AlertTriangle, Award, Calendar, Crown, GraduationCap, Stamp
 } from "lucide-react";
-import logoTjsp from "@/assets/logo-tjsp.png";
+
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
