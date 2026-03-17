@@ -33,7 +33,7 @@ const Index = () => {
 
   const renderSection = () => {
     switch (activeSection) {
-      case "dashboard": return <DashboardHome />;
+      case "dashboard": return <DashboardHome onNavigate={setActiveSection} />;
       case "processos": return <ProcessosSection />;
       case "delegacia": return <DelegaciaSection />;
       case "consulta": return <ConsultaPublicaSection />;
