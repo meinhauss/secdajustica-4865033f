@@ -405,6 +405,15 @@ function BODetail({ boId, onBack, isDelegado }: { boId: string; onBack: () => vo
     },
   });
 
+  const { data: envolvidos } = useQuery({
+    queryKey: ["envolvidos-bo", boId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("envolvidos_bo").select("*").eq("bo_id", boId).order("tipo").order("created_at");
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const updateStatus = useMutation({
     mutationFn: async (status: string) => {
       const { error } = await supabase.from("boletins_ocorrencia").update({ status }).eq("id", boId);
@@ -440,6 +449,8 @@ function BODetail({ boId, onBack, isDelegado }: { boId: string; onBack: () => vo
   if (!bo) return <div className="text-center py-12 text-muted-foreground">Carregando...</div>;
 
   const cfg = BO_STATUS[bo.status] || BO_STATUS.registrado;
+  const vitimasBO = envolvidos?.filter((e: any) => e.tipo === "vitima") || [];
+  const suspeitosBO = envolvidos?.filter((e: any) => e.tipo === "suspeito") || [];
 
   return (
     <div className="space-y-6">
@@ -455,12 +466,50 @@ function BODetail({ boId, onBack, isDelegado }: { boId: string; onBack: () => vo
       </div>
 
       {/* Info */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <InfoCard label="Vítima" value={bo.vitima_nome} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         <InfoCard label="Tipo" value={bo.tipo?.replace("_", " ") || "—"} />
         <InfoCard label="Local" value={bo.local_fato || "Não informado"} />
         <InfoCard label="Data do Fato" value={bo.data_fato ? format(new Date(bo.data_fato), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "—"} />
       </div>
+
+      {/* Vítimas */}
+      <div className="bg-card rounded-xl p-5 border border-border">
+        <h3 className="font-display text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+          <User className="h-4 w-4 text-gold-dark" /> Vítimas ({vitimasBO.length})
+        </h3>
+        {vitimasBO.length > 0 ? (
+          <div className="space-y-2">
+            {vitimasBO.map((v: any) => (
+              <div key={v.id} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gold/5 border border-gold/20 text-sm">
+                <User className="h-4 w-4 text-gold-dark flex-shrink-0" />
+                <span className="font-medium text-foreground">{v.nome}</span>
+                {v.id_personagem && <span className="text-xs text-muted-foreground">(ID: {v.id_personagem})</span>}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">{bo.vitima_nome}</p>
+        )}
+      </div>
+
+      {/* Suspeitos */}
+      {suspeitosBO.length > 0 && (
+        <div className="bg-card rounded-xl p-5 border border-border">
+          <h3 className="font-display text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-destructive" /> Suspeitos ({suspeitosBO.length})
+          </h3>
+          <div className="space-y-2">
+            {suspeitosBO.map((s: any) => (
+              <div key={s.id} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-destructive/5 border border-destructive/20 text-sm">
+                <AlertTriangle className="h-4 w-4 text-destructive flex-shrink-0" />
+                <span className="font-medium text-foreground">{s.nome}</span>
+                {s.id_personagem && <span className="text-xs text-muted-foreground">(ID: {s.id_personagem})</span>}
+                {s.observacoes && <span className="text-xs text-muted-foreground ml-auto">— {s.observacoes}</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Descrição */}
       <div className="bg-card rounded-xl p-5 border border-border">
