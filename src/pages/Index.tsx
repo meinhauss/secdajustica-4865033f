@@ -47,6 +47,7 @@ const Index = () => {
       case "usuarios": return <UsuariosSection />;
       case "estatisticas": return <EstatisticasSection />;
       case "concursos": return <ConcursosSection />;
+      case "cartorio": return <CartorarioSection />;
       default: return <DashboardHome />;
     }
   };
