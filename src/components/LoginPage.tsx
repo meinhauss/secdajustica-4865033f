@@ -11,7 +11,7 @@ import logoTjsp from "@/assets/logo-tjsp.png";
 import govLogo from "@/assets/gov-logo.png";
 import { toast } from "sonner";
 
-type Tab = "inicio" | "institucional" | "servicos" | "transparencia" | "contato" | "login";
+type Tab = "inicio" | "institucional" | "servicos" | "transparencia" | "concursos" | "contato" | "login";
 
 export default function LoginPage() {
   const { signIn, signUp } = useAuth();
