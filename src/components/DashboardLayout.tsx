@@ -4,7 +4,8 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   Scale, Shield, Gavel, BookOpen, FileText, Users, BarChart3,
   LogOut, Menu, X, Home, Briefcase, AlertTriangle, Award, Calendar, Crown, GraduationCap, Stamp
-} from "lucide-react";
+ } from "lucide-react";
+import logoSjc from "@/assets/logo-tjsp.png";
 
 
 interface DashboardLayoutProps {
