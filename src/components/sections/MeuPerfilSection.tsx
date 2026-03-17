@@ -117,16 +117,6 @@ export default function MeuPerfilSection() {
             />
           </div>
 
-          <div>
-            <Label>CPF</Label>
-            <Input
-              value={form.cpf}
-              onChange={(e) => setForm({ ...form, cpf: e.target.value })}
-              placeholder="000.000.000-00"
-              maxLength={14}
-            />
-          </div>
-
           <Button onClick={handleSave} disabled={saving} className="w-full mt-2">
             {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
             Salvar Alterações
