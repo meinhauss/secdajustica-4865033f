@@ -139,6 +139,7 @@ export default function LoginPage() {
             transition={{ duration: 0.3 }}>
             
             {activeTab === "inicio" && <TabInicio onNavigate={setActiveTab} />}
+            {activeTab === "concursos" && <TabConcursos onNavigate={setActiveTab} />}
             {activeTab === "institucional" && <TabInstitucional />}
             {activeTab === "servicos" && <TabServicos />}
             {activeTab === "transparencia" && <TabTransparencia />}
