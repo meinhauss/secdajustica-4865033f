@@ -81,11 +81,61 @@ function DelegaciaList({ isDelegado, isInvestigador, onSelectBO, onSelectIP }: {
   const queryClient = useQueryClient();
   const [openBO, setOpenBO] = useState(false);
   const [search, setSearch] = useState("");
-  const [form, setForm] = useState({
-    tipo: "furto", descricao: "", local_fato: "",
-    vitima_nome: "", vitima_id_personagem: "", data_fato: "",
-  });
-  const [lookupResult, setLookupResult] = useState<any>(null);
+  const [form, setForm] = useState({ tipo: "furto", descricao: "", local_fato: "", data_fato: "" });
+
+  // Multiple victims & suspects
+  const [vitimas, setVitimas] = useState<{ nome: string; id_personagem: string }[]>([]);
+  const [suspeitos, setSuspeitos] = useState<{ nome: string; id_personagem: string; observacoes: string }[]>([]);
+  const [newVitima, setNewVitima] = useState({ id_personagem: "", nome: "" });
+  const [newVitimaLookup, setNewVitimaLookup] = useState<any>(null);
+  const [newSuspeito, setNewSuspeito] = useState({ id_personagem: "", nome: "", observacoes: "" });
+  const [newSuspeitoLookup, setNewSuspeitoLookup] = useState<any>(null);
+
+  const lookupProfile = async (idP: string) => {
+    if (!idP) return null;
+    const { data } = await supabase.from("profiles").select("nome_completo, id_personagem").eq("id_personagem", idP).maybeSingle();
+    return data;
+  };
+
+  const handleVitimaIdChange = async (idP: string) => {
+    setNewVitima((v) => ({ ...v, id_personagem: idP }));
+    setNewVitimaLookup(null);
+    const data = await lookupProfile(idP);
+    if (data) {
+      setNewVitimaLookup(data);
+      setNewVitima((v) => ({ ...v, nome: data.nome_completo }));
+    }
+  };
+
+  const handleSuspeitoIdChange = async (idP: string) => {
+    setNewSuspeito((s) => ({ ...s, id_personagem: idP }));
+    setNewSuspeitoLookup(null);
+    const data = await lookupProfile(idP);
+    if (data) {
+      setNewSuspeitoLookup(data);
+      setNewSuspeito((s) => ({ ...s, nome: data.nome_completo }));
+    }
+  };
+
+  const addVitima = () => {
+    if (!newVitima.nome) { toast.error("Informe o nome da vítima."); return; }
+    setVitimas((v) => [...v, { ...newVitima }]);
+    setNewVitima({ id_personagem: "", nome: "" });
+    setNewVitimaLookup(null);
+  };
+
+  const fillSelfVitima = () => {
+    if (profile) {
+      setVitimas((v) => [...v, { nome: profile.nome_completo, id_personagem: profile.id_personagem || "" }]);
+    }
+  };
+
+  const addSuspeito = () => {
+    if (!newSuspeito.nome) { toast.error("Informe o nome do suspeito."); return; }
+    setSuspeitos((s) => [...s, { ...newSuspeito }]);
+    setNewSuspeito({ id_personagem: "", nome: "", observacoes: "" });
+    setNewSuspeitoLookup(null);
+  };
 
   const { data: bos } = useQuery({
     queryKey: ["boletins"],
@@ -106,42 +156,36 @@ function DelegaciaList({ isDelegado, isInvestigador, onSelectBO, onSelectIP }: {
     enabled: isInvestigador,
   });
 
-  const handleIdLookup = async (idP: string) => {
-    setForm((f) => ({ ...f, vitima_id_personagem: idP }));
-    setLookupResult(null);
-    if (!idP) return;
-    const { data } = await supabase.from("profiles").select("nome_completo, id_personagem").eq("id_personagem", idP).maybeSingle();
-    if (data) {
-      setLookupResult(data);
-      setForm((f) => ({ ...f, vitima_nome: data.nome_completo }));
-    }
-  };
-
-  const fillSelf = () => {
-    if (profile) {
-      setForm((f) => ({ ...f, vitima_nome: profile.nome_completo, vitima_id_personagem: profile.id_personagem || "" }));
-      setLookupResult({ nome_completo: profile.nome_completo, id_personagem: profile.id_personagem });
-    }
-  };
-
   const createBO = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("boletins_ocorrencia").insert({
+      if (vitimas.length === 0) throw new Error("Adicione pelo menos uma vítima.");
+      const vitimaDisplay = vitimas.map((v) => v.id_personagem ? `${v.nome} (ID: ${v.id_personagem})` : v.nome).join(", ");
+      const { data: boData, error } = await supabase.from("boletins_ocorrencia").insert({
         numero: "",
         tipo: form.tipo,
         descricao: form.descricao,
         local_fato: form.local_fato,
-        vitima_nome: form.vitima_id_personagem ? `${form.vitima_nome} (ID: ${form.vitima_id_personagem})` : form.vitima_nome,
+        vitima_nome: vitimaDisplay,
         vitima_id: user?.id,
         data_fato: form.data_fato ? new Date(form.data_fato).toISOString() : new Date().toISOString(),
-      });
+      }).select("id").single();
       if (error) throw error;
+
+      // Insert envolvidos
+      const envolvidos = [
+        ...vitimas.map((v) => ({ bo_id: boData.id, nome: v.nome, id_personagem: v.id_personagem || null, tipo: "vitima" as const })),
+        ...suspeitos.map((s) => ({ bo_id: boData.id, nome: s.nome, id_personagem: s.id_personagem || null, tipo: "suspeito" as const, observacoes: s.observacoes || null })),
+      ];
+      if (envolvidos.length > 0) {
+        const { error: envErr } = await supabase.from("envolvidos_bo").insert(envolvidos);
+        if (envErr) throw envErr;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["boletins"] });
       setOpenBO(false);
-      setForm({ tipo: "furto", descricao: "", local_fato: "", vitima_nome: "", vitima_id_personagem: "", data_fato: "" });
-      setLookupResult(null);
+      setForm({ tipo: "furto", descricao: "", local_fato: "", data_fato: "" });
+      setVitimas([]); setSuspeitos([]);
       toast.success("Boletim de Ocorrência registrado com sucesso!");
     },
     onError: (err: any) => toast.error(err.message),
@@ -158,7 +202,6 @@ function DelegaciaList({ isDelegado, isInvestigador, onSelectBO, onSelectIP }: {
     ip.descricao?.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Stats
   const boStats = {
     total: bos?.length || 0,
     pendentes: bos?.filter((b) => b.status === "registrado").length || 0,
@@ -185,30 +228,65 @@ function DelegaciaList({ isDelegado, isInvestigador, onSelectBO, onSelectIP }: {
           </DialogTrigger>
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle className="font-display">Registrar Boletim de Ocorrência</DialogTitle></DialogHeader>
-            <form onSubmit={(e) => { e.preventDefault(); if (!form.vitima_id_personagem) { toast.error("Informe o ID do personagem da vítima."); return; } createBO.mutate(); }} className="space-y-4 mt-4">
+            <form onSubmit={(e) => { e.preventDefault(); createBO.mutate(); }} className="space-y-4 mt-4">
               <Select value={form.tipo} onValueChange={(v) => setForm({ ...form, tipo: v })}>
                 <SelectTrigger className="rounded-xl"><SelectValue placeholder="Tipo de Ocorrência" /></SelectTrigger>
                 <SelectContent>
                   {BO_TIPOS.map((t) => <SelectItem key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1).replace("_", " ")}</SelectItem>)}
                 </SelectContent>
               </Select>
+
+              {/* VÍTIMAS */}
               <div className="space-y-2">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-foreground uppercase tracking-wider">Vítimas</label>
+                  <Button type="button" variant="ghost" size="sm" className="text-xs h-7" onClick={fillSelfVitima}>Eu sou a vítima</Button>
+                </div>
+                {vitimas.map((v, i) => (
+                  <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gold/5 border border-gold/20 text-xs">
+                    <User className="h-3 w-3 text-gold-dark flex-shrink-0" />
+                    <span className="text-foreground font-medium flex-1">{v.nome} {v.id_personagem && <span className="text-muted-foreground">(ID: {v.id_personagem})</span>}</span>
+                    <button type="button" onClick={() => setVitimas((vs) => vs.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-destructive"><X className="h-3 w-3" /></button>
+                  </div>
+                ))}
+                <div className="flex gap-2">
                   <div className="flex-1 relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input placeholder="ID do Personagem da Vítima" value={form.vitima_id_personagem} onChange={(e) => handleIdLookup(e.target.value)} required className="rounded-xl pl-10" />
+                    <Input placeholder="ID do Personagem" value={newVitima.id_personagem} onChange={(e) => handleVitimaIdChange(e.target.value)} className="rounded-xl pl-10 h-9 text-xs" />
                   </div>
-                  <Button type="button" variant="outline" size="sm" className="rounded-xl text-xs whitespace-nowrap" onClick={fillSelf}>Eu sou a vítima</Button>
+                  <Input placeholder="Nome" value={newVitima.nome} onChange={(e) => setNewVitima((v) => ({ ...v, nome: e.target.value }))} className="rounded-xl h-9 text-xs flex-1" readOnly={!!newVitimaLookup} />
+                  <Button type="button" variant="outline" size="sm" className="rounded-xl h-9" onClick={addVitima}><Plus className="h-3 w-3" /></Button>
                 </div>
-                {lookupResult && (
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 text-xs">
-                    <User className="h-3 w-3 text-green-600" />
-                    <span className="text-green-800 dark:text-green-300 font-medium">{lookupResult.nome_completo}</span>
-                  </div>
+                {newVitimaLookup && (
+                  <p className="text-[10px] text-green-600 px-1">✓ {newVitimaLookup.nome_completo}</p>
                 )}
-                {form.vitima_id_personagem && !lookupResult && <p className="text-xs text-destructive px-1">ID não encontrado.</p>}
               </div>
-              <Input placeholder="Nome da Vítima" value={form.vitima_nome} onChange={(e) => setForm({ ...form, vitima_nome: e.target.value })} required className="rounded-xl" readOnly={!!lookupResult} />
+
+              {/* SUSPEITOS */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-foreground uppercase tracking-wider">Suspeitos (opcional)</label>
+                {suspeitos.map((s, i) => (
+                  <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-destructive/5 border border-destructive/20 text-xs">
+                    <AlertTriangle className="h-3 w-3 text-destructive flex-shrink-0" />
+                    <span className="text-foreground font-medium flex-1">{s.nome} {s.id_personagem && <span className="text-muted-foreground">(ID: {s.id_personagem})</span>}</span>
+                    {s.observacoes && <span className="text-muted-foreground">— {s.observacoes}</span>}
+                    <button type="button" onClick={() => setSuspeitos((ss) => ss.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-destructive"><X className="h-3 w-3" /></button>
+                  </div>
+                ))}
+                <div className="flex gap-2">
+                  <div className="flex-1 relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input placeholder="ID do Personagem" value={newSuspeito.id_personagem} onChange={(e) => handleSuspeitoIdChange(e.target.value)} className="rounded-xl pl-10 h-9 text-xs" />
+                  </div>
+                  <Input placeholder="Nome" value={newSuspeito.nome} onChange={(e) => setNewSuspeito((s) => ({ ...s, nome: e.target.value }))} className="rounded-xl h-9 text-xs flex-1" readOnly={!!newSuspeitoLookup} />
+                  <Button type="button" variant="outline" size="sm" className="rounded-xl h-9" onClick={addSuspeito}><Plus className="h-3 w-3" /></Button>
+                </div>
+                <Input placeholder="Observações do suspeito (ex: descrição física)" value={newSuspeito.observacoes} onChange={(e) => setNewSuspeito((s) => ({ ...s, observacoes: e.target.value }))} className="rounded-xl h-9 text-xs" />
+                {newSuspeitoLookup && (
+                  <p className="text-[10px] text-green-600 px-1">✓ {newSuspeitoLookup.nome_completo}</p>
+                )}
+              </div>
+
               <Input type="datetime-local" value={form.data_fato} onChange={(e) => setForm({ ...form, data_fato: e.target.value })} className="rounded-xl" />
               <Input placeholder="Local do Fato" value={form.local_fato} onChange={(e) => setForm({ ...form, local_fato: e.target.value })} className="rounded-xl" />
               <Textarea placeholder="Descreva detalhadamente os fatos ocorridos..." value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} required rows={5} className="rounded-xl" />
