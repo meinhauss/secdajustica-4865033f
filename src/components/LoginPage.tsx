@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Scale, Shield, Gavel, BookOpen, Building2, Users, FileText,
-  Phone, MapPin, Clock, ChevronRight, ExternalLink
-} from "lucide-react";
+  Phone, MapPin, Clock, ChevronRight, ExternalLink } from
+"lucide-react";
 import logoTjsp from "@/assets/logo-tjsp.png";
 import govLogo from "@/assets/gov-logo.png";
 import { toast } from "sonner";
@@ -33,7 +33,7 @@ export default function LoginPage() {
         const { error } = await signUp(email, password, nome, {
           discord,
           id_personagem: idPersonagem,
-          telefone_ingame: telefoneIngame,
+          telefone_ingame: telefoneIngame
         });
         if (error) throw error;
         toast.success("Conta criada com sucesso! Bem-vindo ao sistema.");
@@ -49,13 +49,13 @@ export default function LoginPage() {
     }
   };
 
-  const tabs: { id: Tab; label: string }[] = [
-    { id: "inicio", label: "Início" },
-    { id: "institucional", label: "Institucional" },
-    { id: "servicos", label: "Serviços" },
-    { id: "transparencia", label: "Transparência" },
-    { id: "contato", label: "Contato" },
-  ];
+  const tabs: {id: Tab;label: string;}[] = [
+  { id: "inicio", label: "Início" },
+  { id: "institucional", label: "Institucional" },
+  { id: "servicos", label: "Serviços" },
+  { id: "transparencia", label: "Transparência" },
+  { id: "contato", label: "Contato" }];
+
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -71,8 +71,8 @@ export default function LoginPage() {
           <div className="flex items-center gap-4">
             <button
               onClick={() => setActiveTab("login")}
-              className="flex items-center gap-2 text-[11px] text-gold font-semibold hover:text-gold-light transition-colors"
-            >
+              className="flex items-center gap-2 text-[11px] text-gold font-semibold hover:text-gold-light transition-colors">
+              
               <img src={govLogo} alt="" className="h-4" />
               Entrar com GOV.BR
             </button>
@@ -99,27 +99,27 @@ export default function LoginPage() {
         {/* Navigation Tabs */}
         <div className="max-w-7xl mx-auto px-4">
           <nav className="flex gap-0 overflow-x-auto">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-5 py-3 text-sm font-medium whitespace-nowrap transition-all border-b-2 ${
-                  activeTab === tab.id
-                    ? "border-gold text-gold"
-                    : "border-transparent text-sidebar-foreground/60 hover:text-sidebar-foreground/80 hover:border-sidebar-foreground/30"
-                }`}
-              >
+            {tabs.map((tab) =>
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-5 py-3 text-sm font-medium whitespace-nowrap transition-all border-b-2 ${
+              activeTab === tab.id ?
+              "border-gold text-gold" :
+              "border-transparent text-sidebar-foreground/60 hover:text-sidebar-foreground/80 hover:border-sidebar-foreground/30"}`
+              }>
+              
                 {tab.label}
               </button>
-            ))}
+            )}
             <button
               onClick={() => setActiveTab("login")}
               className={`ml-auto px-5 py-3 text-sm font-semibold whitespace-nowrap transition-all border-b-2 flex items-center gap-2 ${
-                activeTab === "login"
-                  ? "border-gold text-gold"
-                  : "border-transparent text-gold/70 hover:text-gold"
-              }`}
-            >
+              activeTab === "login" ?
+              "border-gold text-gold" :
+              "border-transparent text-gold/70 hover:text-gold"}`
+              }>
+              
               <img src={govLogo} alt="" className="h-4" />
               Acesso ao Sistema
             </button>
@@ -135,33 +135,33 @@ export default function LoginPage() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.3 }}
-          >
+            transition={{ duration: 0.3 }}>
+            
             {activeTab === "inicio" && <TabInicio onNavigate={setActiveTab} />}
             {activeTab === "institucional" && <TabInstitucional />}
             {activeTab === "servicos" && <TabServicos />}
             {activeTab === "transparencia" && <TabTransparencia />}
             {activeTab === "contato" && <TabContato />}
-            {activeTab === "login" && (
-              <TabLogin
-                isSignUp={isSignUp}
-                setIsSignUp={setIsSignUp}
-                email={email}
-                setEmail={setEmail}
-                password={password}
-                setPassword={setPassword}
-                nome={nome}
-                setNome={setNome}
-                discord={discord}
-                setDiscord={setDiscord}
-                idPersonagem={idPersonagem}
-                setIdPersonagem={setIdPersonagem}
-                telefoneIngame={telefoneIngame}
-                setTelefoneIngame={setTelefoneIngame}
-                loading={loading}
-                handleSubmit={handleSubmit}
-              />
-            )}
+            {activeTab === "login" &&
+            <TabLogin
+              isSignUp={isSignUp}
+              setIsSignUp={setIsSignUp}
+              email={email}
+              setEmail={setEmail}
+              password={password}
+              setPassword={setPassword}
+              nome={nome}
+              setNome={setNome}
+              discord={discord}
+              setDiscord={setDiscord}
+              idPersonagem={idPersonagem}
+              setIdPersonagem={setIdPersonagem}
+              telefoneIngame={telefoneIngame}
+              setTelefoneIngame={setTelefoneIngame}
+              loading={loading}
+              handleSubmit={handleSubmit} />
+
+            }
           </motion.div>
         </AnimatePresence>
       </main>
@@ -174,21 +174,21 @@ export default function LoginPage() {
           <p>Este sistema é destinado exclusivamente para uso em Roleplay (RP).</p>
         </div>
       </footer>
-    </div>
-  );
+    </div>);
+
 }
 
 /* ─── Tab Components ─── */
 
-function TabInicio({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
+function TabInicio({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
   const cards = [
-    { icon: FileText, title: "Consulta Processual", desc: "Acompanhe processos judiciais em andamento na Comarca.", action: "Consultar" },
-    { icon: Shield, title: "Delegacia Virtual", desc: "Registre Boletins de Ocorrência de forma online e rápida.", action: "Acessar" },
-    { icon: Scale, title: "Ministério Público", desc: "Portal do Ministério Público para denúncias e pareceres.", action: "Acessar" },
-    { icon: Gavel, title: "Vara Criminal", desc: "Informações sobre processos criminais e audiências.", action: "Consultar" },
-    { icon: Users, title: "Portal da OAB", desc: "Cadastro de advogados, carteira digital e honorários.", action: "Acessar" },
-    { icon: BookOpen, title: "Jurisprudência", desc: "Banco de decisões judiciais da Comarca de São Paulo.", action: "Pesquisar" },
-  ];
+  { icon: FileText, title: "Consulta Processual", desc: "Acompanhe processos judiciais em andamento na Comarca.", action: "Consultar" },
+  { icon: Shield, title: "Delegacia Virtual", desc: "Registre Boletins de Ocorrência de forma online e rápida.", action: "Acessar" },
+  { icon: Scale, title: "Ministério Público", desc: "Portal do Ministério Público para denúncias e pareceres.", action: "Acessar" },
+  { icon: Gavel, title: "Vara Criminal", desc: "Informações sobre processos criminais e audiências.", action: "Consultar" },
+  { icon: Users, title: "Portal da OAB", desc: "Cadastro de advogados, carteira digital e honorários.", action: "Acessar" },
+  { icon: BookOpen, title: "Jurisprudência", desc: "Banco de decisões judiciais da Comarca de São Paulo.", action: "Pesquisar" }];
+
 
   return (
     <div>
@@ -198,16 +198,16 @@ function TabInicio({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="font-display text-3xl lg:text-5xl font-bold text-gold-light mb-4"
-          >
+            className="font-display text-3xl lg:text-5xl font-bold text-gold-light mb-4">
+            
             Justiça ao alcance de todos
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-sidebar-foreground/60 max-w-2xl mx-auto mb-8"
-          >
+            className="text-sidebar-foreground/60 max-w-2xl mx-auto mb-8">
+            
             O Portal do Poder Judiciário da Comarca de São Paulo oferece serviços digitais 
             integrados para cidadãos, advogados e servidores da justiça.
           </motion.p>
@@ -215,20 +215,20 @@ function TabInicio({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="flex flex-wrap justify-center gap-3"
-          >
+            className="flex flex-wrap justify-center gap-3">
+            
             <Button
               onClick={() => onNavigate("login")}
-              className="rounded-xl h-12 px-8 bg-gold hover:bg-gold-light text-institutional-dark font-semibold"
-            >
+              className="rounded-xl h-12 px-8 bg-gold hover:bg-gold-light text-institutional-dark font-semibold">
+              
               Acessar o Sistema
               <ChevronRight className="ml-1 h-4 w-4" />
             </Button>
             <Button
               onClick={() => onNavigate("servicos")}
               variant="outline"
-              className="rounded-xl h-12 px-8 border-sidebar-foreground/20 text-sidebar-foreground/80 hover:bg-sidebar-accent/30"
-            >
+              className="rounded-xl h-12 px-8 border-sidebar-foreground/20 text-sidebar-foreground/80 hover:bg-sidebar-accent/30">
+              
               Ver Serviços
             </Button>
           </motion.div>
@@ -241,14 +241,14 @@ function TabInicio({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
           Serviços em Destaque
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {cards.map((card, i) => (
-            <motion.div
-              key={card.title}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 + i * 0.05 }}
-              className="bg-card rounded-xl p-6 border border-border shadow-institutional hover:shadow-gold/10 transition-all group cursor-pointer"
-            >
+          {cards.map((card, i) =>
+          <motion.div
+            key={card.title}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 + i * 0.05 }}
+            className="bg-card rounded-xl p-6 border border-border shadow-institutional hover:shadow-gold/10 transition-all group cursor-pointer">
+            
               <card.icon className="h-8 w-8 text-institutional mb-3" />
               <h4 className="font-display text-base font-semibold text-foreground mb-1">{card.title}</h4>
               <p className="text-sm text-muted-foreground mb-4">{card.desc}</p>
@@ -256,7 +256,7 @@ function TabInicio({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
                 {card.action} <ChevronRight className="h-3 w-3" />
               </span>
             </motion.div>
-          ))}
+          )}
         </div>
       </div>
 
@@ -266,50 +266,50 @@ function TabInicio({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
           <h3 className="font-display text-xl font-semibold text-foreground mb-6">Últimas Notícias</h3>
           <div className="space-y-3">
             {[
-              { date: "17/03/2026", title: "Sistema Judiciário Eletrônico entra em operação na Comarca" },
-              { date: "15/03/2026", title: "Novas varas judiciais são criadas para atender demanda crescente" },
-              { date: "12/03/2026", title: "Delegacia Virtual permite registro de B.O. online 24 horas" },
-            ].map((news) => (
-              <div key={news.title} className="bg-card rounded-lg p-4 border border-border flex items-center gap-4">
+            { date: "17/03/2026", title: "Sistema Judiciário Eletrônico entra em operação na Comarca" },
+            { date: "15/03/2026", title: "Novas varas judiciais são criadas para atender demanda crescente" },
+            { date: "12/03/2026", title: "Delegacia Virtual permite registro de B.O. online 24 horas" }].
+            map((news) =>
+            <div key={news.title} className="bg-card rounded-lg p-4 border border-border flex items-center gap-4">
                 <span className="text-xs text-muted-foreground font-mono whitespace-nowrap">{news.date}</span>
                 <p className="text-sm text-foreground font-medium">{news.title}</p>
                 <ExternalLink className="h-4 w-4 text-muted-foreground ml-auto flex-shrink-0" />
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>);
+
 }
 
 function TabInstitucional() {
   const organs = [
-    {
-      icon: Gavel,
-      name: "Tribunal de Justiça",
-      desc: "Órgão máximo do Poder Judiciário estadual, responsável pela administração da justiça e julgamento de recursos em segunda instância.",
-      competencias: ["Julgar recursos cíveis e criminais", "Administrar a justiça estadual", "Nomear magistrados", "Supervisionar comarcas"],
-    },
-    {
-      icon: Scale,
-      name: "Ministério Público",
-      desc: "Instituição essencial à função jurisdicional do Estado, responsável pela defesa da ordem jurídica e dos interesses sociais.",
-      competencias: ["Oferecer denúncias criminais", "Fiscalizar o cumprimento da lei", "Defender interesses coletivos", "Expedir recomendações"],
-    },
-    {
-      icon: Shield,
-      name: "Polícia Civil",
-      desc: "Órgão responsável pela investigação criminal, apuração de infrações penais e manutenção da ordem pública.",
-      competencias: ["Investigar crimes", "Registrar Boletins de Ocorrência", "Conduzir inquéritos policiais", "Remeter inquéritos ao MP"],
-    },
-    {
-      icon: Building2,
-      name: "Ordem dos Advogados (OAB)",
-      desc: "Entidade responsável pela regulamentação da advocacia, defesa das prerrogativas profissionais e fiscalização ética.",
-      competencias: ["Cadastrar advogados", "Emitir carteiras profissionais", "Fiscalizar a advocacia", "Definir tabela de honorários"],
-    },
-  ];
+  {
+    icon: Gavel,
+    name: "Tribunal de Justiça",
+    desc: "Órgão máximo do Poder Judiciário estadual, responsável pela administração da justiça e julgamento de recursos em segunda instância.",
+    competencias: ["Julgar recursos cíveis e criminais", "Administrar a justiça estadual", "Nomear magistrados", "Supervisionar comarcas"]
+  },
+  {
+    icon: Scale,
+    name: "Ministério Público",
+    desc: "Instituição essencial à função jurisdicional do Estado, responsável pela defesa da ordem jurídica e dos interesses sociais.",
+    competencias: ["Oferecer denúncias criminais", "Fiscalizar o cumprimento da lei", "Defender interesses coletivos", "Expedir recomendações"]
+  },
+  {
+    icon: Shield,
+    name: "Polícia Civil",
+    desc: "Órgão responsável pela investigação criminal, apuração de infrações penais e manutenção da ordem pública.",
+    competencias: ["Investigar crimes", "Registrar Boletins de Ocorrência", "Conduzir inquéritos policiais", "Remeter inquéritos ao MP"]
+  },
+  {
+    icon: Building2,
+    name: "Ordem dos Advogados (OAB)",
+    desc: "Entidade responsável pela regulamentação da advocacia, defesa das prerrogativas profissionais e fiscalização ética.",
+    competencias: ["Cadastrar advogados", "Emitir carteiras profissionais", "Fiscalizar a advocacia", "Definir tabela de honorários"]
+  }];
+
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
@@ -317,14 +317,14 @@ function TabInstitucional() {
       <p className="text-muted-foreground mb-8">Conheça os órgãos que compõem o sistema de justiça da Comarca.</p>
 
       <div className="space-y-6">
-        {organs.map((org, i) => (
-          <motion.div
-            key={org.name}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.1 }}
-            className="bg-card rounded-xl p-6 border border-border shadow-institutional"
-          >
+        {organs.map((org, i) =>
+        <motion.div
+          key={org.name}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: i * 0.1 }}
+          className="bg-card rounded-xl p-6 border border-border shadow-institutional">
+          
             <div className="flex items-start gap-4">
               <div className="p-3 rounded-xl bg-institutional/10 flex-shrink-0">
                 <org.icon className="h-6 w-6 text-institutional" />
@@ -333,31 +333,31 @@ function TabInstitucional() {
                 <h3 className="font-display text-lg font-semibold text-foreground mb-1">{org.name}</h3>
                 <p className="text-sm text-muted-foreground mb-4">{org.desc}</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {org.competencias.map((c) => (
-                    <div key={c} className="flex items-center gap-2 text-xs text-foreground">
+                  {org.competencias.map((c) =>
+                <div key={c} className="flex items-center gap-2 text-xs text-foreground">
                       <div className="w-1.5 h-1.5 rounded-full bg-gold flex-shrink-0" />
                       {c}
                     </div>
-                  ))}
+                )}
                 </div>
               </div>
             </div>
           </motion.div>
-        ))}
+        )}
       </div>
-    </div>
-  );
+    </div>);
+
 }
 
 function TabServicos() {
   const servicos = [
-    { title: "Consulta Processual", desc: "Pesquise processos por número, nome das partes ou assunto.", icon: FileText },
-    { title: "Registro de B.O.", desc: "Registre Boletim de Ocorrência online pela Delegacia Virtual.", icon: Shield },
-    { title: "Peticionamento Eletrônico", desc: "Protocole petições e documentos diretamente no sistema.", icon: BookOpen },
-    { title: "Agendamento de Audiências", desc: "Consulte e agende audiências junto às varas competentes.", icon: Clock },
-    { title: "Emissão de Certidões", desc: "Solicite certidões negativas e de antecedentes criminais.", icon: FileText },
-    { title: "Cadastro OAB", desc: "Advogados podem se cadastrar e obter carteira digital.", icon: Users },
-  ];
+  { title: "Consulta Processual", desc: "Pesquise processos por número, nome das partes ou assunto.", icon: FileText },
+  { title: "Registro de B.O.", desc: "Registre Boletim de Ocorrência online pela Delegacia Virtual.", icon: Shield },
+  { title: "Peticionamento Eletrônico", desc: "Protocole petições e documentos diretamente no sistema.", icon: BookOpen },
+  { title: "Agendamento de Audiências", desc: "Consulte e agende audiências junto às varas competentes.", icon: Clock },
+  { title: "Emissão de Certidões", desc: "Solicite certidões negativas e de antecedentes criminais.", icon: FileText },
+  { title: "Cadastro OAB", desc: "Advogados podem se cadastrar e obter carteira digital.", icon: Users }];
+
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
@@ -365,22 +365,22 @@ function TabServicos() {
       <p className="text-muted-foreground mb-8">Acesse os serviços digitais do Poder Judiciário.</p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {servicos.map((s, i) => (
-          <motion.div
-            key={s.title}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 }}
-            className="bg-card rounded-xl p-5 border border-border shadow-institutional"
-          >
+        {servicos.map((s, i) =>
+        <motion.div
+          key={s.title}
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: i * 0.05 }}
+          className="bg-card rounded-xl p-5 border border-border shadow-institutional">
+          
             <s.icon className="h-6 w-6 text-gold mb-3" />
             <h4 className="font-display text-sm font-semibold text-foreground mb-1">{s.title}</h4>
             <p className="text-xs text-muted-foreground">{s.desc}</p>
           </motion.div>
-        ))}
+        )}
       </div>
-    </div>
-  );
+    </div>);
+
 }
 
 function TabTransparencia() {
@@ -391,25 +391,25 @@ function TabTransparencia() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {[
-          { title: "Estatísticas Processuais", desc: "Dados sobre volume de processos, produtividade e tempo médio de julgamento." },
-          { title: "Composição do Tribunal", desc: "Lista de magistrados, promotores e servidores da Comarca." },
-          { title: "Relatórios de Gestão", desc: "Relatórios anuais de atividades e gestão administrativa." },
-          { title: "Legislação Aplicável", desc: "Compilação das normas e regulamentos vigentes na Comarca." },
-        ].map((item, i) => (
-          <motion.div
-            key={item.title}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: i * 0.1 }}
-            className="bg-card rounded-xl p-6 border border-border shadow-institutional"
-          >
+        { title: "Estatísticas Processuais", desc: "Dados sobre volume de processos, produtividade e tempo médio de julgamento." },
+        { title: "Composição do Tribunal", desc: "Lista de magistrados, promotores e servidores da Comarca." },
+        { title: "Relatórios de Gestão", desc: "Relatórios anuais de atividades e gestão administrativa." },
+        { title: "Legislação Aplicável", desc: "Compilação das normas e regulamentos vigentes na Comarca." }].
+        map((item, i) =>
+        <motion.div
+          key={item.title}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: i * 0.1 }}
+          className="bg-card rounded-xl p-6 border border-border shadow-institutional">
+          
             <h4 className="font-display text-base font-semibold text-foreground mb-2">{item.title}</h4>
             <p className="text-sm text-muted-foreground">{item.desc}</p>
           </motion.div>
-        ))}
+        )}
       </div>
-    </div>
-  );
+    </div>);
+
 }
 
 function TabContato() {
@@ -420,19 +420,19 @@ function TabContato() {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { icon: MapPin, title: "Endereço", info: "Fórum Central — Praça da Justiça, s/n — Centro, São Paulo - RP" },
-          { icon: Phone, title: "Telefone", info: "(11) 0000-0000 — Atendimento de 8h às 18h" },
-          { icon: Clock, title: "Horário", info: "Segunda a Sexta — 08:00 às 18:00\nPlantão Judiciário 24h" },
-        ].map((c) => (
-          <div key={c.title} className="bg-card rounded-xl p-6 border border-border shadow-institutional">
+        { icon: MapPin, title: "Endereço", info: "Fórum Central — Praça da Justiça, s/n — Centro, São Paulo - RP" },
+        { icon: Phone, title: "Telefone", info: "(11) 0000-0000 — Atendimento de 8h às 18h" },
+        { icon: Clock, title: "Horário", info: "Segunda a Sexta — 08:00 às 18:00\nPlantão Judiciário 24h" }].
+        map((c) =>
+        <div key={c.title} className="bg-card rounded-xl p-6 border border-border shadow-institutional">
             <c.icon className="h-6 w-6 text-gold mb-3" />
             <h4 className="font-display text-sm font-semibold text-foreground mb-2">{c.title}</h4>
             <p className="text-xs text-muted-foreground whitespace-pre-line">{c.info}</p>
           </div>
-        ))}
+        )}
       </div>
-    </div>
-  );
+    </div>);
+
 }
 
 /* ─── Login Tab ─── */
@@ -460,7 +460,7 @@ function TabLogin(props: LoginProps) {
   const {
     isSignUp, setIsSignUp, email, setEmail, password, setPassword,
     nome, setNome, discord, setDiscord, idPersonagem, setIdPersonagem,
-    telefoneIngame, setTelefoneIngame, loading, handleSubmit,
+    telefoneIngame, setTelefoneIngame, loading, handleSubmit
   } = props;
 
   return (
@@ -479,18 +479,18 @@ function TabLogin(props: LoginProps) {
             {isSignUp ? "Criar Conta GOV" : "Acesso GOV.BR"}
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            {isSignUp
-              ? "Registre-se no sistema do Poder Judiciário."
-              : "Faça login com sua conta do sistema judiciário."}
+            {isSignUp ?
+            "Registre-se no sistema do Poder Judiciário." :
+            "Faça login com sua conta do sistema judiciário."}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {isSignUp && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="space-y-3">
+          {isSignUp &&
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="space-y-3">
               <div>
                 <label className="text-[11px] uppercase tracking-widest font-semibold text-muted-foreground mb-1 block">
-                  Nome Completo
+                  Nome Completo (IN GAME)  
                 </label>
                 <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Seu nome completo" required className="rounded-lg h-11" />
               </div>
@@ -515,17 +515,17 @@ function TabLogin(props: LoginProps) {
                 </div>
               </div>
             </motion.div>
-          )}
+          }
 
           <div>
             <label className="text-[11px] uppercase tracking-widest font-semibold text-muted-foreground mb-1 block">
-              E-mail
+              E-mail (real)        
             </label>
             <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com" required className="rounded-lg h-11" />
           </div>
           <div>
             <label className="text-[11px] uppercase tracking-widest font-semibold text-muted-foreground mb-1 block">
-              Senha
+              Senha para acesso do sistema    
             </label>
             <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} className="rounded-lg h-11" />
           </div>
@@ -533,8 +533,8 @@ function TabLogin(props: LoginProps) {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full h-12 rounded-lg bg-institutional hover:bg-institutional-light text-gold-light font-semibold text-sm tracking-wide transition-all flex items-center justify-center gap-2"
-          >
+            className="w-full h-12 rounded-lg bg-institutional hover:bg-institutional-light text-gold-light font-semibold text-sm tracking-wide transition-all flex items-center justify-center gap-2">
+            
             <img src={govLogo} alt="" className="h-5" />
             {loading ? "Processando..." : isSignUp ? "Registrar com GOV.BR" : "Entrar com GOV.BR"}
           </Button>
@@ -543,8 +543,8 @@ function TabLogin(props: LoginProps) {
         <div className="mt-4 text-center">
           <button
             onClick={() => setIsSignUp(!isSignUp)}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            
             {isSignUp ? "Já possui conta? Faça login" : "Não possui conta? Registre-se"}
           </button>
         </div>
@@ -556,6 +556,6 @@ function TabLogin(props: LoginProps) {
           </p>
         </div>
       </div>
-    </div>
-  );
+    </div>);
+
 }
