@@ -1,0 +1,161 @@
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  Scale, Shield, Gavel, BookOpen, FileText, Users, BarChart3,
+  LogOut, Menu, X, Home, Briefcase, AlertTriangle, Award, Calendar
+} from "lucide-react";
+import logoTjsp from "@/assets/logo-tjsp.png";
+
+interface DashboardLayoutProps {
+  children: React.ReactNode;
+  activeSection: string;
+  onSectionChange: (section: string) => void;
+}
+
+const menuItems = [
+  { id: "dashboard", label: "Painel Geral", icon: Home, roles: ["admin", "magistrado", "ministerio_publico", "delegado", "oficial_justica", "advogado", "cidadao"] },
+  { id: "processos", label: "Processos", icon: FileText, roles: ["admin", "magistrado", "ministerio_publico", "advogado", "cidadao"] },
+  { id: "magistrado", label: "Portal Magistrado", icon: Gavel, roles: ["admin", "magistrado"] },
+  { id: "mp", label: "Ministério Público", icon: Scale, roles: ["admin", "ministerio_publico"] },
+  { id: "delegacia", label: "Delegacia Virtual", icon: Shield, roles: ["admin", "delegado", "cidadao"] },
+  { id: "oab", label: "Portal OAB", icon: Briefcase, roles: ["admin", "advogado"] },
+  { id: "audiencias", label: "Audiências", icon: Calendar, roles: ["admin", "magistrado", "ministerio_publico", "advogado"] },
+  { id: "consulta", label: "Consulta Pública", icon: BookOpen, roles: ["admin", "magistrado", "ministerio_publico", "delegado", "oficial_justica", "advogado", "cidadao"] },
+  { id: "usuarios", label: "Usuários", icon: Users, roles: ["admin"] },
+  { id: "estatisticas", label: "Estatísticas", icon: BarChart3, roles: ["admin", "magistrado"] },
+];
+
+export default function DashboardLayout({ children, activeSection, onSectionChange }: DashboardLayoutProps) {
+  const { signOut, profile, roles } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const filteredItems = menuItems.filter((item) =>
+    roles.length === 0 || item.roles.some((r) => roles.includes(r))
+  );
+
+  const getRoleLabel = (role: string) => {
+    const labels: Record<string, string> = {
+      admin: "Administrador",
+      magistrado: "Magistrado(a)",
+      ministerio_publico: "Promotor(a)",
+      delegado: "Delegado(a)",
+      oficial_justica: "Oficial de Justiça",
+      advogado: "Advogado(a)",
+      cidadao: "Cidadão",
+    };
+    return labels[role] || role;
+  };
+
+  return (
+    <div className="min-h-screen flex bg-background">
+      {/* Mobile overlay */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-40 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Sidebar */}
+      <motion.aside
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-72 gradient-institutional flex flex-col transform transition-transform lg:translate-x-0 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        {/* Logo */}
+        <div className="flex items-center gap-3 p-5 border-b border-sidebar-border">
+          <img src={logoTjsp} alt="TJSP" className="w-10 h-auto" />
+          <div>
+            <h2 className="font-display text-sm font-bold text-gold-light leading-tight">
+              Tribunal de Justiça
+            </h2>
+            <p className="text-[10px] text-sidebar-foreground/50 uppercase tracking-widest">
+              Comarca SP — Cidade RP
+            </p>
+          </div>
+          <button onClick={() => setSidebarOpen(false)} className="lg:hidden ml-auto text-sidebar-foreground/60">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* User info */}
+        <div className="p-4 border-b border-sidebar-border">
+          <p className="text-sm font-medium text-sidebar-foreground truncate">
+            {profile?.nome_completo || "Usuário"}
+          </p>
+          <p className="text-xs text-gold/70 mt-0.5">
+            {roles.map(getRoleLabel).join(", ") || "Cidadão"}
+          </p>
+        </div>
+
+        {/* Nav */}
+        <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
+          {filteredItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => {
+                onSectionChange(item.id);
+                setSidebarOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${
+                activeSection === item.id
+                  ? "bg-sidebar-accent text-gold font-medium"
+                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+              }`}
+            >
+              <item.icon className="h-4 w-4 flex-shrink-0" />
+              {item.label}
+            </button>
+          ))}
+        </nav>
+
+        {/* Logout */}
+        <div className="p-3 border-t border-sidebar-border">
+          <button
+            onClick={signOut}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground/60 hover:text-destructive hover:bg-sidebar-accent/50 transition-all"
+          >
+            <LogOut className="h-4 w-4" />
+            Sair do Sistema
+          </button>
+        </div>
+      </motion.aside>
+
+      {/* Main */}
+      <div className="flex-1 flex flex-col min-h-screen">
+        {/* Top bar */}
+        <header className="h-14 bg-card border-b border-border flex items-center px-4 gap-4 shadow-institutional">
+          <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-foreground">
+            <Menu className="h-5 w-5" />
+          </button>
+          <h1 className="font-display text-lg font-semibold text-foreground">
+            {filteredItems.find((i) => i.id === activeSection)?.label || "Painel"}
+          </h1>
+          <div className="ml-auto flex items-center gap-2">
+            <span className="text-xs text-muted-foreground hidden sm:block">
+              Sistema Judiciário v1.0
+            </span>
+          </div>
+        </header>
+
+        {/* Content */}
+        <main className="flex-1 p-4 lg:p-6 overflow-auto">
+          <motion.div
+            key={activeSection}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {children}
+          </motion.div>
+        </main>
+      </div>
+    </div>
+  );
+}
