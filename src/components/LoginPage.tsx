@@ -142,6 +142,7 @@ export default function LoginPage() {
             {activeTab === "institucional" && <TabInstitucional />}
             {activeTab === "servicos" && <TabServicos />}
             {activeTab === "transparencia" && <TabTransparencia />}
+            {activeTab === "concursos" && <TabConcursos />}
             {activeTab === "contato" && <TabContato />}
             {activeTab === "login" &&
             <TabLogin
