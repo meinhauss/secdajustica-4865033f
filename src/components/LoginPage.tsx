@@ -23,7 +23,11 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (isSignUp) {
-        const { error } = await signUp(email, password, nome);
+        const { error } = await signUp(email, password, nome, {
+          discord,
+          id_personagem: idPersonagem,
+          telefone_ingame: telefoneIngame,
+        });
         if (error) throw error;
         toast.success("Conta criada com sucesso! Bem-vindo ao sistema.");
       } else {
