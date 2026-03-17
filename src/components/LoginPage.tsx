@@ -229,7 +229,7 @@ function TabInicio({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
             <Button
               onClick={() => onNavigate("servicos")}
               variant="outline"
-              className="rounded-xl h-12 px-8 border-sidebar-foreground/20 text-sidebar-foreground/80 hover:bg-sidebar-accent/30">
+              className="rounded-xl h-12 px-8 border-accent text-accent hover:bg-accent/10">
               
               Ver Serviços
             </Button>
