@@ -14,7 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      words: {
+        Row: {
+          created_at: string
+          definition: string | null
+          etymology: string | null
+          frequency: number | null
+          id: string
+          part_of_speech: string | null
+          sentiment: string | null
+          word: string
+        }
+        Insert: {
+          created_at?: string
+          definition?: string | null
+          etymology?: string | null
+          frequency?: number | null
+          id?: string
+          part_of_speech?: string | null
+          sentiment?: string | null
+          word: string
+        }
+        Update: {
+          created_at?: string
+          definition?: string | null
+          etymology?: string | null
+          frequency?: number | null
+          id?: string
+          part_of_speech?: string | null
+          sentiment?: string | null
+          word?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
