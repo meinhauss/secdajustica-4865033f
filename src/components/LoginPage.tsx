@@ -85,13 +85,13 @@ export default function LoginPage() {
       <header className="bg-institutional border-b border-sidebar-border">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <img src={logoTjsp} alt="TJSP" className="h-14 drop-shadow" />
+            <img src={logoTjsp} alt="SJC-SP" className="h-14 rounded-lg drop-shadow" />
             <div>
-              <h1 className="font-display text-xl lg:text-2xl font-bold text-gold-light leading-tight">
-                Tribunal de Justiça
+              <h1 className="font-display text-xl lg:text-2xl font-bold text-sidebar-foreground leading-tight">
+                Secretaria da Justiça e Cidadania
               </h1>
               <p className="text-[11px] text-sidebar-foreground/50 uppercase tracking-[0.2em]">
-                Comarca de São Paulo — Cidade RP
+                Estado de São Paulo — Cidade RP
               </p>
             </div>
           </div>
@@ -171,7 +171,7 @@ export default function LoginPage() {
       {/* Footer */}
       <footer className="bg-institutional-dark text-sidebar-foreground/50 text-[11px] py-6">
         <div className="max-w-7xl mx-auto px-4 text-center space-y-2">
-          <p className="text-gold/60 font-medium">Poder Judiciário — Comarca de São Paulo — Cidade RP</p>
+          <p className="text-accent/60 font-medium">Secretaria da Justiça e Cidadania — Estado de São Paulo — Cidade RP</p>
           <p>Sistema Integrado de Gestão Jurídica • Todos os direitos reservados</p>
           <p>Este sistema é destinado exclusivamente para uso em Roleplay (RP).</p>
         </div>
@@ -200,9 +200,9 @@ function TabInicio({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="font-display text-3xl lg:text-5xl font-bold text-gold-light mb-4">
+            className="font-display text-3xl lg:text-5xl font-bold text-sidebar-foreground mb-4">
             
-            Justiça ao alcance de todos
+            Justiça e Cidadania para todos
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -210,7 +210,7 @@ function TabInicio({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
             transition={{ delay: 0.1 }}
             className="text-sidebar-foreground/60 max-w-2xl mx-auto mb-8">
             
-            O Portal do Poder Judiciário da Comarca de São Paulo oferece serviços digitais 
+            O Portal da Secretaria da Justiça e Cidadania de São Paulo oferece serviços digitais 
             integrados para cidadãos, advogados e servidores da justiça.
           </motion.p>
           <motion.div

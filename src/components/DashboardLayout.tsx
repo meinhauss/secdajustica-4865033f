@@ -4,7 +4,8 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   Scale, Shield, Gavel, BookOpen, FileText, Users, BarChart3,
   LogOut, Menu, X, Home, Briefcase, AlertTriangle, Award, Calendar, Crown, GraduationCap, Stamp
-} from "lucide-react";
+ } from "lucide-react";
+import logoSjc from "@/assets/logo-tjsp.png";
 
 
 interface DashboardLayoutProps {
@@ -77,15 +78,13 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
       >
         {/* Logo */}
         <div className="flex items-center gap-3 p-5 border-b border-sidebar-border">
-          <div className="w-10 h-10 rounded-lg bg-sidebar-accent flex items-center justify-center">
-            <Gavel className="h-5 w-5 text-gold" />
-          </div>
+          <img src={logoSjc} alt="SJC-SP" className="w-10 h-10 rounded-lg object-contain" />
           <div>
-            <h2 className="font-display text-sm font-bold text-gold-light leading-tight">
-              Tribunal de Justiça
+            <h2 className="font-display text-sm font-bold text-sidebar-foreground leading-tight">
+              Secretaria da Justiça
             </h2>
             <p className="text-[10px] text-sidebar-foreground/50 uppercase tracking-widest">
-              Comarca SP — Cidade RP
+              e Cidadania — SP
             </p>
           </div>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden ml-auto text-sidebar-foreground/60">

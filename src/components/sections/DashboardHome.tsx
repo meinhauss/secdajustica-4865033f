@@ -122,7 +122,7 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
           Bem-vindo, {profile?.nome_completo?.split(" ")[0] || "Usuário"}
         </h2>
         <p className="text-muted-foreground text-sm mt-1">
-          Painel de controle do Sistema Judiciário — Comarca de São Paulo
+          Painel de controle — Secretaria da Justiça e Cidadania — SP
         </p>
       </div>
 
