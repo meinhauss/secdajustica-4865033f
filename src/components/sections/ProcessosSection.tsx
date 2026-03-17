@@ -318,6 +318,7 @@ export default function ProcessosSection() {
                   <p className="text-sm font-medium text-foreground mt-1">{p.assunto}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {p.autor_nome} × {p.reu_nome} — {p.vara}
+                    {p.valor_causa ? ` • ${Number(p.valor_causa).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}` : ""}
                   </p>
                 </div>
                 <Button variant="ghost" size="sm" className="rounded-lg">
