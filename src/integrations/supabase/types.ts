@@ -289,6 +289,10 @@ export type Database = {
         | "oficial_justica"
         | "advogado"
         | "cidadao"
+        | "presidente_tribunal"
+        | "desembargador"
+        | "investigador"
+        | "presidente_oab"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -438,6 +442,10 @@ export const Constants = {
         "oficial_justica",
         "advogado",
         "cidadao",
+        "presidente_tribunal",
+        "desembargador",
+        "investigador",
+        "presidente_oab",
       ],
     },
   },
