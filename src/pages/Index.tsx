@@ -41,6 +41,7 @@ const Index = () => {
       case "mp": return <MPSection />;
       case "audiencias": return <AudienciasSection />;
       case "oab": return <OABSection />;
+      case "cargos": return <CargosSection />;
       case "usuarios": return <UsuariosSection />;
       case "estatisticas": return <EstatisticasSection />;
       default: return <DashboardHome />;

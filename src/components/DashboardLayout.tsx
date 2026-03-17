@@ -38,10 +38,14 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
   const getRoleLabel = (role: string) => {
     const labels: Record<string, string> = {
       admin: "Administrador",
+      presidente_tribunal: "Presidente do Tribunal",
+      desembargador: "Desembargador(a)",
       magistrado: "Magistrado(a)",
       ministerio_publico: "Promotor(a)",
       delegado: "Delegado(a)",
+      investigador: "Investigador(a)",
       oficial_justica: "Oficial de Justiça",
+      presidente_oab: "Presidente da OAB",
       advogado: "Advogado(a)",
       cidadao: "Cidadão",
     };
