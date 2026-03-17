@@ -77,7 +77,7 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
       >
         {/* Logo */}
         <div className="flex items-center gap-3 p-5 border-b border-sidebar-border">
-          <img src={logoTjsp} alt="TJSP" className="w-10 h-auto" />
+          <div>
           <div>
             <h2 className="font-display text-sm font-bold text-gold-light leading-tight">
               Tribunal de Justiça
