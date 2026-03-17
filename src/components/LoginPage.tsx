@@ -249,6 +249,7 @@ function TabInicio({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 + i * 0.05 }}
+            onClick={() => onNavigate(card.tab)}
             className="bg-card rounded-xl p-6 border border-border shadow-institutional hover:shadow-gold/10 transition-all group cursor-pointer">
             
               <card.icon className="h-8 w-8 text-institutional mb-3" />
