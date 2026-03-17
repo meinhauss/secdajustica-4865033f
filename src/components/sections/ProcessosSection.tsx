@@ -11,6 +11,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Plus, FileText, Search, Eye, User } from "lucide-react";
 import { toast } from "sonner";
 
+const formatCurrency = (value: string) => {
+  const digits = value.replace(/\D/g, "");
+  const number = parseInt(digits || "0", 10) / 100;
+  return number.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+};
+
+const parseCurrencyToNumber = (value: string): number | null => {
+  const digits = value.replace(/\D/g, "");
+  if (!digits) return null;
+  return parseInt(digits, 10) / 100;
+};
+
 function useProfileLookup() {
   const [result, setResult] = useState<{ nome_completo: string; id_personagem: string } | null>(null);
 
