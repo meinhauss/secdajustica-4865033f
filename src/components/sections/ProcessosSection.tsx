@@ -11,6 +11,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Plus, FileText, Search, Eye, User } from "lucide-react";
 import { toast } from "sonner";
 
+const formatCurrency = (value: string) => {
+  const digits = value.replace(/\D/g, "");
+  const number = parseInt(digits || "0", 10) / 100;
+  return number.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+};
+
+const parseCurrencyToNumber = (value: string): number | null => {
+  const digits = value.replace(/\D/g, "");
+  if (!digits) return null;
+  return parseInt(digits, 10) / 100;
+};
+
 function useProfileLookup() {
   const [result, setResult] = useState<{ nome_completo: string; id_personagem: string } | null>(null);
 
@@ -88,7 +100,7 @@ export default function ProcessosSection() {
         autor_nome: autorDisplay,
         reu_nome: reuDisplay,
         vara: form.vara,
-        valor_causa: form.valor_causa ? parseFloat(form.valor_causa) : null,
+        valor_causa: parseCurrencyToNumber(form.valor_causa),
       });
       if (error) throw error;
     },
@@ -237,10 +249,12 @@ export default function ProcessosSection() {
                 className="rounded-xl"
               />
               <Input
-                type="number"
                 placeholder="Valor da Causa (R$)"
                 value={form.valor_causa}
-                onChange={(e) => setForm({ ...form, valor_causa: e.target.value })}
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/\D/g, "");
+                  setForm({ ...form, valor_causa: raw ? formatCurrency(raw) : "" });
+                }}
                 className="rounded-xl"
               />
               <Textarea
@@ -304,6 +318,7 @@ export default function ProcessosSection() {
                   <p className="text-sm font-medium text-foreground mt-1">{p.assunto}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {p.autor_nome} × {p.reu_nome} — {p.vara}
+                    {p.valor_causa ? ` • ${Number(p.valor_causa).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}` : ""}
                   </p>
                 </div>
                 <Button variant="ghost" size="sm" className="rounded-lg">
