@@ -13,7 +13,7 @@ import {
   BookOpen, FileText, Users, Clock, Search, Plus, CheckCircle,
   ChevronRight, Award, BarChart3, Megaphone, ArrowLeft, Eye,
   ClipboardList, GraduationCap, Trophy, AlertTriangle, PenTool,
-  UserCheck, Timer, Star
+  UserCheck, Timer, Star, Trash2
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -35,6 +35,15 @@ const CARGOS_JURIDICOS = [
   "Oficial de Justiça", "Analista Judiciário", "Técnico Judiciário", "Escrivão",
   "Investigador", "Perito Criminal", "Assessor Jurídico"
 ];
+
+const CARGOS_MP = ["Promotor de Justiça"];
+const CARGOS_TJ = ["Magistrado", "Delegado de Polícia", "Defensor Público", "Oficial de Justiça", "Analista Judiciário", "Técnico Judiciário", "Escrivão", "Investigador", "Perito Criminal", "Assessor Jurídico"];
+
+const TIPO_QUESTAO_LABELS: Record<string, string> = {
+  objetiva: "Múltipla Escolha (A-D)",
+  certo_errado: "Certo ou Errado",
+  discursiva: "Discursiva",
+};
 
 function StatCard({ label, value, icon: Icon, delay = 0 }: { label: string; value: number; icon: any; delay?: number }) {
   return (
@@ -63,22 +72,27 @@ export default function ConcursosSection() {
   const { roles } = useAuth();
   const [view, setView] = useState<"list" | "detail" | "prova">("list");
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const isAdmin = roles.some((r) => ["admin", "presidente_tribunal"].includes(r));
+
+  // Admin: admin, presidente_tribunal (TJ), ministerio_publico (MP)
+  const isAdmin = roles.some((r) => ["admin", "presidente_tribunal", "ministerio_publico"].includes(r));
+  const isPresidenteTribunal = roles.includes("presidente_tribunal");
+  const isMP = roles.includes("ministerio_publico");
+  const isFullAdmin = roles.includes("admin");
 
   if (view === "detail" && selectedId) {
-    return <ConcursoDetail concursoId={selectedId} onBack={() => { setView("list"); setSelectedId(null); }} isAdmin={isAdmin} />;
+    return <ConcursoDetail concursoId={selectedId} onBack={() => { setView("list"); setSelectedId(null); }} isAdmin={isAdmin} isPresidenteTribunal={isPresidenteTribunal} isMP={isMP} isFullAdmin={isFullAdmin} onStartProva={() => setView("prova")} />;
   }
   if (view === "prova" && selectedId) {
     return <RealizarProva concursoId={selectedId} onBack={() => { setView("detail"); }} />;
   }
 
-  return <ConcursosDashboard isAdmin={isAdmin} onSelect={(id) => { setSelectedId(id); setView("detail"); }} />;
+  return <ConcursosDashboard isAdmin={isAdmin} isPresidenteTribunal={isPresidenteTribunal} isMP={isMP} isFullAdmin={isFullAdmin} onSelect={(id) => { setSelectedId(id); setView("detail"); }} />;
 }
 
 /* ═══════════════════════════════════════════ */
 /*  DASHBOARD                                  */
 /* ═══════════════════════════════════════════ */
-function ConcursosDashboard({ isAdmin, onSelect }: { isAdmin: boolean; onSelect: (id: string) => void }) {
+function ConcursosDashboard({ isAdmin, isPresidenteTribunal, isMP, isFullAdmin, onSelect }: { isAdmin: boolean; isPresidenteTribunal: boolean; isMP: boolean; isFullAdmin: boolean; onSelect: (id: string) => void }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -102,8 +116,11 @@ function ConcursosDashboard({ isAdmin, onSelect }: { isAdmin: boolean; onSelect:
     },
   });
 
+  // Available cargos based on role
+  const availableCargos = isFullAdmin ? CARGOS_JURIDICOS : isMP ? CARGOS_MP : isPresidenteTribunal ? CARGOS_TJ : CARGOS_JURIDICOS;
+
   const [form, setForm] = useState({
-    titulo: "", cargo: "Magistrado", vagas: "1", requisitos: "", conteudo_programatico: "",
+    titulo: "", cargo: availableCargos[0] || "Magistrado", vagas: "1", requisitos: "", conteudo_programatico: "",
     regras_classificacao: "", data_abertura: "", data_encerramento_inscricoes: "", data_prova: "", data_resultado: "",
   });
 
@@ -129,7 +146,7 @@ function ConcursosDashboard({ isAdmin, onSelect }: { isAdmin: boolean; onSelect:
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["concursos"] });
       setOpenConcurso(false);
-      setForm({ titulo: "", cargo: "Magistrado", vagas: "1", requisitos: "", conteudo_programatico: "", regras_classificacao: "", data_abertura: "", data_encerramento_inscricoes: "", data_prova: "", data_resultado: "" });
+      setForm({ titulo: "", cargo: availableCargos[0] || "Magistrado", vagas: "1", requisitos: "", conteudo_programatico: "", regras_classificacao: "", data_abertura: "", data_encerramento_inscricoes: "", data_prova: "", data_resultado: "" });
       toast.success("Concurso criado com sucesso!");
     },
     onError: (err: any) => toast.error(err.message),
@@ -169,7 +186,7 @@ function ConcursosDashboard({ isAdmin, onSelect }: { isAdmin: boolean; onSelect:
                 <div className="grid grid-cols-2 gap-3">
                   <Select value={form.cargo} onValueChange={(v) => setForm({ ...form, cargo: v })}>
                     <SelectTrigger className="rounded-xl"><SelectValue placeholder="Cargo" /></SelectTrigger>
-                    <SelectContent>{CARGOS_JURIDICOS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                    <SelectContent>{availableCargos.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
                   </Select>
                   <Input type="number" placeholder="Vagas" value={form.vagas} onChange={(e) => setForm({ ...form, vagas: e.target.value })} className="rounded-xl" min="1" />
                 </div>
@@ -239,7 +256,7 @@ function ConcursosDashboard({ isAdmin, onSelect }: { isAdmin: boolean; onSelect:
 /* ═══════════════════════════════════════════ */
 /*  CONCURSO DETAIL                            */
 /* ═══════════════════════════════════════════ */
-function ConcursoDetail({ concursoId, onBack, isAdmin }: { concursoId: string; onBack: () => void; isAdmin: boolean }) {
+function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isMP, isFullAdmin, onStartProva }: { concursoId: string; onBack: () => void; isAdmin: boolean; isPresidenteTribunal: boolean; isMP: boolean; isFullAdmin: boolean; onStartProva: () => void }) {
   const { user, profile } = useAuth();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("edital");
@@ -284,6 +301,17 @@ function ConcursoDetail({ concursoId, onBack, isAdmin }: { concursoId: string; o
 
   const myInscricao = inscricoes?.find((i: any) => i.user_id === user?.id);
 
+  // Check if this user can manage THIS concurso
+  const canManage = (() => {
+    if (isFullAdmin) return true;
+    if (!concurso) return false;
+    const cargoMP = CARGOS_MP.includes(concurso.cargo);
+    const cargoTJ = CARGOS_TJ.includes(concurso.cargo);
+    if (isMP && cargoMP) return true;
+    if (isPresidenteTribunal && cargoTJ) return true;
+    return false;
+  })();
+
   // Inscrever-se
   const inscrever = useMutation({
     mutationFn: async () => {
@@ -316,21 +344,47 @@ function ConcursoDetail({ concursoId, onBack, isAdmin }: { concursoId: string; o
     },
   });
 
-  // Add questão
-  const [qForm, setQForm] = useState({ enunciado: "", alternativa_a: "", alternativa_b: "", alternativa_c: "", alternativa_d: "", gabarito: "a", peso: "1" });
+  // Add questão with tipo support
+  const [qForm, setQForm] = useState({
+    tipo: "objetiva" as string,
+    enunciado: "",
+    alternativa_a: "", alternativa_b: "", alternativa_c: "", alternativa_d: "",
+    gabarito: "a",
+    peso: "1",
+  });
+
   const addQuestao = useMutation({
     mutationFn: async () => {
       if (!qForm.enunciado) throw new Error("Enunciado obrigatório.");
       const num = (questoes?.length || 0) + 1;
+
+      let gabarito = qForm.gabarito;
+      let altA = qForm.alternativa_a || null;
+      let altB = qForm.alternativa_b || null;
+      let altC = qForm.alternativa_c || null;
+      let altD = qForm.alternativa_d || null;
+
+      if (qForm.tipo === "certo_errado") {
+        altA = "Certo";
+        altB = "Errado";
+        altC = null;
+        altD = null;
+        // gabarito is already "a" (Certo) or "b" (Errado)
+      } else if (qForm.tipo === "discursiva") {
+        altA = null; altB = null; altC = null; altD = null;
+        gabarito = null as any;
+      }
+
       const { error } = await supabase.from("questoes_concurso").insert({
         concurso_id: concursoId,
         numero: num,
+        tipo: qForm.tipo,
         enunciado: qForm.enunciado,
-        alternativa_a: qForm.alternativa_a || null,
-        alternativa_b: qForm.alternativa_b || null,
-        alternativa_c: qForm.alternativa_c || null,
-        alternativa_d: qForm.alternativa_d || null,
-        gabarito: qForm.gabarito,
+        alternativa_a: altA,
+        alternativa_b: altB,
+        alternativa_c: altC,
+        alternativa_d: altD,
+        gabarito: gabarito,
         peso: parseFloat(qForm.peso) || 1,
       } as any);
       if (error) throw error;
@@ -338,21 +392,36 @@ function ConcursoDetail({ concursoId, onBack, isAdmin }: { concursoId: string; o
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["concurso-questoes", concursoId] });
       setOpenQuestao(false);
-      setQForm({ enunciado: "", alternativa_a: "", alternativa_b: "", alternativa_c: "", alternativa_d: "", gabarito: "a", peso: "1" });
+      setQForm({ tipo: "objetiva", enunciado: "", alternativa_a: "", alternativa_b: "", alternativa_c: "", alternativa_d: "", gabarito: "a", peso: "1" });
       toast.success("Questão adicionada!");
     },
     onError: (err: any) => toast.error(err.message),
   });
 
-  // Corrigir provas (auto-correct objectives)
+  // Delete questão
+  const deleteQuestao = useMutation({
+    mutationFn: async (questaoId: string) => {
+      const { error } = await supabase.from("questoes_concurso").delete().eq("id", questaoId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["concurso-questoes", concursoId] });
+      toast.success("Questão removida!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  // Corrigir provas (auto-correct objectives + certo/errado, skip discursivas)
   const corrigirProvas = useMutation({
     mutationFn: async () => {
       if (!inscricoes?.length || !questoes?.length) throw new Error("Sem inscritos ou questões.");
+      const autoCorrectQuestions = questoes.filter((q: any) => q.tipo !== "discursiva");
+      const totalPeso = autoCorrectQuestions.reduce((sum: number, q: any) => sum + (q.peso || 1), 0);
+
       for (const insc of inscricoes) {
-        const { data: respostas } = await supabase.from("respostas_concurso").select("*, questao_id").eq("inscricao_id", insc.id);
+        const { data: respostas } = await supabase.from("respostas_concurso").select("*").eq("inscricao_id", insc.id);
         let nota = 0;
-        const totalPeso = questoes.reduce((sum: number, q: any) => sum + (q.peso || 1), 0);
-        for (const q of questoes) {
+        for (const q of autoCorrectQuestions) {
           const resp = respostas?.find((r: any) => r.questao_id === q.id);
           if (resp && resp.resposta === q.gabarito) {
             nota += q.peso || 1;
@@ -384,7 +453,6 @@ function ConcursoDetail({ concursoId, onBack, isAdmin }: { concursoId: string; o
     mutationFn: async (inscricaoId: string) => {
       const insc = inscricoes?.find((i: any) => i.id === inscricaoId);
       if (!insc) throw new Error("Inscrição não encontrada.");
-      // Map cargo to role
       const cargoRoleMap: Record<string, string> = {
         "Magistrado": "magistrado", "Promotor de Justiça": "ministerio_publico",
         "Delegado de Polícia": "delegado", "Oficial de Justiça": "oficial_justica",
@@ -457,12 +525,12 @@ function ConcursoDetail({ concursoId, onBack, isAdmin }: { concursoId: string; o
           </Button>
         )}
         {myInscricao && !myInscricao.nota_final && concurso.status === "em_andamento" && (
-          <Button onClick={() => { /* navigate to prova */ }} variant="outline" className="rounded-xl">
+          <Button onClick={onStartProva} variant="outline" className="rounded-xl">
             <PenTool className="h-4 w-4 mr-1" /> Realizar Prova
           </Button>
         )}
         {myInscricao && <span className="text-xs text-muted-foreground self-center">Inscrição: {myInscricao.numero_inscricao}</span>}
-        {isAdmin && (
+        {canManage && (
           <Select value={concurso.status} onValueChange={(v) => updateStatus.mutate(v)}>
             <SelectTrigger className="rounded-xl w-52 h-9 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -477,7 +545,7 @@ function ConcursoDetail({ concursoId, onBack, isAdmin }: { concursoId: string; o
         <TabsList className="w-full justify-start rounded-xl bg-secondary/50 p-1 h-auto gap-1 flex-wrap">
           <TabsTrigger value="edital" className="rounded-lg text-xs"><FileText className="h-3 w-3 mr-1" /> Edital</TabsTrigger>
           <TabsTrigger value="inscritos" className="rounded-lg text-xs"><Users className="h-3 w-3 mr-1" /> Inscritos ({inscricoes?.length || 0})</TabsTrigger>
-          {isAdmin && <TabsTrigger value="questoes" className="rounded-lg text-xs"><ClipboardList className="h-3 w-3 mr-1" /> Questões ({questoes?.length || 0})</TabsTrigger>}
+          {canManage && <TabsTrigger value="questoes" className="rounded-lg text-xs"><ClipboardList className="h-3 w-3 mr-1" /> Questões ({questoes?.length || 0})</TabsTrigger>}
           <TabsTrigger value="resultado" className="rounded-lg text-xs"><Trophy className="h-3 w-3 mr-1" /> Resultado</TabsTrigger>
           <TabsTrigger value="comunicados" className="rounded-lg text-xs"><Megaphone className="h-3 w-3 mr-1" /> Comunicados</TabsTrigger>
         </TabsList>
@@ -535,7 +603,7 @@ function ConcursoDetail({ concursoId, onBack, isAdmin }: { concursoId: string; o
                         <span>{format(new Date(insc.created_at), "dd/MM/yyyy", { locale: ptBR })}</span>
                       </div>
                     </div>
-                    {isAdmin && insc.classificacao && insc.classificacao <= concurso.vagas && insc.status !== "nomeado" && (
+                    {canManage && insc.classificacao && insc.classificacao <= concurso.vagas && insc.status !== "nomeado" && (
                       <Button size="sm" className="rounded-lg h-8 text-xs bg-green-600 hover:bg-green-700 text-white"
                         onClick={() => nomearAprovado.mutate(insc.id)}>
                         <Award className="h-3 w-3 mr-1" /> Nomear
@@ -548,8 +616,8 @@ function ConcursoDetail({ concursoId, onBack, isAdmin }: { concursoId: string; o
           )}
         </TabsContent>
 
-        {/* QUESTÕES (Admin) */}
-        {isAdmin && (
+        {/* QUESTÕES (Admin/Manager) */}
+        {canManage && (
           <TabsContent value="questoes" className="mt-4 space-y-4">
             <div className="flex justify-between items-center">
               <p className="text-sm text-muted-foreground">{questoes?.length || 0} questões cadastradas</p>
@@ -566,21 +634,63 @@ function ConcursoDetail({ concursoId, onBack, isAdmin }: { concursoId: string; o
                   <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                     <DialogHeader><DialogTitle className="font-display">Adicionar Questão</DialogTitle></DialogHeader>
                     <form onSubmit={(e) => { e.preventDefault(); addQuestao.mutate(); }} className="space-y-4 mt-4">
-                      <Textarea placeholder="Enunciado da questão" value={qForm.enunciado} onChange={(e) => setQForm({ ...qForm, enunciado: e.target.value })} rows={3} className="rounded-xl" required />
-                      <Input placeholder="A) Alternativa A" value={qForm.alternativa_a} onChange={(e) => setQForm({ ...qForm, alternativa_a: e.target.value })} className="rounded-xl" />
-                      <Input placeholder="B) Alternativa B" value={qForm.alternativa_b} onChange={(e) => setQForm({ ...qForm, alternativa_b: e.target.value })} className="rounded-xl" />
-                      <Input placeholder="C) Alternativa C" value={qForm.alternativa_c} onChange={(e) => setQForm({ ...qForm, alternativa_c: e.target.value })} className="rounded-xl" />
-                      <Input placeholder="D) Alternativa D" value={qForm.alternativa_d} onChange={(e) => setQForm({ ...qForm, alternativa_d: e.target.value })} className="rounded-xl" />
-                      <div className="grid grid-cols-2 gap-3">
-                        <Select value={qForm.gabarito} onValueChange={(v) => setQForm({ ...qForm, gabarito: v })}>
-                          <SelectTrigger className="rounded-xl"><SelectValue placeholder="Gabarito" /></SelectTrigger>
+                      {/* Tipo de Questão */}
+                      <div>
+                        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">Tipo de Questão</label>
+                        <Select value={qForm.tipo} onValueChange={(v) => setQForm({ ...qForm, tipo: v, gabarito: v === "certo_errado" ? "a" : v === "discursiva" ? "" : "a", alternativa_a: "", alternativa_b: "", alternativa_c: "", alternativa_d: "" })}>
+                          <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="a">A</SelectItem><SelectItem value="b">B</SelectItem>
-                            <SelectItem value="c">C</SelectItem><SelectItem value="d">D</SelectItem>
+                            <SelectItem value="objetiva">Múltipla Escolha (A-D)</SelectItem>
+                            <SelectItem value="certo_errado">Certo ou Errado</SelectItem>
+                            <SelectItem value="discursiva">Discursiva</SelectItem>
                           </SelectContent>
                         </Select>
-                        <Input type="number" step="0.1" placeholder="Peso" value={qForm.peso} onChange={(e) => setQForm({ ...qForm, peso: e.target.value })} className="rounded-xl" />
                       </div>
+
+                      <Textarea placeholder="Enunciado da questão" value={qForm.enunciado} onChange={(e) => setQForm({ ...qForm, enunciado: e.target.value })} rows={3} className="rounded-xl" required />
+
+                      {/* Alternativas para múltipla escolha */}
+                      {qForm.tipo === "objetiva" && (
+                        <>
+                          <Input placeholder="A) Alternativa A" value={qForm.alternativa_a} onChange={(e) => setQForm({ ...qForm, alternativa_a: e.target.value })} className="rounded-xl" />
+                          <Input placeholder="B) Alternativa B" value={qForm.alternativa_b} onChange={(e) => setQForm({ ...qForm, alternativa_b: e.target.value })} className="rounded-xl" />
+                          <Input placeholder="C) Alternativa C" value={qForm.alternativa_c} onChange={(e) => setQForm({ ...qForm, alternativa_c: e.target.value })} className="rounded-xl" />
+                          <Input placeholder="D) Alternativa D" value={qForm.alternativa_d} onChange={(e) => setQForm({ ...qForm, alternativa_d: e.target.value })} className="rounded-xl" />
+                          <div className="grid grid-cols-2 gap-3">
+                            <Select value={qForm.gabarito} onValueChange={(v) => setQForm({ ...qForm, gabarito: v })}>
+                              <SelectTrigger className="rounded-xl"><SelectValue placeholder="Gabarito" /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="a">A</SelectItem><SelectItem value="b">B</SelectItem>
+                                <SelectItem value="c">C</SelectItem><SelectItem value="d">D</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Input type="number" step="0.1" placeholder="Peso" value={qForm.peso} onChange={(e) => setQForm({ ...qForm, peso: e.target.value })} className="rounded-xl" />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Certo ou Errado */}
+                      {qForm.tipo === "certo_errado" && (
+                        <div className="grid grid-cols-2 gap-3">
+                          <Select value={qForm.gabarito} onValueChange={(v) => setQForm({ ...qForm, gabarito: v })}>
+                            <SelectTrigger className="rounded-xl"><SelectValue placeholder="Gabarito" /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="a">Certo</SelectItem>
+                              <SelectItem value="b">Errado</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Input type="number" step="0.1" placeholder="Peso" value={qForm.peso} onChange={(e) => setQForm({ ...qForm, peso: e.target.value })} className="rounded-xl" />
+                        </div>
+                      )}
+
+                      {/* Discursiva */}
+                      {qForm.tipo === "discursiva" && (
+                        <div>
+                          <Input type="number" step="0.1" placeholder="Peso da questão" value={qForm.peso} onChange={(e) => setQForm({ ...qForm, peso: e.target.value })} className="rounded-xl" />
+                          <p className="text-xs text-muted-foreground mt-2">Questões discursivas são corrigidas manualmente pelo organizador.</p>
+                        </div>
+                      )}
+
                       <Button type="submit" disabled={addQuestao.isPending} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
                         {addQuestao.isPending ? "Adicionando..." : "Adicionar Questão"}
                       </Button>
@@ -589,20 +699,44 @@ function ConcursoDetail({ concursoId, onBack, isAdmin }: { concursoId: string; o
                 </Dialog>
               </div>
             </div>
+
+            {/* List questões */}
             {questoes?.map((q: any) => (
               <div key={q.id} className="bg-card rounded-xl p-4 border border-border shadow-institutional">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-xs font-semibold text-institutional">Questão {q.numero}</span>
+                  <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
+                    {TIPO_QUESTAO_LABELS[q.tipo] || q.tipo}
+                  </span>
                   <span className="text-[10px] text-muted-foreground">Peso: {q.peso}</span>
-                  <span className="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400">Gabarito: {q.gabarito?.toUpperCase()}</span>
+                  {q.tipo !== "discursiva" && q.gabarito && (
+                    <span className="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400">
+                      Gabarito: {q.tipo === "certo_errado" ? (q.gabarito === "a" ? "Certo" : "Errado") : q.gabarito?.toUpperCase()}
+                    </span>
+                  )}
+                  <Button variant="ghost" size="sm" className="ml-auto h-7 w-7 p-0 text-destructive hover:text-destructive"
+                    onClick={() => deleteQuestao.mutate(q.id)}>
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
                 </div>
                 <p className="text-sm text-foreground mb-2">{q.enunciado}</p>
-                <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground">
-                  {q.alternativa_a && <span className={q.gabarito === "a" ? "font-semibold text-green-700" : ""}>A) {q.alternativa_a}</span>}
-                  {q.alternativa_b && <span className={q.gabarito === "b" ? "font-semibold text-green-700" : ""}>B) {q.alternativa_b}</span>}
-                  {q.alternativa_c && <span className={q.gabarito === "c" ? "font-semibold text-green-700" : ""}>C) {q.alternativa_c}</span>}
-                  {q.alternativa_d && <span className={q.gabarito === "d" ? "font-semibold text-green-700" : ""}>D) {q.alternativa_d}</span>}
-                </div>
+                {q.tipo === "objetiva" && (
+                  <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground">
+                    {q.alternativa_a && <span className={q.gabarito === "a" ? "font-semibold text-green-700" : ""}>A) {q.alternativa_a}</span>}
+                    {q.alternativa_b && <span className={q.gabarito === "b" ? "font-semibold text-green-700" : ""}>B) {q.alternativa_b}</span>}
+                    {q.alternativa_c && <span className={q.gabarito === "c" ? "font-semibold text-green-700" : ""}>C) {q.alternativa_c}</span>}
+                    {q.alternativa_d && <span className={q.gabarito === "d" ? "font-semibold text-green-700" : ""}>D) {q.alternativa_d}</span>}
+                  </div>
+                )}
+                {q.tipo === "certo_errado" && (
+                  <div className="flex gap-4 text-xs text-muted-foreground">
+                    <span className={q.gabarito === "a" ? "font-semibold text-green-700" : ""}>○ Certo</span>
+                    <span className={q.gabarito === "b" ? "font-semibold text-green-700" : ""}>○ Errado</span>
+                  </div>
+                )}
+                {q.tipo === "discursiva" && (
+                  <p className="text-xs text-muted-foreground italic">Resposta dissertativa — correção manual</p>
+                )}
               </div>
             ))}
           </TabsContent>
@@ -652,7 +786,7 @@ function ConcursoDetail({ concursoId, onBack, isAdmin }: { concursoId: string; o
 
         {/* COMUNICADOS */}
         <TabsContent value="comunicados" className="mt-4 space-y-4">
-          {isAdmin && (
+          {canManage && (
             <div className="flex justify-end">
               <Dialog open={openComunicado} onOpenChange={setOpenComunicado}>
                 <DialogTrigger asChild>
@@ -705,7 +839,7 @@ function ConcursoDetail({ concursoId, onBack, isAdmin }: { concursoId: string; o
 }
 
 /* ═══════════════════════════════════════════ */
-/*  REALIZAR PROVA (placeholder)               */
+/*  REALIZAR PROVA                             */
 /* ═══════════════════════════════════════════ */
 function RealizarProva({ concursoId, onBack }: { concursoId: string; onBack: () => void }) {
   const { user } = useAuth();
@@ -752,6 +886,8 @@ function RealizarProva({ concursoId, onBack }: { concursoId: string; onBack: () 
 
   if (!questoes || !inscricao) return <div className="text-center py-12 text-muted-foreground">Carregando prova...</div>;
 
+  const answeredCount = Object.keys(respostas).filter(k => respostas[k]).length;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
@@ -761,36 +897,71 @@ function RealizarProva({ concursoId, onBack }: { concursoId: string; onBack: () 
 
       <div className="bg-card rounded-xl p-4 border border-border shadow-institutional flex items-center gap-3">
         <Timer className="h-5 w-5 text-gold-dark" />
-        <p className="text-sm text-foreground">{questoes.length} questões • Responda todas antes de enviar</p>
+        <p className="text-sm text-foreground">{questoes.length} questões • {answeredCount}/{questoes.length} respondidas</p>
       </div>
 
       <div className="space-y-4">
         {questoes.map((q: any) => (
           <div key={q.id} className="bg-card rounded-xl p-5 border border-border shadow-institutional">
-            <p className="text-xs font-semibold text-institutional mb-2">Questão {q.numero} (peso {q.peso})</p>
-            <p className="text-sm text-foreground mb-3">{q.enunciado}</p>
-            <div className="space-y-2">
-              {["a", "b", "c", "d"].map((opt) => {
-                const text = q[`alternativa_${opt}`];
-                if (!text) return null;
-                return (
-                  <label key={opt}
-                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer border transition-all ${respostas[q.id] === opt ? 'border-institutional bg-institutional/5' : 'border-border hover:border-institutional/30'}`}>
-                    <input type="radio" name={q.id} value={opt} checked={respostas[q.id] === opt}
-                      onChange={() => setRespostas((r) => ({ ...r, [q.id]: opt }))}
-                      className="accent-institutional" />
-                    <span className="text-sm text-foreground"><strong>{opt.toUpperCase()})</strong> {text}</span>
-                  </label>
-                );
-              })}
+            <div className="flex items-center gap-2 mb-2">
+              <p className="text-xs font-semibold text-institutional">Questão {q.numero} (peso {q.peso})</p>
+              <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
+                {TIPO_QUESTAO_LABELS[q.tipo] || q.tipo}
+              </span>
             </div>
+            <p className="text-sm text-foreground mb-3">{q.enunciado}</p>
+
+            {/* Múltipla Escolha */}
+            {q.tipo === "objetiva" && (
+              <div className="space-y-2">
+                {["a", "b", "c", "d"].map((opt) => {
+                  const text = q[`alternativa_${opt}`];
+                  if (!text) return null;
+                  return (
+                    <label key={opt}
+                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer border transition-all ${respostas[q.id] === opt ? 'border-institutional bg-institutional/5' : 'border-border hover:border-institutional/30'}`}>
+                      <input type="radio" name={q.id} value={opt} checked={respostas[q.id] === opt}
+                        onChange={() => setRespostas((r) => ({ ...r, [q.id]: opt }))}
+                        className="accent-institutional" />
+                      <span className="text-sm text-foreground"><strong>{opt.toUpperCase()})</strong> {text}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Certo ou Errado */}
+            {q.tipo === "certo_errado" && (
+              <div className="flex gap-3">
+                {[{ value: "a", label: "Certo" }, { value: "b", label: "Errado" }].map((opt) => (
+                  <label key={opt.value}
+                    className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-lg cursor-pointer border transition-all text-center ${respostas[q.id] === opt.value ? 'border-institutional bg-institutional/5 font-semibold' : 'border-border hover:border-institutional/30'}`}>
+                    <input type="radio" name={q.id} value={opt.value} checked={respostas[q.id] === opt.value}
+                      onChange={() => setRespostas((r) => ({ ...r, [q.id]: opt.value }))}
+                      className="accent-institutional" />
+                    <span className="text-sm text-foreground">{opt.label}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+
+            {/* Discursiva */}
+            {q.tipo === "discursiva" && (
+              <Textarea
+                placeholder="Escreva sua resposta..."
+                value={respostas[q.id] || ""}
+                onChange={(e) => setRespostas((r) => ({ ...r, [q.id]: e.target.value }))}
+                rows={6}
+                className="rounded-xl"
+              />
+            )}
           </div>
         ))}
       </div>
 
       <Button onClick={() => enviarProva.mutate()} disabled={enviarProva.isPending}
         className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light py-3">
-        {enviarProva.isPending ? "Enviando..." : "Enviar Prova"}
+        {enviarProva.isPending ? "Enviando..." : `Enviar Prova (${answeredCount}/${questoes.length} respondidas)`}
       </Button>
     </div>
   );
