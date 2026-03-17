@@ -47,10 +47,14 @@ export default function UsuariosSection() {
           {profiles.map((p) => {
             const userRoles = allRoles?.filter((r) => r.user_id === p.user_id) || [];
             return (
-              <div key={p.id} className="bg-card rounded-xl p-4 border border-border flex items-center justify-between flex-wrap gap-2">
-                <div>
+              <div key={p.id} className="bg-card rounded-xl p-4 border border-border flex items-center justify-between flex-wrap gap-3">
+                <div className="min-w-0">
                   <p className="text-sm font-medium text-foreground">{p.nome_completo}</p>
-                  <p className="text-xs text-muted-foreground">{p.cpf || "CPF não informado"}</p>
+                  <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-1">
+                    {p.discord && <p className="text-xs text-muted-foreground">🎮 {p.discord}</p>}
+                    {p.id_personagem && <p className="text-xs text-muted-foreground">🆔 ID: {p.id_personagem}</p>}
+                    {p.telefone_ingame && <p className="text-xs text-muted-foreground">📱 {p.telefone_ingame}</p>}
+                  </div>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
                   {userRoles.map((r) => (
