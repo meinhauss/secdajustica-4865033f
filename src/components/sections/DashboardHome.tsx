@@ -4,8 +4,21 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export default function DashboardHome() {
+// Roles that can see judicial stats
+const JUDICIAL_ROLES = ["admin", "magistrado", "presidente_tribunal", "desembargador", "ministerio_publico", "advogado"];
+const POLICE_ROLES = ["admin", "delegado", "investigador", "cidadao"];
+
+interface DashboardHomeProps {
+  onNavigate?: (section: string) => void;
+}
+
+export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
   const { profile, roles } = useAuth();
+
+  const isJudicial = roles.some((r) => JUDICIAL_ROLES.includes(r));
+  const isPolice = roles.some((r) => POLICE_ROLES.includes(r));
+  const isAdmin = roles.includes("admin");
+  const isCidadao = roles.includes("cidadao") && roles.length === 1;
 
   const { data: processosCount } = useQuery({
     queryKey: ["processos-count"],
@@ -13,6 +26,7 @@ export default function DashboardHome() {
       const { count } = await supabase.from("processos").select("*", { count: "exact", head: true });
       return count || 0;
     },
+    enabled: isJudicial || isAdmin,
   });
 
   const { data: bosCount } = useQuery({
@@ -29,14 +43,38 @@ export default function DashboardHome() {
       const { count } = await supabase.from("audiencias").select("*", { count: "exact", head: true });
       return count || 0;
     },
+    enabled: isJudicial || isAdmin,
   });
 
-  const stats = [
-    { label: "Processos Ativos", value: processosCount ?? 0, icon: FileText, color: "text-institutional" },
-    { label: "Boletins de Ocorrência", value: bosCount ?? 0, icon: Shield, color: "text-gold" },
-    { label: "Audiências Agendadas", value: audienciasCount ?? 0, icon: Clock, color: "text-institutional-light" },
-    { label: "Sentenças Proferidas", value: 0, icon: Gavel, color: "text-gold-dark" },
-  ];
+  // Build stats based on role
+  const stats = [];
+  if (isJudicial || isAdmin) {
+    stats.push({ label: "Processos Ativos", value: processosCount ?? 0, icon: FileText, color: "text-institutional" });
+  }
+  stats.push({ label: "Boletins de Ocorrência", value: bosCount ?? 0, icon: Shield, color: "text-gold" });
+  if (isJudicial || isAdmin) {
+    stats.push({ label: "Audiências Agendadas", value: audienciasCount ?? 0, icon: Clock, color: "text-institutional-light" });
+  }
+
+  // Build quick actions based on role
+  const quickActions: { label: string; icon: any; section: string }[] = [];
+
+  if (isJudicial && !isCidadao) {
+    quickActions.push({ label: "Novo Processo", icon: FileText, section: "processos" });
+    quickActions.push({ label: "Consultar Processo", icon: Scale, section: "consulta" });
+  }
+  if (isPolice || isCidadao) {
+    quickActions.push({ label: "Registrar B.O.", icon: Shield, section: "delegacia" });
+  }
+  if (isJudicial && !isCidadao) {
+    quickActions.push({ label: "Agendar Audiência", icon: Clock, section: "audiencias" });
+  }
+
+  const handleAction = (section: string) => {
+    if (onNavigate) {
+      onNavigate(section);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -50,7 +88,7 @@ export default function DashboardHome() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className={`grid grid-cols-1 sm:grid-cols-2 ${stats.length >= 3 ? "lg:grid-cols-3" : ""} gap-4`}>
         {stats.map((stat, i) => (
           <motion.div
             key={stat.label}
@@ -71,27 +109,25 @@ export default function DashboardHome() {
       </div>
 
       {/* Quick actions */}
-      <div className="bg-card rounded-xl p-6 shadow-institutional border border-border">
-        <h3 className="font-display text-lg font-semibold mb-4 text-foreground">Ações Rápidas</h3>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {[
-            { label: "Novo Processo", icon: FileText },
-            { label: "Registrar B.O.", icon: Shield },
-            { label: "Consultar Processo", icon: Scale },
-            { label: "Agendar Audiência", icon: Clock },
-          ].map((action) => (
-            <button
-              key={action.label}
-              className="flex flex-col items-center gap-2 p-4 rounded-xl bg-secondary hover:bg-accent/20 transition-colors border border-border"
-            >
-              <action.icon className="h-6 w-6 text-institutional" />
-              <span className="text-xs font-medium text-foreground">{action.label}</span>
-            </button>
-          ))}
+      {quickActions.length > 0 && (
+        <div className="bg-card rounded-xl p-6 shadow-institutional border border-border">
+          <h3 className="font-display text-lg font-semibold mb-4 text-foreground">Ações Rápidas</h3>
+          <div className={`grid grid-cols-2 ${quickActions.length >= 4 ? "lg:grid-cols-4" : `lg:grid-cols-${quickActions.length}`} gap-3`}>
+            {quickActions.map((action) => (
+              <button
+                key={action.label}
+                onClick={() => handleAction(action.section)}
+                className="flex flex-col items-center gap-2 p-4 rounded-xl bg-secondary hover:bg-accent/20 transition-colors border border-border cursor-pointer"
+              >
+                <action.icon className="h-6 w-6 text-institutional" />
+                <span className="text-xs font-medium text-foreground">{action.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Recent activity placeholder */}
+      {/* Recent activity */}
       <div className="bg-card rounded-xl p-6 shadow-institutional border border-border">
         <h3 className="font-display text-lg font-semibold mb-4 text-foreground">
           Últimas Movimentações

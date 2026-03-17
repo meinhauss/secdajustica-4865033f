@@ -14,17 +14,17 @@ interface DashboardLayoutProps {
 }
 
 const menuItems = [
-  { id: "dashboard", label: "Painel Geral", icon: Home, roles: ["admin", "magistrado", "ministerio_publico", "delegado", "oficial_justica", "advogado", "cidadao"] },
-  { id: "processos", label: "Processos", icon: FileText, roles: ["admin", "magistrado", "ministerio_publico", "advogado", "cidadao"] },
-  { id: "magistrado", label: "Portal Magistrado", icon: Gavel, roles: ["admin", "magistrado"] },
+  { id: "dashboard", label: "Painel Geral", icon: Home, roles: ["admin", "magistrado", "ministerio_publico", "delegado", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "investigador", "presidente_oab"] },
+  { id: "processos", label: "Processos", icon: FileText, roles: ["admin", "magistrado", "ministerio_publico", "advogado", "presidente_tribunal", "desembargador"] },
+  { id: "magistrado", label: "Portal Magistrado", icon: Gavel, roles: ["admin", "magistrado", "presidente_tribunal", "desembargador"] },
   { id: "mp", label: "Ministério Público", icon: Scale, roles: ["admin", "ministerio_publico"] },
-  { id: "delegacia", label: "Delegacia Virtual", icon: Shield, roles: ["admin", "delegado", "cidadao"] },
-  { id: "oab", label: "Portal OAB", icon: Briefcase, roles: ["admin", "advogado"] },
-  { id: "audiencias", label: "Audiências", icon: Calendar, roles: ["admin", "magistrado", "ministerio_publico", "advogado"] },
-  { id: "consulta", label: "Consulta Pública", icon: BookOpen, roles: ["admin", "magistrado", "ministerio_publico", "delegado", "oficial_justica", "advogado", "cidadao"] },
+  { id: "delegacia", label: "Delegacia Virtual", icon: Shield, roles: ["admin", "delegado", "investigador", "cidadao"] },
+  { id: "oab", label: "Portal OAB", icon: Briefcase, roles: ["admin", "advogado", "presidente_oab"] },
+  { id: "audiencias", label: "Audiências", icon: Calendar, roles: ["admin", "magistrado", "ministerio_publico", "advogado", "presidente_tribunal", "desembargador"] },
+  { id: "consulta", label: "Consulta Pública", icon: BookOpen, roles: ["admin", "magistrado", "ministerio_publico", "delegado", "oficial_justica", "advogado", "presidente_tribunal", "desembargador", "presidente_oab"] },
   { id: "cargos", label: "Cargos e Hierarquia", icon: Crown, roles: ["admin"] },
   { id: "usuarios", label: "Usuários", icon: Users, roles: ["admin"] },
-  { id: "estatisticas", label: "Estatísticas", icon: BarChart3, roles: ["admin", "magistrado"] },
+  { id: "estatisticas", label: "Estatísticas", icon: BarChart3, roles: ["admin", "magistrado", "presidente_tribunal"] },
 ];
 
 export default function DashboardLayout({ children, activeSection, onSectionChange }: DashboardLayoutProps) {
