@@ -471,13 +471,13 @@ function TabLogin(props: LoginProps) {
       <div className="max-w-md mx-auto">
         {/* GOV Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-3 bg-institutional rounded-xl px-6 py-3 mb-4">
-            <img src={govLogo} alt="gov.br" className="h-8" />
-            <div className="h-6 w-px bg-sidebar-foreground/20" />
-            <span className="text-gold-light font-display font-semibold text-sm">
-              Poder Judiciário
-            </span>
-          </div>
+          
+
+
+
+
+
+          
           <h2 className="font-display text-2xl font-bold text-foreground">
             {isSignUp ? "Criar Conta GOV" : "Acesso GOV.BR"}
           </h2>
@@ -563,7 +563,7 @@ function TabLogin(props: LoginProps) {
 
 }
 
-function TabConcursos({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
+function TabConcursos({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
       <h2 className="font-display text-2xl font-bold text-foreground mb-2">Concursos Públicos</h2>
@@ -571,23 +571,23 @@ function TabConcursos({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {[
-          { icon: GraduationCap, title: "Editais Abertos", desc: "Consulte os concursos com inscrições abertas para cargos jurídicos e administrativos." },
-          { icon: FileText, title: "Provas e Gabaritos", desc: "Acesse provas anteriores, gabaritos oficiais e resultados publicados." },
-          { icon: Users, title: "Classificação", desc: "Confira a lista de aprovados, cadastro de reserva e convocações." },
-        ].map((item, i) => (
-          <motion.div
-            key={item.title}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 }}
-            onClick={() => onNavigate("login")}
-            className="bg-card rounded-xl p-5 border border-border shadow-institutional cursor-pointer hover:border-accent transition-colors"
-          >
+        { icon: GraduationCap, title: "Editais Abertos", desc: "Consulte os concursos com inscrições abertas para cargos jurídicos e administrativos." },
+        { icon: FileText, title: "Provas e Gabaritos", desc: "Acesse provas anteriores, gabaritos oficiais e resultados publicados." },
+        { icon: Users, title: "Classificação", desc: "Confira a lista de aprovados, cadastro de reserva e convocações." }].
+        map((item, i) =>
+        <motion.div
+          key={item.title}
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: i * 0.05 }}
+          onClick={() => onNavigate("login")}
+          className="bg-card rounded-xl p-5 border border-border shadow-institutional cursor-pointer hover:border-accent transition-colors">
+          
             <item.icon className="h-6 w-6 text-gold mb-3" />
             <h4 className="font-display text-sm font-semibold text-foreground mb-1">{item.title}</h4>
             <p className="text-xs text-muted-foreground">{item.desc}</p>
           </motion.div>
-        ))}
+        )}
       </div>
 
       <div className="mt-8 bg-card rounded-xl p-6 border border-border shadow-institutional">
@@ -599,6 +599,6 @@ function TabConcursos({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
           <p>• Resultados e nomeações são publicados diretamente no portal.</p>
         </div>
       </div>
-    </div>
-  );
+    </div>);
+
 }
