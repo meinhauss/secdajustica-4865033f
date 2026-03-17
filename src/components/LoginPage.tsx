@@ -85,13 +85,13 @@ export default function LoginPage() {
       <header className="bg-institutional border-b border-sidebar-border">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <img src={logoTjsp} alt="TJSP" className="h-14 drop-shadow" />
+            <img src={logoTjsp} alt="SJC-SP" className="h-14 rounded-lg drop-shadow" />
             <div>
-              <h1 className="font-display text-xl lg:text-2xl font-bold text-gold-light leading-tight">
-                Tribunal de Justiça
+              <h1 className="font-display text-xl lg:text-2xl font-bold text-sidebar-foreground leading-tight">
+                Secretaria da Justiça e Cidadania
               </h1>
               <p className="text-[11px] text-sidebar-foreground/50 uppercase tracking-[0.2em]">
-                Comarca de São Paulo — Cidade RP
+                Estado de São Paulo — Cidade RP
               </p>
             </div>
           </div>
