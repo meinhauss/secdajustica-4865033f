@@ -218,6 +218,83 @@ export type Database = {
         }
         Relationships: []
       }
+      carteiras_oab: {
+        Row: {
+          created_at: string
+          data_inscricao: string
+          especialidade: string | null
+          foto_url: string | null
+          id: string
+          id_personagem: string | null
+          inscricao_id: string | null
+          nome_completo: string
+          numero_oab: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_inscricao?: string
+          especialidade?: string | null
+          foto_url?: string | null
+          id?: string
+          id_personagem?: string | null
+          inscricao_id?: string | null
+          nome_completo: string
+          numero_oab?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data_inscricao?: string
+          especialidade?: string | null
+          foto_url?: string | null
+          id?: string
+          id_personagem?: string | null
+          inscricao_id?: string | null
+          nome_completo?: string
+          numero_oab?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carteiras_oab_inscricao_id_fkey"
+            columns: ["inscricao_id"]
+            isOneToOne: false
+            referencedRelation: "inscricoes_oab"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comunicados_oab: {
+        Row: {
+          autor_id: string | null
+          conteudo: string
+          created_at: string
+          id: string
+          tipo: string
+          titulo: string
+        }
+        Insert: {
+          autor_id?: string | null
+          conteudo: string
+          created_at?: string
+          id?: string
+          tipo?: string
+          titulo: string
+        }
+        Update: {
+          autor_id?: string | null
+          conteudo?: string
+          created_at?: string
+          id?: string
+          tipo?: string
+          titulo?: string
+        }
+        Relationships: []
+      }
       denuncias_mp: {
         Row: {
           created_at: string
@@ -439,6 +516,36 @@ export type Database = {
           },
         ]
       }
+      honorarios_tabela: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          descricao: string | null
+          id: string
+          tipo_atuacao: string
+          valor_minimo: number
+          valor_sugerido: number | null
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          tipo_atuacao: string
+          valor_minimo?: number
+          valor_sugerido?: number | null
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          tipo_atuacao?: string
+          valor_minimo?: number
+          valor_sugerido?: number | null
+        }
+        Relationships: []
+      }
       inqueritos: {
         Row: {
           bo_id: string | null
@@ -497,6 +604,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      inscricoes_oab: {
+        Row: {
+          aprovado_por: string | null
+          created_at: string
+          email: string | null
+          especialidade: string | null
+          id: string
+          id_personagem: string | null
+          justificativa: string | null
+          motivo_indeferimento: string | null
+          nome_completo: string
+          status: string
+          telefone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          aprovado_por?: string | null
+          created_at?: string
+          email?: string | null
+          especialidade?: string | null
+          id?: string
+          id_personagem?: string | null
+          justificativa?: string | null
+          motivo_indeferimento?: string | null
+          nome_completo: string
+          status?: string
+          telefone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          aprovado_por?: string | null
+          created_at?: string
+          email?: string | null
+          especialidade?: string | null
+          id?: string
+          id_personagem?: string | null
+          justificativa?: string | null
+          motivo_indeferimento?: string | null
+          nome_completo?: string
+          status?: string
+          telefone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       mandados: {
         Row: {
@@ -715,6 +870,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      procedimentos_disciplinares: {
+        Row: {
+          advogado_user_id: string
+          created_at: string
+          denunciante_id: string | null
+          descricao: string
+          id: string
+          parecer: string | null
+          sancao: string | null
+          status: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          advogado_user_id: string
+          created_at?: string
+          denunciante_id?: string | null
+          descricao: string
+          id?: string
+          parecer?: string | null
+          sancao?: string | null
+          status?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          advogado_user_id?: string
+          created_at?: string
+          denunciante_id?: string | null
+          descricao?: string
+          id?: string
+          parecer?: string | null
+          sancao?: string | null
+          status?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       processos: {
         Row: {
