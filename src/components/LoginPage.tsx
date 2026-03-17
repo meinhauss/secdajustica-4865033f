@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Scale, Shield, Gavel, BookOpen, Building2, Users, FileText,
-  Phone, MapPin, Clock, ChevronRight, ExternalLink } from
+  Phone, MapPin, Clock, ChevronRight, ExternalLink, GraduationCap } from
 "lucide-react";
 import logoTjsp from "@/assets/logo-tjsp.png";
 import govLogo from "@/assets/gov-logo.png";
 import { toast } from "sonner";
 
-type Tab = "inicio" | "institucional" | "servicos" | "transparencia" | "contato" | "login";
+type Tab = "inicio" | "institucional" | "servicos" | "transparencia" | "concursos" | "contato" | "login";
 
 export default function LoginPage() {
   const { signIn, signUp } = useAuth();
@@ -54,6 +54,7 @@ export default function LoginPage() {
   { id: "institucional", label: "Institucional" },
   { id: "servicos", label: "Serviços" },
   { id: "transparencia", label: "Transparência" },
+  { id: "concursos", label: "Concursos" },
   { id: "contato", label: "Contato" }];
 
 
@@ -141,6 +142,7 @@ export default function LoginPage() {
             {activeTab === "institucional" && <TabInstitucional />}
             {activeTab === "servicos" && <TabServicos />}
             {activeTab === "transparencia" && <TabTransparencia />}
+            {activeTab === "concursos" && <TabConcursos />}
             {activeTab === "contato" && <TabContato />}
             {activeTab === "login" &&
             <TabLogin
@@ -558,4 +560,43 @@ function TabLogin(props: LoginProps) {
       </div>
     </div>);
 
+}
+
+function TabConcursos() {
+  return (
+    <div className="max-w-7xl mx-auto px-4 py-12">
+      <h2 className="font-display text-2xl font-bold text-foreground mb-2">Concursos Públicos</h2>
+      <p className="text-muted-foreground mb-8">Editais, inscrições e resultados de concursos do Poder Judiciário.</p>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {[
+          { icon: GraduationCap, title: "Editais Abertos", desc: "Consulte os concursos com inscrições abertas para cargos jurídicos e administrativos." },
+          { icon: FileText, title: "Provas e Gabaritos", desc: "Acesse provas anteriores, gabaritos oficiais e resultados publicados." },
+          { icon: Users, title: "Classificação", desc: "Confira a lista de aprovados, cadastro de reserva e convocações." },
+        ].map((item, i) => (
+          <motion.div
+            key={item.title}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.05 }}
+            className="bg-card rounded-xl p-5 border border-border shadow-institutional"
+          >
+            <item.icon className="h-6 w-6 text-gold mb-3" />
+            <h4 className="font-display text-sm font-semibold text-foreground mb-1">{item.title}</h4>
+            <p className="text-xs text-muted-foreground">{item.desc}</p>
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="mt-8 bg-card rounded-xl p-6 border border-border shadow-institutional">
+        <h3 className="font-display text-lg font-semibold text-foreground mb-4">Informações Importantes</h3>
+        <div className="space-y-3 text-sm text-muted-foreground">
+          <p>• Para se inscrever em concursos, é necessário possuir cadastro no sistema e estar autenticado.</p>
+          <p>• Os editais completos, requisitos e conteúdo programático ficam disponíveis após o login.</p>
+          <p>• As provas são realizadas de forma digital dentro do sistema, com correção automática para questões objetivas.</p>
+          <p>• Resultados e nomeações são publicados diretamente no portal.</p>
+        </div>
+      </div>
+    </div>
+  );
 }
