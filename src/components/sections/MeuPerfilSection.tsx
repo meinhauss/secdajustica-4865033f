@@ -45,7 +45,6 @@ export default function MeuPerfilSection() {
           discord: form.discord.trim() || null,
           id_personagem: form.id_personagem.trim() || null,
           telefone_ingame: form.telefone_ingame.trim() || null,
-          cpf: form.cpf.trim() || null,
         })
         .eq("user_id", user.id);
 
