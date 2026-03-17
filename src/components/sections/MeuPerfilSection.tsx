@@ -25,7 +25,6 @@ export default function MeuPerfilSection() {
         discord: profile.discord || "",
         id_personagem: profile.id_personagem || "",
         telefone_ingame: profile.telefone_ingame || "",
-        cpf: profile.cpf || "",
       });
     }
   }, [profile]);
