@@ -111,17 +111,55 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {isSignUp && (
-              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}>
-                <label className="text-xs uppercase tracking-widest font-medium text-muted-foreground mb-1 block">
-                  Nome Completo
-                </label>
-                <Input
-                  value={nome}
-                  onChange={(e) => setNome(e.target.value)}
-                  placeholder="Seu nome completo"
-                  required
-                  className="rounded-xl h-12"
-                />
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="space-y-4">
+                <div>
+                  <label className="text-xs uppercase tracking-widest font-medium text-muted-foreground mb-1 block">
+                    Nome Completo
+                  </label>
+                  <Input
+                    value={nome}
+                    onChange={(e) => setNome(e.target.value)}
+                    placeholder="Seu nome completo"
+                    required
+                    className="rounded-xl h-12"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs uppercase tracking-widest font-medium text-muted-foreground mb-1 block">
+                    Discord (ID ou Usuário)
+                  </label>
+                  <Input
+                    value={discord}
+                    onChange={(e) => setDiscord(e.target.value)}
+                    placeholder="usuario#1234 ou ID"
+                    required
+                    className="rounded-xl h-12"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs uppercase tracking-widest font-medium text-muted-foreground mb-1 block">
+                    ID do Personagem
+                  </label>
+                  <Input
+                    value={idPersonagem}
+                    onChange={(e) => setIdPersonagem(e.target.value)}
+                    placeholder="ID do seu personagem no RP"
+                    required
+                    className="rounded-xl h-12"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs uppercase tracking-widest font-medium text-muted-foreground mb-1 block">
+                    Telefone In-Game
+                  </label>
+                  <Input
+                    value={telefoneIngame}
+                    onChange={(e) => setTelefoneIngame(e.target.value)}
+                    placeholder="Número do telefone in-game"
+                    required
+                    className="rounded-xl h-12"
+                  />
+                </div>
               </motion.div>
             )}
             <div>
