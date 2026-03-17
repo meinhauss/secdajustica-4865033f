@@ -22,6 +22,7 @@ const menuItems = [
   { id: "oab", label: "Portal OAB", icon: Briefcase, roles: ["admin", "advogado"] },
   { id: "audiencias", label: "Audiências", icon: Calendar, roles: ["admin", "magistrado", "ministerio_publico", "advogado"] },
   { id: "consulta", label: "Consulta Pública", icon: BookOpen, roles: ["admin", "magistrado", "ministerio_publico", "delegado", "oficial_justica", "advogado", "cidadao"] },
+  { id: "cargos", label: "Cargos e Hierarquia", icon: Crown, roles: ["admin"] },
   { id: "usuarios", label: "Usuários", icon: Users, roles: ["admin"] },
   { id: "estatisticas", label: "Estatísticas", icon: BarChart3, roles: ["admin", "magistrado"] },
 ];
