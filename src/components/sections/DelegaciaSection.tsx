@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Plus, Shield, Search, User, ArrowLeft, Clock, Eye, FileText,
+  Plus, Shield, Search, User, ArrowLeft, Clock, Eye, FileText, X,
   AlertTriangle, CheckCircle, Upload, ChevronRight, UserPlus,
   ClipboardList, Send, BookOpen, Mic, Scale
 } from "lucide-react";
