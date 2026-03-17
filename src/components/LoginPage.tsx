@@ -139,10 +139,10 @@ export default function LoginPage() {
             transition={{ duration: 0.3 }}>
             
             {activeTab === "inicio" && <TabInicio onNavigate={setActiveTab} />}
+            {activeTab === "concursos" && <TabConcursos onNavigate={setActiveTab} />}
             {activeTab === "institucional" && <TabInstitucional />}
             {activeTab === "servicos" && <TabServicos />}
             {activeTab === "transparencia" && <TabTransparencia />}
-            {activeTab === "concursos" && <TabConcursos />}
             {activeTab === "contato" && <TabContato />}
             {activeTab === "login" &&
             <TabLogin
@@ -184,12 +184,12 @@ export default function LoginPage() {
 
 function TabInicio({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
   const cards = [
-  { icon: FileText, title: "Consulta Processual", desc: "Acompanhe processos judiciais em andamento na Comarca.", action: "Consultar" },
-  { icon: Shield, title: "Delegacia Virtual", desc: "Registre Boletins de Ocorrência de forma online e rápida.", action: "Acessar" },
-  { icon: Scale, title: "Ministério Público", desc: "Portal do Ministério Público para denúncias e pareceres.", action: "Acessar" },
-  { icon: Gavel, title: "Vara Criminal", desc: "Informações sobre processos criminais e audiências.", action: "Consultar" },
-  { icon: Users, title: "Portal da OAB", desc: "Cadastro de advogados, carteira digital e honorários.", action: "Acessar" },
-  { icon: BookOpen, title: "Jurisprudência", desc: "Banco de decisões judiciais da Comarca de São Paulo.", action: "Pesquisar" }];
+  { icon: FileText, title: "Consulta Processual", desc: "Acompanhe processos judiciais em andamento na Comarca.", action: "Consultar", tab: "login" as Tab },
+  { icon: Shield, title: "Delegacia Virtual", desc: "Registre Boletins de Ocorrência de forma online e rápida.", action: "Acessar", tab: "login" as Tab },
+  { icon: Scale, title: "Ministério Público", desc: "Portal do Ministério Público para denúncias e pareceres.", action: "Acessar", tab: "login" as Tab },
+  { icon: GraduationCap, title: "Concursos Públicos", desc: "Editais abertos, inscrições e resultados de concursos.", action: "Ver Editais", tab: "concursos" as Tab },
+  { icon: Users, title: "Portal da OAB", desc: "Cadastro de advogados, carteira digital e honorários.", action: "Acessar", tab: "login" as Tab },
+  { icon: BookOpen, title: "Jurisprudência", desc: "Banco de decisões judiciais da Comarca de São Paulo.", action: "Pesquisar", tab: "login" as Tab }];
 
 
   return (
@@ -249,6 +249,7 @@ function TabInicio({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 + i * 0.05 }}
+            onClick={() => onNavigate(card.tab)}
             className="bg-card rounded-xl p-6 border border-border shadow-institutional hover:shadow-gold/10 transition-all group cursor-pointer">
             
               <card.icon className="h-8 w-8 text-institutional mb-3" />
@@ -562,7 +563,7 @@ function TabLogin(props: LoginProps) {
 
 }
 
-function TabConcursos() {
+function TabConcursos({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
       <h2 className="font-display text-2xl font-bold text-foreground mb-2">Concursos Públicos</h2>
@@ -579,7 +580,8 @@ function TabConcursos() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
-            className="bg-card rounded-xl p-5 border border-border shadow-institutional"
+            onClick={() => onNavigate("login")}
+            className="bg-card rounded-xl p-5 border border-border shadow-institutional cursor-pointer hover:border-accent transition-colors"
           >
             <item.icon className="h-6 w-6 text-gold mb-3" />
             <h4 className="font-display text-sm font-semibold text-foreground mb-1">{item.title}</h4>
