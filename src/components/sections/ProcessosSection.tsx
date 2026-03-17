@@ -249,10 +249,12 @@ export default function ProcessosSection() {
                 className="rounded-xl"
               />
               <Input
-                type="number"
                 placeholder="Valor da Causa (R$)"
                 value={form.valor_causa}
-                onChange={(e) => setForm({ ...form, valor_causa: e.target.value })}
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/\D/g, "");
+                  setForm({ ...form, valor_causa: raw ? formatCurrency(raw) : "" });
+                }}
                 className="rounded-xl"
               />
               <Textarea
