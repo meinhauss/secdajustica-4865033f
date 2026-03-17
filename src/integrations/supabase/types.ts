@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      arquivamentos_mp: {
+        Row: {
+          created_at: string
+          id: string
+          inquerito_id: string
+          justificativa: string
+          promotor_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          inquerito_id: string
+          justificativa: string
+          promotor_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          inquerito_id?: string
+          justificativa?: string
+          promotor_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "arquivamentos_mp_inquerito_id_fkey"
+            columns: ["inquerito_id"]
+            isOneToOne: false
+            referencedRelation: "inqueritos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       atos_judiciais: {
         Row: {
           assinado: boolean
@@ -182,6 +217,63 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      denuncias_mp: {
+        Row: {
+          created_at: string
+          fundamentacao: string
+          id: string
+          inquerito_id: string | null
+          numero_protocolo: string
+          processo_id: string | null
+          promotor_id: string
+          resumo: string
+          status: string
+          tipificacao: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          fundamentacao: string
+          id?: string
+          inquerito_id?: string | null
+          numero_protocolo?: string
+          processo_id?: string | null
+          promotor_id: string
+          resumo: string
+          status?: string
+          tipificacao?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          fundamentacao?: string
+          id?: string
+          inquerito_id?: string | null
+          numero_protocolo?: string
+          processo_id?: string | null
+          promotor_id?: string
+          resumo?: string
+          status?: string
+          tipificacao?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "denuncias_mp_inquerito_id_fkey"
+            columns: ["inquerito_id"]
+            isOneToOne: false
+            referencedRelation: "inqueritos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "denuncias_mp_processo_id_fkey"
+            columns: ["processo_id"]
+            isOneToOne: false
+            referencedRelation: "processos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       diligencias: {
         Row: {
@@ -489,6 +581,41 @@ export type Database = {
           },
         ]
       }
+      pareceres_mp: {
+        Row: {
+          conteudo: string
+          created_at: string
+          id: string
+          processo_id: string
+          promotor_id: string
+          tipo: string
+        }
+        Insert: {
+          conteudo: string
+          created_at?: string
+          id?: string
+          processo_id: string
+          promotor_id: string
+          tipo?: string
+        }
+        Update: {
+          conteudo?: string
+          created_at?: string
+          id?: string
+          processo_id?: string
+          promotor_id?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pareceres_mp_processo_id_fkey"
+            columns: ["processo_id"]
+            isOneToOne: false
+            referencedRelation: "processos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       prazos_processuais: {
         Row: {
           created_at: string
@@ -637,6 +764,50 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      requisicoes_diligencia_mp: {
+        Row: {
+          created_at: string
+          descricao: string
+          id: string
+          inquerito_id: string
+          prazo_dias: number
+          promotor_id: string
+          resposta: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          descricao: string
+          id?: string
+          inquerito_id: string
+          prazo_dias?: number
+          promotor_id: string
+          resposta?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          id?: string
+          inquerito_id?: string
+          prazo_dias?: number
+          promotor_id?: string
+          resposta?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "requisicoes_diligencia_mp_inquerito_id_fkey"
+            columns: ["inquerito_id"]
+            isOneToOne: false
+            referencedRelation: "inqueritos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
