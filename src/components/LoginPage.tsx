@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Scale, Shield, Gavel, BookOpen, Building2, Users, FileText,
-  Phone, MapPin, Clock, ChevronRight, ExternalLink } from
+  Phone, MapPin, Clock, ChevronRight, ExternalLink, GraduationCap } from
 "lucide-react";
 import logoTjsp from "@/assets/logo-tjsp.png";
 import govLogo from "@/assets/gov-logo.png";
