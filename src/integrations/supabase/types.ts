@@ -198,9 +198,12 @@ export type Database = {
           cargo: string | null
           cpf: string | null
           created_at: string
+          discord: string | null
           id: string
+          id_personagem: string | null
           nome_completo: string
           oab_numero: string | null
+          telefone_ingame: string | null
           updated_at: string
           user_id: string
         }
@@ -209,9 +212,12 @@ export type Database = {
           cargo?: string | null
           cpf?: string | null
           created_at?: string
+          discord?: string | null
           id?: string
+          id_personagem?: string | null
           nome_completo: string
           oab_numero?: string | null
+          telefone_ingame?: string | null
           updated_at?: string
           user_id: string
         }
@@ -220,9 +226,12 @@ export type Database = {
           cargo?: string | null
           cpf?: string | null
           created_at?: string
+          discord?: string | null
           id?: string
+          id_personagem?: string | null
           nome_completo?: string
           oab_numero?: string | null
+          telefone_ingame?: string | null
           updated_at?: string
           user_id?: string
         }
