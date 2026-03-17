@@ -14,36 +14,235 @@ export type Database = {
   }
   public: {
     Tables: {
-      words: {
+      audiencias: {
         Row: {
           created_at: string
-          definition: string | null
-          etymology: string | null
-          frequency: number | null
+          data_hora: string
           id: string
-          part_of_speech: string | null
-          sentiment: string | null
-          word: string
+          local: string | null
+          observacoes: string | null
+          processo_id: string
+          status: string
+          tipo: string
         }
         Insert: {
           created_at?: string
-          definition?: string | null
-          etymology?: string | null
-          frequency?: number | null
+          data_hora: string
           id?: string
-          part_of_speech?: string | null
-          sentiment?: string | null
-          word: string
+          local?: string | null
+          observacoes?: string | null
+          processo_id: string
+          status?: string
+          tipo?: string
         }
         Update: {
           created_at?: string
-          definition?: string | null
-          etymology?: string | null
-          frequency?: number | null
+          data_hora?: string
           id?: string
-          part_of_speech?: string | null
-          sentiment?: string | null
-          word?: string
+          local?: string | null
+          observacoes?: string | null
+          processo_id?: string
+          status?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audiencias_processo_id_fkey"
+            columns: ["processo_id"]
+            isOneToOne: false
+            referencedRelation: "processos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      boletins_ocorrencia: {
+        Row: {
+          created_at: string
+          data_fato: string | null
+          delegado_id: string | null
+          descricao: string
+          id: string
+          local_fato: string | null
+          numero: string
+          status: string
+          tipo: string
+          updated_at: string
+          vitima_id: string | null
+          vitima_nome: string
+        }
+        Insert: {
+          created_at?: string
+          data_fato?: string | null
+          delegado_id?: string | null
+          descricao: string
+          id?: string
+          local_fato?: string | null
+          numero: string
+          status?: string
+          tipo: string
+          updated_at?: string
+          vitima_id?: string | null
+          vitima_nome: string
+        }
+        Update: {
+          created_at?: string
+          data_fato?: string | null
+          delegado_id?: string | null
+          descricao?: string
+          id?: string
+          local_fato?: string | null
+          numero?: string
+          status?: string
+          tipo?: string
+          updated_at?: string
+          vitima_id?: string | null
+          vitima_nome?: string
+        }
+        Relationships: []
+      }
+      movimentacoes: {
+        Row: {
+          autor_id: string | null
+          created_at: string
+          descricao: string
+          id: string
+          processo_id: string
+          tipo: string
+        }
+        Insert: {
+          autor_id?: string | null
+          created_at?: string
+          descricao: string
+          id?: string
+          processo_id: string
+          tipo: string
+        }
+        Update: {
+          autor_id?: string | null
+          created_at?: string
+          descricao?: string
+          id?: string
+          processo_id?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "movimentacoes_processo_id_fkey"
+            columns: ["processo_id"]
+            isOneToOne: false
+            referencedRelation: "processos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      processos: {
+        Row: {
+          advogado_autor_id: string | null
+          advogado_reu_id: string | null
+          assunto: string
+          autor_nome: string
+          classe: Database["public"]["Enums"]["classe_processual"]
+          created_at: string
+          descricao: string | null
+          id: string
+          juiz_id: string | null
+          numero: string
+          prioridade: boolean | null
+          reu_nome: string
+          status: Database["public"]["Enums"]["processo_status"]
+          updated_at: string
+          valor_causa: number | null
+          vara: string | null
+        }
+        Insert: {
+          advogado_autor_id?: string | null
+          advogado_reu_id?: string | null
+          assunto: string
+          autor_nome: string
+          classe?: Database["public"]["Enums"]["classe_processual"]
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          juiz_id?: string | null
+          numero: string
+          prioridade?: boolean | null
+          reu_nome: string
+          status?: Database["public"]["Enums"]["processo_status"]
+          updated_at?: string
+          valor_causa?: number | null
+          vara?: string | null
+        }
+        Update: {
+          advogado_autor_id?: string | null
+          advogado_reu_id?: string | null
+          assunto?: string
+          autor_nome?: string
+          classe?: Database["public"]["Enums"]["classe_processual"]
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          juiz_id?: string | null
+          numero?: string
+          prioridade?: boolean | null
+          reu_nome?: string
+          status?: Database["public"]["Enums"]["processo_status"]
+          updated_at?: string
+          valor_causa?: number | null
+          vara?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          cargo: string | null
+          cpf: string | null
+          created_at: string
+          id: string
+          nome_completo: string
+          oab_numero: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          cargo?: string | null
+          cpf?: string | null
+          created_at?: string
+          id?: string
+          nome_completo: string
+          oab_numero?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          cargo?: string | null
+          cpf?: string | null
+          created_at?: string
+          id?: string
+          nome_completo?: string
+          oab_numero?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id?: string
         }
         Relationships: []
       }
@@ -52,10 +251,35 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["user_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      classe_processual:
+        | "criminal"
+        | "civil"
+        | "administrativo"
+        | "constitucional"
+      processo_status:
+        | "novo"
+        | "em_andamento"
+        | "concluso"
+        | "sentenciado"
+        | "arquivado"
+        | "suspenso"
+      user_role:
+        | "admin"
+        | "magistrado"
+        | "ministerio_publico"
+        | "delegado"
+        | "oficial_justica"
+        | "advogado"
+        | "cidadao"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -182,6 +406,30 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      classe_processual: [
+        "criminal",
+        "civil",
+        "administrativo",
+        "constitucional",
+      ],
+      processo_status: [
+        "novo",
+        "em_andamento",
+        "concluso",
+        "sentenciado",
+        "arquivado",
+        "suspenso",
+      ],
+      user_role: [
+        "admin",
+        "magistrado",
+        "ministerio_publico",
+        "delegado",
+        "oficial_justica",
+        "advogado",
+        "cidadao",
+      ],
+    },
   },
 } as const
