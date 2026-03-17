@@ -13,6 +13,7 @@ import OABSection from "@/components/sections/OABSection";
 import UsuariosSection from "@/components/sections/UsuariosSection";
 import CargosSection from "@/components/sections/CargosSection";
 import EstatisticasSection from "@/components/sections/EstatisticasSection";
+import ConcursosSection from "@/components/sections/ConcursosSection";
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -44,6 +45,7 @@ const Index = () => {
       case "cargos": return <CargosSection />;
       case "usuarios": return <UsuariosSection />;
       case "estatisticas": return <EstatisticasSection />;
+      case "concursos": return <ConcursosSection />;
       default: return <DashboardHome />;
     }
   };

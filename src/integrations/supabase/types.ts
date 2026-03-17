@@ -268,6 +268,44 @@ export type Database = {
           },
         ]
       }
+      comunicados_concurso: {
+        Row: {
+          autor_id: string | null
+          concurso_id: string
+          conteudo: string
+          created_at: string
+          id: string
+          tipo: string
+          titulo: string
+        }
+        Insert: {
+          autor_id?: string | null
+          concurso_id: string
+          conteudo: string
+          created_at?: string
+          id?: string
+          tipo?: string
+          titulo: string
+        }
+        Update: {
+          autor_id?: string | null
+          concurso_id?: string
+          conteudo?: string
+          created_at?: string
+          id?: string
+          tipo?: string
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comunicados_concurso_concurso_id_fkey"
+            columns: ["concurso_id"]
+            isOneToOne: false
+            referencedRelation: "concursos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comunicados_oab: {
         Row: {
           autor_id: string | null
@@ -292,6 +330,63 @@ export type Database = {
           id?: string
           tipo?: string
           titulo?: string
+        }
+        Relationships: []
+      }
+      concursos: {
+        Row: {
+          cargo: string
+          conteudo_programatico: string | null
+          created_at: string
+          criado_por: string | null
+          data_abertura: string | null
+          data_encerramento_inscricoes: string | null
+          data_prova: string | null
+          data_resultado: string | null
+          edital_url: string | null
+          id: string
+          regras_classificacao: string | null
+          requisitos: string | null
+          status: string
+          titulo: string
+          updated_at: string
+          vagas: number
+        }
+        Insert: {
+          cargo: string
+          conteudo_programatico?: string | null
+          created_at?: string
+          criado_por?: string | null
+          data_abertura?: string | null
+          data_encerramento_inscricoes?: string | null
+          data_prova?: string | null
+          data_resultado?: string | null
+          edital_url?: string | null
+          id?: string
+          regras_classificacao?: string | null
+          requisitos?: string | null
+          status?: string
+          titulo: string
+          updated_at?: string
+          vagas?: number
+        }
+        Update: {
+          cargo?: string
+          conteudo_programatico?: string | null
+          created_at?: string
+          criado_por?: string | null
+          data_abertura?: string | null
+          data_encerramento_inscricoes?: string | null
+          data_prova?: string | null
+          data_resultado?: string | null
+          edital_url?: string | null
+          id?: string
+          regras_classificacao?: string | null
+          requisitos?: string | null
+          status?: string
+          titulo?: string
+          updated_at?: string
+          vagas?: number
         }
         Relationships: []
       }
@@ -601,6 +696,62 @@ export type Database = {
             columns: ["bo_id"]
             isOneToOne: false
             referencedRelation: "boletins_ocorrencia"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inscricoes_concurso: {
+        Row: {
+          classificacao: number | null
+          concurso_id: string
+          created_at: string
+          id: string
+          id_personagem: string | null
+          nome_completo: string
+          nota_discursiva: number | null
+          nota_final: number | null
+          nota_objetiva: number | null
+          numero_inscricao: string
+          presente: boolean | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          classificacao?: number | null
+          concurso_id: string
+          created_at?: string
+          id?: string
+          id_personagem?: string | null
+          nome_completo: string
+          nota_discursiva?: number | null
+          nota_final?: number | null
+          nota_objetiva?: number | null
+          numero_inscricao?: string
+          presente?: boolean | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          classificacao?: number | null
+          concurso_id?: string
+          created_at?: string
+          id?: string
+          id_personagem?: string | null
+          nome_completo?: string
+          nota_discursiva?: number | null
+          nota_final?: number | null
+          nota_objetiva?: number | null
+          numero_inscricao?: string
+          presente?: boolean | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inscricoes_concurso_concurso_id_fkey"
+            columns: ["concurso_id"]
+            isOneToOne: false
+            referencedRelation: "concursos"
             referencedColumns: ["id"]
           },
         ]
@@ -1012,6 +1163,59 @@ export type Database = {
         }
         Relationships: []
       }
+      questoes_concurso: {
+        Row: {
+          alternativa_a: string | null
+          alternativa_b: string | null
+          alternativa_c: string | null
+          alternativa_d: string | null
+          concurso_id: string
+          created_at: string
+          enunciado: string
+          gabarito: string | null
+          id: string
+          numero: number
+          peso: number
+          tipo: string
+        }
+        Insert: {
+          alternativa_a?: string | null
+          alternativa_b?: string | null
+          alternativa_c?: string | null
+          alternativa_d?: string | null
+          concurso_id: string
+          created_at?: string
+          enunciado: string
+          gabarito?: string | null
+          id?: string
+          numero?: number
+          peso?: number
+          tipo?: string
+        }
+        Update: {
+          alternativa_a?: string | null
+          alternativa_b?: string | null
+          alternativa_c?: string | null
+          alternativa_d?: string | null
+          concurso_id?: string
+          created_at?: string
+          enunciado?: string
+          gabarito?: string | null
+          id?: string
+          numero?: number
+          peso?: number
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questoes_concurso_concurso_id_fkey"
+            columns: ["concurso_id"]
+            isOneToOne: false
+            referencedRelation: "concursos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       requisicoes_diligencia_mp: {
         Row: {
           created_at: string
@@ -1052,6 +1256,51 @@ export type Database = {
             columns: ["inquerito_id"]
             isOneToOne: false
             referencedRelation: "inqueritos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      respostas_concurso: {
+        Row: {
+          correta: boolean | null
+          created_at: string
+          id: string
+          inscricao_id: string
+          nota: number | null
+          questao_id: string
+          resposta: string | null
+        }
+        Insert: {
+          correta?: boolean | null
+          created_at?: string
+          id?: string
+          inscricao_id: string
+          nota?: number | null
+          questao_id: string
+          resposta?: string | null
+        }
+        Update: {
+          correta?: boolean | null
+          created_at?: string
+          id?: string
+          inscricao_id?: string
+          nota?: number | null
+          questao_id?: string
+          resposta?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "respostas_concurso_inscricao_id_fkey"
+            columns: ["inscricao_id"]
+            isOneToOne: false
+            referencedRelation: "inscricoes_concurso"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "respostas_concurso_questao_id_fkey"
+            columns: ["questao_id"]
+            isOneToOne: false
+            referencedRelation: "questoes_concurso"
             referencedColumns: ["id"]
           },
         ]

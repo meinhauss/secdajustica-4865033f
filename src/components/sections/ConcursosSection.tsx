@@ -1,0 +1,806 @@
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  BookOpen, FileText, Users, Clock, Search, Plus, CheckCircle,
+  ChevronRight, Award, BarChart3, Megaphone, ArrowLeft, Eye,
+  ClipboardList, GraduationCap, Trophy, AlertTriangle, PenTool,
+  UserCheck, Timer, Star
+} from "lucide-react";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
+const CONCURSO_STATUS: Record<string, { label: string; color: string }> = {
+  rascunho: { label: "Rascunho", color: "bg-muted text-muted-foreground" },
+  publicado: { label: "Publicado", color: "bg-institutional/10 text-institutional" },
+  inscricoes_abertas: { label: "Inscrições Abertas", color: "bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400" },
+  inscricoes_encerradas: { label: "Inscrições Encerradas", color: "bg-gold/10 text-gold-dark" },
+  em_andamento: { label: "Em Andamento", color: "bg-accent/20 text-accent-foreground" },
+  resultado_publicado: { label: "Resultado Publicado", color: "bg-purple-100 text-purple-800 dark:bg-purple-950/30 dark:text-purple-400" },
+  homologado: { label: "Homologado", color: "bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400" },
+  cancelado: { label: "Cancelado", color: "bg-destructive/10 text-destructive" },
+};
+
+const CARGOS_JURIDICOS = [
+  "Magistrado", "Promotor de Justiça", "Delegado de Polícia", "Defensor Público",
+  "Oficial de Justiça", "Analista Judiciário", "Técnico Judiciário", "Escrivão",
+  "Investigador", "Perito Criminal", "Assessor Jurídico"
+];
+
+function StatCard({ label, value, icon: Icon, delay = 0 }: { label: string; value: number; icon: any; delay?: number }) {
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay }}
+      className="bg-card rounded-xl p-4 border border-border shadow-institutional">
+      <Icon className="h-4 w-4 text-institutional mb-1" />
+      <p className="text-2xl font-bold text-foreground">{value}</p>
+      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{label}</p>
+    </motion.div>
+  );
+}
+
+function EmptyState({ icon: Icon, text }: { icon: any; text: string }) {
+  return (
+    <div className="text-center py-12 text-muted-foreground">
+      <Icon className="h-12 w-12 mx-auto mb-3 opacity-30" />
+      <p className="text-sm">{text}</p>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════ */
+/*  MAIN                                       */
+/* ═══════════════════════════════════════════ */
+export default function ConcursosSection() {
+  const { roles } = useAuth();
+  const [view, setView] = useState<"list" | "detail" | "prova">("list");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const isAdmin = roles.some((r) => ["admin", "presidente_tribunal"].includes(r));
+
+  if (view === "detail" && selectedId) {
+    return <ConcursoDetail concursoId={selectedId} onBack={() => { setView("list"); setSelectedId(null); }} isAdmin={isAdmin} />;
+  }
+  if (view === "prova" && selectedId) {
+    return <RealizarProva concursoId={selectedId} onBack={() => { setView("detail"); }} />;
+  }
+
+  return <ConcursosDashboard isAdmin={isAdmin} onSelect={(id) => { setSelectedId(id); setView("detail"); }} />;
+}
+
+/* ═══════════════════════════════════════════ */
+/*  DASHBOARD                                  */
+/* ═══════════════════════════════════════════ */
+function ConcursosDashboard({ isAdmin, onSelect }: { isAdmin: boolean; onSelect: (id: string) => void }) {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [search, setSearch] = useState("");
+  const [openConcurso, setOpenConcurso] = useState(false);
+
+  const { data: concursos } = useQuery({
+    queryKey: ["concursos"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("concursos").select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
+  const { data: inscricoes } = useQuery({
+    queryKey: ["concursos-inscricoes-all"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("inscricoes_concurso").select("*");
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
+  const [form, setForm] = useState({
+    titulo: "", cargo: "Magistrado", vagas: "1", requisitos: "", conteudo_programatico: "",
+    regras_classificacao: "", data_abertura: "", data_encerramento_inscricoes: "", data_prova: "", data_resultado: "",
+  });
+
+  const criarConcurso = useMutation({
+    mutationFn: async () => {
+      if (!form.titulo || !form.cargo) throw new Error("Título e cargo obrigatórios.");
+      const { error } = await supabase.from("concursos").insert({
+        titulo: form.titulo,
+        cargo: form.cargo,
+        vagas: parseInt(form.vagas) || 1,
+        requisitos: form.requisitos || null,
+        conteudo_programatico: form.conteudo_programatico || null,
+        regras_classificacao: form.regras_classificacao || null,
+        data_abertura: form.data_abertura ? new Date(form.data_abertura).toISOString() : null,
+        data_encerramento_inscricoes: form.data_encerramento_inscricoes ? new Date(form.data_encerramento_inscricoes).toISOString() : null,
+        data_prova: form.data_prova ? new Date(form.data_prova).toISOString() : null,
+        data_resultado: form.data_resultado ? new Date(form.data_resultado).toISOString() : null,
+        criado_por: user!.id,
+        status: "rascunho",
+      } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["concursos"] });
+      setOpenConcurso(false);
+      setForm({ titulo: "", cargo: "Magistrado", vagas: "1", requisitos: "", conteudo_programatico: "", regras_classificacao: "", data_abertura: "", data_encerramento_inscricoes: "", data_prova: "", data_resultado: "" });
+      toast.success("Concurso criado com sucesso!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  const filtered = concursos?.filter((c: any) =>
+    c.titulo?.toLowerCase().includes(search.toLowerCase()) ||
+    c.cargo?.toLowerCase().includes(search.toLowerCase())
+  ) || [];
+
+  const abertos = concursos?.filter((c: any) => ["publicado", "inscricoes_abertas"].includes(c.status)) || [];
+  const stats = {
+    total: concursos?.length || 0,
+    abertos: abertos.length,
+    inscritos: inscricoes?.length || 0,
+    homologados: concursos?.filter((c: any) => c.status === "homologado").length || 0,
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="font-display text-2xl font-bold text-foreground">Portal de Concursos</h2>
+          <p className="text-sm text-muted-foreground">Concursos públicos institucionais — Editais, inscrições e resultados</p>
+        </div>
+        {isAdmin && (
+          <Dialog open={openConcurso} onOpenChange={setOpenConcurso}>
+            <DialogTrigger asChild>
+              <Button className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light" size="sm">
+                <Plus className="h-4 w-4 mr-1" /> Novo Concurso
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+              <DialogHeader><DialogTitle className="font-display">Criar Concurso Público</DialogTitle></DialogHeader>
+              <form onSubmit={(e) => { e.preventDefault(); criarConcurso.mutate(); }} className="space-y-4 mt-4">
+                <Input placeholder="Título do Concurso" value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} className="rounded-xl" required />
+                <div className="grid grid-cols-2 gap-3">
+                  <Select value={form.cargo} onValueChange={(v) => setForm({ ...form, cargo: v })}>
+                    <SelectTrigger className="rounded-xl"><SelectValue placeholder="Cargo" /></SelectTrigger>
+                    <SelectContent>{CARGOS_JURIDICOS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                  </Select>
+                  <Input type="number" placeholder="Vagas" value={form.vagas} onChange={(e) => setForm({ ...form, vagas: e.target.value })} className="rounded-xl" min="1" />
+                </div>
+                <Textarea placeholder="Requisitos obrigatórios" value={form.requisitos} onChange={(e) => setForm({ ...form, requisitos: e.target.value })} rows={2} className="rounded-xl" />
+                <Textarea placeholder="Conteúdo programático" value={form.conteudo_programatico} onChange={(e) => setForm({ ...form, conteudo_programatico: e.target.value })} rows={3} className="rounded-xl" />
+                <Textarea placeholder="Regras de classificação e critérios de aprovação" value={form.regras_classificacao} onChange={(e) => setForm({ ...form, regras_classificacao: e.target.value })} rows={2} className="rounded-xl" />
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className="text-xs text-muted-foreground">Abertura</label><Input type="datetime-local" value={form.data_abertura} onChange={(e) => setForm({ ...form, data_abertura: e.target.value })} className="rounded-xl" /></div>
+                  <div><label className="text-xs text-muted-foreground">Encerramento Inscrições</label><Input type="datetime-local" value={form.data_encerramento_inscricoes} onChange={(e) => setForm({ ...form, data_encerramento_inscricoes: e.target.value })} className="rounded-xl" /></div>
+                  <div><label className="text-xs text-muted-foreground">Data da Prova</label><Input type="datetime-local" value={form.data_prova} onChange={(e) => setForm({ ...form, data_prova: e.target.value })} className="rounded-xl" /></div>
+                  <div><label className="text-xs text-muted-foreground">Data do Resultado</label><Input type="datetime-local" value={form.data_resultado} onChange={(e) => setForm({ ...form, data_resultado: e.target.value })} className="rounded-xl" /></div>
+                </div>
+                <Button type="submit" disabled={criarConcurso.isPending} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
+                  {criarConcurso.isPending ? "Criando..." : "Criar Concurso"}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <StatCard label="Concursos" value={stats.total} icon={GraduationCap} />
+        <StatCard label="Abertos" value={stats.abertos} icon={BookOpen} delay={0.05} />
+        <StatCard label="Inscritos Total" value={stats.inscritos} icon={Users} delay={0.1} />
+        <StatCard label="Homologados" value={stats.homologados} icon={Trophy} delay={0.15} />
+      </div>
+
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input placeholder="Buscar concursos por título ou cargo..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10 rounded-xl" />
+      </div>
+
+      {!filtered.length ? <EmptyState icon={GraduationCap} text="Nenhum concurso encontrado." /> : (
+        <div className="space-y-3">
+          {filtered.map((c: any, i: number) => {
+            const cfg = CONCURSO_STATUS[c.status] || CONCURSO_STATUS.rascunho;
+            const inscritos = inscricoes?.filter((ins: any) => ins.concurso_id === c.id).length || 0;
+            return (
+              <motion.div key={c.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
+                onClick={() => onSelect(c.id)}
+                className="bg-card rounded-xl p-5 border border-border shadow-institutional hover:border-institutional/30 transition-all cursor-pointer group">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${cfg.color}`}>{cfg.label}</span>
+                      <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{c.cargo}</span>
+                      <span className="text-[10px] text-muted-foreground">{c.vagas} vaga(s)</span>
+                    </div>
+                    <h3 className="text-sm font-semibold text-foreground">{c.titulo}</h3>
+                    <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
+                      {c.data_prova && <span>Prova: {format(new Date(c.data_prova), "dd/MM/yyyy", { locale: ptBR })}</span>}
+                      <span>{inscritos} inscritos</span>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-institutional transition-colors flex-shrink-0" />
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════ */
+/*  CONCURSO DETAIL                            */
+/* ═══════════════════════════════════════════ */
+function ConcursoDetail({ concursoId, onBack, isAdmin }: { concursoId: string; onBack: () => void; isAdmin: boolean }) {
+  const { user, profile } = useAuth();
+  const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState("edital");
+  const [openQuestao, setOpenQuestao] = useState(false);
+  const [openComunicado, setOpenComunicado] = useState(false);
+
+  const { data: concurso } = useQuery({
+    queryKey: ["concurso", concursoId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("concursos").select("*").eq("id", concursoId).single();
+      if (error) throw error;
+      return data as any;
+    },
+  });
+
+  const { data: inscricoes } = useQuery({
+    queryKey: ["concurso-inscricoes", concursoId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("inscricoes_concurso").select("*").eq("concurso_id", concursoId).order("classificacao", { ascending: true, nullsFirst: false });
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
+  const { data: questoes } = useQuery({
+    queryKey: ["concurso-questoes", concursoId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("questoes_concurso").select("*").eq("concurso_id", concursoId).order("numero");
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
+  const { data: comunicados } = useQuery({
+    queryKey: ["concurso-comunicados", concursoId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("comunicados_concurso").select("*").eq("concurso_id", concursoId).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
+  const myInscricao = inscricoes?.find((i: any) => i.user_id === user?.id);
+
+  // Inscrever-se
+  const inscrever = useMutation({
+    mutationFn: async () => {
+      if (!profile) throw new Error("Perfil não encontrado.");
+      const { error } = await supabase.from("inscricoes_concurso").insert({
+        concurso_id: concursoId,
+        user_id: user!.id,
+        nome_completo: profile.nome_completo,
+        id_personagem: profile.id_personagem || null,
+      } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["concurso-inscricoes", concursoId] });
+      toast.success("Inscrição confirmada!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  // Update status
+  const updateStatus = useMutation({
+    mutationFn: async (status: string) => {
+      const { error } = await supabase.from("concursos").update({ status } as any).eq("id", concursoId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["concurso", concursoId] });
+      queryClient.invalidateQueries({ queryKey: ["concursos"] });
+      toast.success("Status atualizado!");
+    },
+  });
+
+  // Add questão
+  const [qForm, setQForm] = useState({ enunciado: "", alternativa_a: "", alternativa_b: "", alternativa_c: "", alternativa_d: "", gabarito: "a", peso: "1" });
+  const addQuestao = useMutation({
+    mutationFn: async () => {
+      if (!qForm.enunciado) throw new Error("Enunciado obrigatório.");
+      const num = (questoes?.length || 0) + 1;
+      const { error } = await supabase.from("questoes_concurso").insert({
+        concurso_id: concursoId,
+        numero: num,
+        enunciado: qForm.enunciado,
+        alternativa_a: qForm.alternativa_a || null,
+        alternativa_b: qForm.alternativa_b || null,
+        alternativa_c: qForm.alternativa_c || null,
+        alternativa_d: qForm.alternativa_d || null,
+        gabarito: qForm.gabarito,
+        peso: parseFloat(qForm.peso) || 1,
+      } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["concurso-questoes", concursoId] });
+      setOpenQuestao(false);
+      setQForm({ enunciado: "", alternativa_a: "", alternativa_b: "", alternativa_c: "", alternativa_d: "", gabarito: "a", peso: "1" });
+      toast.success("Questão adicionada!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  // Corrigir provas (auto-correct objectives)
+  const corrigirProvas = useMutation({
+    mutationFn: async () => {
+      if (!inscricoes?.length || !questoes?.length) throw new Error("Sem inscritos ou questões.");
+      for (const insc of inscricoes) {
+        const { data: respostas } = await supabase.from("respostas_concurso").select("*, questao_id").eq("inscricao_id", insc.id);
+        let nota = 0;
+        const totalPeso = questoes.reduce((sum: number, q: any) => sum + (q.peso || 1), 0);
+        for (const q of questoes) {
+          const resp = respostas?.find((r: any) => r.questao_id === q.id);
+          if (resp && resp.resposta === q.gabarito) {
+            nota += q.peso || 1;
+            await supabase.from("respostas_concurso").update({ correta: true, nota: q.peso || 1 } as any).eq("id", resp.id);
+          } else if (resp) {
+            await supabase.from("respostas_concurso").update({ correta: false, nota: 0 } as any).eq("id", resp.id);
+          }
+        }
+        const notaFinal = totalPeso > 0 ? (nota / totalPeso) * 100 : 0;
+        await supabase.from("inscricoes_concurso").update({ nota_objetiva: nota, nota_final: notaFinal, presente: true } as any).eq("id", insc.id);
+      }
+      // Classificação
+      const { data: updated } = await supabase.from("inscricoes_concurso").select("*").eq("concurso_id", concursoId).order("nota_final", { ascending: false });
+      if (updated) {
+        for (let i = 0; i < updated.length; i++) {
+          await supabase.from("inscricoes_concurso").update({ classificacao: i + 1 } as any).eq("id", updated[i].id);
+        }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["concurso-inscricoes", concursoId] });
+      toast.success("Provas corrigidas e classificação gerada!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  // Nomear aprovado
+  const nomearAprovado = useMutation({
+    mutationFn: async (inscricaoId: string) => {
+      const insc = inscricoes?.find((i: any) => i.id === inscricaoId);
+      if (!insc) throw new Error("Inscrição não encontrada.");
+      // Map cargo to role
+      const cargoRoleMap: Record<string, string> = {
+        "Magistrado": "magistrado", "Promotor de Justiça": "ministerio_publico",
+        "Delegado de Polícia": "delegado", "Oficial de Justiça": "oficial_justica",
+        "Investigador": "investigador",
+      };
+      const role = cargoRoleMap[concurso?.cargo] || null;
+      if (role) {
+        await supabase.from("user_roles").insert({ user_id: insc.user_id, role: role as any }).select();
+        await supabase.from("cargo_historico").insert({
+          user_id: insc.user_id,
+          role: role as any,
+          tipo: "nomeacao",
+          data_inicio: new Date().toISOString(),
+          nomeado_por: user!.id,
+          observacoes: `Nomeado via concurso: ${concurso?.titulo}`,
+        });
+      }
+      await supabase.from("inscricoes_concurso").update({ status: "nomeado" } as any).eq("id", inscricaoId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["concurso-inscricoes", concursoId] });
+      toast.success("Candidato nomeado!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  // Comunicado
+  const [comForm, setComForm] = useState({ titulo: "", conteudo: "", tipo: "aviso" });
+  const criarComunicado = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("comunicados_concurso").insert({
+        concurso_id: concursoId, titulo: comForm.titulo, conteudo: comForm.conteudo,
+        tipo: comForm.tipo, autor_id: user!.id,
+      } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["concurso-comunicados", concursoId] });
+      setOpenComunicado(false);
+      setComForm({ titulo: "", conteudo: "", tipo: "aviso" });
+      toast.success("Comunicado publicado!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  if (!concurso) return <div className="text-center py-12 text-muted-foreground">Carregando...</div>;
+
+  const cfg = CONCURSO_STATUS[concurso.status] || CONCURSO_STATUS.rascunho;
+  const canInscribe = ["publicado", "inscricoes_abertas"].includes(concurso.status) && !myInscricao;
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="sm" onClick={onBack} className="rounded-lg"><ArrowLeft className="h-4 w-4 mr-1" /> Voltar</Button>
+        <div className="flex-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="font-display text-xl font-bold text-foreground">{concurso.titulo}</h2>
+            <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${cfg.color}`}>{cfg.label}</span>
+          </div>
+          <p className="text-sm text-muted-foreground">{concurso.cargo} — {concurso.vagas} vaga(s)</p>
+        </div>
+      </div>
+
+      {/* Quick actions */}
+      <div className="flex flex-wrap gap-2">
+        {canInscribe && (
+          <Button onClick={() => inscrever.mutate()} disabled={inscrever.isPending} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
+            <UserCheck className="h-4 w-4 mr-1" /> {inscrever.isPending ? "Inscrevendo..." : "Inscrever-se"}
+          </Button>
+        )}
+        {myInscricao && !myInscricao.nota_final && concurso.status === "em_andamento" && (
+          <Button onClick={() => { /* navigate to prova */ }} variant="outline" className="rounded-xl">
+            <PenTool className="h-4 w-4 mr-1" /> Realizar Prova
+          </Button>
+        )}
+        {myInscricao && <span className="text-xs text-muted-foreground self-center">Inscrição: {myInscricao.numero_inscricao}</span>}
+        {isAdmin && (
+          <Select value={concurso.status} onValueChange={(v) => updateStatus.mutate(v)}>
+            <SelectTrigger className="rounded-xl w-52 h-9 text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {Object.entries(CONCURSO_STATUS).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        )}
+      </div>
+
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="w-full justify-start rounded-xl bg-secondary/50 p-1 h-auto gap-1 flex-wrap">
+          <TabsTrigger value="edital" className="rounded-lg text-xs"><FileText className="h-3 w-3 mr-1" /> Edital</TabsTrigger>
+          <TabsTrigger value="inscritos" className="rounded-lg text-xs"><Users className="h-3 w-3 mr-1" /> Inscritos ({inscricoes?.length || 0})</TabsTrigger>
+          {isAdmin && <TabsTrigger value="questoes" className="rounded-lg text-xs"><ClipboardList className="h-3 w-3 mr-1" /> Questões ({questoes?.length || 0})</TabsTrigger>}
+          <TabsTrigger value="resultado" className="rounded-lg text-xs"><Trophy className="h-3 w-3 mr-1" /> Resultado</TabsTrigger>
+          <TabsTrigger value="comunicados" className="rounded-lg text-xs"><Megaphone className="h-3 w-3 mr-1" /> Comunicados</TabsTrigger>
+        </TabsList>
+
+        {/* EDITAL */}
+        <TabsContent value="edital" className="mt-4 space-y-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <InfoCard label="Cargo" value={concurso.cargo} />
+            <InfoCard label="Vagas" value={String(concurso.vagas)} />
+            <InfoCard label="Abertura" value={concurso.data_abertura ? format(new Date(concurso.data_abertura), "dd/MM/yyyy", { locale: ptBR }) : "—"} />
+            <InfoCard label="Prova" value={concurso.data_prova ? format(new Date(concurso.data_prova), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "—"} />
+          </div>
+          {concurso.requisitos && (
+            <div className="bg-card rounded-xl p-5 border border-border shadow-institutional">
+              <h3 className="font-display text-sm font-semibold text-foreground mb-2">Requisitos</h3>
+              <p className="text-sm text-foreground whitespace-pre-wrap">{concurso.requisitos}</p>
+            </div>
+          )}
+          {concurso.conteudo_programatico && (
+            <div className="bg-card rounded-xl p-5 border border-border shadow-institutional">
+              <h3 className="font-display text-sm font-semibold text-foreground mb-2">Conteúdo Programático</h3>
+              <p className="text-sm text-foreground whitespace-pre-wrap">{concurso.conteudo_programatico}</p>
+            </div>
+          )}
+          {concurso.regras_classificacao && (
+            <div className="bg-card rounded-xl p-5 border border-border shadow-institutional">
+              <h3 className="font-display text-sm font-semibold text-foreground mb-2">Regras de Classificação</h3>
+              <p className="text-sm text-foreground whitespace-pre-wrap">{concurso.regras_classificacao}</p>
+            </div>
+          )}
+          <div className="flex gap-4 text-xs text-muted-foreground">
+            {concurso.data_encerramento_inscricoes && <span>Encerramento inscrições: {format(new Date(concurso.data_encerramento_inscricoes), "dd/MM/yyyy HH:mm", { locale: ptBR })}</span>}
+            {concurso.data_resultado && <span>Resultado previsto: {format(new Date(concurso.data_resultado), "dd/MM/yyyy", { locale: ptBR })}</span>}
+          </div>
+        </TabsContent>
+
+        {/* INSCRITOS */}
+        <TabsContent value="inscritos" className="mt-4">
+          {!inscricoes?.length ? <EmptyState icon={Users} text="Nenhum inscrito." /> : (
+            <div className="space-y-2">
+              {inscricoes.map((insc: any, i: number) => (
+                <motion.div key={insc.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.02 }}
+                  className="bg-card rounded-xl p-4 border border-border shadow-institutional">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-mono text-xs font-semibold text-institutional">{insc.numero_inscricao}</span>
+                        <span className="text-sm font-medium text-foreground">{insc.nome_completo}</span>
+                        {insc.id_personagem && <span className="text-xs text-muted-foreground">(ID: {insc.id_personagem})</span>}
+                        {insc.status === "nomeado" && <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400">Nomeado</span>}
+                      </div>
+                      <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                        {insc.classificacao && <span className="font-semibold">#{insc.classificacao}º</span>}
+                        {insc.nota_final != null && <span>Nota: {Number(insc.nota_final).toFixed(1)}</span>}
+                        <span>{format(new Date(insc.created_at), "dd/MM/yyyy", { locale: ptBR })}</span>
+                      </div>
+                    </div>
+                    {isAdmin && insc.classificacao && insc.classificacao <= concurso.vagas && insc.status !== "nomeado" && (
+                      <Button size="sm" className="rounded-lg h-8 text-xs bg-green-600 hover:bg-green-700 text-white"
+                        onClick={() => nomearAprovado.mutate(insc.id)}>
+                        <Award className="h-3 w-3 mr-1" /> Nomear
+                      </Button>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        {/* QUESTÕES (Admin) */}
+        {isAdmin && (
+          <TabsContent value="questoes" className="mt-4 space-y-4">
+            <div className="flex justify-between items-center">
+              <p className="text-sm text-muted-foreground">{questoes?.length || 0} questões cadastradas</p>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={() => corrigirProvas.mutate()} disabled={corrigirProvas.isPending}>
+                  <CheckCircle className="h-3 w-3 mr-1" /> {corrigirProvas.isPending ? "Corrigindo..." : "Corrigir Provas"}
+                </Button>
+                <Dialog open={openQuestao} onOpenChange={setOpenQuestao}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light text-xs">
+                      <Plus className="h-3 w-3 mr-1" /> Adicionar Questão
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+                    <DialogHeader><DialogTitle className="font-display">Adicionar Questão</DialogTitle></DialogHeader>
+                    <form onSubmit={(e) => { e.preventDefault(); addQuestao.mutate(); }} className="space-y-4 mt-4">
+                      <Textarea placeholder="Enunciado da questão" value={qForm.enunciado} onChange={(e) => setQForm({ ...qForm, enunciado: e.target.value })} rows={3} className="rounded-xl" required />
+                      <Input placeholder="A) Alternativa A" value={qForm.alternativa_a} onChange={(e) => setQForm({ ...qForm, alternativa_a: e.target.value })} className="rounded-xl" />
+                      <Input placeholder="B) Alternativa B" value={qForm.alternativa_b} onChange={(e) => setQForm({ ...qForm, alternativa_b: e.target.value })} className="rounded-xl" />
+                      <Input placeholder="C) Alternativa C" value={qForm.alternativa_c} onChange={(e) => setQForm({ ...qForm, alternativa_c: e.target.value })} className="rounded-xl" />
+                      <Input placeholder="D) Alternativa D" value={qForm.alternativa_d} onChange={(e) => setQForm({ ...qForm, alternativa_d: e.target.value })} className="rounded-xl" />
+                      <div className="grid grid-cols-2 gap-3">
+                        <Select value={qForm.gabarito} onValueChange={(v) => setQForm({ ...qForm, gabarito: v })}>
+                          <SelectTrigger className="rounded-xl"><SelectValue placeholder="Gabarito" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="a">A</SelectItem><SelectItem value="b">B</SelectItem>
+                            <SelectItem value="c">C</SelectItem><SelectItem value="d">D</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Input type="number" step="0.1" placeholder="Peso" value={qForm.peso} onChange={(e) => setQForm({ ...qForm, peso: e.target.value })} className="rounded-xl" />
+                      </div>
+                      <Button type="submit" disabled={addQuestao.isPending} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
+                        {addQuestao.isPending ? "Adicionando..." : "Adicionar Questão"}
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
+            {questoes?.map((q: any) => (
+              <div key={q.id} className="bg-card rounded-xl p-4 border border-border shadow-institutional">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xs font-semibold text-institutional">Questão {q.numero}</span>
+                  <span className="text-[10px] text-muted-foreground">Peso: {q.peso}</span>
+                  <span className="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400">Gabarito: {q.gabarito?.toUpperCase()}</span>
+                </div>
+                <p className="text-sm text-foreground mb-2">{q.enunciado}</p>
+                <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground">
+                  {q.alternativa_a && <span className={q.gabarito === "a" ? "font-semibold text-green-700" : ""}>A) {q.alternativa_a}</span>}
+                  {q.alternativa_b && <span className={q.gabarito === "b" ? "font-semibold text-green-700" : ""}>B) {q.alternativa_b}</span>}
+                  {q.alternativa_c && <span className={q.gabarito === "c" ? "font-semibold text-green-700" : ""}>C) {q.alternativa_c}</span>}
+                  {q.alternativa_d && <span className={q.gabarito === "d" ? "font-semibold text-green-700" : ""}>D) {q.alternativa_d}</span>}
+                </div>
+              </div>
+            ))}
+          </TabsContent>
+        )}
+
+        {/* RESULTADO */}
+        <TabsContent value="resultado" className="mt-4">
+          {(() => {
+            const classificados = inscricoes?.filter((i: any) => i.classificacao != null).sort((a: any, b: any) => a.classificacao - b.classificacao) || [];
+            if (!classificados.length) return <EmptyState icon={Trophy} text="Resultado ainda não publicado." />;
+            return (
+              <div className="space-y-2">
+                {classificados.map((insc: any, i: number) => {
+                  const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : null;
+                  const approved = insc.classificacao <= concurso.vagas;
+                  return (
+                    <motion.div key={insc.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }}
+                      className={`bg-card rounded-xl p-4 border shadow-institutional ${approved ? 'border-green-200 dark:border-green-900' : 'border-border'}`}>
+                      <div className="flex items-center gap-4">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0 ${approved ? 'bg-green-100 dark:bg-green-950/30' : 'bg-secondary'}`}>
+                          {medal || <span className="text-sm text-muted-foreground">{insc.classificacao}º</span>}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold text-foreground">{insc.nome_completo}</p>
+                          <p className="text-xs text-muted-foreground">{insc.numero_inscricao} {insc.id_personagem && `• ID: ${insc.id_personagem}`}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-lg font-bold text-foreground">{insc.nota_final != null ? Number(insc.nota_final).toFixed(1) : "—"}</p>
+                          <p className="text-[10px] uppercase tracking-wider font-semibold">
+                            {insc.status === "nomeado" ? (
+                              <span className="text-green-700">Nomeado</span>
+                            ) : approved ? (
+                              <span className="text-green-700">Aprovado</span>
+                            ) : (
+                              <span className="text-muted-foreground">Cadastro Reserva</span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+        </TabsContent>
+
+        {/* COMUNICADOS */}
+        <TabsContent value="comunicados" className="mt-4 space-y-4">
+          {isAdmin && (
+            <div className="flex justify-end">
+              <Dialog open={openComunicado} onOpenChange={setOpenComunicado}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light text-xs">
+                    <Plus className="h-3 w-3 mr-1" /> Novo Comunicado
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader><DialogTitle className="font-display">Publicar Comunicado</DialogTitle></DialogHeader>
+                  <form onSubmit={(e) => { e.preventDefault(); criarComunicado.mutate(); }} className="space-y-4 mt-4">
+                    <Select value={comForm.tipo} onValueChange={(v) => setComForm({ ...comForm, tipo: v })}>
+                      <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="aviso">Aviso</SelectItem>
+                        <SelectItem value="retificacao">Retificação</SelectItem>
+                        <SelectItem value="resultado">Resultado</SelectItem>
+                        <SelectItem value="convocacao">Convocação</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Input placeholder="Título" value={comForm.titulo} onChange={(e) => setComForm({ ...comForm, titulo: e.target.value })} className="rounded-xl" required />
+                    <Textarea placeholder="Conteúdo..." value={comForm.conteudo} onChange={(e) => setComForm({ ...comForm, conteudo: e.target.value })} rows={4} className="rounded-xl" required />
+                    <Button type="submit" disabled={criarComunicado.isPending} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
+                      {criarComunicado.isPending ? "Publicando..." : "Publicar"}
+                    </Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
+          )}
+          {!comunicados?.length ? <EmptyState icon={Megaphone} text="Nenhum comunicado." /> : (
+            <div className="space-y-3">
+              {comunicados.map((c: any, i: number) => (
+                <motion.div key={c.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
+                  className="bg-card rounded-xl p-5 border border-border shadow-institutional">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Megaphone className="h-4 w-4 text-gold-dark" />
+                    <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-gold/10 text-gold-dark">{c.tipo}</span>
+                    <span className="text-xs text-muted-foreground ml-auto">{format(new Date(c.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</span>
+                  </div>
+                  <h4 className="text-sm font-semibold text-foreground">{c.titulo}</h4>
+                  <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{c.conteudo}</p>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════ */
+/*  REALIZAR PROVA (placeholder)               */
+/* ═══════════════════════════════════════════ */
+function RealizarProva({ concursoId, onBack }: { concursoId: string; onBack: () => void }) {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  const { data: questoes } = useQuery({
+    queryKey: ["prova-questoes", concursoId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("questoes_concurso").select("*").eq("concurso_id", concursoId).order("numero");
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
+  const { data: inscricao } = useQuery({
+    queryKey: ["prova-inscricao", concursoId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("inscricoes_concurso").select("*").eq("concurso_id", concursoId).eq("user_id", user!.id).single();
+      if (error) throw error;
+      return data as any;
+    },
+  });
+
+  const [respostas, setRespostas] = useState<Record<string, string>>({});
+
+  const enviarProva = useMutation({
+    mutationFn: async () => {
+      if (!inscricao || !questoes) throw new Error("Dados não encontrados.");
+      const inserts = questoes.map((q: any) => ({
+        inscricao_id: inscricao.id,
+        questao_id: q.id,
+        resposta: respostas[q.id] || null,
+      }));
+      const { error } = await supabase.from("respostas_concurso").insert(inserts as any);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["prova-inscricao", concursoId] });
+      toast.success("Prova enviada com sucesso!");
+      onBack();
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  if (!questoes || !inscricao) return <div className="text-center py-12 text-muted-foreground">Carregando prova...</div>;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="sm" onClick={onBack} className="rounded-lg"><ArrowLeft className="h-4 w-4 mr-1" /> Voltar</Button>
+        <h2 className="font-display text-xl font-bold text-foreground">Prova — {inscricao.numero_inscricao}</h2>
+      </div>
+
+      <div className="bg-card rounded-xl p-4 border border-border shadow-institutional flex items-center gap-3">
+        <Timer className="h-5 w-5 text-gold-dark" />
+        <p className="text-sm text-foreground">{questoes.length} questões • Responda todas antes de enviar</p>
+      </div>
+
+      <div className="space-y-4">
+        {questoes.map((q: any) => (
+          <div key={q.id} className="bg-card rounded-xl p-5 border border-border shadow-institutional">
+            <p className="text-xs font-semibold text-institutional mb-2">Questão {q.numero} (peso {q.peso})</p>
+            <p className="text-sm text-foreground mb-3">{q.enunciado}</p>
+            <div className="space-y-2">
+              {["a", "b", "c", "d"].map((opt) => {
+                const text = q[`alternativa_${opt}`];
+                if (!text) return null;
+                return (
+                  <label key={opt}
+                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer border transition-all ${respostas[q.id] === opt ? 'border-institutional bg-institutional/5' : 'border-border hover:border-institutional/30'}`}>
+                    <input type="radio" name={q.id} value={opt} checked={respostas[q.id] === opt}
+                      onChange={() => setRespostas((r) => ({ ...r, [q.id]: opt }))}
+                      className="accent-institutional" />
+                    <span className="text-sm text-foreground"><strong>{opt.toUpperCase()})</strong> {text}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <Button onClick={() => enviarProva.mutate()} disabled={enviarProva.isPending}
+        className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light py-3">
+        {enviarProva.isPending ? "Enviando..." : "Enviar Prova"}
+      </Button>
+    </div>
+  );
+}
+
+function InfoCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="bg-card rounded-xl p-4 border border-border shadow-institutional">
+      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{label}</p>
+      <p className="text-sm font-medium text-foreground mt-0.5">{value}</p>
+    </div>
+  );
+}
