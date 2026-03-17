@@ -8,20 +8,46 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, FileText, Search, Eye } from "lucide-react";
+import { Plus, FileText, Search, Eye, User } from "lucide-react";
 import { toast } from "sonner";
+
+function useProfileLookup() {
+  const [result, setResult] = useState<{ nome_completo: string; id_personagem: string } | null>(null);
+
+  const lookup = async (idPersonagem: string) => {
+    setResult(null);
+    if (!idPersonagem) return;
+    const { data } = await supabase
+      .from("profiles")
+      .select("nome_completo, id_personagem")
+      .eq("id_personagem", idPersonagem)
+      .maybeSingle();
+    if (data) {
+      setResult({ nome_completo: data.nome_completo, id_personagem: data.id_personagem || "" });
+    }
+    return data;
+  };
+
+  return { result, lookup, clear: () => setResult(null) };
+}
 
 export default function ProcessosSection() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
+
+  const autorLookup = useProfileLookup();
+  const reuLookup = useProfileLookup();
+
   const [form, setForm] = useState({
     classe: "civil" as string,
     assunto: "",
     descricao: "",
     autor_nome: "",
+    autor_id: "",
     reu_nome: "",
+    reu_id: "",
     vara: "1ª Vara Cível",
     valor_causa: "",
   });
@@ -38,15 +64,29 @@ export default function ProcessosSection() {
     },
   });
 
+  const handleAutorIdChange = async (id: string) => {
+    setForm((f) => ({ ...f, autor_id: id }));
+    const data = await autorLookup.lookup(id);
+    if (data) setForm((f) => ({ ...f, autor_nome: data.nome_completo }));
+  };
+
+  const handleReuIdChange = async (id: string) => {
+    setForm((f) => ({ ...f, reu_id: id }));
+    const data = await reuLookup.lookup(id);
+    if (data) setForm((f) => ({ ...f, reu_nome: data.nome_completo }));
+  };
+
   const createProcesso = useMutation({
     mutationFn: async () => {
+      const autorDisplay = form.autor_id ? `${form.autor_nome} (ID: ${form.autor_id})` : form.autor_nome;
+      const reuDisplay = form.reu_id ? `${form.reu_nome} (ID: ${form.reu_id})` : form.reu_nome;
       const { error } = await supabase.from("processos").insert({
         numero: "",
         classe: form.classe as any,
         assunto: form.assunto,
         descricao: form.descricao,
-        autor_nome: form.autor_nome,
-        reu_nome: form.reu_nome,
+        autor_nome: autorDisplay,
+        reu_nome: reuDisplay,
         vara: form.vara,
         valor_causa: form.valor_causa ? parseFloat(form.valor_causa) : null,
       });
@@ -56,7 +96,9 @@ export default function ProcessosSection() {
       queryClient.invalidateQueries({ queryKey: ["processos"] });
       queryClient.invalidateQueries({ queryKey: ["processos-count"] });
       setOpen(false);
-      setForm({ classe: "civil", assunto: "", descricao: "", autor_nome: "", reu_nome: "", vara: "1ª Vara Cível", valor_causa: "" });
+      setForm({ classe: "civil", assunto: "", descricao: "", autor_nome: "", autor_id: "", reu_nome: "", reu_id: "", vara: "1ª Vara Cível", valor_causa: "" });
+      autorLookup.clear();
+      reuLookup.clear();
       toast.success("Processo cadastrado com sucesso!");
     },
     onError: (err: any) => toast.error(err.message),
@@ -79,6 +121,52 @@ export default function ProcessosSection() {
     suspenso: "bg-destructive/10 text-destructive",
   };
 
+  const IdLookupField = ({
+    label,
+    idValue,
+    onIdChange,
+    nameValue,
+    onNameChange,
+    lookupResult,
+  }: {
+    label: string;
+    idValue: string;
+    onIdChange: (v: string) => void;
+    nameValue: string;
+    onNameChange: (v: string) => void;
+    lookupResult: { nome_completo: string; id_personagem: string } | null;
+  }) => (
+    <div className="space-y-2">
+      <div className="relative">
+        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder={`ID do Personagem (${label})`}
+          value={idValue}
+          onChange={(e) => onIdChange(e.target.value)}
+          className="rounded-xl pl-10"
+        />
+      </div>
+      {lookupResult && (
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 text-xs">
+          <User className="h-3 w-3 text-green-600" />
+          <span className="text-green-800 dark:text-green-300 font-medium">{lookupResult.nome_completo}</span>
+          <span className="text-green-600 dark:text-green-400">(ID: {lookupResult.id_personagem})</span>
+        </div>
+      )}
+      {idValue && !lookupResult && (
+        <p className="text-[11px] text-muted-foreground px-1">ID não encontrado — preencha o nome manualmente.</p>
+      )}
+      <Input
+        placeholder={`Nome do ${label}`}
+        value={nameValue}
+        onChange={(e) => onNameChange(e.target.value)}
+        required
+        className="rounded-xl"
+        readOnly={!!lookupResult}
+      />
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -92,7 +180,7 @@ export default function ProcessosSection() {
               <Plus className="h-4 w-4 mr-2" /> Novo Processo
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-lg">
+          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="font-display">Cadastrar Novo Processo</DialogTitle>
             </DialogHeader>
@@ -121,22 +209,27 @@ export default function ProcessosSection() {
                 required
                 className="rounded-xl"
               />
-              <div className="grid grid-cols-2 gap-3">
-                <Input
-                  placeholder="Nome do Autor"
-                  value={form.autor_nome}
-                  onChange={(e) => setForm({ ...form, autor_nome: e.target.value })}
-                  required
-                  className="rounded-xl"
-                />
-                <Input
-                  placeholder="Nome do Réu"
-                  value={form.reu_nome}
-                  onChange={(e) => setForm({ ...form, reu_nome: e.target.value })}
-                  required
-                  className="rounded-xl"
-                />
-              </div>
+
+              {/* Autor with ID lookup */}
+              <IdLookupField
+                label="Autor"
+                idValue={form.autor_id}
+                onIdChange={handleAutorIdChange}
+                nameValue={form.autor_nome}
+                onNameChange={(v) => setForm({ ...form, autor_nome: v })}
+                lookupResult={autorLookup.result}
+              />
+
+              {/* Réu with ID lookup */}
+              <IdLookupField
+                label="Réu"
+                idValue={form.reu_id}
+                onIdChange={handleReuIdChange}
+                nameValue={form.reu_nome}
+                onNameChange={(v) => setForm({ ...form, reu_nome: v })}
+                lookupResult={reuLookup.result}
+              />
+
               <Input
                 placeholder="Vara"
                 value={form.vara}
@@ -168,18 +261,16 @@ export default function ProcessosSection() {
         </Dialog>
       </div>
 
-      {/* Search */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Buscar por número, assunto, autor ou réu..."
+          placeholder="Buscar por número, assunto, autor, réu ou ID..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-10 rounded-xl"
         />
       </div>
 
-      {/* List */}
       {isLoading ? (
         <div className="text-center py-12 text-muted-foreground">Carregando processos...</div>
       ) : !filtered?.length ? (

@@ -8,19 +8,21 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Shield, Search } from "lucide-react";
+import { Plus, Shield, Search, User } from "lucide-react";
 import { toast } from "sonner";
 
 export default function DelegaciaSection() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [lookupResult, setLookupResult] = useState<{ nome_completo: string; id_personagem: string } | null>(null);
   const [form, setForm] = useState({
     tipo: "furto",
     descricao: "",
     local_fato: "",
     vitima_nome: "",
+    vitima_id_personagem: "",
   });
 
   const { data: bos, isLoading } = useQuery({
@@ -35,6 +37,36 @@ export default function DelegaciaSection() {
     },
   });
 
+  // Lookup user by id_personagem
+  const handleIdLookup = async (idPersonagem: string) => {
+    setForm((f) => ({ ...f, vitima_id_personagem: idPersonagem }));
+    setLookupResult(null);
+    if (idPersonagem.length < 1) return;
+
+    const { data } = await supabase
+      .from("profiles")
+      .select("nome_completo, id_personagem, user_id")
+      .eq("id_personagem", idPersonagem)
+      .maybeSingle();
+
+    if (data) {
+      setLookupResult({ nome_completo: data.nome_completo, id_personagem: data.id_personagem || "" });
+      setForm((f) => ({ ...f, vitima_nome: data.nome_completo }));
+    }
+  };
+
+  // Auto-fill for self-report
+  const fillSelf = () => {
+    if (profile) {
+      setForm((f) => ({
+        ...f,
+        vitima_nome: profile.nome_completo,
+        vitima_id_personagem: profile.id_personagem || "",
+      }));
+      setLookupResult({ nome_completo: profile.nome_completo, id_personagem: profile.id_personagem || "" });
+    }
+  };
+
   const createBO = useMutation({
     mutationFn: async () => {
       const numero = `BO-${Date.now().toString().slice(-8)}`;
@@ -43,7 +75,7 @@ export default function DelegaciaSection() {
         tipo: form.tipo,
         descricao: form.descricao,
         local_fato: form.local_fato,
-        vitima_nome: form.vitima_nome,
+        vitima_nome: `${form.vitima_nome} (ID: ${form.vitima_id_personagem})`,
         vitima_id: user?.id,
         data_fato: new Date().toISOString(),
       });
@@ -53,7 +85,8 @@ export default function DelegaciaSection() {
       queryClient.invalidateQueries({ queryKey: ["boletins"] });
       queryClient.invalidateQueries({ queryKey: ["bos-count"] });
       setOpen(false);
-      setForm({ tipo: "furto", descricao: "", local_fato: "", vitima_nome: "" });
+      setForm({ tipo: "furto", descricao: "", local_fato: "", vitima_nome: "", vitima_id_personagem: "" });
+      setLookupResult(null);
       toast.success("Boletim de Ocorrência registrado com sucesso!");
     },
     onError: (err: any) => toast.error(err.message),
@@ -93,6 +126,10 @@ export default function DelegaciaSection() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
+                if (!form.vitima_id_personagem) {
+                  toast.error("Informe o ID do personagem da vítima.");
+                  return;
+                }
                 createBO.mutate();
               }}
               className="space-y-4 mt-4"
@@ -113,12 +150,43 @@ export default function DelegaciaSection() {
                   <SelectItem value="outros">Outros</SelectItem>
                 </SelectContent>
               </Select>
+
+              {/* ID Personagem lookup */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="ID do Personagem da Vítima"
+                      value={form.vitima_id_personagem}
+                      onChange={(e) => handleIdLookup(e.target.value)}
+                      required
+                      className="rounded-xl pl-10"
+                    />
+                  </div>
+                  <Button type="button" variant="outline" size="sm" className="rounded-xl text-xs whitespace-nowrap" onClick={fillSelf}>
+                    Eu sou a vítima
+                  </Button>
+                </div>
+                {lookupResult && (
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 text-sm">
+                    <User className="h-4 w-4 text-green-600" />
+                    <span className="text-green-800 dark:text-green-300 font-medium">{lookupResult.nome_completo}</span>
+                    <span className="text-green-600 dark:text-green-400 text-xs">(ID: {lookupResult.id_personagem})</span>
+                  </div>
+                )}
+                {form.vitima_id_personagem && !lookupResult && (
+                  <p className="text-xs text-destructive px-1">Nenhum personagem encontrado com esse ID.</p>
+                )}
+              </div>
+
               <Input
                 placeholder="Nome da Vítima"
                 value={form.vitima_nome}
                 onChange={(e) => setForm({ ...form, vitima_nome: e.target.value })}
                 required
                 className="rounded-xl"
+                readOnly={!!lookupResult}
               />
               <Input
                 placeholder="Local do Fato"
@@ -149,7 +217,7 @@ export default function DelegaciaSection() {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Buscar boletins..."
+          placeholder="Buscar boletins por número, vítima, ID ou tipo..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-10 rounded-xl"

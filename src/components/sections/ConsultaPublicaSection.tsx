@@ -11,9 +11,15 @@ export default function ConsultaPublicaSection() {
   const { data: processos } = useQuery({
     queryKey: ["consulta-processos", search],
     queryFn: async () => {
-      let query = supabase.from("processos").select("numero, classe, status, assunto, autor_nome, reu_nome, vara, created_at").order("created_at", { ascending: false }).limit(50);
+      let query = supabase
+        .from("processos")
+        .select("numero, classe, status, assunto, autor_nome, reu_nome, vara, created_at")
+        .order("created_at", { ascending: false })
+        .limit(50);
       if (search) {
-        query = query.or(`numero.ilike.%${search}%,assunto.ilike.%${search}%,autor_nome.ilike.%${search}%,reu_nome.ilike.%${search}%`);
+        query = query.or(
+          `numero.ilike.%${search}%,assunto.ilike.%${search}%,autor_nome.ilike.%${search}%,reu_nome.ilike.%${search}%`
+        );
       }
       const { data, error } = await query;
       if (error) throw error;
@@ -26,13 +32,15 @@ export default function ConsultaPublicaSection() {
     <div className="space-y-6">
       <div>
         <h2 className="font-display text-2xl font-bold text-foreground">Consulta Pública</h2>
-        <p className="text-sm text-muted-foreground">Pesquise processos por número, assunto, autor ou réu</p>
+        <p className="text-sm text-muted-foreground">
+          Pesquise processos por número, assunto, nome das partes ou ID do personagem
+        </p>
       </div>
 
       <div className="relative max-w-xl">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Digite o número do processo ou nome das partes..."
+          placeholder="Número do processo, nome, ou ID do personagem..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-10 rounded-xl h-12 text-base"
@@ -56,11 +64,17 @@ export default function ConsultaPublicaSection() {
             >
               <div className="flex items-center gap-2 flex-wrap mb-1">
                 <span className="font-mono text-sm font-semibold text-institutional">{p.numero}</span>
-                <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{p.classe}</span>
-                <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{p.status?.replace("_", " ")}</span>
+                <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
+                  {p.classe}
+                </span>
+                <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                  {p.status?.replace("_", " ")}
+                </span>
               </div>
               <p className="text-sm font-medium text-foreground">{p.assunto}</p>
-              <p className="text-xs text-muted-foreground">{p.autor_nome} × {p.reu_nome} — {p.vara}</p>
+              <p className="text-xs text-muted-foreground">
+                {p.autor_nome} × {p.reu_nome} — {p.vara}
+              </p>
             </motion.div>
           ))}
         </div>
