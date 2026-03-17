@@ -200,9 +200,9 @@ function TabInicio({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="font-display text-3xl lg:text-5xl font-bold text-gold-light mb-4">
+            className="font-display text-3xl lg:text-5xl font-bold text-sidebar-foreground mb-4">
             
-            Justiça ao alcance de todos
+            Justiça e Cidadania para todos
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -210,7 +210,7 @@ function TabInicio({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
             transition={{ delay: 0.1 }}
             className="text-sidebar-foreground/60 max-w-2xl mx-auto mb-8">
             
-            O Portal do Poder Judiciário da Comarca de São Paulo oferece serviços digitais 
+            O Portal da Secretaria da Justiça e Cidadania de São Paulo oferece serviços digitais 
             integrados para cidadãos, advogados e servidores da justiça.
           </motion.p>
           <motion.div
