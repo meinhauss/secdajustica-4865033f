@@ -183,6 +183,50 @@ export type Database = {
         }
         Relationships: []
       }
+      diligencias: {
+        Row: {
+          created_at: string
+          descricao: string
+          id: string
+          inquerito_id: string
+          responsavel_id: string | null
+          responsavel_nome: string | null
+          resultado: string | null
+          status: string
+          tipo: string
+        }
+        Insert: {
+          created_at?: string
+          descricao: string
+          id?: string
+          inquerito_id: string
+          responsavel_id?: string | null
+          responsavel_nome?: string | null
+          resultado?: string | null
+          status?: string
+          tipo?: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          id?: string
+          inquerito_id?: string
+          responsavel_id?: string | null
+          responsavel_nome?: string | null
+          resultado?: string | null
+          status?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diligencias_inquerito_id_fkey"
+            columns: ["inquerito_id"]
+            isOneToOne: false
+            referencedRelation: "inqueritos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documentos_processo: {
         Row: {
           arquivo_url: string | null
@@ -224,6 +268,106 @@ export type Database = {
           },
         ]
       }
+      envolvidos_inquerito: {
+        Row: {
+          created_at: string
+          id: string
+          id_personagem: string | null
+          inquerito_id: string
+          nome: string
+          observacoes: string | null
+          qualificacao: string | null
+          tipo: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          id_personagem?: string | null
+          inquerito_id: string
+          nome: string
+          observacoes?: string | null
+          qualificacao?: string | null
+          tipo?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          id_personagem?: string | null
+          inquerito_id?: string
+          nome?: string
+          observacoes?: string | null
+          qualificacao?: string | null
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "envolvidos_inquerito_inquerito_id_fkey"
+            columns: ["inquerito_id"]
+            isOneToOne: false
+            referencedRelation: "inqueritos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inqueritos: {
+        Row: {
+          bo_id: string | null
+          created_at: string
+          data_conclusao: string | null
+          data_instauracao: string
+          delegado_id: string | null
+          descricao: string
+          id: string
+          numero: string
+          relatorio_final: string | null
+          remetido_mp: boolean
+          sigilo: boolean
+          status: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          bo_id?: string | null
+          created_at?: string
+          data_conclusao?: string | null
+          data_instauracao?: string
+          delegado_id?: string | null
+          descricao: string
+          id?: string
+          numero: string
+          relatorio_final?: string | null
+          remetido_mp?: boolean
+          sigilo?: boolean
+          status?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          bo_id?: string | null
+          created_at?: string
+          data_conclusao?: string | null
+          data_instauracao?: string
+          delegado_id?: string | null
+          descricao?: string
+          id?: string
+          numero?: string
+          relatorio_final?: string | null
+          remetido_mp?: boolean
+          sigilo?: boolean
+          status?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inqueritos_bo_id_fkey"
+            columns: ["bo_id"]
+            isOneToOne: false
+            referencedRelation: "boletins_ocorrencia"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       movimentacoes: {
         Row: {
           autor_id: string | null
@@ -255,6 +399,54 @@ export type Database = {
             columns: ["processo_id"]
             isOneToOne: false
             referencedRelation: "processos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      oitivas: {
+        Row: {
+          conteudo: string
+          created_at: string
+          envolvido_id: string | null
+          id: string
+          inquerito_id: string
+          nome_depoente: string
+          registrado_por: string | null
+          tipo: string
+        }
+        Insert: {
+          conteudo: string
+          created_at?: string
+          envolvido_id?: string | null
+          id?: string
+          inquerito_id: string
+          nome_depoente: string
+          registrado_por?: string | null
+          tipo?: string
+        }
+        Update: {
+          conteudo?: string
+          created_at?: string
+          envolvido_id?: string | null
+          id?: string
+          inquerito_id?: string
+          nome_depoente?: string
+          registrado_por?: string | null
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oitivas_envolvido_id_fkey"
+            columns: ["envolvido_id"]
+            isOneToOne: false
+            referencedRelation: "envolvidos_inquerito"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oitivas_inquerito_id_fkey"
+            columns: ["inquerito_id"]
+            isOneToOne: false
+            referencedRelation: "inqueritos"
             referencedColumns: ["id"]
           },
         ]
