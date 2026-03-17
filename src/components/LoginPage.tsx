@@ -492,7 +492,7 @@ function TabLogin(props: LoginProps) {
                 <label className="text-[11px] uppercase tracking-widest font-semibold text-muted-foreground mb-1 block">
                   Nome Completo (IN GAME)  
                 </label>
-                <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Seu nome completo" required className="rounded-lg h-11" />
+                <Input value={nome} onChange={(e) => setNome(e.target.value)} <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Nome completo do seu personagem" required className="rounded-lg h-11" /> required className="rounded-lg h-11" />
               </div>
               <div>
                 <label className="text-[11px] uppercase tracking-widest font-semibold text-muted-foreground mb-1 block">
