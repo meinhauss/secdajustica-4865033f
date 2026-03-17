@@ -20,12 +20,12 @@ export default function EstatisticasSection() {
     },
   });
 
-  const classeCount = processos?.reduce((acc: Record<string, number>, p) => {
+  const classeCount: Record<string, number> = processos?.reduce((acc: Record<string, number>, p) => {
     acc[p.classe] = (acc[p.classe] || 0) + 1;
     return acc;
   }, {} as Record<string, number>) ?? {};
 
-  const tipoBoCount = bos?.reduce((acc: Record<string, number>, b) => {
+  const tipoBoCount: Record<string, number> = bos?.reduce((acc: Record<string, number>, b) => {
     acc[b.tipo] = (acc[b.tipo] || 0) + 1;
     return acc;
   }, {} as Record<string, number>) ?? {};
