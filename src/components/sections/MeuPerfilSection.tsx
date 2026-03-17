@@ -16,7 +16,6 @@ export default function MeuPerfilSection() {
     discord: "",
     id_personagem: "",
     telefone_ingame: "",
-    cpf: "",
   });
 
   useEffect(() => {
