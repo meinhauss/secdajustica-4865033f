@@ -13,6 +13,9 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [nome, setNome] = useState("");
+  const [discord, setDiscord] = useState("");
+  const [idPersonagem, setIdPersonagem] = useState("");
+  const [telefoneIngame, setTelefoneIngame] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
