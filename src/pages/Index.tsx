@@ -15,6 +15,7 @@ import CargosSection from "@/components/sections/CargosSection";
 import EstatisticasSection from "@/components/sections/EstatisticasSection";
 import ConcursosSection from "@/components/sections/ConcursosSection";
 import CartorarioSection from "@/components/sections/CartorarioSection";
+import MeuPerfilSection from "@/components/sections/MeuPerfilSection";
 
 const Index = () => {
   const { user, loading } = useAuth();
