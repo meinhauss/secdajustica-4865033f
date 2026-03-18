@@ -73,6 +73,7 @@ export default function CartorarioSection() {
   const { user, profile, roles } = useAuth();
   const isAdmin = roles.includes("admin");
   const isCartorario = isAdmin || roles.includes("oficial_justica");
+  const canSolicitar = isAdmin || isCartorario || roles.includes("advogado");
 
   const [tab, setTab] = useState("painel");
   const [registros, setRegistros] = useState<Registro[]>([]);
@@ -196,11 +197,13 @@ export default function CartorarioSection() {
 
         {/* PAINEL */}
         <TabsContent value="painel" className="space-y-4">
-          <div className="flex flex-wrap gap-2">
-            <Button onClick={() => setShowNovoRegistro(true)}>
-              <Plus className="h-4 w-4 mr-1" /> Nova Solicitação
-            </Button>
-          </div>
+          {canSolicitar && (
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={() => setShowNovoRegistro(true)}>
+                <Plus className="h-4 w-4 mr-1" /> Nova Solicitação
+              </Button>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Pending */}
@@ -280,9 +283,11 @@ export default function CartorarioSection() {
                 ))}
               </SelectContent>
             </Select>
-            <Button onClick={() => setShowNovoRegistro(true)}>
-              <Plus className="h-4 w-4 mr-1" /> Nova Solicitação
-            </Button>
+            {canSolicitar && (
+              <Button onClick={() => setShowNovoRegistro(true)}>
+                <Plus className="h-4 w-4 mr-1" /> Nova Solicitação
+              </Button>
+            )}
           </div>
 
           <Card>
@@ -336,7 +341,11 @@ export default function CartorarioSection() {
         <TabsContent value="servicos" className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {TIPOS_REGISTRO.map((t) => (
-              <Card key={t.value} className="hover:border-accent transition-colors cursor-pointer" onClick={() => {
+              <Card key={t.value} className={`transition-colors ${canSolicitar ? "hover:border-accent cursor-pointer" : "opacity-60"}`} onClick={() => {
+                if (!canSolicitar) {
+                  toast({ title: "Apenas advogados podem fazer solicitações", variant: "destructive" });
+                  return;
+                }
                 setForm((f) => ({ ...f, tipo: t.value }));
                 setShowNovoRegistro(true);
               }}>
