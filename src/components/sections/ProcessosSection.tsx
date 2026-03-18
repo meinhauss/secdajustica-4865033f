@@ -127,21 +127,52 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
 
   const createProcesso = useMutation({
     mutationFn: async () => {
+      // 1. Sortear magistrado via função do banco (prioriza quem tem menos processos ativos)
+      const { data: sorteioData } = await supabase.rpc("sortear_magistrado");
+      const juizId = sorteioData || null;
+
+      // 2. Get judge name for display
+      let juizNome = "";
+      if (juizId) {
+        const { data: juizProfile } = await supabase.from("profiles").select("nome_completo").eq("user_id", juizId).maybeSingle();
+        juizNome = juizProfile?.nome_completo || "";
+      }
+
       const autorDisplay = form.autor_id ? `${form.autor_nome} (ID: ${form.autor_id})` : form.autor_nome;
       const reuDisplay = form.reu_id ? `${form.reu_nome} (ID: ${form.reu_id})` : form.reu_nome;
-      const { error } = await supabase.from("processos").insert({
+      const { data: processo, error } = await supabase.from("processos").insert({
         numero: "", classe: form.classe as any, assunto: form.assunto, descricao: form.descricao,
         autor_nome: autorDisplay, reu_nome: reuDisplay, vara: form.vara,
         valor_causa: parseCurrencyToNumber(form.valor_causa),
-      });
+        juiz_id: juizId,
+      }).select().single();
       if (error) throw error;
+
+      // 3. Register lottery movement
+      if (juizId && processo) {
+        await supabase.from("movimentacoes").insert({
+          processo_id: processo.id,
+          tipo: "distribuicao",
+          descricao: `Processo distribuído por sorteio ao(à) magistrado(a) ${juizNome || "designado(a)"}`,
+          autor_id: user?.id,
+        });
+
+        // 4. Notify the assigned judge
+        await supabase.from("notificacoes").insert({
+          user_id: juizId,
+          titulo: "Novo processo distribuído",
+          mensagem: `O processo ${processo.numero} (${form.assunto}) foi distribuído a você por sorteio.`,
+          tipo: "info",
+          link_secao: "processos",
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["processos"] });
       setOpen(false);
       setForm({ classe: "civil", assunto: "", descricao: "", autor_nome: "", autor_id: "", reu_nome: "", reu_id: "", vara: "1ª Vara Cível", valor_causa: "" });
       autorLookup.clear(); reuLookup.clear();
-      toast.success("Processo cadastrado com sucesso!");
+      toast.success("Processo cadastrado e distribuído por sorteio!");
     },
     onError: (err: any) => toast.error(err.message),
   });

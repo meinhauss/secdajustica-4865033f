@@ -388,33 +388,231 @@ function TabServicos() {
 
 }
 
-function TabTransparencia() {
+function TabCredencial() {
+  const [searchNum, setSearchNum] = useState("");
+  const [result, setResult] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [searched, setSearched] = useState(false);
+
+  const handleSearch = async () => {
+    if (!searchNum.trim()) return;
+    setLoading(true);
+    setSearched(true);
+    const { data } = await supabase
+      .from("carteiras_oab")
+      .select("numero_oab, nome_completo, especialidade, status, data_inscricao, id_personagem")
+      .eq("numero_oab", searchNum.trim())
+      .maybeSingle();
+    setResult(data);
+    setLoading(false);
+  };
+
+  const statusColor = (s: string) => {
+    if (s === "ativo") return "bg-emerald-100 text-emerald-800";
+    if (s === "suspenso") return "bg-amber-100 text-amber-800";
+    return "bg-destructive/10 text-destructive";
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
-      <h2 className="font-display text-2xl font-bold text-foreground mb-2">Transparência</h2>
-      <p className="text-muted-foreground mb-8">Dados públicos e prestação de contas do Poder Judiciário.</p>
+      <h2 className="font-display text-2xl font-bold text-foreground mb-2">Consulta de Credencial</h2>
+      <p className="text-muted-foreground mb-8">Verifique a autenticidade e o status de uma inscrição na OAB.</p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {[
-        { title: "Estatísticas Processuais", desc: "Dados sobre volume de processos, produtividade e tempo médio de julgamento." },
-        { title: "Composição do Tribunal", desc: "Lista de magistrados, promotores e servidores da Comarca." },
-        { title: "Relatórios de Gestão", desc: "Relatórios anuais de atividades e gestão administrativa." },
-        { title: "Legislação Aplicável", desc: "Compilação das normas e regulamentos vigentes na Comarca." }].
-        map((item, i) =>
-        <motion.div
-          key={item.title}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: i * 0.1 }}
-          className="bg-card rounded-xl p-6 border border-border shadow-institutional">
-          
-            <h4 className="font-display text-base font-semibold text-foreground mb-2">{item.title}</h4>
-            <p className="text-sm text-muted-foreground">{item.desc}</p>
+      <div className="max-w-md mx-auto">
+        <div className="flex gap-2">
+          <Input
+            placeholder="Número da inscrição (ex: OAB/SP 000001)"
+            value={searchNum}
+            onChange={(e) => setSearchNum(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+            className="rounded-xl h-12"
+          />
+          <Button onClick={handleSearch} disabled={loading} className="rounded-xl h-12 px-6 bg-institutional hover:bg-institutional-light text-gold-light">
+            {loading ? "..." : "Consultar"}
+          </Button>
+        </div>
+
+        {searched && !loading && !result && (
+          <div className="mt-8 text-center py-8 bg-card rounded-xl border border-border">
+            <Scale className="h-10 w-10 mx-auto mb-3 text-muted-foreground opacity-30" />
+            <p className="text-muted-foreground text-sm">Nenhuma credencial encontrada com esse número.</p>
+          </div>
+        )}
+
+        {result && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-8 bg-card rounded-xl border border-border shadow-institutional overflow-hidden"
+          >
+            <div className="bg-institutional p-4">
+              <p className="text-[10px] uppercase tracking-widest text-sidebar-foreground/50">Ordem dos Advogados do Brasil — Seção SP</p>
+              <p className="font-display text-lg font-bold text-sidebar-foreground mt-1">{result.numero_oab}</p>
+            </div>
+            <div className="p-5 space-y-3">
+              <div>
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Nome do Portador</p>
+                <p className="text-sm font-semibold text-foreground">{result.nome_completo}</p>
+              </div>
+              {result.id_personagem && (
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground">ID Personagem</p>
+                  <p className="text-sm text-foreground">{result.id_personagem}</p>
+                </div>
+              )}
+              {result.especialidade && (
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Especialidade</p>
+                  <p className="text-sm text-foreground">{result.especialidade}</p>
+                </div>
+              )}
+              <div>
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Data de Inscrição</p>
+                <p className="text-sm text-foreground">{new Date(result.data_inscricao).toLocaleDateString("pt-BR")}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Status</p>
+                <span className={`text-xs font-semibold px-3 py-1 rounded-full ${statusColor(result.status)}`}>
+                  {result.status.charAt(0).toUpperCase() + result.status.slice(1)}
+                </span>
+              </div>
+            </div>
           </motion.div>
         )}
       </div>
-    </div>);
+    </div>
+  );
+}
 
+function TabTransparencia() {
+  const [stats, setStats] = useState<any>(null);
+  const [magistrados, setMagistrados] = useState<any[]>([]);
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  useState(() => {
+    const load = async () => {
+      const [processosRes, audienciasRes, magistradosRes] = await Promise.all([
+        supabase.from("processos").select("status, classe", { count: "exact" }),
+        supabase.from("audiencias").select("status", { count: "exact" }),
+        supabase.from("profiles").select("nome_completo, cargo").not("cargo", "is", null),
+      ]);
+
+      const processos = processosRes.data || [];
+      const statusCounts: Record<string, number> = {};
+      const classeCounts: Record<string, number> = {};
+      processos.forEach((p: any) => {
+        statusCounts[p.status] = (statusCounts[p.status] || 0) + 1;
+        classeCounts[p.classe] = (classeCounts[p.classe] || 0) + 1;
+      });
+
+      setStats({
+        totalProcessos: processos.length,
+        totalAudiencias: audienciasRes.data?.length || 0,
+        statusCounts,
+        classeCounts,
+      });
+
+      setMagistrados((magistradosRes.data || []).slice(0, 20));
+      setLoadingStats(false);
+    };
+    load();
+  });
+
+  if (loadingStats) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-12 text-center">
+        <div className="w-6 h-6 border-2 border-gold border-t-transparent rounded-full animate-spin mx-auto" />
+        <p className="text-sm text-muted-foreground mt-3">Carregando dados...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 py-12">
+      <h2 className="font-display text-2xl font-bold text-foreground mb-2">Portal da Transparência</h2>
+      <p className="text-muted-foreground mb-8">Dados públicos e prestação de contas do Poder Judiciário.</p>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+        <div className="bg-card rounded-xl p-5 border border-border shadow-institutional text-center">
+          <p className="text-2xl font-bold text-foreground">{stats?.totalProcessos || 0}</p>
+          <p className="text-xs text-muted-foreground mt-1">Total de Processos</p>
+        </div>
+        <div className="bg-card rounded-xl p-5 border border-border shadow-institutional text-center">
+          <p className="text-2xl font-bold text-foreground">{stats?.totalAudiencias || 0}</p>
+          <p className="text-xs text-muted-foreground mt-1">Audiências Registradas</p>
+        </div>
+        <div className="bg-card rounded-xl p-5 border border-border shadow-institutional text-center">
+          <p className="text-2xl font-bold text-foreground">{stats?.statusCounts?.["sentenciado"] || 0}</p>
+          <p className="text-xs text-muted-foreground mt-1">Processos Sentenciados</p>
+        </div>
+        <div className="bg-card rounded-xl p-5 border border-border shadow-institutional text-center">
+          <p className="text-2xl font-bold text-foreground">{magistrados.length}</p>
+          <p className="text-xs text-muted-foreground mt-1">Servidores Cadastrados</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Processos por Status */}
+        <div className="bg-card rounded-xl p-6 border border-border shadow-institutional">
+          <h3 className="font-display text-base font-semibold text-foreground mb-4">Processos por Status</h3>
+          {stats?.statusCounts && Object.keys(stats.statusCounts).length > 0 ? (
+            <div className="space-y-3">
+              {Object.entries(stats.statusCounts).map(([status, count]) => (
+                <div key={status} className="flex items-center gap-3">
+                  <span className="text-xs uppercase tracking-wider text-muted-foreground w-28">{(status as string).replace(/_/g, " ")}</span>
+                  <div className="flex-1 h-5 bg-secondary rounded-full overflow-hidden">
+                    <div className="h-full rounded-full bg-institutional" style={{ width: `${Math.min(((count as number) / (stats.totalProcessos || 1)) * 100, 100)}%` }} />
+                  </div>
+                  <span className="text-sm font-semibold text-foreground w-8 text-right">{count as number}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">Sem dados disponíveis.</p>
+          )}
+        </div>
+
+        {/* Processos por Classe */}
+        <div className="bg-card rounded-xl p-6 border border-border shadow-institutional">
+          <h3 className="font-display text-base font-semibold text-foreground mb-4">Processos por Classe</h3>
+          {stats?.classeCounts && Object.keys(stats.classeCounts).length > 0 ? (
+            <div className="space-y-3">
+              {Object.entries(stats.classeCounts).map(([classe, count]) => (
+                <div key={classe} className="flex items-center gap-3">
+                  <span className="text-xs uppercase tracking-wider text-muted-foreground w-28">{classe}</span>
+                  <div className="flex-1 h-5 bg-secondary rounded-full overflow-hidden">
+                    <div className="h-full rounded-full gradient-gold" style={{ width: `${Math.min(((count as number) / (stats.totalProcessos || 1)) * 100, 100)}%` }} />
+                  </div>
+                  <span className="text-sm font-semibold text-foreground w-8 text-right">{count as number}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">Sem dados disponíveis.</p>
+          )}
+        </div>
+
+        {/* Composição */}
+        {magistrados.length > 0 && (
+          <div className="bg-card rounded-xl p-6 border border-border shadow-institutional lg:col-span-2">
+            <h3 className="font-display text-base font-semibold text-foreground mb-4">Servidores da Comarca</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              {magistrados.map((m, i) => (
+                <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 text-sm">
+                  <Users className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="font-medium text-foreground truncate">{m.nome_completo}</p>
+                    <p className="text-xs text-muted-foreground">{m.cargo}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function TabContato() {
