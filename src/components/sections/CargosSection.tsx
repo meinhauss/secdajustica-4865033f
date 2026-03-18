@@ -98,7 +98,7 @@ const ROLE_HIERARCHY = [
     permissions: ["relatorios", "provas", "antecedentes", "acompanhamento_investigacoes"],
   },
   {
-    level: 8,
+    level: 9,
     role: "oficial_justica",
     label: "Oficial de Justiça",
     icon: BadgeCheck,
