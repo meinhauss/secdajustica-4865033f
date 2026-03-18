@@ -440,7 +440,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
       await supabase.from("movimentacoes").insert({
         processo_id: processoId,
         tipo: "despacho",
-        descricao: `Despacho: ${despachoForm.titulo}`,
+        descricao: `DESPACHO — ${despachoForm.titulo}\n\n${despachoForm.conteudo}`,
         autor_id: user!.id,
       });
     },
