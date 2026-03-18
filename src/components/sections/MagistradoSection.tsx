@@ -43,6 +43,12 @@ const AUDIENCIA_TIPOS = [
   "instrução", "julgamento", "conciliação", "custódia", "justificação", "admonitória"
 ];
 
+const SIGILO_LABELS: Record<string, string> = {
+  publico: "Público",
+  segredo_justica: "Segredo de Justiça",
+  sigilo_absoluto: "Sigilo Absoluto",
+};
+
 /* ─── Stat card ─── */
 function StatCard({ label, value, icon: Icon, delay = 0 }: { label: string; value: number; icon: any; delay?: number }) {
   return (
