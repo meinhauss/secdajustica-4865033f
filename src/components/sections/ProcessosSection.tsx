@@ -216,8 +216,32 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
                 </SelectContent>
               </Select>
               <Input placeholder="Assunto" value={form.assunto} onChange={(e) => setForm({ ...form, assunto: e.target.value })} required className="rounded-xl" />
-              <IdField label="Autor" idValue={form.autor_id} onIdChange={handleAutorIdChange} nameValue={form.autor_nome} onNameChange={(v: string) => setForm({ ...form, autor_nome: v })} lookupResult={autorLookup.result} />
-              <IdField label="Réu" idValue={form.reu_id} onIdChange={handleReuIdChange} nameValue={form.reu_nome} onNameChange={(v: string) => setForm({ ...form, reu_nome: v })} lookupResult={reuLookup.result} />
+              <div className="space-y-1.5">
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input placeholder="ID do Personagem (Autor)" value={form.autor_id} onChange={(e) => handleAutorIdChange(e.target.value)} className="rounded-xl pl-10" />
+                </div>
+                {autorLookup.result && (
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 text-xs">
+                    <User className="h-3 w-3 text-green-600" />
+                    <span className="text-green-800 dark:text-green-300 font-medium">{autorLookup.result.nome_completo}</span>
+                  </div>
+                )}
+                <Input placeholder="Nome do Autor" value={form.autor_nome} onChange={(e) => setForm({ ...form, autor_nome: e.target.value })} required className="rounded-xl" readOnly={!!autorLookup.result} />
+              </div>
+              <div className="space-y-1.5">
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input placeholder="ID do Personagem (Réu)" value={form.reu_id} onChange={(e) => handleReuIdChange(e.target.value)} className="rounded-xl pl-10" />
+                </div>
+                {reuLookup.result && (
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 text-xs">
+                    <User className="h-3 w-3 text-green-600" />
+                    <span className="text-green-800 dark:text-green-300 font-medium">{reuLookup.result.nome_completo}</span>
+                  </div>
+                )}
+                <Input placeholder="Nome do Réu" value={form.reu_nome} onChange={(e) => setForm({ ...form, reu_nome: e.target.value })} required className="rounded-xl" readOnly={!!reuLookup.result} />
+              </div>
               <Input placeholder="Vara" value={form.vara} onChange={(e) => setForm({ ...form, vara: e.target.value })} className="rounded-xl" />
               <Input placeholder="Valor da Causa (R$)" value={form.valor_causa} onChange={(e) => { const raw = e.target.value.replace(/\D/g, ""); setForm({ ...form, valor_causa: raw ? formatCurrency(raw) : "" }); }} className="rounded-xl" />
               <Textarea placeholder="Descrição dos fatos" value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} className="rounded-xl" />
