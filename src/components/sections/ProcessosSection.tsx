@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Plus, FileText, Search, Eye, User, ArrowLeft, Clock, Gavel,
   Upload, Calendar, AlertTriangle, CheckCircle, PenTool, History,
-  File, Scale, Timer, ChevronRight, X
+  File, Scale, Timer, ChevronRight, X, ExternalLink
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -102,8 +102,9 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
 
   const [form, setForm] = useState({
     classe: "civil", assunto: "", descricao: "", autor_nome: "", autor_id: "",
-    reu_nome: "", reu_id: "", vara: "1ª Vara Cível", valor_causa: "",
+    reu_nome: "", reu_id: "", vara: "1ª Vara Cível", valor_causa: "", peticao_link: "",
   });
+  const [anexoLinks, setAnexoLinks] = useState<string[]>([""]);
 
   const { data: processos, isLoading } = useQuery({
     queryKey: ["processos"],
@@ -141,8 +142,14 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
 
       const autorDisplay = form.autor_id ? `${form.autor_nome} (ID: ${form.autor_id})` : form.autor_nome;
       const reuDisplay = form.reu_id ? `${form.reu_nome} (ID: ${form.reu_id})` : form.reu_nome;
+      const anexosValidos = anexoLinks.filter(l => l.trim());
+      const descricaoCompleta = [
+        form.descricao,
+        form.peticao_link ? `\n\n📄 Petição: ${form.peticao_link}` : "",
+        anexosValidos.length ? `\n\n📎 Anexos:\n${anexosValidos.map((l, i) => `${i + 1}. ${l}`).join("\n")}` : "",
+      ].join("");
       const { data: processo, error } = await supabase.from("processos").insert({
-        numero: "", classe: form.classe as any, assunto: form.assunto, descricao: form.descricao,
+        numero: "", classe: form.classe as any, assunto: form.assunto, descricao: descricaoCompleta,
         autor_nome: autorDisplay, reu_nome: reuDisplay, vara: form.vara,
         valor_causa: parseCurrencyToNumber(form.valor_causa),
         juiz_id: juizId,
@@ -171,7 +178,8 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["processos"] });
       setOpen(false);
-      setForm({ classe: "civil", assunto: "", descricao: "", autor_nome: "", autor_id: "", reu_nome: "", reu_id: "", vara: "1ª Vara Cível", valor_causa: "" });
+      setForm({ classe: "civil", assunto: "", descricao: "", autor_nome: "", autor_id: "", reu_nome: "", reu_id: "", vara: "1ª Vara Cível", valor_causa: "", peticao_link: "" });
+      setAnexoLinks([""]);
       autorLookup.clear(); reuLookup.clear();
       toast.success("Processo cadastrado e distribuído por sorteio!");
     },
@@ -244,7 +252,41 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
               </div>
               <Input placeholder="Vara" value={form.vara} onChange={(e) => setForm({ ...form, vara: e.target.value })} className="rounded-xl" />
               <Input placeholder="Valor da Causa (R$)" value={form.valor_causa} onChange={(e) => { const raw = e.target.value.replace(/\D/g, ""); setForm({ ...form, valor_causa: raw ? formatCurrency(raw) : "" }); }} className="rounded-xl" />
-              <Textarea placeholder="Descrição dos fatos" value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} className="rounded-xl" />
+              <Textarea placeholder="Síntese (resumo) dos fatos" value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} className="rounded-xl" />
+              
+              {/* Link da Petição */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-foreground">Link da Petição Inicial</label>
+                <Input placeholder="https://docs.google.com/... ou link do Drive" value={form.peticao_link} onChange={(e) => setForm({ ...form, peticao_link: e.target.value })} className="rounded-xl" />
+              </div>
+
+              {/* Links de Anexos */}
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-foreground">Anexos (links)</label>
+                {anexoLinks.map((link, idx) => (
+                  <div key={idx} className="flex gap-2">
+                    <Input
+                      placeholder={`Link do anexo ${idx + 1}`}
+                      value={link}
+                      onChange={(e) => {
+                        const updated = [...anexoLinks];
+                        updated[idx] = e.target.value;
+                        setAnexoLinks(updated);
+                      }}
+                      className="rounded-xl flex-1"
+                    />
+                    {anexoLinks.length > 1 && (
+                      <Button type="button" variant="ghost" size="icon" className="h-10 w-10 flex-shrink-0" onClick={() => setAnexoLinks(anexoLinks.filter((_, i) => i !== idx))}>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+                <Button type="button" variant="outline" size="sm" className="rounded-lg text-xs" onClick={() => setAnexoLinks([...anexoLinks, ""])}>
+                  <Plus className="h-3 w-3 mr-1" /> Adicionar outro anexo
+                </Button>
+              </div>
+
               <Button type="submit" disabled={createProcesso.isPending} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
                 {createProcesso.isPending ? "Cadastrando..." : "Cadastrar Processo"}
               </Button>
@@ -464,13 +506,9 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   });
 
   const uploadDoc = useMutation({
-    mutationFn: async ({ file, nome, tipo }: { file: File; nome: string; tipo: string }) => {
-      const filePath = `${processoId}/${Date.now()}-${file.name}`;
-      const { error: uploadErr } = await supabase.storage.from("documentos-processuais").upload(filePath, file);
-      if (uploadErr) throw uploadErr;
-      const { data: urlData } = supabase.storage.from("documentos-processuais").getPublicUrl(filePath);
+    mutationFn: async ({ link, nome, tipo }: { link: string; nome: string; tipo: string }) => {
       const { error } = await supabase.from("documentos_processo").insert({
-        processo_id: processoId, nome, tipo, arquivo_url: urlData.publicUrl, autor_id: user?.id,
+        processo_id: processoId, nome, tipo, arquivo_url: link, autor_id: user?.id,
       });
       if (error) throw error;
       await addMovimentacao.mutateAsync({ tipo: "juntada", descricao: `Documento juntado: ${nome}` });
@@ -582,7 +620,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
 
         {/* DOCUMENTOS */}
         <TabsContent value="documentos" className="mt-4 space-y-4">
-          <UploadDoc onUpload={(file, nome, tipo) => uploadDoc.mutate({ file, nome, tipo })} isPending={uploadDoc.isPending} />
+          <UploadDoc onUpload={(link, nome, tipo) => uploadDoc.mutate({ link, nome, tipo })} isPending={uploadDoc.isPending} />
           {!documentos?.length ? (
             <p className="text-center py-8 text-sm text-muted-foreground">Nenhum documento anexado.</p>
           ) : (
@@ -740,19 +778,20 @@ function AddAto({ onAdd }: { onAdd: (ato: { tipo: string; titulo: string; conteu
   );
 }
 
-function UploadDoc({ onUpload, isPending }: { onUpload: (file: File, nome: string, tipo: string) => void; isPending: boolean }) {
+function UploadDoc({ onUpload, isPending }: { onUpload: (link: string, nome: string, tipo: string) => void; isPending: boolean }) {
   const [open, setOpen] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
+  const [link, setLink] = useState("");
   const [nome, setNome] = useState("");
   const [tipo, setTipo] = useState("peticao");
+  const [showInstrucoes, setShowInstrucoes] = useState(false);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="rounded-xl"><Upload className="h-4 w-4 mr-2" /> Juntar Documento</Button>
       </DialogTrigger>
-      <DialogContent>
-        <DialogHeader><DialogTitle>Juntar Documento</DialogTitle></DialogHeader>
-        <form onSubmit={(e) => { e.preventDefault(); if (file) { onUpload(file, nome, tipo); setOpen(false); setFile(null); setNome(""); } }} className="space-y-3 mt-3">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader><DialogTitle>Juntar Documento por Link</DialogTitle></DialogHeader>
+        <form onSubmit={(e) => { e.preventDefault(); if (link.trim()) { onUpload(link.trim(), nome, tipo); setOpen(false); setLink(""); setNome(""); } }} className="space-y-3 mt-3">
           <Select value={tipo} onValueChange={setTipo}>
             <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -766,9 +805,53 @@ function UploadDoc({ onUpload, isPending }: { onUpload: (file: File, nome: strin
             </SelectContent>
           </Select>
           <Input placeholder="Nome do documento" value={nome} onChange={(e) => setNome(e.target.value)} required className="rounded-xl" />
-          <Input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} required className="rounded-xl" />
-          <Button type="submit" disabled={isPending} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
-            {isPending ? "Enviando..." : "Anexar Documento"}
+          <Input placeholder="Cole o link do Google Drive ou Google Docs" value={link} onChange={(e) => setLink(e.target.value)} required className="rounded-xl" />
+          
+          <button type="button" onClick={() => setShowInstrucoes(!showInstrucoes)} className="text-xs text-primary hover:underline flex items-center gap-1">
+            <FileText className="h-3 w-3" />
+            {showInstrucoes ? "Ocultar instruções" : "Como compartilhar arquivos?"}
+          </button>
+
+          {showInstrucoes && (
+            <div className="bg-muted/50 rounded-xl p-4 text-xs text-muted-foreground space-y-3 border border-border">
+              <p className="font-semibold text-foreground text-sm">📋 Como enviar documentos por link</p>
+              
+              <div className="space-y-1">
+                <p className="font-medium text-foreground">Google Drive (arquivos/pastas):</p>
+                <ol className="list-decimal list-inside space-y-0.5 pl-1">
+                  <li>Acesse <span className="font-medium">drive.google.com</span></li>
+                  <li>Faça upload do arquivo ou crie uma pasta</li>
+                  <li>Clique com botão direito no arquivo → <strong>"Compartilhar"</strong></li>
+                  <li>Em "Acesso geral", selecione <strong>"Qualquer pessoa com o link"</strong></li>
+                  <li>Clique em <strong>"Copiar link"</strong> e cole no campo acima</li>
+                </ol>
+              </div>
+
+              <div className="space-y-1">
+                <p className="font-medium text-foreground">Google Docs (documentos de texto):</p>
+                <ol className="list-decimal list-inside space-y-0.5 pl-1">
+                  <li>Abra o documento no Google Docs</li>
+                  <li>Clique em <strong>"Compartilhar"</strong> (canto superior direito)</li>
+                  <li>Em "Acesso geral", selecione <strong>"Qualquer pessoa com o link"</strong></li>
+                  <li>Defina como <strong>"Leitor"</strong> (recomendado)</li>
+                  <li>Clique em <strong>"Copiar link"</strong> e cole no campo acima</li>
+                </ol>
+              </div>
+
+              <div className="bg-destructive/10 rounded-lg p-2 border border-destructive/20">
+                <p className="text-destructive font-medium">⚠️ Importante: Libere o acesso ANTES de colar o link!</p>
+                <p className="mt-0.5">Se o link não estiver acessível, o documento não poderá ser visualizado.</p>
+              </div>
+
+              <a href="https://www.youtube.com/watch?v=KGCdxnkyjoc" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline font-medium">
+                🎬 Tutorial em vídeo: Como fazer upload no Google Drive
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+          )}
+
+          <Button type="submit" disabled={isPending || !link.trim()} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
+            {isPending ? "Salvando..." : "Juntar Documento"}
           </Button>
         </form>
       </DialogContent>
