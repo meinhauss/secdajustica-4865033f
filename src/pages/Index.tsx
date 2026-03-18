@@ -7,6 +7,7 @@ import ProcessosSection from "@/components/sections/ProcessosSection";
 
 import ConsultaPublicaSection from "@/components/sections/ConsultaPublicaSection";
 import MagistradoSection from "@/components/sections/MagistradoSection";
+import TribunalSection from "@/components/sections/TribunalSection";
 import MPSection from "@/components/sections/MPSection";
 import AudienciasSection from "@/components/sections/AudienciasSection";
 import OABSection from "@/components/sections/OABSection";
