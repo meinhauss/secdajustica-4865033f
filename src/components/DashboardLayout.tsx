@@ -15,17 +15,17 @@ interface DashboardLayoutProps {
 }
 
 const menuItems = [
-  { id: "dashboard", label: "Painel Geral", icon: Home, roles: ["admin", "magistrado", "ministerio_publico", "delegado", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "investigador", "presidente_oab"] },
-  { id: "meu-perfil", label: "Meu Perfil", icon: Users, roles: ["admin", "magistrado", "ministerio_publico", "delegado", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "investigador", "presidente_oab"] },
-  { id: "processos", label: "Processos", icon: FileText, roles: ["admin", "magistrado", "ministerio_publico", "advogado", "presidente_tribunal", "desembargador", "oficial_justica"] },
+  { id: "dashboard", label: "Painel Geral", icon: Home, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "delegado", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "investigador", "presidente_oab"] },
+  { id: "meu-perfil", label: "Meu Perfil", icon: Users, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "delegado", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "investigador", "presidente_oab"] },
+  { id: "processos", label: "Processos", icon: FileText, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "advogado", "presidente_tribunal", "desembargador", "oficial_justica"] },
   { id: "magistrado", label: "Portal Magistrado", icon: Gavel, roles: ["admin", "magistrado", "presidente_tribunal", "desembargador"] },
-  { id: "mp", label: "Ministério Público", icon: Scale, roles: ["admin", "ministerio_publico"] },
+  { id: "mp", label: "Ministério Público", icon: Scale, roles: ["admin", "ministerio_publico", "procurador_geral"] },
   
   { id: "oab", label: "Portal OAB", icon: Briefcase, roles: ["admin", "advogado", "presidente_oab"] },
-  { id: "audiencias", label: "Audiências", icon: Calendar, roles: ["admin", "magistrado", "ministerio_publico", "advogado", "presidente_tribunal", "desembargador"] },
-  { id: "consulta", label: "Consulta Pública", icon: BookOpen, roles: ["admin", "magistrado", "ministerio_publico", "delegado", "oficial_justica", "advogado", "presidente_tribunal", "desembargador", "presidente_oab"] },
-  { id: "concursos", label: "Concursos", icon: GraduationCap, roles: ["admin", "magistrado", "ministerio_publico", "delegado", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "investigador", "presidente_oab"] },
-  { id: "cartorio", label: "Cartório Civil", icon: Stamp, roles: ["admin", "oficial_justica", "magistrado", "ministerio_publico", "advogado", "presidente_tribunal", "desembargador", "cidadao", "presidente_oab"] },
+  { id: "audiencias", label: "Audiências", icon: Calendar, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "advogado", "presidente_tribunal", "desembargador"] },
+  { id: "consulta", label: "Consulta Pública", icon: BookOpen, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "delegado", "oficial_justica", "advogado", "presidente_tribunal", "desembargador", "presidente_oab"] },
+  { id: "concursos", label: "Concursos", icon: GraduationCap, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "delegado", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "investigador", "presidente_oab"] },
+  { id: "cartorio", label: "Cartório Civil", icon: Stamp, roles: ["admin", "oficial_justica", "magistrado", "ministerio_publico", "procurador_geral", "advogado", "presidente_tribunal", "desembargador", "cidadao", "presidente_oab"] },
   { id: "cargos", label: "Cargos e Hierarquia", icon: Crown, roles: ["admin"] },
   { id: "usuarios", label: "Usuários", icon: Users, roles: ["admin"] },
   { id: "estatisticas", label: "Estatísticas", icon: BarChart3, roles: ["admin", "magistrado", "presidente_tribunal"] },
