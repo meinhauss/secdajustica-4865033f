@@ -17,7 +17,7 @@ interface DashboardLayoutProps {
 const menuItems = [
   { id: "dashboard", label: "Painel Geral", icon: Home, roles: ["admin", "magistrado", "ministerio_publico", "delegado", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "investigador", "presidente_oab"] },
   { id: "meu-perfil", label: "Meu Perfil", icon: Users, roles: ["admin", "magistrado", "ministerio_publico", "delegado", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "investigador", "presidente_oab"] },
-  { id: "processos", label: "Processos", icon: FileText, roles: ["admin", "magistrado", "ministerio_publico", "advogado", "presidente_tribunal", "desembargador"] },
+  { id: "processos", label: "Processos", icon: FileText, roles: ["admin", "magistrado", "ministerio_publico", "advogado", "presidente_tribunal", "desembargador", "oficial_justica"] },
   { id: "magistrado", label: "Portal Magistrado", icon: Gavel, roles: ["admin", "magistrado", "presidente_tribunal", "desembargador"] },
   { id: "mp", label: "Ministério Público", icon: Scale, roles: ["admin", "ministerio_publico"] },
   
