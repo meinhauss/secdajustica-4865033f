@@ -143,6 +143,7 @@ export default function LoginPage() {
             {activeTab === "concursos" && <TabConcursos onNavigate={setActiveTab} />}
             {activeTab === "institucional" && <TabInstitucional />}
             {activeTab === "servicos" && <TabServicos />}
+            {activeTab === "credencial" && <TabCredencial />}
             {activeTab === "transparencia" && <TabTransparencia />}
             {activeTab === "contato" && <TabContato />}
             {activeTab === "login" &&
