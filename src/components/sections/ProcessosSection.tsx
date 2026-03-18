@@ -673,7 +673,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                       <Timer className={`h-4 w-4 ${isExpired ? "text-destructive" : "text-institutional"}`} />
                       <span className="text-sm font-medium text-foreground flex-1">{p.descricao}</span>
                       <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${isExpired ? "bg-destructive/10 text-destructive" : "bg-gold/10 text-gold-dark"}`}>
-                        {isExpired ? "Vencido" : `${p.dias_uteis}d úteis`}
+                        {isExpired ? "Vencido" : `${p.dias_uteis}h`}
                       </span>
                     </div>
                     <p className="text-[10px] text-muted-foreground mt-1">
