@@ -341,7 +341,11 @@ export default function CartorarioSection() {
         <TabsContent value="servicos" className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {TIPOS_REGISTRO.map((t) => (
-              <Card key={t.value} className="hover:border-accent transition-colors cursor-pointer" onClick={() => {
+              <Card key={t.value} className={`transition-colors ${canSolicitar ? "hover:border-accent cursor-pointer" : "opacity-60"}`} onClick={() => {
+                if (!canSolicitar) {
+                  toast({ title: "Apenas advogados podem fazer solicitações", variant: "destructive" });
+                  return;
+                }
                 setForm((f) => ({ ...f, tipo: t.value }));
                 setShowNovoRegistro(true);
               }}>
