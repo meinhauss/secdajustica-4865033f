@@ -192,27 +192,6 @@ function OABDashboard({ isAdmin }: { isAdmin: boolean }) {
     onError: (err: any) => toast.error(err.message),
   });
 
-  // ── HONORÁRIOS ──
-  const [honForm, setHonForm] = useState({ tipo_atuacao: "", descricao: "", valor_minimo: "", valor_sugerido: "" });
-  const criarHonorario = useMutation({
-    mutationFn: async () => {
-      if (!honForm.tipo_atuacao || !honForm.valor_minimo) throw new Error("Preencha tipo e valor mínimo.");
-      const { error } = await supabase.from("honorarios_tabela").insert({
-        tipo_atuacao: honForm.tipo_atuacao,
-        descricao: honForm.descricao || null,
-        valor_minimo: parseFloat(honForm.valor_minimo),
-        valor_sugerido: honForm.valor_sugerido ? parseFloat(honForm.valor_sugerido) : null,
-      } as any);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["oab-honorarios"] });
-      setOpenHonorario(false);
-      setHonForm({ tipo_atuacao: "", descricao: "", valor_minimo: "", valor_sugerido: "" });
-      toast.success("Honorário cadastrado!");
-    },
-    onError: (err: any) => toast.error(err.message),
-  });
 
   // ── COMUNICADO ──
   const [comForm, setComForm] = useState({ titulo: "", conteudo: "", tipo: "aviso" });
