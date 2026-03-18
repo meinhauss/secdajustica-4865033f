@@ -79,7 +79,7 @@ function OABDashboard({ isAdmin }: { isAdmin: boolean }) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [openInscricao, setOpenInscricao] = useState(false);
-  const [openHonorario, setOpenHonorario] = useState(false);
+  
   const [openComunicado, setOpenComunicado] = useState(false);
   const [selectedCarteira, setSelectedCarteira] = useState<any>(null);
 
@@ -102,14 +102,6 @@ function OABDashboard({ isAdmin }: { isAdmin: boolean }) {
     },
   });
 
-  const { data: honorarios } = useQuery({
-    queryKey: ["oab-honorarios"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("honorarios_tabela").select("*").order("tipo_atuacao");
-      if (error) throw error;
-      return data as any[];
-    },
-  });
 
   const { data: disciplinares } = useQuery({
     queryKey: ["oab-disciplinares"],
@@ -200,27 +192,6 @@ function OABDashboard({ isAdmin }: { isAdmin: boolean }) {
     onError: (err: any) => toast.error(err.message),
   });
 
-  // ── HONORÁRIOS ──
-  const [honForm, setHonForm] = useState({ tipo_atuacao: "", descricao: "", valor_minimo: "", valor_sugerido: "" });
-  const criarHonorario = useMutation({
-    mutationFn: async () => {
-      if (!honForm.tipo_atuacao || !honForm.valor_minimo) throw new Error("Preencha tipo e valor mínimo.");
-      const { error } = await supabase.from("honorarios_tabela").insert({
-        tipo_atuacao: honForm.tipo_atuacao,
-        descricao: honForm.descricao || null,
-        valor_minimo: parseFloat(honForm.valor_minimo),
-        valor_sugerido: honForm.valor_sugerido ? parseFloat(honForm.valor_sugerido) : null,
-      } as any);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["oab-honorarios"] });
-      setOpenHonorario(false);
-      setHonForm({ tipo_atuacao: "", descricao: "", valor_minimo: "", valor_sugerido: "" });
-      toast.success("Honorário cadastrado!");
-    },
-    onError: (err: any) => toast.error(err.message),
-  });
 
   // ── COMUNICADO ──
   const [comForm, setComForm] = useState({ titulo: "", conteudo: "", tipo: "aviso" });
@@ -261,7 +232,7 @@ function OABDashboard({ isAdmin }: { isAdmin: boolean }) {
   const stats = {
     advogados: carteiras?.filter((c: any) => c.status === "ativo").length || 0,
     inscricoesPendentes: pendentes.length,
-    honorarios: honorarios?.length || 0,
+    
     disciplinares: disciplinares?.filter((d: any) => d.status !== "arquivado").length || 0,
   };
 
@@ -307,7 +278,7 @@ function OABDashboard({ isAdmin }: { isAdmin: boolean }) {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <StatCard label="Advogados Ativos" value={stats.advogados} icon={Users} delay={0} />
         <StatCard label="Inscrições Pendentes" value={stats.inscricoesPendentes} icon={Clock} delay={0.05} />
-        <StatCard label="Honorários Tabela" value={stats.honorarios} icon={DollarSign} delay={0.1} />
+        
         <StatCard label="Proc. Disciplinares" value={stats.disciplinares} icon={AlertTriangle} delay={0.15} />
       </div>
 
@@ -323,7 +294,7 @@ function OABDashboard({ isAdmin }: { isAdmin: boolean }) {
           <TabsTrigger value="advogados" className="rounded-lg text-xs"><Users className="h-3 w-3 mr-1" /> Advogados ({stats.advogados})</TabsTrigger>
           {isAdmin && <TabsTrigger value="inscricoes" className="rounded-lg text-xs"><Clock className="h-3 w-3 mr-1" /> Inscrições ({inscricoes?.length || 0})</TabsTrigger>}
           <TabsTrigger value="ranking" className="rounded-lg text-xs"><Award className="h-3 w-3 mr-1" /> Ranking</TabsTrigger>
-          <TabsTrigger value="honorarios" className="rounded-lg text-xs"><DollarSign className="h-3 w-3 mr-1" /> Honorários</TabsTrigger>
+          
           {isAdmin && <TabsTrigger value="disciplinar" className="rounded-lg text-xs"><AlertTriangle className="h-3 w-3 mr-1" /> Disciplinar ({stats.disciplinares})</TabsTrigger>}
           <TabsTrigger value="comunicados" className="rounded-lg text-xs"><Megaphone className="h-3 w-3 mr-1" /> Comunicados</TabsTrigger>
           <TabsTrigger value="estatisticas" className="rounded-lg text-xs"><BarChart3 className="h-3 w-3 mr-1" /> Estatísticas</TabsTrigger>
@@ -451,60 +422,6 @@ function OABDashboard({ isAdmin }: { isAdmin: boolean }) {
               })}
             </div>
           )}
-        </TabsContent>
-
-        {/* HONORÁRIOS */}
-        <TabsContent value="honorarios" className="mt-4">
-          <div className="space-y-4">
-            {isAdmin && (
-              <div className="flex justify-end">
-                <Dialog open={openHonorario} onOpenChange={setOpenHonorario}>
-                  <DialogTrigger asChild>
-                    <Button size="sm" className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
-                      <Plus className="h-4 w-4 mr-1" /> Adicionar Honorário
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-md">
-                    <DialogHeader><DialogTitle className="font-display">Cadastrar Honorário</DialogTitle></DialogHeader>
-                    <form onSubmit={(e) => { e.preventDefault(); criarHonorario.mutate(); }} className="space-y-4 mt-4">
-                      <Input placeholder="Tipo de atuação (ex: Audiência Criminal)" value={honForm.tipo_atuacao} onChange={(e) => setHonForm({ ...honForm, tipo_atuacao: e.target.value })} className="rounded-xl" required />
-                      <Input placeholder="Descrição (opcional)" value={honForm.descricao} onChange={(e) => setHonForm({ ...honForm, descricao: e.target.value })} className="rounded-xl" />
-                      <div className="grid grid-cols-2 gap-3">
-                        <Input type="number" step="0.01" placeholder="Valor Mínimo (R$)" value={honForm.valor_minimo} onChange={(e) => setHonForm({ ...honForm, valor_minimo: e.target.value })} className="rounded-xl" required />
-                        <Input type="number" step="0.01" placeholder="Valor Sugerido (R$)" value={honForm.valor_sugerido} onChange={(e) => setHonForm({ ...honForm, valor_sugerido: e.target.value })} className="rounded-xl" />
-                      </div>
-                      <Button type="submit" disabled={criarHonorario.isPending} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
-                        {criarHonorario.isPending ? "Salvando..." : "Cadastrar Honorário"}
-                      </Button>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            )}
-            {!honorarios?.length ? <EmptyState icon={DollarSign} text="Nenhum honorário cadastrado na tabela." /> : (
-              <div className="bg-card rounded-xl border border-border shadow-institutional overflow-hidden">
-                <div className="grid grid-cols-12 gap-2 p-3 bg-secondary/50 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                  <div className="col-span-5">Tipo de Atuação</div>
-                  <div className="col-span-3">Valor Mínimo</div>
-                  <div className="col-span-3">Valor Sugerido</div>
-                  <div className="col-span-1">Status</div>
-                </div>
-                {honorarios.map((h: any) => (
-                  <div key={h.id} className="grid grid-cols-12 gap-2 p-3 border-t border-border items-center text-sm">
-                    <div className="col-span-5">
-                      <p className="font-medium text-foreground">{h.tipo_atuacao}</p>
-                      {h.descricao && <p className="text-xs text-muted-foreground">{h.descricao}</p>}
-                    </div>
-                    <div className="col-span-3 font-mono text-foreground">R$ {Number(h.valor_minimo).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div>
-                    <div className="col-span-3 font-mono text-muted-foreground">{h.valor_sugerido ? `R$ ${Number(h.valor_sugerido).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "—"}</div>
-                    <div className="col-span-1">
-                      <span className={`w-2 h-2 rounded-full inline-block ${h.ativo ? 'bg-green-500' : 'bg-muted-foreground'}`} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
         </TabsContent>
 
         {/* DISCIPLINAR */}
