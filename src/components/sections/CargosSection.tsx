@@ -59,6 +59,16 @@ const ROLE_HIERARCHY = [
   },
   {
     level: 5,
+    role: "procurador_geral",
+    label: "Procurador-Geral de Justiça",
+    icon: Scale,
+    color: "text-violet-600",
+    bgColor: "bg-violet-600/10",
+    description: "Chefe do Ministério Público. Responsável por concursos, nomeações e supervisão dos promotores.",
+    permissions: ["ver_inqueritos", "denuncias", "arquivamentos", "pareceres", "concursos_mp", "supervisao_mp", "nomeacoes_mp"],
+  },
+  {
+    level: 6,
     role: "ministerio_publico",
     label: "Promotor de Justiça",
     icon: Scale,
@@ -68,7 +78,7 @@ const ROLE_HIERARCHY = [
     permissions: ["ver_inqueritos", "denuncias", "diligencias", "arquivamentos", "pareceres", "audiencias"],
   },
   {
-    level: 6,
+    level: 7,
     role: "delegado",
     label: "Delegado de Polícia",
     icon: Shield,
@@ -78,7 +88,7 @@ const ROLE_HIERARCHY = [
     permissions: ["inqueritos", "provas", "relatorios", "remessa_mp", "mandados_judiciais"],
   },
   {
-    level: 7,
+    level: 8,
     role: "investigador",
     label: "Investigador",
     icon: SearchIcon,
@@ -88,7 +98,7 @@ const ROLE_HIERARCHY = [
     permissions: ["relatorios", "provas", "antecedentes", "acompanhamento_investigacoes"],
   },
   {
-    level: 8,
+    level: 9,
     role: "oficial_justica",
     label: "Oficial de Justiça",
     icon: BadgeCheck,
@@ -98,7 +108,7 @@ const ROLE_HIERARCHY = [
     permissions: ["mandados", "ordens_judiciais", "cumprimento", "certificacoes", "diligencias"],
   },
   {
-    level: 9,
+    level: 10,
     role: "presidente_oab",
     label: "Presidente da OAB",
     icon: Star,
@@ -108,7 +118,7 @@ const ROLE_HIERARCHY = [
     permissions: ["gerir_advogados", "aprovacao_cadastros", "fiscalizacao", "sancoes", "concursos"],
   },
   {
-    level: 10,
+    level: 11,
     role: "advogado",
     label: "Advogado",
     icon: Briefcase,
@@ -118,7 +128,7 @@ const ROLE_HIERARCHY = [
     permissions: ["ver_processos_habilitados", "peticoes", "consulta_publica", "honorarios"],
   },
   {
-    level: 11,
+    level: 12,
     role: "cidadao",
     label: "Cidadão",
     icon: UserCheck,
@@ -148,7 +158,9 @@ const PERMISSION_LABELS: Record<string, string> = {
   denuncias: "Denúncias",
   arquivamentos: "Arquivamentos",
   pareceres: "Pareceres",
-  
+  concursos_mp: "Concursos do MP",
+  supervisao_mp: "Supervisão de Promotores",
+  nomeacoes_mp: "Nomeações no MP",
   inqueritos: "Instaurar Inquéritos",
   provas: "Gestão de Provas",
   relatorios: "Relatórios",
