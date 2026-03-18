@@ -73,6 +73,7 @@ export default function CartorarioSection() {
   const { user, profile, roles } = useAuth();
   const isAdmin = roles.includes("admin");
   const isCartorario = isAdmin || roles.includes("oficial_justica");
+  const canSolicitar = isAdmin || isCartorario || roles.includes("advogado");
 
   const [tab, setTab] = useState("painel");
   const [registros, setRegistros] = useState<Registro[]>([]);
