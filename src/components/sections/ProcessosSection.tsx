@@ -695,6 +695,10 @@ function InfoCard({ label, value }: { label: string; value: string }) {
 function AddMovimentacao({ roles, onAdd }: { roles: string[]; onAdd: (tipo: string, desc: string) => void }) {
   const [open, setOpen] = useState(false);
   const [desc, setDesc] = useState("");
+  const [anexos, setAnexos] = useState<{ nome: string; url: string }[]>([]);
+  const [novoAnexoNome, setNovoAnexoNome] = useState("");
+  const [novoAnexoUrl, setNovoAnexoUrl] = useState("");
+  const [showInstrucoes, setShowInstrucoes] = useState(false);
 
   const isJudicial = roles.some((r) => ["admin", "magistrado", "presidente_tribunal", "desembargador"].includes(r));
   const isMP = roles.includes("ministerio_publico");
@@ -760,14 +764,42 @@ function AddMovimentacao({ roles, onAdd }: { roles: string[]; onAdd: (tipo: stri
 
   const [tipo, setTipo] = useState(tiposPermitidos[0]?.value || "peticao");
 
+  const addAnexo = () => {
+    if (!novoAnexoNome.trim() || !novoAnexoUrl.trim()) {
+      toast.error("Preencha o nome e o link do anexo.");
+      return;
+    }
+    try {
+      new URL(novoAnexoUrl.trim());
+    } catch {
+      toast.error("Insira um link válido (ex: https://...)");
+      return;
+    }
+    setAnexos([...anexos, { nome: novoAnexoNome.trim(), url: novoAnexoUrl.trim() }]);
+    setNovoAnexoNome("");
+    setNovoAnexoUrl("");
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    let descFinal = desc;
+    if (anexos.length > 0) {
+      descFinal += "\n\n📎 DOCUMENTOS ANEXOS:\n" + anexos.map((a, i) => `${i + 1}. ${a.nome}: ${a.url}`).join("\n");
+    }
+    onAdd(tipo, descFinal);
+    setDesc("");
+    setAnexos([]);
+    setOpen(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="rounded-xl"><Plus className="h-4 w-4 mr-2" /> Nova Movimentação</Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle>Nova Movimentação</DialogTitle></DialogHeader>
-        <form onSubmit={(e) => { e.preventDefault(); onAdd(tipo, desc); setDesc(""); setOpen(false); }} className="space-y-3 mt-3">
+        <form onSubmit={handleSubmit} className="space-y-4 mt-3">
           <Select value={tipo} onValueChange={setTipo}>
             <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -776,7 +808,114 @@ function AddMovimentacao({ roles, onAdd }: { roles: string[]; onAdd: (tipo: stri
               ))}
             </SelectContent>
           </Select>
-          <Textarea placeholder="Descrição da movimentação..." value={desc} onChange={(e) => setDesc(e.target.value)} required className="rounded-xl" />
+          <Textarea placeholder="Descrição da movimentação..." value={desc} onChange={(e) => setDesc(e.target.value)} required className="rounded-xl min-h-[120px]" />
+
+          {/* Seção de Anexos */}
+          <div className="space-y-3 border border-border rounded-xl p-3 bg-muted/30">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-semibold flex items-center gap-2"><Upload className="h-4 w-4" /> Documentos e Anexos (via link)</h4>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-xs gap-1 text-muted-foreground hover:text-foreground"
+                onClick={() => setShowInstrucoes(!showInstrucoes)}
+              >
+                {showInstrucoes ? "Ocultar instruções" : "Como anexar?"}
+              </Button>
+            </div>
+
+            <AnimatePresence>
+              {showInstrucoes && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="text-xs space-y-2 bg-background border border-border rounded-lg p-3 text-muted-foreground">
+                    <p className="font-semibold text-foreground">📄 Para arquivos PDF:</p>
+                    <ol className="list-decimal list-inside space-y-1 ml-1">
+                      <li>Acesse o <a href="https://drive.google.com" target="_blank" rel="noopener noreferrer" className="text-institutional underline">Google Drive</a></li>
+                      <li>Clique em <strong>"+ Novo"</strong> → <strong>"Upload de arquivo"</strong></li>
+                      <li>Selecione o PDF do seu computador</li>
+                      <li>Após o upload, clique com o <strong>botão direito</strong> no arquivo</li>
+                      <li>Vá em <strong>"Compartilhar"</strong> → <strong>"Alterar para qualquer pessoa com o link"</strong></li>
+                      <li>Copie o link e cole no campo abaixo</li>
+                    </ol>
+
+                    <p className="font-semibold text-foreground mt-3">📝 Para documentos do Google Docs:</p>
+                    <ol className="list-decimal list-inside space-y-1 ml-1">
+                      <li>Abra o documento no Google Docs</li>
+                      <li>Clique em <strong>"Compartilhar"</strong> (canto superior direito)</li>
+                      <li>Em "Acesso geral", selecione <strong>"Qualquer pessoa com o link"</strong></li>
+                      <li>Defina como <strong>"Leitor"</strong> (para apenas visualização)</li>
+                      <li>Clique em <strong>"Copiar link"</strong> e cole abaixo</li>
+                    </ol>
+
+                    <div className="mt-3 p-2 bg-destructive/10 border border-destructive/30 rounded-md">
+                      <p className="text-destructive font-semibold text-xs flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" />
+                        IMPORTANTE: Certifique-se de que o acesso está liberado ANTES de inserir o link!
+                      </p>
+                      <p className="text-destructive/80 text-[11px] mt-1">
+                        Se o acesso não estiver liberado, os demais envolvidos no processo não conseguirão visualizar o documento.
+                      </p>
+                    </div>
+
+                    <div className="mt-3 flex justify-center">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="text-xs gap-1.5 rounded-lg"
+                        onClick={() => window.open("https://www.youtube.com/watch?v=KGCdxnkyjoc&pp=ygUhY29tbyBmYXplciB1cGxvYWQgbm8gZ29vZ2xlIGRyaXZl", "_blank")}
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        📹 Tutorial em vídeo: Como fazer upload no Google Drive
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Lista de anexos já adicionados */}
+            {anexos.length > 0 && (
+              <div className="space-y-1.5">
+                {anexos.map((a, i) => (
+                  <div key={i} className="flex items-center gap-2 bg-background border border-border rounded-lg px-3 py-1.5 text-xs">
+                    <FileText className="h-3 w-3 text-institutional shrink-0" />
+                    <span className="font-medium truncate">{a.nome}</span>
+                    <a href={a.url} target="_blank" rel="noopener noreferrer" className="text-institutional underline truncate max-w-[180px]">{a.url}</a>
+                    <button type="button" onClick={() => setAnexos(anexos.filter((_, idx) => idx !== i))} className="ml-auto text-muted-foreground hover:text-destructive">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Campos para novo anexo */}
+            <div className="flex gap-2">
+              <Input
+                placeholder="Nome do documento"
+                value={novoAnexoNome}
+                onChange={(e) => setNovoAnexoNome(e.target.value)}
+                className="rounded-lg text-xs h-8 flex-1"
+              />
+              <Input
+                placeholder="Cole o link aqui (https://...)"
+                value={novoAnexoUrl}
+                onChange={(e) => setNovoAnexoUrl(e.target.value)}
+                className="rounded-lg text-xs h-8 flex-[2]"
+              />
+              <Button type="button" variant="secondary" size="sm" className="rounded-lg h-8 text-xs px-3" onClick={addAnexo}>
+                <Plus className="h-3 w-3 mr-1" /> Anexar
+              </Button>
+            </div>
+          </div>
+
           <Button type="submit" className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">Registrar</Button>
         </form>
       </DialogContent>
