@@ -574,6 +574,57 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     },
   });
 
+  // ── SIGILO UPDATE ──
+  const updateSigilo = useMutation({
+    mutationFn: async (sigilo: string) => {
+      const { error } = await supabase.from("processos").update({ sigilo } as any).eq("id", processoId);
+      if (error) throw error;
+      await supabase.from("movimentacoes").insert({
+        processo_id: processoId,
+        tipo: "sigilo",
+        descricao: `Sigilo do processo alterado para: ${SIGILO_LABELS[sigilo] || sigilo}.`,
+        autor_id: user!.id,
+      });
+    },
+    onSuccess: () => {
+      invalidateAll();
+      toast.success("Sigilo atualizado!");
+    },
+  });
+
+  // ── SUSPEIÇÃO ──
+  const declararSuspeicao = useMutation({
+    mutationFn: async (justificativa: string) => {
+      if (!justificativa) throw new Error("Informe a justificativa.");
+      // Register movement
+      await supabase.from("movimentacoes").insert({
+        processo_id: processoId,
+        tipo: "suspeicao",
+        descricao: `DECLARAÇÃO DE SUSPEIÇÃO\n\nO(A) Magistrado(a) ${profile?.nome_completo} declarou-se suspeito(a) para atuar neste processo.\n\nJustificativa: ${justificativa}`,
+        autor_id: user!.id,
+      });
+      // Call sortear_magistrado to get new judge
+      const { data: newJudgeId, error: sortError } = await supabase.rpc("sortear_magistrado");
+      if (sortError) throw sortError;
+      // Update the process with the new judge
+      const { error } = await supabase.from("processos").update({ juiz_id: newJudgeId } as any).eq("id", processoId);
+      if (error) throw error;
+      // Log reassignment
+      await supabase.from("movimentacoes").insert({
+        processo_id: processoId,
+        tipo: "redistribuicao",
+        descricao: `Processo redistribuído por sorteio a novo magistrado em razão de declaração de suspeição.`,
+        autor_id: user!.id,
+      });
+    },
+    onSuccess: () => {
+      invalidateAll();
+      toast.success("Suspeição declarada. Processo redistribuído a novo magistrado.");
+      onBack();
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
   const invalidateAll = () => {
     queryClient.invalidateQueries({ queryKey: ["mag-proc", processoId] });
     queryClient.invalidateQueries({ queryKey: ["mag-movs", processoId] });
