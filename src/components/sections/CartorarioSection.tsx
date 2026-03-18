@@ -14,8 +14,21 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Label } from "@/components/ui/label";
 import {
   FileText, Plus, Search, CheckCircle, Clock, Eye, Stamp,
-  Heart, Home, Users, ScrollText, FileSignature, Baby, BarChart3
+  Heart, Home, Users, ScrollText, FileSignature, Baby, BarChart3, User
 } from "lucide-react";
+
+/* ─── Profile Lookup Hook ─── */
+function useProfileLookup() {
+  const [result, setResult] = useState<{ nome_completo: string; id_personagem: string } | null>(null);
+  const lookup = async (idPersonagem: string) => {
+    setResult(null);
+    if (!idPersonagem) return null;
+    const { data } = await supabase.from("profiles").select("nome_completo, id_personagem").eq("id_personagem", idPersonagem).maybeSingle();
+    if (data) setResult({ nome_completo: data.nome_completo, id_personagem: data.id_personagem || "" });
+    return data;
+  };
+  return { result, lookup, clear: () => setResult(null) };
+}
 
 const TIPOS_REGISTRO = [
   { value: "certidao_nascimento", label: "Certidão de Nascimento", icon: Baby },
@@ -74,6 +87,7 @@ export default function CartorarioSection() {
   const isAdmin = roles.includes("admin");
   const isCartorario = isAdmin || roles.includes("oficial_justica");
   const canSolicitar = isAdmin || isCartorario || roles.includes("advogado");
+  const requerenteLookup = useProfileLookup();
 
   const [tab, setTab] = useState("painel");
   const [registros, setRegistros] = useState<Registro[]>([]);
@@ -126,6 +140,7 @@ export default function CartorarioSection() {
     toast({ title: "Solicitação registrada com sucesso" });
     setShowNovoRegistro(false);
     setForm({ tipo: "certidao_nascimento", requerente_nome: "", id_personagem: "", partes_envolvidas: "", descricao: "", observacoes: "" });
+    requerenteLookup.clear();
     fetchRegistros();
   };
 
@@ -382,13 +397,32 @@ export default function CartorarioSection() {
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label>Nome do Requerente *</Label>
-              <Input value={form.requerente_nome} onChange={(e) => setForm((f) => ({ ...f, requerente_nome: e.target.value }))} placeholder="Nome completo" />
+            <div className="space-y-1.5">
+              <Label>ID do Personagem</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={form.id_personagem}
+                  onChange={async (e) => {
+                    const val = e.target.value;
+                    setForm((f) => ({ ...f, id_personagem: val }));
+                    const data = await requerenteLookup.lookup(val);
+                    if (data) setForm((f) => ({ ...f, requerente_nome: data.nome_completo }));
+                  }}
+                  placeholder="Ex: 12345"
+                  className="pl-10"
+                />
+              </div>
+              {requerenteLookup.result && (
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 text-xs">
+                  <User className="h-3 w-3 text-green-600" />
+                  <span className="text-green-800 dark:text-green-300 font-medium">{requerenteLookup.result.nome_completo}</span>
+                </div>
+              )}
             </div>
             <div>
-              <Label>ID do Personagem</Label>
-              <Input value={form.id_personagem} onChange={(e) => setForm((f) => ({ ...f, id_personagem: e.target.value }))} placeholder="Ex: 12345" />
+              <Label>Nome do Requerente *</Label>
+              <Input value={form.requerente_nome} onChange={(e) => setForm((f) => ({ ...f, requerente_nome: e.target.value }))} placeholder="Nome completo" readOnly={!!requerenteLookup.result} />
             </div>
             <div>
               <Label>Partes Envolvidas</Label>
