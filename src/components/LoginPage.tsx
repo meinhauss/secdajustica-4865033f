@@ -765,12 +765,27 @@ function TabLogin(props: LoginProps) {
 }
 
 function TabConcursos({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
+  const [concursos, setConcursos] = useState<any[]>([]);
+  const [loadingConcursos, setLoadingConcursos] = useState(true);
+
+  useState(() => {
+    supabase
+      .from("concursos")
+      .select("id, titulo, cargo, vagas, status, data_abertura, data_encerramento_inscricoes, data_prova")
+      .eq("status", "inscricoes_abertas")
+      .order("data_abertura", { ascending: false })
+      .then(({ data }) => {
+        setConcursos(data || []);
+        setLoadingConcursos(false);
+      });
+  });
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
       <h2 className="font-display text-2xl font-bold text-foreground mb-2">Concursos Públicos</h2>
       <p className="text-muted-foreground mb-8">Editais, inscrições e resultados de concursos do Poder Judiciário.</p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         {[
         { icon: GraduationCap, title: "Editais Abertos", desc: "Consulte os concursos com inscrições abertas para cargos jurídicos e administrativos." },
         { icon: FileText, title: "Provas e Gabaritos", desc: "Acesse provas anteriores, gabaritos oficiais e resultados publicados." },
@@ -791,7 +806,64 @@ function TabConcursos({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
         )}
       </div>
 
-      <div className="mt-8 bg-card rounded-xl p-6 border border-border shadow-institutional">
+      {/* Lista de concursos abertos */}
+      <div className="mb-8">
+        <h3 className="font-display text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+          <GraduationCap className="h-5 w-5 text-gold" />
+          Concursos com Inscrições Abertas
+        </h3>
+        {loadingConcursos ? (
+          <div className="text-sm text-muted-foreground text-center py-8">Carregando concursos...</div>
+        ) : concursos.length === 0 ? (
+          <div className="bg-card rounded-xl p-6 border border-border text-center">
+            <p className="text-sm text-muted-foreground">Nenhum concurso com inscrições abertas no momento.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {concursos.map((c, i) => (
+              <motion.div
+                key={c.id}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                onClick={() => onNavigate("login")}
+                className="bg-card rounded-xl p-5 border border-border shadow-institutional cursor-pointer hover:border-gold/50 transition-all group"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-display text-sm font-semibold text-foreground mb-1 group-hover:text-gold transition-colors">
+                      {c.titulo}
+                    </h4>
+                    <p className="text-xs text-muted-foreground mb-2">Cargo: {c.cargo}</p>
+                    <div className="flex flex-wrap gap-3 text-[11px] text-muted-foreground">
+                      <span>Vagas: <strong className="text-foreground">{c.vagas}</strong></span>
+                      {c.data_abertura && (
+                        <span>Abertura: <strong className="text-foreground">{new Date(c.data_abertura).toLocaleDateString("pt-BR")}</strong></span>
+                      )}
+                      {c.data_encerramento_inscricoes && (
+                        <span>Encerramento: <strong className="text-foreground">{new Date(c.data_encerramento_inscricoes).toLocaleDateString("pt-BR")}</strong></span>
+                      )}
+                      {c.data_prova && (
+                        <span>Prova: <strong className="text-foreground">{new Date(c.data_prova).toLocaleDateString("pt-BR")}</strong></span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                      Inscrições Abertas
+                    </span>
+                    <span className="text-[10px] text-gold font-semibold flex items-center gap-1 group-hover:underline">
+                      Inscrever-se <ChevronRight className="h-3 w-3" />
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="bg-card rounded-xl p-6 border border-border shadow-institutional">
         <h3 className="font-display text-lg font-semibold text-foreground mb-4">Informações Importantes</h3>
         <div className="space-y-3 text-sm text-muted-foreground">
           <p>• Para se inscrever em concursos, é necessário possuir cadastro no sistema e estar autenticado.</p>
