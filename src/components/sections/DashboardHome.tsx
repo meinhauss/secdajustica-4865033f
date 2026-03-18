@@ -20,7 +20,7 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
   const { profile, roles } = useAuth();
 
   const isJudicial = roles.some((r) => JUDICIAL_ROLES.includes(r));
-  const isPolice = roles.some((r) => POLICE_ROLES.includes(r));
+  
   const isAdmin = roles.includes("admin");
   const isAdvogado = roles.includes("advogado");
   const isMagistrado = roles.includes("magistrado") || roles.includes("desembargador") || roles.includes("presidente_tribunal");
