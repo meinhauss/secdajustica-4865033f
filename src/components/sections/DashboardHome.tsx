@@ -64,8 +64,15 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
 
   const { data: recentMovimentacoes } = useQuery({
     queryKey: ["dash-movimentacoes"], queryFn: async () => {
-      const { data } = await supabase.from("movimentacoes").select("id, tipo, descricao, created_at, processo_id").order("created_at", { ascending: false }).limit(8);
-      return data || [];
+      const { data } = await supabase.from("movimentacoes").select("id, tipo, descricao, created_at, processo_id, autor_id").order("created_at", { ascending: false }).limit(8);
+      if (!data?.length) return [];
+      const autorIds = [...new Set(data.map(m => m.autor_id).filter(Boolean))];
+      let profilesMap: Record<string, string> = {};
+      if (autorIds.length > 0) {
+        const { data: profiles } = await supabase.from("profiles").select("user_id, nome_completo").in("user_id", autorIds);
+        if (profiles) profiles.forEach(p => { profilesMap[p.user_id] = p.nome_completo; });
+      }
+      return data.map(m => ({ ...m, autor_nome: m.autor_id ? profilesMap[m.autor_id] || "Usuário do sistema" : "Sistema" }));
     },
   });
 
@@ -178,15 +185,20 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
               <p className="text-sm text-muted-foreground text-center py-6">Nenhuma movimentação recente.</p>
             )}
             {recentMovimentacoes?.map((m) => (
-              <div key={m.id} className="flex items-start gap-2 p-2 rounded-lg hover:bg-muted/40 transition-colors">
-                <div className="h-1.5 w-1.5 rounded-full bg-accent mt-1.5 flex-shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-xs text-foreground truncate">{m.descricao}</p>
-                  <p className="text-[10px] text-muted-foreground">
-                    {new Date(m.created_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
-                    {" • "}
-                    <span className="capitalize">{m.tipo.replace(/_/g, " ")}</span>
-                  </p>
+              <div key={m.id} className="p-2.5 rounded-lg hover:bg-muted/40 transition-colors border border-border/50">
+                <div className="flex items-start gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full bg-accent mt-1.5 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs text-foreground whitespace-pre-wrap">{m.descricao}</p>
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      {new Date(m.created_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                      {" • "}
+                      <span className="capitalize">{m.tipo.replace(/_/g, " ")}</span>
+                    </p>
+                    <p className="text-[10px] text-muted-foreground italic mt-0.5">
+                      Assinado digitalmente por: <span className="font-semibold text-foreground/70">{(m as any).autor_nome || "Sistema"}</span>
+                    </p>
+                  </div>
                 </div>
               </div>
             ))}

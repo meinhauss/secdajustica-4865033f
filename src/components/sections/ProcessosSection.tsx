@@ -388,7 +388,16 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     queryFn: async () => {
       const { data, error } = await supabase.from("movimentacoes").select("*").eq("processo_id", processoId).order("created_at", { ascending: false });
       if (error) throw error;
-      return data;
+      // Fetch author names for all movimentacoes
+      const autorIds = [...new Set((data || []).map(m => m.autor_id).filter(Boolean))];
+      let profilesMap: Record<string, string> = {};
+      if (autorIds.length > 0) {
+        const { data: profiles } = await supabase.from("profiles").select("user_id, nome_completo").in("user_id", autorIds);
+        if (profiles) {
+          profiles.forEach(p => { profilesMap[p.user_id] = p.nome_completo; });
+        }
+      }
+      return (data || []).map(m => ({ ...m, autor_nome: m.autor_id ? profilesMap[m.autor_id] || "Usuário do sistema" : "Sistema" }));
     },
   });
 
@@ -575,10 +584,16 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                   <div className="absolute -left-[25px] top-1 w-3 h-3 rounded-full bg-institutional border-2 border-background" />
                   <div className="bg-card rounded-xl p-3 border border-border">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{m.tipo}</span>
-                      <span className="text-[10px] text-muted-foreground ml-auto">{format(new Date(m.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</span>
+                      <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{m.tipo.replace(/_/g, " ")}</span>
+                      <span className="text-[10px] text-muted-foreground ml-auto">{format(new Date(m.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
                     </div>
-                    <p className="text-sm text-foreground">{m.descricao}</p>
+                    <p className="text-sm text-foreground whitespace-pre-wrap">{m.descricao}</p>
+                    <div className="mt-2 pt-2 border-t border-border/50">
+                      <p className="text-[10px] text-muted-foreground italic flex items-center gap-1">
+                        <PenTool className="h-3 w-3" />
+                        Assinado digitalmente por: <span className="font-semibold text-foreground/80">{(m as any).autor_nome || "Sistema"}</span>
+                      </p>
+                    </div>
                   </div>
                 </motion.div>
               ))}
