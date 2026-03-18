@@ -512,6 +512,28 @@ function InqueritoMPDetail({ ipId, onBack }: { ipId: string; onBack: () => void 
     },
   });
 
+  // Boletim de Ocorrência vinculado
+  const { data: bo } = useQuery({
+    queryKey: ["mp-ip-bo", ip?.bo_id],
+    enabled: !!ip?.bo_id,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("boletins_ocorrencia").select("*").eq("id", ip!.bo_id!).single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Envolvidos do BO
+  const { data: envolvidosBo } = useQuery({
+    queryKey: ["mp-ip-bo-envolvidos", ip?.bo_id],
+    enabled: !!ip?.bo_id,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("envolvidos_bo").select("*").eq("bo_id", ip!.bo_id!);
+      if (error) throw error;
+      return data;
+    },
+  });
+
   // ── DENÚNCIA ──
   const [denunciaForm, setDenunciaForm] = useState({ resumo: "", fundamentacao: "", tipificacao: "" });
   const oferecarDenuncia = useMutation({
