@@ -102,14 +102,6 @@ function OABDashboard({ isAdmin }: { isAdmin: boolean }) {
     },
   });
 
-  const { data: honorarios } = useQuery({
-    queryKey: ["oab-honorarios"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("honorarios_tabela").select("*").order("tipo_atuacao");
-      if (error) throw error;
-      return data as any[];
-    },
-  });
 
   const { data: disciplinares } = useQuery({
     queryKey: ["oab-disciplinares"],
