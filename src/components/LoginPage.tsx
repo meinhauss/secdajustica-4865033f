@@ -355,7 +355,7 @@ function TabInstitucional() {
 function TabServicos() {
   const servicos = [
   { title: "Consulta Processual", desc: "Pesquise processos por número, nome das partes ou assunto.", icon: FileText },
-  { title: "Registro de B.O.", desc: "Registre Boletim de Ocorrência online pela Delegacia Virtual.", icon: Shield },
+  
   { title: "Peticionamento Eletrônico", desc: "Protocole petições e documentos diretamente no sistema.", icon: BookOpen },
   { title: "Agendamento de Audiências", desc: "Consulte e agende audiências junto às varas competentes.", icon: Clock },
   { title: "Emissão de Certidões", desc: "Solicite certidões negativas e de antecedentes criminais.", icon: FileText },

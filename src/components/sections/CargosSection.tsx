@@ -168,7 +168,7 @@ const PERMISSION_LABELS: Record<string, string> = {
   peticoes: "Petições",
   consulta_publica: "Consulta Pública",
   honorarios: "Honorários",
-  bo_online: "B.O. Online",
+  
   acompanhamento: "Acompanhamento",
   notificacoes: "Notificações",
 };
