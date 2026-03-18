@@ -74,53 +74,65 @@ export default function MagistradoSection() {
 /*  DASHBOARD                                  */
 /* ═══════════════════════════════════════════ */
 function MagistradoDashboard({ onSelectProcesso }: { onSelectProcesso: (id: string) => void }) {
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [filterClasse, setFilterClasse] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
 
   const { data: processos } = useQuery({
-    queryKey: ["mag-processos"],
+    queryKey: ["mag-processos", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("processos").select("*").order("prioridade", { ascending: false }).order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("processos").select("*").eq("juiz_id", user!.id).order("prioridade", { ascending: false }).order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
+    enabled: !!user,
   });
 
+  const processoIds = processos?.map(p => p.id) || [];
+
   const { data: atos } = useQuery({
-    queryKey: ["mag-atos"],
+    queryKey: ["mag-atos", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("atos_judiciais").select("*").order("created_at", { ascending: false }).limit(50);
+      if (!processoIds.length) return [];
+      const { data, error } = await supabase.from("atos_judiciais").select("*").in("processo_id", processoIds).order("created_at", { ascending: false }).limit(50);
       if (error) throw error;
       return data;
     },
+    enabled: !!processos,
   });
 
   const { data: audiencias } = useQuery({
-    queryKey: ["mag-audiencias"],
+    queryKey: ["mag-audiencias", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("audiencias").select("*").order("data_hora", { ascending: true });
+      if (!processoIds.length) return [];
+      const { data, error } = await supabase.from("audiencias").select("*").in("processo_id", processoIds).order("data_hora", { ascending: true });
       if (error) throw error;
       return data;
     },
+    enabled: !!processos,
   });
 
   const { data: mandados } = useQuery({
-    queryKey: ["mag-mandados"],
+    queryKey: ["mag-mandados", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("mandados").select("*").order("created_at", { ascending: false });
+      if (!processoIds.length) return [];
+      const { data, error } = await supabase.from("mandados").select("*").in("processo_id", processoIds).order("created_at", { ascending: false });
       if (error) throw error;
       return data as any[];
     },
+    enabled: !!processos,
   });
 
   const { data: sentencas } = useQuery({
-    queryKey: ["mag-sentencas"],
+    queryKey: ["mag-sentencas", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("sentencas").select("*").order("created_at", { ascending: false });
+      if (!processoIds.length) return [];
+      const { data, error } = await supabase.from("sentencas").select("*").in("processo_id", processoIds).order("created_at", { ascending: false });
       if (error) throw error;
       return data as any[];
     },
+    enabled: !!processos,
   });
 
   const conclusos = processos?.filter((p) => p.status === "concluso") || [];
