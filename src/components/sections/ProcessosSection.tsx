@@ -492,6 +492,41 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     },
   });
 
+  const { data: certidoes } = useQuery({
+    queryKey: ["certidoes", processoId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("certificacoes").select("*").eq("processo_id", processoId).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const createCertidao = useMutation({
+    mutationFn: async (cert: { tipo: string; conteudo: string }) => {
+      const { error } = await supabase.from("certificacoes").insert({
+        processo_id: processoId, tipo: cert.tipo, conteudo: cert.conteudo,
+        emitido_por: user?.id, emitido_por_nome: profile?.nome_completo || "Oficial de Justiça",
+      });
+      if (error) throw error;
+      await addMovimentacao.mutateAsync({ tipo: "certidao_oficial", descricao: `Certidão de ${cert.tipo} juntada pelo Oficial de Justiça.\n\n${cert.conteudo}` });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["certidoes", processoId] });
+      toast.success("Certidão juntada com sucesso!");
+    },
+  });
+
+  const signCertidao = useMutation({
+    mutationFn: async (certId: string) => {
+      const { error } = await supabase.from("certificacoes").update({ assinado: true, data_assinatura: new Date().toISOString() }).eq("id", certId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["certidoes", processoId] });
+      toast.success("Certidão assinada digitalmente!");
+    },
+  });
+
   if (!processo) return <div className="text-center py-12 text-muted-foreground">Carregando...</div>;
 
   const cfg = STATUS_CONFIG[processo.status] || STATUS_CONFIG.novo;
