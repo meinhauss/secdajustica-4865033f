@@ -92,6 +92,7 @@ export default function ProcessosSection() {
 /*  PROCESSOS LIST                             */
 /* ═══════════════════════════════════════════ */
 function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
