@@ -658,6 +658,11 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${cfg.color}`}>{cfg.label}</span>
             <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{processo.classe}</span>
             {processo.prioridade && <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">Urgente</span>}
+            {(processo as any).sigilo && (processo as any).sigilo !== "publico" && (
+              <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive flex items-center gap-1">
+                <Lock className="h-3 w-3" /> {SIGILO_LABELS[(processo as any).sigilo] || (processo as any).sigilo}
+              </span>
+            )}
           </div>
           <p className="text-sm text-muted-foreground">{processo.autor_nome} vs {processo.reu_nome}</p>
         </div>
