@@ -12,21 +12,13 @@ export default function EstatisticasSection() {
     },
   });
 
-  const { data: bos } = useQuery({
-    queryKey: ["stats-bos"],
-    queryFn: async () => {
-      const { data } = await supabase.from("boletins_ocorrencia").select("tipo, status");
-      return data || [];
-    },
-  });
-
   const classeCount = processos?.reduce((acc: Record<string, number>, p) => {
     acc[p.classe] = (acc[p.classe] || 0) + 1;
     return acc;
   }, {} as Record<string, number>) ?? {};
 
-  const tipoBoCount = bos?.reduce((acc: Record<string, number>, b) => {
-    acc[b.tipo] = (acc[b.tipo] || 0) + 1;
+  const statusCount = processos?.reduce((acc: Record<string, number>, p) => {
+    acc[p.status] = (acc[p.status] || 0) + 1;
     return acc;
   }, {} as Record<string, number>) ?? {};
 
@@ -61,18 +53,18 @@ export default function EstatisticasSection() {
         </motion.div>
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="bg-card rounded-xl p-6 border border-border shadow-institutional">
-          <h3 className="font-display text-lg font-semibold mb-4">Ocorrências por Tipo</h3>
-          {Object.keys(tipoBoCount).length === 0 ? (
+          <h3 className="font-display text-lg font-semibold mb-4">Processos por Status</h3>
+          {Object.keys(statusCount).length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">Sem dados.</p>
           ) : (
             <div className="space-y-3">
-              {Object.entries(tipoBoCount).map(([tipo, count]) => (
-                <div key={tipo} className="flex items-center gap-3">
-                  <span className="text-xs uppercase tracking-wider text-muted-foreground w-28">{tipo}</span>
+              {Object.entries(statusCount).map(([status, count]) => (
+                <div key={status} className="flex items-center gap-3">
+                  <span className="text-xs uppercase tracking-wider text-muted-foreground w-28">{status.replace(/_/g, " ")}</span>
                   <div className="flex-1 h-6 bg-secondary rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full bg-institutional"
-                      style={{ width: `${Math.min(((count as number) / (bos?.length || 1)) * 100, 100)}%` }}
+                      style={{ width: `${Math.min(((count as number) / (processos?.length || 1)) * 100, 100)}%` }}
                     />
                   </div>
                   <span className="text-sm font-semibold text-foreground w-8 text-right">{count as number}</span>

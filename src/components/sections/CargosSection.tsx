@@ -74,8 +74,8 @@ const ROLE_HIERARCHY = [
     icon: Shield,
     color: "text-red-500",
     bgColor: "bg-red-500/10",
-    description: "Delegacia virtual, instauração de inquéritos, provas, relatórios e remessa ao MP.",
-    permissions: ["delegacia", "inqueritos", "provas", "relatorios", "remessa_mp", "mandados_judiciais"],
+    description: "Instauração de inquéritos, gestão de provas, relatórios e remessa ao MP.",
+    permissions: ["inqueritos", "provas", "relatorios", "remessa_mp", "mandados_judiciais"],
   },
   {
     level: 7,
@@ -124,8 +124,8 @@ const ROLE_HIERARCHY = [
     icon: UserCheck,
     color: "text-muted-foreground",
     bgColor: "bg-muted",
-    description: "Registro de B.O., consulta pública de processos, acompanhamento e notificações.",
-    permissions: ["bo_online", "consulta_publica", "acompanhamento", "notificacoes"],
+    description: "Consulta pública de processos, acompanhamento e notificações.",
+    permissions: ["consulta_publica", "acompanhamento", "notificacoes"],
   },
 ];
 
@@ -148,7 +148,7 @@ const PERMISSION_LABELS: Record<string, string> = {
   denuncias: "Denúncias",
   arquivamentos: "Arquivamentos",
   pareceres: "Pareceres",
-  delegacia: "Delegacia Virtual",
+  
   inqueritos: "Instaurar Inquéritos",
   provas: "Gestão de Provas",
   relatorios: "Relatórios",
@@ -168,7 +168,7 @@ const PERMISSION_LABELS: Record<string, string> = {
   peticoes: "Petições",
   consulta_publica: "Consulta Pública",
   honorarios: "Honorários",
-  bo_online: "B.O. Online",
+  
   acompanhamento: "Acompanhamento",
   notificacoes: "Notificações",
 };

@@ -185,7 +185,7 @@ export default function LoginPage() {
 function TabInicio({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
   const cards = [
   { icon: FileText, title: "Consulta Processual", desc: "Acompanhe processos judiciais em andamento na Comarca.", action: "Consultar", tab: "login" as Tab },
-  { icon: Shield, title: "Delegacia Virtual", desc: "Registre Boletins de Ocorrência de forma online e rápida.", action: "Acessar", tab: "login" as Tab },
+  
   { icon: Scale, title: "Ministério Público", desc: "Portal do Ministério Público para denúncias e pareceres.", action: "Acessar", tab: "login" as Tab },
   { icon: GraduationCap, title: "Concursos Públicos", desc: "Editais abertos, inscrições e resultados de concursos.", action: "Ver Editais", tab: "concursos" as Tab },
   { icon: Users, title: "Portal da OAB", desc: "Cadastro de advogados, carteira digital e honorários.", action: "Acessar", tab: "login" as Tab },
@@ -271,7 +271,7 @@ function TabInicio({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
             {[
             { date: "17/03/2026", title: "Sistema Judiciário Eletrônico entra em operação na Comarca" },
             { date: "15/03/2026", title: "Novas varas judiciais são criadas para atender demanda crescente" },
-            { date: "12/03/2026", title: "Delegacia Virtual permite registro de B.O. online 24 horas" }].
+            { date: "12/03/2026", title: "Portal de Consulta Pública amplia acesso à informação processual" }].
             map((news) =>
             <div key={news.title} className="bg-card rounded-lg p-4 border border-border flex items-center gap-4">
                 <span className="text-xs text-muted-foreground font-mono whitespace-nowrap">{news.date}</span>
@@ -355,7 +355,7 @@ function TabInstitucional() {
 function TabServicos() {
   const servicos = [
   { title: "Consulta Processual", desc: "Pesquise processos por número, nome das partes ou assunto.", icon: FileText },
-  { title: "Registro de B.O.", desc: "Registre Boletim de Ocorrência online pela Delegacia Virtual.", icon: Shield },
+  
   { title: "Peticionamento Eletrônico", desc: "Protocole petições e documentos diretamente no sistema.", icon: BookOpen },
   { title: "Agendamento de Audiências", desc: "Consulte e agende audiências junto às varas competentes.", icon: Clock },
   { title: "Emissão de Certidões", desc: "Solicite certidões negativas e de antecedentes criminais.", icon: FileText },
