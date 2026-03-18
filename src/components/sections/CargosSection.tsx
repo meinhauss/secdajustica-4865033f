@@ -148,7 +148,7 @@ const PERMISSION_LABELS: Record<string, string> = {
   denuncias: "Denúncias",
   arquivamentos: "Arquivamentos",
   pareceres: "Pareceres",
-  delegacia: "Delegacia Virtual",
+  
   inqueritos: "Instaurar Inquéritos",
   provas: "Gestão de Provas",
   relatorios: "Relatórios",
