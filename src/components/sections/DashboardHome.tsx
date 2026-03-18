@@ -148,32 +148,7 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Quick Actions */}
-        <Card className="lg:col-span-1">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Módulos</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1">
-            {quickActions.map((a) => (
-              <button
-                key={a.section}
-                onClick={() => nav(a.section)}
-                className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/80 transition-colors text-left group"
-              >
-                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <a.icon className="h-4 w-4 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground">{a.label}</p>
-                  <p className="text-[10px] text-muted-foreground truncate">{a.desc}</p>
-                </div>
-                <ArrowRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-              </button>
-            ))}
-          </CardContent>
-        </Card>
-
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Processos */}
         {(isJudicial || isAdmin) && (
           <Card className="lg:col-span-1">
