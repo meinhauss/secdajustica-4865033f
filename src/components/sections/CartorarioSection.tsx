@@ -396,13 +396,32 @@ export default function CartorarioSection() {
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label>Nome do Requerente *</Label>
-              <Input value={form.requerente_nome} onChange={(e) => setForm((f) => ({ ...f, requerente_nome: e.target.value }))} placeholder="Nome completo" />
+            <div className="space-y-1.5">
+              <Label>ID do Personagem</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={form.id_personagem}
+                  onChange={async (e) => {
+                    const val = e.target.value;
+                    setForm((f) => ({ ...f, id_personagem: val }));
+                    const data = await requerenteLookup.lookup(val);
+                    if (data) setForm((f) => ({ ...f, requerente_nome: data.nome_completo }));
+                  }}
+                  placeholder="Ex: 12345"
+                  className="pl-10"
+                />
+              </div>
+              {requerenteLookup.result && (
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 text-xs">
+                  <User className="h-3 w-3 text-green-600" />
+                  <span className="text-green-800 dark:text-green-300 font-medium">{requerenteLookup.result.nome_completo}</span>
+                </div>
+              )}
             </div>
             <div>
-              <Label>ID do Personagem</Label>
-              <Input value={form.id_personagem} onChange={(e) => setForm((f) => ({ ...f, id_personagem: e.target.value }))} placeholder="Ex: 12345" />
+              <Label>Nome do Requerente *</Label>
+              <Input value={form.requerente_nome} onChange={(e) => setForm((f) => ({ ...f, requerente_nome: e.target.value }))} placeholder="Nome completo" readOnly={!!requerenteLookup.result} />
             </div>
             <div>
               <Label>Partes Envolvidas</Label>
