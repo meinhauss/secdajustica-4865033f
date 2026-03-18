@@ -531,7 +531,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
       await supabase.from("movimentacoes").insert({
         processo_id: processoId,
         tipo: "sentenca",
-        descricao: `Sentença proferida e publicada.`,
+        descricao: `SENTENÇA\n\n${sentencaForm.ementa ? `Ementa: ${sentencaForm.ementa}\n\n` : ""}Fundamentação:\n${sentencaForm.fundamentacao}\n\nDispositivo:\n${sentencaForm.dispositivo}`,
         autor_id: user!.id,
       });
     },
