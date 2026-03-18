@@ -14,8 +14,21 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Label } from "@/components/ui/label";
 import {
   FileText, Plus, Search, CheckCircle, Clock, Eye, Stamp,
-  Heart, Home, Users, ScrollText, FileSignature, Baby, BarChart3
+  Heart, Home, Users, ScrollText, FileSignature, Baby, BarChart3, User
 } from "lucide-react";
+
+/* ─── Profile Lookup Hook ─── */
+function useProfileLookup() {
+  const [result, setResult] = useState<{ nome_completo: string; id_personagem: string } | null>(null);
+  const lookup = async (idPersonagem: string) => {
+    setResult(null);
+    if (!idPersonagem) return null;
+    const { data } = await supabase.from("profiles").select("nome_completo, id_personagem").eq("id_personagem", idPersonagem).maybeSingle();
+    if (data) setResult({ nome_completo: data.nome_completo, id_personagem: data.id_personagem || "" });
+    return data;
+  };
+  return { result, lookup, clear: () => setResult(null) };
+}
 
 const TIPOS_REGISTRO = [
   { value: "certidao_nascimento", label: "Certidão de Nascimento", icon: Baby },
