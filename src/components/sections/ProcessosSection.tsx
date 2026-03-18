@@ -187,21 +187,8 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
     return matchSearch && matchStatus;
   });
 
-  const IdField = ({ label, idValue, onIdChange, nameValue, onNameChange, lookupResult }: any) => (
-    <div className="space-y-1.5">
-      <div className="relative">
-        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder={`ID do Personagem (${label})`} value={idValue} onChange={(e) => onIdChange(e.target.value)} className="rounded-xl pl-10" />
-      </div>
-      {lookupResult && (
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 text-xs">
-          <User className="h-3 w-3 text-green-600" />
-          <span className="text-green-800 dark:text-green-300 font-medium">{lookupResult.nome_completo}</span>
-        </div>
-      )}
-      <Input placeholder={`Nome do ${label}`} value={nameValue} onChange={(e) => onNameChange(e.target.value)} required className="rounded-xl" readOnly={!!lookupResult} />
-    </div>
-  );
+
+
 
   return (
     <div className="space-y-6">
