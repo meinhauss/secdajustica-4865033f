@@ -64,8 +64,15 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
 
   const { data: recentMovimentacoes } = useQuery({
     queryKey: ["dash-movimentacoes"], queryFn: async () => {
-      const { data } = await supabase.from("movimentacoes").select("id, tipo, descricao, created_at, processo_id").order("created_at", { ascending: false }).limit(8);
-      return data || [];
+      const { data } = await supabase.from("movimentacoes").select("id, tipo, descricao, created_at, processo_id, autor_id").order("created_at", { ascending: false }).limit(8);
+      if (!data?.length) return [];
+      const autorIds = [...new Set(data.map(m => m.autor_id).filter(Boolean))];
+      let profilesMap: Record<string, string> = {};
+      if (autorIds.length > 0) {
+        const { data: profiles } = await supabase.from("profiles").select("user_id, nome_completo").in("user_id", autorIds);
+        if (profiles) profiles.forEach(p => { profilesMap[p.user_id] = p.nome_completo; });
+      }
+      return data.map(m => ({ ...m, autor_nome: m.autor_id ? profilesMap[m.autor_id] || "Usuário do sistema" : "Sistema" }));
     },
   });
 
