@@ -197,11 +197,13 @@ export default function CartorarioSection() {
 
         {/* PAINEL */}
         <TabsContent value="painel" className="space-y-4">
-          <div className="flex flex-wrap gap-2">
-            <Button onClick={() => setShowNovoRegistro(true)}>
-              <Plus className="h-4 w-4 mr-1" /> Nova Solicitação
-            </Button>
-          </div>
+          {canSolicitar && (
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={() => setShowNovoRegistro(true)}>
+                <Plus className="h-4 w-4 mr-1" /> Nova Solicitação
+              </Button>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Pending */}
