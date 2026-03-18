@@ -768,7 +768,7 @@ function TabConcursos({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
   const [concursos, setConcursos] = useState<any[]>([]);
   const [loadingConcursos, setLoadingConcursos] = useState(true);
 
-  useState(() => {
+  useEffect(() => {
     supabase
       .from("concursos")
       .select("id, titulo, cargo, vagas, status, data_abertura, data_encerramento_inscricoes, data_prova")
@@ -778,7 +778,7 @@ function TabConcursos({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
         setConcursos(data || []);
         setLoadingConcursos(false);
       });
-  });
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
