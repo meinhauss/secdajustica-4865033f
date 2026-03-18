@@ -2,8 +2,8 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import {
-  Scale, Shield, Gavel, BookOpen, FileText, Users, BarChart3,
-  LogOut, Menu, X, Home, Briefcase, AlertTriangle, Award, Calendar, Crown, GraduationCap, Stamp
+  Scale, Gavel, BookOpen, FileText, Users, BarChart3,
+  LogOut, Menu, X, Home, Briefcase, Calendar, Crown, GraduationCap, Stamp
  } from "lucide-react";
 import logoSjc from "@/assets/logo-tjsp.png";
 

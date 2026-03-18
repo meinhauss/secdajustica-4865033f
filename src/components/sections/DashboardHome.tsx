@@ -92,7 +92,7 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
   if (isJudicial) quickActions.push({ label: "Processos", icon: FileText, section: "processos", desc: "Gerenciar processos judiciais" });
   if (isMagistrado || isAdmin) quickActions.push({ label: "Portal Magistrado", icon: Gavel, section: "magistrado", desc: "Despachos, sentenças e mandados" });
   if (isMP || isAdmin) quickActions.push({ label: "Ministério Público", icon: Scale, section: "mp", desc: "Denúncias e pareceres" });
-  if (isPolice || isAdmin) quickActions.push({ label: "Delegacia Virtual", icon: Shield, section: "delegacia", desc: "B.O.s e inquéritos" });
+  
   if (isAdvogado || isAdmin) quickActions.push({ label: "Portal OAB", icon: Briefcase, section: "oab", desc: "Inscrição e carteira digital" });
   if (isJudicial || isAdmin) quickActions.push({ label: "Cartório", icon: Stamp, section: "cartorio", desc: "Protocolos e intimações" });
   if (isJudicial || isAdmin) quickActions.push({ label: "Audiências", icon: Clock, section: "audiencias", desc: "Agenda de audiências" });
