@@ -252,7 +252,41 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
               </div>
               <Input placeholder="Vara" value={form.vara} onChange={(e) => setForm({ ...form, vara: e.target.value })} className="rounded-xl" />
               <Input placeholder="Valor da Causa (R$)" value={form.valor_causa} onChange={(e) => { const raw = e.target.value.replace(/\D/g, ""); setForm({ ...form, valor_causa: raw ? formatCurrency(raw) : "" }); }} className="rounded-xl" />
-              <Textarea placeholder="Descrição dos fatos" value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} className="rounded-xl" />
+              <Textarea placeholder="Síntese (resumo) dos fatos" value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} className="rounded-xl" />
+              
+              {/* Link da Petição */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-foreground">Link da Petição Inicial</label>
+                <Input placeholder="https://docs.google.com/... ou link do Drive" value={form.peticao_link} onChange={(e) => setForm({ ...form, peticao_link: e.target.value })} className="rounded-xl" />
+              </div>
+
+              {/* Links de Anexos */}
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-foreground">Anexos (links)</label>
+                {anexoLinks.map((link, idx) => (
+                  <div key={idx} className="flex gap-2">
+                    <Input
+                      placeholder={`Link do anexo ${idx + 1}`}
+                      value={link}
+                      onChange={(e) => {
+                        const updated = [...anexoLinks];
+                        updated[idx] = e.target.value;
+                        setAnexoLinks(updated);
+                      }}
+                      className="rounded-xl flex-1"
+                    />
+                    {anexoLinks.length > 1 && (
+                      <Button type="button" variant="ghost" size="icon" className="h-10 w-10 flex-shrink-0" onClick={() => setAnexoLinks(anexoLinks.filter((_, i) => i !== idx))}>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+                <Button type="button" variant="outline" size="sm" className="rounded-lg text-xs" onClick={() => setAnexoLinks([...anexoLinks, ""])}>
+                  <Plus className="h-3 w-3 mr-1" /> Adicionar outro anexo
+                </Button>
+              </div>
+
               <Button type="submit" disabled={createProcesso.isPending} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
                 {createProcesso.isPending ? "Cadastrando..." : "Cadastrar Processo"}
               </Button>
