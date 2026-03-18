@@ -13,7 +13,7 @@ import {
   Gavel, FileText, Clock, Search, ArrowLeft, ChevronRight,
   Calendar, Shield, Send, BookOpen, BarChart3, Eye,
   CheckCircle, AlertTriangle, Scale, Plus, Stamp, Scroll,
-  PenTool, Users, MapPin
+  PenTool, Users, MapPin, ShieldAlert, Lock
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -42,6 +42,12 @@ const MANDADO_TIPOS = [
 const AUDIENCIA_TIPOS = [
   "instrução", "julgamento", "conciliação", "custódia", "justificação", "admonitória"
 ];
+
+const SIGILO_LABELS: Record<string, string> = {
+  publico: "Público",
+  segredo_justica: "Segredo de Justiça",
+  sigilo_absoluto: "Sigilo Absoluto",
+};
 
 /* ─── Stat card ─── */
 function StatCard({ label, value, icon: Icon, delay = 0 }: { label: string; value: number; icon: any; delay?: number }) {
@@ -74,53 +80,65 @@ export default function MagistradoSection() {
 /*  DASHBOARD                                  */
 /* ═══════════════════════════════════════════ */
 function MagistradoDashboard({ onSelectProcesso }: { onSelectProcesso: (id: string) => void }) {
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [filterClasse, setFilterClasse] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
 
   const { data: processos } = useQuery({
-    queryKey: ["mag-processos"],
+    queryKey: ["mag-processos", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("processos").select("*").order("prioridade", { ascending: false }).order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("processos").select("*").eq("juiz_id", user!.id).order("prioridade", { ascending: false }).order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
+    enabled: !!user,
   });
 
+  const processoIds = processos?.map(p => p.id) || [];
+
   const { data: atos } = useQuery({
-    queryKey: ["mag-atos"],
+    queryKey: ["mag-atos", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("atos_judiciais").select("*").order("created_at", { ascending: false }).limit(50);
+      if (!processoIds.length) return [];
+      const { data, error } = await supabase.from("atos_judiciais").select("*").in("processo_id", processoIds).order("created_at", { ascending: false }).limit(50);
       if (error) throw error;
       return data;
     },
+    enabled: !!processos,
   });
 
   const { data: audiencias } = useQuery({
-    queryKey: ["mag-audiencias"],
+    queryKey: ["mag-audiencias", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("audiencias").select("*").order("data_hora", { ascending: true });
+      if (!processoIds.length) return [];
+      const { data, error } = await supabase.from("audiencias").select("*").in("processo_id", processoIds).order("data_hora", { ascending: true });
       if (error) throw error;
       return data;
     },
+    enabled: !!processos,
   });
 
   const { data: mandados } = useQuery({
-    queryKey: ["mag-mandados"],
+    queryKey: ["mag-mandados", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("mandados").select("*").order("created_at", { ascending: false });
+      if (!processoIds.length) return [];
+      const { data, error } = await supabase.from("mandados").select("*").in("processo_id", processoIds).order("created_at", { ascending: false });
       if (error) throw error;
       return data as any[];
     },
+    enabled: !!processos,
   });
 
   const { data: sentencas } = useQuery({
-    queryKey: ["mag-sentencas"],
+    queryKey: ["mag-sentencas", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("sentencas").select("*").order("created_at", { ascending: false });
+      if (!processoIds.length) return [];
+      const { data, error } = await supabase.from("sentencas").select("*").in("processo_id", processoIds).order("created_at", { ascending: false });
       if (error) throw error;
       return data as any[];
     },
+    enabled: !!processos,
   });
 
   const conclusos = processos?.filter((p) => p.status === "concluso") || [];
@@ -562,6 +580,57 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     },
   });
 
+  // ── SIGILO UPDATE ──
+  const updateSigilo = useMutation({
+    mutationFn: async (sigilo: string) => {
+      const { error } = await supabase.from("processos").update({ sigilo } as any).eq("id", processoId);
+      if (error) throw error;
+      await supabase.from("movimentacoes").insert({
+        processo_id: processoId,
+        tipo: "sigilo",
+        descricao: `Sigilo do processo alterado para: ${SIGILO_LABELS[sigilo] || sigilo}.`,
+        autor_id: user!.id,
+      });
+    },
+    onSuccess: () => {
+      invalidateAll();
+      toast.success("Sigilo atualizado!");
+    },
+  });
+
+  // ── SUSPEIÇÃO ──
+  const declararSuspeicao = useMutation({
+    mutationFn: async (justificativa: string) => {
+      if (!justificativa) throw new Error("Informe a justificativa.");
+      // Register movement
+      await supabase.from("movimentacoes").insert({
+        processo_id: processoId,
+        tipo: "suspeicao",
+        descricao: `DECLARAÇÃO DE SUSPEIÇÃO\n\nO(A) Magistrado(a) ${profile?.nome_completo} declarou-se suspeito(a) para atuar neste processo.\n\nJustificativa: ${justificativa}`,
+        autor_id: user!.id,
+      });
+      // Call sortear_magistrado to get new judge
+      const { data: newJudgeId, error: sortError } = await supabase.rpc("sortear_magistrado");
+      if (sortError) throw sortError;
+      // Update the process with the new judge
+      const { error } = await supabase.from("processos").update({ juiz_id: newJudgeId } as any).eq("id", processoId);
+      if (error) throw error;
+      // Log reassignment
+      await supabase.from("movimentacoes").insert({
+        processo_id: processoId,
+        tipo: "redistribuicao",
+        descricao: `Processo redistribuído por sorteio a novo magistrado em razão de declaração de suspeição.`,
+        autor_id: user!.id,
+      });
+    },
+    onSuccess: () => {
+      invalidateAll();
+      toast.success("Suspeição declarada. Processo redistribuído a novo magistrado.");
+      onBack();
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
   const invalidateAll = () => {
     queryClient.invalidateQueries({ queryKey: ["mag-proc", processoId] });
     queryClient.invalidateQueries({ queryKey: ["mag-movs", processoId] });
@@ -589,6 +658,11 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${cfg.color}`}>{cfg.label}</span>
             <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{processo.classe}</span>
             {processo.prioridade && <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">Urgente</span>}
+            {(processo as any).sigilo && (processo as any).sigilo !== "publico" && (
+              <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive flex items-center gap-1">
+                <Lock className="h-3 w-3" /> {SIGILO_LABELS[(processo as any).sigilo] || (processo as any).sigilo}
+              </span>
+            )}
           </div>
           <p className="text-sm text-muted-foreground">{processo.autor_nome} vs {processo.reu_nome}</p>
         </div>
@@ -622,6 +696,21 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         </div>
       </div>
 
+      {/* Sigilo */}
+      <div className="bg-card rounded-xl p-4 border border-border shadow-institutional">
+        <h3 className="font-display text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+          <Lock className="h-3.5 w-3.5" /> Sigilo do Processo
+        </h3>
+        <div className="flex flex-wrap gap-2">
+          {Object.entries(SIGILO_LABELS).map(([key, label]) => (
+            <Button key={key} variant={(processo as any).sigilo === key || (!( processo as any).sigilo && key === "publico") ? "default" : "outline"} size="sm" className="rounded-lg text-xs"
+              onClick={() => updateSigilo.mutate(key)} disabled={(processo as any).sigilo === key || (!(processo as any).sigilo && key === "publico")}>
+              {label}
+            </Button>
+          ))}
+        </div>
+      </div>
+
       {/* Actions */}
       {activeAction === "none" && (
         <div className="bg-card rounded-xl p-5 border border-border shadow-institutional">
@@ -638,6 +727,9 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             </Button>
             <Button onClick={() => setActiveAction("sentenca")} className="rounded-xl bg-gold hover:bg-gold/90 text-foreground">
               <Scroll className="h-4 w-4 mr-2" /> Proferir Sentença
+            </Button>
+            <Button onClick={() => setActiveAction("suspeicao")} variant="outline" className="rounded-xl border-destructive/50 text-destructive hover:bg-destructive/10">
+              <ShieldAlert className="h-4 w-4 mr-2" /> Declarar Suspeição
             </Button>
           </div>
         </div>
@@ -722,6 +814,21 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             <Textarea placeholder="Dispositivo (decisão)..." value={sentencaForm.dispositivo} onChange={(e) => setSentencaForm({ ...sentencaForm, dispositivo: e.target.value })} rows={4} className="rounded-xl" required />
             <Button type="submit" disabled={proferirSentenca.isPending} className="rounded-xl bg-gold hover:bg-gold/90 text-foreground">
               {proferirSentenca.isPending ? "Processando..." : "Proferir e Publicar Sentença"}
+            </Button>
+          </form>
+        </ActionCard>
+      )}
+
+      {/* SUSPEIÇÃO FORM */}
+      {activeAction === "suspeicao" && (
+        <ActionCard title="Declarar Suspeição" icon={ShieldAlert} onCancel={() => setActiveAction("none")}>
+          <div className="bg-destructive/5 rounded-lg p-3 mb-4 border border-destructive/20">
+            <p className="text-xs text-destructive font-medium">⚠️ Ao declarar suspeição, o processo será removido da sua lista e redistribuído automaticamente por sorteio a outro magistrado. Esta ação é irreversível.</p>
+          </div>
+          <form onSubmit={(e) => { e.preventDefault(); const fd = new FormData(e.currentTarget); declararSuspeicao.mutate(fd.get("justificativa") as string); }} className="space-y-4">
+            <Textarea name="justificativa" placeholder="Justificativa da suspeição (art. 145 do CPC)..." rows={4} className="rounded-xl" required />
+            <Button type="submit" disabled={declararSuspeicao.isPending} variant="destructive" className="rounded-xl">
+              {declararSuspeicao.isPending ? "Processando..." : "Confirmar Suspeição e Redistribuir"}
             </Button>
           </form>
         </ActionCard>
