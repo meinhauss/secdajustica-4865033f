@@ -152,7 +152,7 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
         {/* Quick Actions */}
         <Card className="lg:col-span-1">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Módulos</CardTitle>
+            <CardTitle className="text-base">Ações Rápidas</CardTitle>
           </CardHeader>
           <CardContent className="space-y-1">
             {quickActions.map((a) => (
