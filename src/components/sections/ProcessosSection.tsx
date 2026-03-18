@@ -692,10 +692,74 @@ function InfoCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-function AddMovimentacao({ onAdd }: { onAdd: (tipo: string, desc: string) => void }) {
+function AddMovimentacao({ roles, onAdd }: { roles: string[]; onAdd: (tipo: string, desc: string) => void }) {
   const [open, setOpen] = useState(false);
-  const [tipo, setTipo] = useState("despacho");
   const [desc, setDesc] = useState("");
+
+  const isJudicial = roles.some((r) => ["admin", "magistrado", "presidente_tribunal", "desembargador"].includes(r));
+  const isMP = roles.includes("ministerio_publico");
+  const isAdvogado = roles.includes("advogado");
+  const isOficialJustica = roles.includes("oficial_justica");
+  const isDelegado = roles.includes("delegado");
+
+  const tiposPermitidos: { value: string; label: string }[] = [];
+
+  if (isJudicial) {
+    tiposPermitidos.push(
+      { value: "despacho", label: "Despacho" },
+      { value: "decisao_judicial", label: "Decisão Judicial" },
+      { value: "sentenca", label: "Sentença" },
+      { value: "conclusao", label: "Conclusão" },
+      { value: "distribuicao", label: "Distribuição" },
+      { value: "citacao", label: "Citação" },
+      { value: "intimacao", label: "Intimação" },
+      { value: "juntada", label: "Juntada de Documento" },
+      { value: "alvara", label: "Alvará" },
+      { value: "mandado", label: "Expedição de Mandado" },
+    );
+  }
+  if (isMP) {
+    tiposPermitidos.push(
+      { value: "parecer_mp", label: "Parecer do MP" },
+      { value: "denuncia", label: "Denúncia" },
+      { value: "manifestacao_mp", label: "Manifestação do MP" },
+      { value: "alegacoes_finais_mp", label: "Alegações Finais (MP)" },
+      { value: "recurso_mp", label: "Recurso (MP)" },
+    );
+  }
+  if (isAdvogado) {
+    tiposPermitidos.push(
+      { value: "peticao", label: "Petição" },
+      { value: "contestacao", label: "Contestação" },
+      { value: "recurso", label: "Recurso" },
+      { value: "alegacoes_finais", label: "Alegações Finais" },
+      { value: "juntada_doc", label: "Juntada de Documento" },
+      { value: "substabelecimento", label: "Substabelecimento" },
+      { value: "manifestacao", label: "Manifestação" },
+    );
+  }
+  if (isOficialJustica) {
+    tiposPermitidos.push(
+      { value: "cumprimento_mandado", label: "Cumprimento de Mandado" },
+      { value: "certidao_oficial", label: "Certidão do Oficial" },
+      { value: "diligencia", label: "Diligência" },
+    );
+  }
+  if (isDelegado) {
+    tiposPermitidos.push(
+      { value: "relatorio_policial", label: "Relatório Policial" },
+      { value: "remessa_inquerito", label: "Remessa de Inquérito" },
+    );
+  }
+  if (!tiposPermitidos.length) {
+    tiposPermitidos.push(
+      { value: "peticao", label: "Petição" },
+      { value: "manifestacao", label: "Manifestação" },
+    );
+  }
+
+  const [tipo, setTipo] = useState(tiposPermitidos[0]?.value || "peticao");
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -707,13 +771,9 @@ function AddMovimentacao({ onAdd }: { onAdd: (tipo: string, desc: string) => voi
           <Select value={tipo} onValueChange={setTipo}>
             <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="despacho">Despacho</SelectItem>
-              <SelectItem value="peticao">Petição</SelectItem>
-              <SelectItem value="juntada">Juntada</SelectItem>
-              <SelectItem value="conclusao">Conclusão</SelectItem>
-              <SelectItem value="distribuicao">Distribuição</SelectItem>
-              <SelectItem value="citacao">Citação</SelectItem>
-              <SelectItem value="intimacao">Intimação</SelectItem>
+              {tiposPermitidos.map((t) => (
+                <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Textarea placeholder="Descrição da movimentação..." value={desc} onChange={(e) => setDesc(e.target.value)} required className="rounded-xl" />
