@@ -6,7 +6,7 @@ import {
   LogOut, Menu, X, Home, Briefcase, Calendar, Crown, GraduationCap, Stamp
  } from "lucide-react";
 import logoSjc from "@/assets/logo-tjsp.png";
-
+import NotificacoesBell from "@/components/NotificacoesBell";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -25,7 +25,7 @@ const menuItems = [
   { id: "audiencias", label: "Audiências", icon: Calendar, roles: ["admin", "magistrado", "ministerio_publico", "advogado", "presidente_tribunal", "desembargador"] },
   { id: "consulta", label: "Consulta Pública", icon: BookOpen, roles: ["admin", "magistrado", "ministerio_publico", "delegado", "oficial_justica", "advogado", "presidente_tribunal", "desembargador", "presidente_oab"] },
   { id: "concursos", label: "Concursos", icon: GraduationCap, roles: ["admin", "magistrado", "ministerio_publico", "delegado", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "investigador", "presidente_oab"] },
-  { id: "cartorio", label: "Cartório", icon: Stamp, roles: ["admin", "oficial_justica", "magistrado", "ministerio_publico", "advogado", "presidente_tribunal", "desembargador"] },
+  { id: "cartorio", label: "Cartório Civil", icon: Stamp, roles: ["admin", "oficial_justica", "magistrado", "ministerio_publico", "advogado", "presidente_tribunal", "desembargador", "cidadao", "presidente_oab"] },
   { id: "cargos", label: "Cargos e Hierarquia", icon: Crown, roles: ["admin"] },
   { id: "usuarios", label: "Usuários", icon: Users, roles: ["admin"] },
   { id: "estatisticas", label: "Estatísticas", icon: BarChart3, roles: ["admin", "magistrado", "presidente_tribunal"] },
@@ -147,6 +147,7 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
             {filteredItems.find((i) => i.id === activeSection)?.label || "Painel"}
           </h1>
           <div className="ml-auto flex items-center gap-2">
+            <NotificacoesBell onNavigate={onSectionChange} />
             <span className="text-xs text-muted-foreground hidden sm:block">
               Sistema Judiciário v1.0
             </span>

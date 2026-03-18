@@ -989,6 +989,39 @@ export type Database = {
           },
         ]
       }
+      notificacoes: {
+        Row: {
+          created_at: string
+          id: string
+          lida: boolean
+          link_secao: string | null
+          mensagem: string
+          tipo: string
+          titulo: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lida?: boolean
+          link_secao?: string | null
+          mensagem: string
+          tipo?: string
+          titulo: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lida?: boolean
+          link_secao?: string | null
+          mensagem?: string
+          tipo?: string
+          titulo?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       oitivas: {
         Row: {
           conteudo: string
@@ -1356,6 +1389,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      registros_cartorio: {
+        Row: {
+          created_at: string
+          descricao: string
+          documento_url: string | null
+          emitido_por: string | null
+          emitido_por_nome: string | null
+          id: string
+          id_personagem: string | null
+          numero_registro: string
+          observacoes: string | null
+          partes_envolvidas: string | null
+          requerente_id: string | null
+          requerente_nome: string
+          status: string
+          subtipo: string | null
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          descricao: string
+          documento_url?: string | null
+          emitido_por?: string | null
+          emitido_por_nome?: string | null
+          id?: string
+          id_personagem?: string | null
+          numero_registro?: string
+          observacoes?: string | null
+          partes_envolvidas?: string | null
+          requerente_id?: string | null
+          requerente_nome: string
+          status?: string
+          subtipo?: string | null
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          documento_url?: string | null
+          emitido_por?: string | null
+          emitido_por_nome?: string | null
+          id?: string
+          id_personagem?: string | null
+          numero_registro?: string
+          observacoes?: string | null
+          partes_envolvidas?: string | null
+          requerente_id?: string | null
+          requerente_nome?: string
+          status?: string
+          subtipo?: string | null
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       requisicoes_diligencia_mp: {
         Row: {
