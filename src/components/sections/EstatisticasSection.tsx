@@ -75,7 +75,7 @@ export default function EstatisticasSection() {
                       style={{ width: `${Math.min(((count as number) / (bos?.length || 1)) * 100, 100)}%` }}
                     />
                   </div>
-                  <span className="text-sm font-semibold text-foreground w-8 text-right">{count}</span>
+                  <span className="text-sm font-semibold text-foreground w-8 text-right">{count as number}</span>
                 </div>
               ))}
             </div>
