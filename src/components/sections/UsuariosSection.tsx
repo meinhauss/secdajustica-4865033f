@@ -98,6 +98,25 @@ export default function UsuariosSection() {
     onError: (err: any) => toast.error(err.message),
   });
 
+  const deleteUser = useMutation({
+    mutationFn: async (userId: string) => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const res = await supabase.functions.invoke("delete-user", {
+        body: { user_id: userId },
+        headers: { Authorization: `Bearer ${sessionData.session?.access_token}` },
+      });
+      if (res.error) throw new Error(res.error.message);
+      if (res.data?.error) throw new Error(res.data.error);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["all-profiles"] });
+      queryClient.invalidateQueries({ queryKey: ["all-roles"] });
+      setDeleteUserId(null);
+      toast.success("Usuário excluído com sucesso!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
   const openEdit = (profile: any) => {
     setEditingUserId(profile.id);
     setEditForm({
