@@ -11,9 +11,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Briefcase, Award, Users, Search, Plus, CheckCircle, XCircle,
-  Clock, Scale, FileText, AlertTriangle, Bell,
-  ChevronRight, Eye, BarChart3, Shield, DollarSign, Megaphone,
-  UserCheck, UserX, Medal, Crown, Star
+  Clock, Scale, FileText, AlertTriangle,
+  Eye, BarChart3, Megaphone,
+  UserCheck, UserX, Trash2, Edit
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -38,6 +38,12 @@ const DISC_STATUS: Record<string, { label: string; color: string }> = {
 const ESPECIALIDADES = [
   "Criminal", "Civil", "Trabalhista", "Tributário", "Empresarial",
   "Família", "Previdenciário", "Ambiental", "Constitucional", "Geral"
+];
+
+const CARTEIRA_STATUS_OPTIONS = [
+  { value: "ativo", label: "Ativo" },
+  { value: "suspenso", label: "Suspenso" },
+  { value: "cancelado", label: "Cancelado" },
 ];
 
 /* ─── Stat card ─── */
@@ -79,9 +85,14 @@ function OABDashboard({ isAdmin }: { isAdmin: boolean }) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [openInscricao, setOpenInscricao] = useState(false);
-  
   const [openComunicado, setOpenComunicado] = useState(false);
   const [selectedCarteira, setSelectedCarteira] = useState<any>(null);
+  const [selectedInscricao, setSelectedInscricao] = useState<any>(null);
+  const [motivoDialog, setMotivoDialog] = useState<{ open: boolean; inscricaoId: string; action: "complementacao" | "indeferida" }>({ open: false, inscricaoId: "", action: "complementacao" });
+  const [motivoTexto, setMotivoTexto] = useState("");
+  const [statusDialog, setStatusDialog] = useState<{ open: boolean; carteira: any }>({ open: false, carteira: null });
+  const [newStatus, setNewStatus] = useState("");
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; carteira: any }>({ open: false, carteira: null });
 
   // Data
   const { data: inscricoes } = useQuery({
@@ -102,7 +113,6 @@ function OABDashboard({ isAdmin }: { isAdmin: boolean }) {
     },
   });
 
-
   const { data: disciplinares } = useQuery({
     queryKey: ["oab-disciplinares"],
     queryFn: async () => {
@@ -121,7 +131,6 @@ function OABDashboard({ isAdmin }: { isAdmin: boolean }) {
     },
   });
 
-  // Processos por advogado (for ranking)
   const { data: processos } = useQuery({
     queryKey: ["oab-processos"],
     queryFn: async () => {
@@ -155,7 +164,7 @@ function OABDashboard({ isAdmin }: { isAdmin: boolean }) {
     onError: (err: any) => toast.error(err.message),
   });
 
-  // ── APROVAR/INDEFERIR INSCRIÇÃO ──
+  // ── APROVAR/INDEFERIR/COMPLEMENTAR INSCRIÇÃO ──
   const processarInscricao = useMutation({
     mutationFn: async ({ inscricaoId, action, motivo }: { inscricaoId: string; action: "aprovada" | "indeferida" | "complementacao"; motivo?: string }) => {
       const insc = inscricoes?.find((i: any) => i.id === inscricaoId);
@@ -168,7 +177,6 @@ function OABDashboard({ isAdmin }: { isAdmin: boolean }) {
       } as any).eq("id", inscricaoId);
 
       if (action === "aprovada") {
-        // Create carteira and assign advogado role
         await supabase.from("carteiras_oab").insert({
           user_id: insc.user_id,
           inscricao_id: inscricaoId,
@@ -177,21 +185,55 @@ function OABDashboard({ isAdmin }: { isAdmin: boolean }) {
           especialidade: insc.especialidade || null,
         } as any);
 
-        // Update profile with OAB info
         await supabase.from("profiles").update({ cargo: "Advogado(a)" }).eq("user_id", insc.user_id);
-
-        // Add advogado role
         await supabase.from("user_roles").insert({ user_id: insc.user_id, role: "advogado" as any }).select();
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["oab-inscricoes"] });
       queryClient.invalidateQueries({ queryKey: ["oab-carteiras"] });
+      setSelectedInscricao(null);
       toast.success("Inscrição processada!");
     },
     onError: (err: any) => toast.error(err.message),
   });
 
+  // ── ALTERAR STATUS ADVOGADO ──
+  const alterarStatusAdvogado = useMutation({
+    mutationFn: async ({ carteiraId, status }: { carteiraId: string; status: string }) => {
+      const { error } = await supabase.from("carteiras_oab").update({ status } as any).eq("id", carteiraId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["oab-carteiras"] });
+      setStatusDialog({ open: false, carteira: null });
+      toast.success("Status do advogado alterado!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  // ── EXCLUIR ADVOGADO (revogar cargo) ──
+  const excluirAdvogado = useMutation({
+    mutationFn: async (carteira: any) => {
+      // Delete carteira
+      const { error: delErr } = await supabase.from("carteiras_oab").delete().eq("id", carteira.id);
+      if (delErr) throw delErr;
+
+      // Remove advogado role
+      const { error: roleErr } = await supabase.from("user_roles").delete().eq("user_id", carteira.user_id).eq("role", "advogado" as any);
+      if (roleErr) throw roleErr;
+
+      // Update profile
+      await supabase.from("profiles").update({ cargo: null } as any).eq("user_id", carteira.user_id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["oab-carteiras"] });
+      setDeleteDialog({ open: false, carteira: null });
+      setSelectedCarteira(null);
+      toast.success("Cadastro de advogado excluído e cargo revogado!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
 
   // ── COMUNICADO ──
   const [comForm, setComForm] = useState({ titulo: "", conteudo: "", tipo: "aviso" });
@@ -232,7 +274,6 @@ function OABDashboard({ isAdmin }: { isAdmin: boolean }) {
   const stats = {
     advogados: carteiras?.filter((c: any) => c.status === "ativo").length || 0,
     inscricoesPendentes: pendentes.length,
-    
     disciplinares: disciplinares?.filter((d: any) => d.status !== "arquivado").length || 0,
   };
 
@@ -293,7 +334,6 @@ function OABDashboard({ isAdmin }: { isAdmin: boolean }) {
           <TabsTrigger value="advogados" className="rounded-lg text-xs"><Users className="h-3 w-3 mr-1" /> Advogados ({stats.advogados})</TabsTrigger>
           {isAdmin && <TabsTrigger value="inscricoes" className="rounded-lg text-xs"><Clock className="h-3 w-3 mr-1" /> Inscrições ({inscricoes?.length || 0})</TabsTrigger>}
           <TabsTrigger value="ranking" className="rounded-lg text-xs"><Award className="h-3 w-3 mr-1" /> Ranking</TabsTrigger>
-          
           {isAdmin && <TabsTrigger value="disciplinar" className="rounded-lg text-xs"><AlertTriangle className="h-3 w-3 mr-1" /> Disciplinar ({stats.disciplinares})</TabsTrigger>}
           <TabsTrigger value="comunicados" className="rounded-lg text-xs"><Megaphone className="h-3 w-3 mr-1" /> Comunicados</TabsTrigger>
           <TabsTrigger value="estatisticas" className="rounded-lg text-xs"><BarChart3 className="h-3 w-3 mr-1" /> Estatísticas</TabsTrigger>
@@ -316,7 +356,7 @@ function OABDashboard({ isAdmin }: { isAdmin: boolean }) {
                       <p className="font-mono text-xs text-institutional font-semibold">{c.numero_oab}</p>
                       {c.id_personagem && <p className="text-[10px] text-muted-foreground">ID: {c.id_personagem}</p>}
                       <div className="flex items-center gap-2 mt-1">
-                        <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${c.status === 'ativo' ? 'bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400' : 'bg-destructive/10 text-destructive'}`}>{c.status}</span>
+                        <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${c.status === 'ativo' ? 'bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400' : c.status === 'suspenso' ? 'bg-accent/20 text-accent-foreground' : 'bg-destructive/10 text-destructive'}`}>{c.status}</span>
                         {c.especialidade && <span className="text-[10px] text-muted-foreground">{c.especialidade}</span>}
                       </div>
                     </div>
@@ -338,6 +378,19 @@ function OABDashboard({ isAdmin }: { isAdmin: boolean }) {
                           <span className="text-[10px] uppercase tracking-wider font-semibold">Carteira Digital Válida</span>
                         </div>
                       </div>
+                      {/* Admin actions */}
+                      {isAdmin && (
+                        <div className="flex gap-2 mt-3">
+                          <Button size="sm" variant="outline" className="rounded-lg h-8 text-xs flex-1"
+                            onClick={(e) => { e.stopPropagation(); setNewStatus(c.status); setStatusDialog({ open: true, carteira: c }); }}>
+                            <Edit className="h-3 w-3 mr-1" /> Alterar Status
+                          </Button>
+                          <Button size="sm" variant="outline" className="rounded-lg h-8 text-xs text-destructive border-destructive/30"
+                            onClick={(e) => { e.stopPropagation(); setDeleteDialog({ open: true, carteira: c }); }}>
+                            <Trash2 className="h-3 w-3 mr-1" /> Excluir
+                          </Button>
+                        </div>
+                      )}
                     </motion.div>
                   )}
                 </motion.div>
@@ -357,7 +410,7 @@ function OABDashboard({ isAdmin }: { isAdmin: boolean }) {
                     <motion.div key={insc.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
                       className="bg-card rounded-xl p-4 border border-border shadow-institutional">
                       <div className="flex items-center justify-between gap-3">
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-sm font-semibold text-foreground">{insc.nome_completo}</span>
                             {insc.id_personagem && <span className="text-xs text-muted-foreground">(ID: {insc.id_personagem})</span>}
@@ -365,27 +418,85 @@ function OABDashboard({ isAdmin }: { isAdmin: boolean }) {
                           </div>
                           <p className="text-xs text-muted-foreground mt-0.5">
                             {insc.especialidade} • {format(new Date(insc.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                            {insc.email && ` • ${insc.email}`}
                           </p>
-                          {insc.justificativa && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{insc.justificativa}</p>}
-                          {insc.motivo_indeferimento && <p className="text-xs text-destructive mt-1">Motivo: {insc.motivo_indeferimento}</p>}
                         </div>
-                        {insc.status === "pendente" && (
-                          <div className="flex gap-2 flex-shrink-0">
+                        <div className="flex gap-2 flex-shrink-0">
+                          <Button size="sm" variant="outline" className="rounded-lg h-8 text-xs"
+                            onClick={() => setSelectedInscricao(selectedInscricao?.id === insc.id ? null : insc)}>
+                            <Eye className="h-3 w-3 mr-1" /> {selectedInscricao?.id === insc.id ? "Fechar" : "Ficha"}
+                          </Button>
+                          {(insc.status === "pendente" || insc.status === "complementacao") && (
                             <Button size="sm" className="rounded-lg bg-green-600 hover:bg-green-700 text-white h-8 text-xs"
                               onClick={() => processarInscricao.mutate({ inscricaoId: insc.id, action: "aprovada" })}>
                               <UserCheck className="h-3 w-3 mr-1" /> Aprovar
                             </Button>
-                            <Button size="sm" variant="outline" className="rounded-lg h-8 text-xs"
-                              onClick={() => processarInscricao.mutate({ inscricaoId: insc.id, action: "complementacao", motivo: "Documentação incompleta" })}>
-                              Complementar
-                            </Button>
-                            <Button size="sm" variant="outline" className="rounded-lg h-8 text-xs text-destructive border-destructive/30"
-                              onClick={() => processarInscricao.mutate({ inscricaoId: insc.id, action: "indeferida", motivo: "Inscrição indeferida" })}>
-                              <UserX className="h-3 w-3 mr-1" /> Indeferir
-                            </Button>
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </div>
+
+                      {/* Expanded inscription card */}
+                      {selectedInscricao?.id === insc.id && (
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="mt-4 pt-4 border-t border-border space-y-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="bg-secondary/30 rounded-lg p-3">
+                              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Nome Completo</p>
+                              <p className="text-sm font-medium text-foreground">{insc.nome_completo}</p>
+                            </div>
+                            <div className="bg-secondary/30 rounded-lg p-3">
+                              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">ID do Personagem</p>
+                              <p className="text-sm font-medium text-foreground">{insc.id_personagem || "—"}</p>
+                            </div>
+                            <div className="bg-secondary/30 rounded-lg p-3">
+                              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Especialidade</p>
+                              <p className="text-sm font-medium text-foreground">{insc.especialidade || "—"}</p>
+                            </div>
+                            <div className="bg-secondary/30 rounded-lg p-3">
+                              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">E-mail</p>
+                              <p className="text-sm font-medium text-foreground">{insc.email || "—"}</p>
+                            </div>
+                            <div className="bg-secondary/30 rounded-lg p-3">
+                              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Telefone</p>
+                              <p className="text-sm font-medium text-foreground">{insc.telefone || "—"}</p>
+                            </div>
+                            <div className="bg-secondary/30 rounded-lg p-3">
+                              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Data Solicitação</p>
+                              <p className="text-sm font-medium text-foreground">{format(new Date(insc.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
+                            </div>
+                          </div>
+                          {insc.justificativa && (
+                            <div className="bg-secondary/30 rounded-lg p-3">
+                              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Justificativa / Experiência</p>
+                              <p className="text-sm text-foreground whitespace-pre-wrap">{insc.justificativa}</p>
+                            </div>
+                          )}
+                          {insc.motivo_indeferimento && (
+                            <div className="bg-destructive/5 rounded-lg p-3 border border-destructive/20">
+                              <p className="text-[10px] text-destructive uppercase tracking-wider mb-1">Motivo da Decisão Anterior</p>
+                              <p className="text-sm text-foreground">{insc.motivo_indeferimento}</p>
+                            </div>
+                          )}
+
+                          {/* Action buttons */}
+                          {(insc.status === "pendente" || insc.status === "complementacao") && (
+                            <div className="flex gap-2 pt-2">
+                              <Button size="sm" className="rounded-lg bg-green-600 hover:bg-green-700 text-white h-9 text-xs flex-1"
+                                onClick={() => processarInscricao.mutate({ inscricaoId: insc.id, action: "aprovada" })}
+                                disabled={processarInscricao.isPending}>
+                                <UserCheck className="h-3 w-3 mr-1" /> Aprovar Inscrição
+                              </Button>
+                              <Button size="sm" variant="outline" className="rounded-lg h-9 text-xs flex-1"
+                                onClick={() => { setMotivoTexto(""); setMotivoDialog({ open: true, inscricaoId: insc.id, action: "complementacao" }); }}>
+                                <AlertTriangle className="h-3 w-3 mr-1" /> Solicitar Complementação
+                              </Button>
+                              <Button size="sm" variant="outline" className="rounded-lg h-9 text-xs text-destructive border-destructive/30 flex-1"
+                                onClick={() => { setMotivoTexto(""); setMotivoDialog({ open: true, inscricaoId: insc.id, action: "indeferida" }); }}>
+                                <UserX className="h-3 w-3 mr-1" /> Indeferir
+                              </Button>
+                            </div>
+                          )}
+                        </motion.div>
+                      )}
                     </motion.div>
                   );
                 })}
@@ -521,6 +632,115 @@ function OABDashboard({ isAdmin }: { isAdmin: boolean }) {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* ── DIALOG: Motivo para complementação/indeferimento ── */}
+      <Dialog open={motivoDialog.open} onOpenChange={(open) => setMotivoDialog({ ...motivoDialog, open })}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display">
+              {motivoDialog.action === "complementacao" ? "Solicitar Complementação" : "Indeferir Inscrição"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <p className="text-sm text-muted-foreground">
+              {motivoDialog.action === "complementacao"
+                ? "Informe o motivo e quais documentos ou informações o inscrito deve corrigir/complementar. O inscrito receberá esta mensagem."
+                : "Informe o motivo do indeferimento. O inscrito será notificado."}
+            </p>
+            <Textarea
+              placeholder={motivoDialog.action === "complementacao" ? "Ex: Necessário informar número de ID válido e justificativa profissional..." : "Ex: Documentação não atende aos requisitos mínimos..."}
+              value={motivoTexto}
+              onChange={(e) => setMotivoTexto(e.target.value)}
+              rows={4}
+              className="rounded-xl"
+            />
+            <div className="flex gap-2">
+              <Button variant="outline" className="rounded-xl flex-1" onClick={() => setMotivoDialog({ ...motivoDialog, open: false })}>
+                Cancelar
+              </Button>
+              <Button
+                className={`rounded-xl flex-1 ${motivoDialog.action === "indeferida" ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground" : "bg-institutional hover:bg-institutional-light text-gold-light"}`}
+                disabled={!motivoTexto.trim() || processarInscricao.isPending}
+                onClick={() => {
+                  processarInscricao.mutate({
+                    inscricaoId: motivoDialog.inscricaoId,
+                    action: motivoDialog.action,
+                    motivo: motivoTexto.trim(),
+                  });
+                  setMotivoDialog({ ...motivoDialog, open: false });
+                }}
+              >
+                {motivoDialog.action === "complementacao" ? "Solicitar Complementação" : "Confirmar Indeferimento"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── DIALOG: Alterar status do advogado ── */}
+      <Dialog open={statusDialog.open} onOpenChange={(open) => setStatusDialog({ ...statusDialog, open })}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-display">Alterar Status do Advogado</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <div className="bg-secondary/30 rounded-lg p-3">
+              <p className="text-sm font-medium text-foreground">{statusDialog.carteira?.nome_completo}</p>
+              <p className="font-mono text-xs text-institutional">{statusDialog.carteira?.numero_oab}</p>
+            </div>
+            <Select value={newStatus} onValueChange={setNewStatus}>
+              <SelectTrigger className="rounded-xl"><SelectValue placeholder="Novo status" /></SelectTrigger>
+              <SelectContent>
+                {CARTEIRA_STATUS_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="flex gap-2">
+              <Button variant="outline" className="rounded-xl flex-1" onClick={() => setStatusDialog({ open: false, carteira: null })}>
+                Cancelar
+              </Button>
+              <Button className="rounded-xl flex-1 bg-institutional hover:bg-institutional-light text-gold-light"
+                disabled={!newStatus || alterarStatusAdvogado.isPending}
+                onClick={() => statusDialog.carteira && alterarStatusAdvogado.mutate({ carteiraId: statusDialog.carteira.id, status: newStatus })}>
+                {alterarStatusAdvogado.isPending ? "Salvando..." : "Confirmar"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── DIALOG: Confirmar exclusão do advogado ── */}
+      <Dialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-display text-destructive">Excluir Cadastro de Advogado</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-3">
+              <p className="text-sm text-foreground">
+                Tem certeza que deseja excluir o cadastro de <span className="font-semibold">{deleteDialog.carteira?.nome_completo}</span>?
+              </p>
+              <p className="text-xs text-muted-foreground mt-2">
+                Esta ação irá:<br />
+                • Remover a carteira digital da OAB<br />
+                • Revogar o cargo de Advogado(a)<br />
+                • Remover a permissão de advogado do sistema
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" className="rounded-xl flex-1" onClick={() => setDeleteDialog({ open: false, carteira: null })}>
+                Cancelar
+              </Button>
+              <Button className="rounded-xl flex-1 bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                disabled={excluirAdvogado.isPending}
+                onClick={() => deleteDialog.carteira && excluirAdvogado.mutate(deleteDialog.carteira)}>
+                {excluirAdvogado.isPending ? "Excluindo..." : "Confirmar Exclusão"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
