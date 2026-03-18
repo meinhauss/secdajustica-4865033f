@@ -708,6 +708,39 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             </div>
           )}
         </TabsContent>
+
+        {/* CERTIDÕES */}
+        {(isOficialJustica || isJudicial) && (
+          <TabsContent value="certidoes" className="mt-4 space-y-4">
+            {isOficialJustica && <AddCertidao onAdd={(cert) => createCertidao.mutate(cert)} isPending={createCertidao.isPending} />}
+            {!certidoes?.length ? (
+              <p className="text-center py-8 text-sm text-muted-foreground">Nenhuma certidão juntada neste processo.</p>
+            ) : (
+              <div className="space-y-3">
+                {certidoes.map((c: any) => (
+                  <div key={c.id} className="bg-card rounded-xl p-4 border border-border">
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                      <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-institutional/10 text-institutional">{c.tipo}</span>
+                      {c.assinado ? (
+                        <span className="ml-auto text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400 flex items-center gap-1">
+                          <CheckCircle className="h-3 w-3" /> Assinado
+                        </span>
+                      ) : (isOficialJustica && c.emitido_por === user?.id) ? (
+                        <Button size="sm" variant="outline" className="ml-auto rounded-lg text-xs" onClick={() => signCertidao.mutate(c.id)}>
+                          <PenTool className="h-3 w-3 mr-1" /> Assinar
+                        </Button>
+                      ) : (
+                        <span className="ml-auto text-[10px] text-muted-foreground">Pendente de assinatura</span>
+                      )}
+                    </div>
+                    <pre className="text-xs text-muted-foreground whitespace-pre-wrap font-sans bg-secondary/30 rounded-lg p-3 max-h-48 overflow-y-auto">{c.conteudo}</pre>
+                    <p className="text-[10px] text-muted-foreground mt-2">{c.emitido_por_nome} — {format(new Date(c.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
