@@ -899,10 +899,12 @@ function EnvolvidoCard({ title, items, icon: Icon, color }: { title: string; ite
         <Icon className={`h-3 w-3 ${color}`} /> {title} ({items.length})
       </h4>
       {items.length > 0 ? (
-        <div className="space-y-1">
+        <div className="space-y-2">
           {items.map((e) => (
-            <div key={e.id} className="text-sm text-foreground">
-              {e.nome} {e.id_personagem && <span className="text-xs text-muted-foreground">(ID: {e.id_personagem})</span>}
+            <div key={e.id} className="text-sm text-foreground border-b border-border last:border-0 pb-1.5 last:pb-0">
+              <p className="font-medium">{e.nome} {e.id_personagem && <span className="text-xs text-muted-foreground">(ID: {e.id_personagem})</span>}</p>
+              {e.qualificacao && <p className="text-xs text-muted-foreground">Qualificação: {e.qualificacao}</p>}
+              {e.observacoes && <p className="text-xs text-muted-foreground italic">{e.observacoes}</p>}
             </div>
           ))}
         </div>
