@@ -278,7 +278,7 @@ function OABDashboard({ isAdmin }: { isAdmin: boolean }) {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <StatCard label="Advogados Ativos" value={stats.advogados} icon={Users} delay={0} />
         <StatCard label="Inscrições Pendentes" value={stats.inscricoesPendentes} icon={Clock} delay={0.05} />
-        <StatCard label="Honorários Tabela" value={stats.honorarios} icon={DollarSign} delay={0.1} />
+        
         <StatCard label="Proc. Disciplinares" value={stats.disciplinares} icon={AlertTriangle} delay={0.15} />
       </div>
 
