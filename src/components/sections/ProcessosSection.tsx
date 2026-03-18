@@ -501,6 +501,53 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     },
   });
 
+  // Sentenças do processo
+  const { data: sentencasProc } = useQuery({
+    queryKey: ["sentencas-proc", processoId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("sentencas").select("*").eq("processo_id", processoId).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Apelações existentes
+  const { data: apelacoesProc } = useQuery({
+    queryKey: ["apelacoes-proc", processoId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("apelacoes").select("*").eq("processo_id", processoId).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
+  // Interpor apelação
+  const [showApelacao, setShowApelacao] = useState(false);
+  const [apelacaoForm, setApelacaoForm] = useState({ sentenca_id: "", apelante_tipo: "defesa", fundamentacao: "", pedido: "" });
+  const interporApelacao = useMutation({
+    mutationFn: async () => {
+      if (!apelacaoForm.sentenca_id || !apelacaoForm.fundamentacao || !apelacaoForm.pedido) throw new Error("Preencha todos os campos.");
+      const { error } = await supabase.from("apelacoes").insert({
+        processo_id: processoId,
+        sentenca_id: apelacaoForm.sentenca_id,
+        apelante_tipo: apelacaoForm.apelante_tipo,
+        apelante_nome: profile?.nome_completo || "Apelante",
+        apelante_id: user?.id,
+        fundamentacao: apelacaoForm.fundamentacao,
+        pedido: apelacaoForm.pedido,
+      } as any);
+      if (error) throw error;
+      await addMovimentacao.mutateAsync({ tipo: "apelacao", descricao: `RECURSO DE APELAÇÃO interposto por ${profile?.nome_completo || "Apelante"} (${apelacaoForm.apelante_tipo === "defesa" ? "Defesa" : "Acusação"}).` });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["apelacoes-proc", processoId] });
+      setShowApelacao(false);
+      setApelacaoForm({ sentenca_id: "", apelante_tipo: "defesa", fundamentacao: "", pedido: "" });
+      toast.success("Apelação interposta com sucesso!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
   const createCertidao = useMutation({
     mutationFn: async (cert: { tipo: string; conteudo: string }) => {
       const { error } = await supabase.from("certificacoes").insert({
