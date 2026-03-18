@@ -79,7 +79,7 @@ function OABDashboard({ isAdmin }: { isAdmin: boolean }) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [openInscricao, setOpenInscricao] = useState(false);
-  const [openHonorario, setOpenHonorario] = useState(false);
+  
   const [openComunicado, setOpenComunicado] = useState(false);
   const [selectedCarteira, setSelectedCarteira] = useState<any>(null);
 
