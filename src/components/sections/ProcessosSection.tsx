@@ -1110,7 +1110,7 @@ function AddPrazo({ onAdd }: { onAdd: (p: { descricao: string; tipo: string; dia
   const [open, setOpen] = useState(false);
   const [desc, setDesc] = useState("");
   const [tipo, setTipo] = useState("intimacao");
-  const [dias, setDias] = useState("5");
+  const [dias, setDias] = useState("24");
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -1130,7 +1130,7 @@ function AddPrazo({ onAdd }: { onAdd: (p: { descricao: string; tipo: string; dia
             </SelectContent>
           </Select>
           <Input placeholder="Descrição do prazo" value={desc} onChange={(e) => setDesc(e.target.value)} required className="rounded-xl" />
-          <Input type="number" placeholder="Dias úteis" value={dias} onChange={(e) => setDias(e.target.value)} min="1" required className="rounded-xl" />
+          <Input type="number" placeholder="Horas" value={dias} onChange={(e) => setDias(e.target.value)} min="1" required className="rounded-xl" />
           <Button type="submit" className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">Registrar Prazo</Button>
         </form>
       </DialogContent>
