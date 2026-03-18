@@ -334,6 +334,11 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const queryClient = useQueryClient();
   const isJudicial = roles.some((r) => ["admin", "magistrado", "presidente_tribunal", "desembargador"].includes(r));
   const isMP = roles.includes("ministerio_publico");
+  const isAdvogado = roles.includes("advogado");
+  const isOficialJustica = roles.includes("oficial_justica");
+  const isDelegado = roles.includes("delegado");
+  const isCartorario = roles.some((r) => ["admin", "magistrado", "presidente_tribunal", "desembargador"].includes(r));
+  const canAddMovimentacao = isJudicial || isMP || isAdvogado || isOficialJustica || isDelegado || roles.includes("cidadao");
 
   const { data: processo } = useQuery({
     queryKey: ["processo", processoId],
