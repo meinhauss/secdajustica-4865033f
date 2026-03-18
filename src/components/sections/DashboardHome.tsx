@@ -82,7 +82,7 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
   const stats: { label: string; value: number; icon: any; onClick?: string }[] = [];
   if (isJudicial || isAdmin) stats.push({ label: "Processos", value: processosCount ?? 0, icon: FileText, onClick: "processos" });
   if (isMagistrado || isAdmin) stats.push({ label: "Conclusos p/ Decisão", value: processosConclusos ?? 0, icon: Gavel, onClick: "magistrado" });
-  stats.push({ label: "Boletins de Ocorrência", value: bosCount ?? 0, icon: Shield, onClick: "delegacia" });
+  
   if (isJudicial || isAdmin) stats.push({ label: "Audiências Agendadas", value: audienciasCount ?? 0, icon: Clock, onClick: "audiencias" });
   if (isJudicial || isAdmin) stats.push({ label: "Intimações Pendentes", value: intimacoesPendentes ?? 0, icon: Bell, onClick: "cartorio" });
   stats.push({ label: "Concursos Abertos", value: concursosAbertos ?? 0, icon: GraduationCap, onClick: "concursos" });
