@@ -452,13 +452,13 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const createPrazo = useMutation({
     mutationFn: async (prazo: { descricao: string; tipo: string; dias_uteis: number }) => {
       const dataFim = new Date();
-      dataFim.setDate(dataFim.getDate() + prazo.dias_uteis);
+      dataFim.setHours(dataFim.getHours() + prazo.dias_uteis);
       const { error } = await supabase.from("prazos_processuais").insert({
         processo_id: processoId, descricao: prazo.descricao, tipo: prazo.tipo,
         dias_uteis: prazo.dias_uteis, data_fim: dataFim.toISOString(), responsavel_id: user?.id,
       });
       if (error) throw error;
-      await addMovimentacao.mutateAsync({ tipo: "prazo", descricao: `Prazo definido: ${prazo.descricao} (${prazo.dias_uteis} dias)` });
+      await addMovimentacao.mutateAsync({ tipo: "prazo", descricao: `Prazo definido: ${prazo.descricao} (${prazo.dias_uteis} horas)` });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["prazos", processoId] });
