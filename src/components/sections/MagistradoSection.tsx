@@ -537,7 +537,8 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     onSuccess: () => {
       invalidateAll();
       setActiveAction("none");
-      setMandadoForm({ tipo: "intimacao", destinatario_nome: "", descricao: "" });
+      setMandadoForm({ tipo: "intimacao", destinatario_nome: "", destinatario_id: "", descricao: "" });
+      mandadoLookup.clear();
       toast.success("Mandado expedido!");
     },
     onError: (err: any) => toast.error(err.message),
