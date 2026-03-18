@@ -118,7 +118,7 @@ const ROLE_HIERARCHY = [
     permissions: ["gerir_advogados", "aprovacao_cadastros", "fiscalizacao", "sancoes", "concursos"],
   },
   {
-    level: 10,
+    level: 11,
     role: "advogado",
     label: "Advogado",
     icon: Briefcase,
