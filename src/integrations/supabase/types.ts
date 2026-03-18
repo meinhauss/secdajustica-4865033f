@@ -470,6 +470,7 @@ export type Database = {
           regras_classificacao: string | null
           requisitos: string | null
           status: string
+          tempo_prova_minutos: number | null
           titulo: string
           updated_at: string
           vagas: number
@@ -488,6 +489,7 @@ export type Database = {
           regras_classificacao?: string | null
           requisitos?: string | null
           status?: string
+          tempo_prova_minutos?: number | null
           titulo: string
           updated_at?: string
           vagas?: number
@@ -506,6 +508,7 @@ export type Database = {
           regras_classificacao?: string | null
           requisitos?: string | null
           status?: string
+          tempo_prova_minutos?: number | null
           titulo?: string
           updated_at?: string
           vagas?: number
