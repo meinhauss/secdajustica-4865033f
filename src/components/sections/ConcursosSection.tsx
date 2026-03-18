@@ -455,6 +455,7 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
       if (!insc) throw new Error("Inscrição não encontrada.");
       const cargoRoleMap: Record<string, string> = {
         "Magistrado": "magistrado", "Promotor de Justiça": "ministerio_publico",
+        "Procurador-Geral de Justiça": "procurador_geral",
         "Delegado de Polícia": "delegado", "Oficial de Justiça": "oficial_justica",
         "Investigador": "investigador",
       };
