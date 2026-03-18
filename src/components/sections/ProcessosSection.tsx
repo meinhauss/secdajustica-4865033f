@@ -102,9 +102,8 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
 
   const [form, setForm] = useState({
     classe: "civil", assunto: "", descricao: "", autor_nome: "", autor_id: "",
-    reu_nome: "", reu_id: "", vara: "1ª Vara Cível", valor_causa: "", peticao_link: "",
+    reu_nome: "", reu_id: "", vara: "1ª Vara Cível", valor_causa: "",
   });
-  const [anexoLinks, setAnexoLinks] = useState<string[]>([""]);
 
   const { data: processos, isLoading } = useQuery({
     queryKey: ["processos"],
@@ -142,14 +141,8 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
 
       const autorDisplay = form.autor_id ? `${form.autor_nome} (ID: ${form.autor_id})` : form.autor_nome;
       const reuDisplay = form.reu_id ? `${form.reu_nome} (ID: ${form.reu_id})` : form.reu_nome;
-      const anexosValidos = anexoLinks.filter(l => l.trim());
-      const descricaoCompleta = [
-        form.descricao,
-        form.peticao_link ? `\n\n📄 Petição: ${form.peticao_link}` : "",
-        anexosValidos.length ? `\n\n📎 Anexos:\n${anexosValidos.map((l, i) => `${i + 1}. ${l}`).join("\n")}` : "",
-      ].join("");
       const { data: processo, error } = await supabase.from("processos").insert({
-        numero: "", classe: form.classe as any, assunto: form.assunto, descricao: descricaoCompleta,
+        numero: "", classe: form.classe as any, assunto: form.assunto, descricao: form.descricao,
         autor_nome: autorDisplay, reu_nome: reuDisplay, vara: form.vara,
         valor_causa: parseCurrencyToNumber(form.valor_causa),
         juiz_id: juizId,
@@ -178,8 +171,7 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["processos"] });
       setOpen(false);
-      setForm({ classe: "civil", assunto: "", descricao: "", autor_nome: "", autor_id: "", reu_nome: "", reu_id: "", vara: "1ª Vara Cível", valor_causa: "", peticao_link: "" });
-      setAnexoLinks([""]);
+      setForm({ classe: "civil", assunto: "", descricao: "", autor_nome: "", autor_id: "", reu_nome: "", reu_id: "", vara: "1ª Vara Cível", valor_causa: "" });
       autorLookup.clear(); reuLookup.clear();
       toast.success("Processo cadastrado e distribuído por sorteio!");
     },
@@ -253,39 +245,8 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
               <Input placeholder="Vara" value={form.vara} onChange={(e) => setForm({ ...form, vara: e.target.value })} className="rounded-xl" />
               <Input placeholder="Valor da Causa (R$)" value={form.valor_causa} onChange={(e) => { const raw = e.target.value.replace(/\D/g, ""); setForm({ ...form, valor_causa: raw ? formatCurrency(raw) : "" }); }} className="rounded-xl" />
               <Textarea placeholder="Síntese (resumo) dos fatos" value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} className="rounded-xl" />
-              
-              {/* Link da Petição */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-foreground">Link da Petição Inicial</label>
-                <Input placeholder="https://docs.google.com/... ou link do Drive" value={form.peticao_link} onChange={(e) => setForm({ ...form, peticao_link: e.target.value })} className="rounded-xl" />
-              </div>
 
-              {/* Links de Anexos */}
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-foreground">Anexos (links)</label>
-                {anexoLinks.map((link, idx) => (
-                  <div key={idx} className="flex gap-2">
-                    <Input
-                      placeholder={`Link do anexo ${idx + 1}`}
-                      value={link}
-                      onChange={(e) => {
-                        const updated = [...anexoLinks];
-                        updated[idx] = e.target.value;
-                        setAnexoLinks(updated);
-                      }}
-                      className="rounded-xl flex-1"
-                    />
-                    {anexoLinks.length > 1 && (
-                      <Button type="button" variant="ghost" size="icon" className="h-10 w-10 flex-shrink-0" onClick={() => setAnexoLinks(anexoLinks.filter((_, i) => i !== idx))}>
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-                <Button type="button" variant="outline" size="sm" className="rounded-lg text-xs" onClick={() => setAnexoLinks([...anexoLinks, ""])}>
-                  <Plus className="h-3 w-3 mr-1" /> Adicionar outro anexo
-                </Button>
-              </div>
+
 
               <Button type="submit" disabled={createProcesso.isPending} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
                 {createProcesso.isPending ? "Cadastrando..." : "Cadastrar Processo"}
