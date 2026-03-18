@@ -185,15 +185,20 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
               <p className="text-sm text-muted-foreground text-center py-6">Nenhuma movimentação recente.</p>
             )}
             {recentMovimentacoes?.map((m) => (
-              <div key={m.id} className="flex items-start gap-2 p-2 rounded-lg hover:bg-muted/40 transition-colors">
-                <div className="h-1.5 w-1.5 rounded-full bg-accent mt-1.5 flex-shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-xs text-foreground truncate">{m.descricao}</p>
-                  <p className="text-[10px] text-muted-foreground">
-                    {new Date(m.created_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
-                    {" • "}
-                    <span className="capitalize">{m.tipo.replace(/_/g, " ")}</span>
-                  </p>
+              <div key={m.id} className="p-2.5 rounded-lg hover:bg-muted/40 transition-colors border border-border/50">
+                <div className="flex items-start gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full bg-accent mt-1.5 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs text-foreground whitespace-pre-wrap">{m.descricao}</p>
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      {new Date(m.created_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                      {" • "}
+                      <span className="capitalize">{m.tipo.replace(/_/g, " ")}</span>
+                    </p>
+                    <p className="text-[10px] text-muted-foreground italic mt-0.5">
+                      Assinado digitalmente por: <span className="font-semibold text-foreground/70">{(m as any).autor_nome || "Sistema"}</span>
+                    </p>
+                  </div>
                 </div>
               </div>
             ))}
