@@ -375,7 +375,13 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     queryFn: async () => {
       const { data, error } = await supabase.from("movimentacoes").select("*").eq("processo_id", processoId).order("created_at", { ascending: false });
       if (error) throw error;
-      return data;
+      const autorIds = [...new Set((data || []).map(m => m.autor_id).filter(Boolean))];
+      let profilesMap: Record<string, string> = {};
+      if (autorIds.length > 0) {
+        const { data: profiles } = await supabase.from("profiles").select("user_id, nome_completo").in("user_id", autorIds);
+        if (profiles) profiles.forEach(p => { profilesMap[p.user_id] = p.nome_completo; });
+      }
+      return (data || []).map(m => ({ ...m, autor_nome: m.autor_id ? profilesMap[m.autor_id] || "Usuário do sistema" : "Sistema" }));
     },
   });
 
