@@ -796,13 +796,35 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
       {activeAction === "mandado" && (
         <ActionCard title="Expedir Mandado" icon={Stamp} onCancel={() => setActiveAction("none")}>
           <form onSubmit={(e) => { e.preventDefault(); expedirMandado.mutate(); }} className="space-y-4">
-            <Select value={mandadoForm.tipo} onValueChange={(v) => setMandadoForm({ ...mandadoForm, tipo: v })}>
+             <Select value={mandadoForm.tipo} onValueChange={(v) => setMandadoForm({ ...mandadoForm, tipo: v })}>
               <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {MANDADO_TIPOS.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Input placeholder="Nome do destinatário" value={mandadoForm.destinatario_nome} onChange={(e) => setMandadoForm({ ...mandadoForm, destinatario_nome: e.target.value })} className="rounded-xl" required />
+            <div className="space-y-1.5">
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="ID do Personagem (Destinatário)"
+                  value={mandadoForm.destinatario_id}
+                  onChange={async (e) => {
+                    const val = e.target.value;
+                    setMandadoForm({ ...mandadoForm, destinatario_id: val });
+                    const data = await mandadoLookup.lookup(val);
+                    if (data) setMandadoForm((f) => ({ ...f, destinatario_nome: data.nome_completo }));
+                  }}
+                  className="rounded-xl pl-10"
+                />
+              </div>
+              {mandadoLookup.result && (
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 text-xs">
+                  <User className="h-3 w-3 text-green-600" />
+                  <span className="text-green-800 dark:text-green-300 font-medium">{mandadoLookup.result.nome_completo}</span>
+                </div>
+              )}
+              <Input placeholder="Nome do destinatário" value={mandadoForm.destinatario_nome} onChange={(e) => setMandadoForm({ ...mandadoForm, destinatario_nome: e.target.value })} className="rounded-xl" required readOnly={!!mandadoLookup.result} />
+            </div>
             <Textarea placeholder="Descrição e determinações do mandado..." value={mandadoForm.descricao} onChange={(e) => setMandadoForm({ ...mandadoForm, descricao: e.target.value })} rows={4} className="rounded-xl" required />
             <Button type="submit" disabled={expedirMandado.isPending} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
               {expedirMandado.isPending ? "Processando..." : "Expedir Mandado"}
