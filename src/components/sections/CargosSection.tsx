@@ -108,7 +108,7 @@ const ROLE_HIERARCHY = [
     permissions: ["mandados", "ordens_judiciais", "cumprimento", "certificacoes", "diligencias"],
   },
   {
-    level: 9,
+    level: 10,
     role: "presidente_oab",
     label: "Presidente da OAB",
     icon: Star,
