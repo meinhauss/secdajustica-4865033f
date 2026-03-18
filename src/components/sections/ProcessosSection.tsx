@@ -501,6 +501,53 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     },
   });
 
+  // Sentenças do processo
+  const { data: sentencasProc } = useQuery({
+    queryKey: ["sentencas-proc", processoId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("sentencas").select("*").eq("processo_id", processoId).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Apelações existentes
+  const { data: apelacoesProc } = useQuery({
+    queryKey: ["apelacoes-proc", processoId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("apelacoes").select("*").eq("processo_id", processoId).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
+  // Interpor apelação
+  const [showApelacao, setShowApelacao] = useState(false);
+  const [apelacaoForm, setApelacaoForm] = useState({ sentenca_id: "", apelante_tipo: "defesa", fundamentacao: "", pedido: "" });
+  const interporApelacao = useMutation({
+    mutationFn: async () => {
+      if (!apelacaoForm.sentenca_id || !apelacaoForm.fundamentacao || !apelacaoForm.pedido) throw new Error("Preencha todos os campos.");
+      const { error } = await supabase.from("apelacoes").insert({
+        processo_id: processoId,
+        sentenca_id: apelacaoForm.sentenca_id,
+        apelante_tipo: apelacaoForm.apelante_tipo,
+        apelante_nome: profile?.nome_completo || "Apelante",
+        apelante_id: user?.id,
+        fundamentacao: apelacaoForm.fundamentacao,
+        pedido: apelacaoForm.pedido,
+      } as any);
+      if (error) throw error;
+      await addMovimentacao.mutateAsync({ tipo: "apelacao", descricao: `RECURSO DE APELAÇÃO interposto por ${profile?.nome_completo || "Apelante"} (${apelacaoForm.apelante_tipo === "defesa" ? "Defesa" : "Acusação"}).` });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["apelacoes-proc", processoId] });
+      setShowApelacao(false);
+      setApelacaoForm({ sentenca_id: "", apelante_tipo: "defesa", fundamentacao: "", pedido: "" });
+      toast.success("Apelação interposta com sucesso!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
   const createCertidao = useMutation({
     mutationFn: async (cert: { tipo: string; conteudo: string }) => {
       const { error } = await supabase.from("certificacoes").insert({
@@ -570,6 +617,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
           <TabsTrigger value="prazos" className="rounded-lg text-xs"><Timer className="h-3 w-3 mr-1" /> Prazos</TabsTrigger>
           <TabsTrigger value="audiencias" className="rounded-lg text-xs"><Calendar className="h-3 w-3 mr-1" /> Audiências</TabsTrigger>
           {(isOficialJustica || isJudicial) && <TabsTrigger value="certidoes" className="rounded-lg text-xs"><ScrollText className="h-3 w-3 mr-1" /> Certidões</TabsTrigger>}
+          {processo.status === "sentenciado" && <TabsTrigger value="apelacoes" className="rounded-lg text-xs"><Scale className="h-3 w-3 mr-1" /> Apelações</TabsTrigger>}
         </TabsList>
 
         {/* TIMELINE */}
@@ -737,6 +785,95 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                     <p className="text-[10px] text-muted-foreground mt-2">{c.emitido_por_nome} — {format(new Date(c.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
                   </div>
                 ))}
+              </div>
+            )}
+          </TabsContent>
+        )}
+
+        {/* APELAÇÕES */}
+        {processo.status === "sentenciado" && (
+          <TabsContent value="apelacoes" className="mt-4 space-y-4">
+            {/* Botão para interpor apelação */}
+            {(isAdvogado || isMP) && sentencasProc?.length && !apelacoesProc?.length ? (
+              <Dialog open={showApelacao} onOpenChange={setShowApelacao}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2"><Scale className="h-4 w-4" /> Interpor Apelação</Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Interpor Recurso de Apelação</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={(e) => { e.preventDefault(); interporApelacao.mutate(); }} className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium text-foreground">Sentença Recorrida</label>
+                      <Select value={apelacaoForm.sentenca_id} onValueChange={(v) => setApelacaoForm({ ...apelacaoForm, sentenca_id: v })}>
+                        <SelectTrigger className="rounded-xl mt-1"><SelectValue placeholder="Selecione a sentença" /></SelectTrigger>
+                        <SelectContent>
+                          {sentencasProc?.map((s: any) => (
+                            <SelectItem key={s.id} value={s.id}>{s.tipo} — {s.ementa || s.dispositivo?.substring(0, 60) || "Sentença"}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-foreground">Polo Apelante</label>
+                      <Select value={apelacaoForm.apelante_tipo} onValueChange={(v) => setApelacaoForm({ ...apelacaoForm, apelante_tipo: v })}>
+                        <SelectTrigger className="rounded-xl mt-1"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="defesa">Defesa</SelectItem>
+                          <SelectItem value="acusacao">Acusação</SelectItem>
+                          <SelectItem value="ambos">Ambas as partes</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-foreground">Fundamentação do Recurso</label>
+                      <Textarea value={apelacaoForm.fundamentacao} onChange={(e) => setApelacaoForm({ ...apelacaoForm, fundamentacao: e.target.value })} placeholder="Razões da apelação e fundamentos jurídicos..." rows={6} className="mt-1" />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-foreground">Pedido</label>
+                      <Textarea value={apelacaoForm.pedido} onChange={(e) => setApelacaoForm({ ...apelacaoForm, pedido: e.target.value })} placeholder="O que se requer ao Tribunal..." rows={4} className="mt-1" />
+                    </div>
+                    <Button type="submit" disabled={interporApelacao.isPending} className="w-full gap-2">
+                      <Scale className="h-4 w-4" /> Interpor Apelação
+                    </Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            ) : null}
+
+            {/* Lista de apelações existentes */}
+            {!apelacoesProc?.length ? (
+              <p className="text-center py-8 text-sm text-muted-foreground">Nenhuma apelação interposta neste processo.</p>
+            ) : (
+              <div className="space-y-3">
+                {apelacoesProc.map((ap: any) => {
+                  const statusCfg: Record<string, { label: string; color: string }> = {
+                    interposta: { label: "Interposta", color: "bg-gold/10 text-gold-dark" },
+                    admitida: { label: "Admitida", color: "bg-institutional/10 text-institutional" },
+                    em_julgamento: { label: "Em Julgamento", color: "bg-purple-100 text-purple-800 dark:bg-purple-950/30 dark:text-purple-400" },
+                    julgada: { label: "Julgada", color: "bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400" },
+                    inadmitida: { label: "Inadmitida", color: "bg-destructive/10 text-destructive" },
+                  };
+                  const apCfg = statusCfg[ap.status] || statusCfg.interposta;
+                  return (
+                    <div key={ap.id} className="bg-card rounded-xl p-4 border border-border">
+                      <div className="flex items-center gap-2 flex-wrap mb-2">
+                        <Scale className="h-4 w-4 text-institutional" />
+                        <span className="font-mono text-sm font-semibold text-institutional">{ap.numero_acordao}</span>
+                        <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${apCfg.color}`}>{apCfg.label}</span>
+                      </div>
+                      <p className="text-sm text-foreground">Apelante: {ap.apelante_nome} ({ap.apelante_tipo === "defesa" ? "Defesa" : ap.apelante_tipo === "acusacao" ? "Acusação" : "Ambos"})</p>
+                      <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{ap.fundamentacao}</p>
+                      {ap.decisao_tipo && (
+                        <p className="text-xs font-medium text-foreground mt-2">
+                          Decisão: {ap.decisao_tipo === "mantida" ? "Sentença Mantida" : ap.decisao_tipo === "reformada_parcial" ? "Reformada Parcialmente" : ap.decisao_tipo === "reformada_total" ? "Reformada Totalmente" : "Sentença Anulada"}
+                        </p>
+                      )}
+                      <p className="text-[10px] text-muted-foreground mt-1">{format(new Date(ap.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </TabsContent>

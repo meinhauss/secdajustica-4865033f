@@ -7,6 +7,7 @@ import ProcessosSection from "@/components/sections/ProcessosSection";
 
 import ConsultaPublicaSection from "@/components/sections/ConsultaPublicaSection";
 import MagistradoSection from "@/components/sections/MagistradoSection";
+import TribunalSection from "@/components/sections/TribunalSection";
 import MPSection from "@/components/sections/MPSection";
 import AudienciasSection from "@/components/sections/AudienciasSection";
 import OABSection from "@/components/sections/OABSection";
@@ -42,6 +43,7 @@ const Index = () => {
       
       case "consulta": return <ConsultaPublicaSection />;
       case "magistrado": return <MagistradoSection />;
+      case "tribunal": return <TribunalSection />;
       case "mp": return <MPSection />;
       case "audiencias": return <AudienciasSection />;
       case "oab": return <OABSection />;
