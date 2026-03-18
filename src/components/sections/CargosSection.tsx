@@ -74,8 +74,8 @@ const ROLE_HIERARCHY = [
     icon: Shield,
     color: "text-red-500",
     bgColor: "bg-red-500/10",
-    description: "Delegacia virtual, instauração de inquéritos, provas, relatórios e remessa ao MP.",
-    permissions: ["delegacia", "inqueritos", "provas", "relatorios", "remessa_mp", "mandados_judiciais"],
+    description: "Instauração de inquéritos, gestão de provas, relatórios e remessa ao MP.",
+    permissions: ["inqueritos", "provas", "relatorios", "remessa_mp", "mandados_judiciais"],
   },
   {
     level: 7,
