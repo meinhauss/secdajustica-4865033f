@@ -514,7 +514,8 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   });
 
   // ── MANDADO ──
-  const [mandadoForm, setMandadoForm] = useState({ tipo: "intimacao", destinatario_nome: "", descricao: "" });
+  const [mandadoForm, setMandadoForm] = useState({ tipo: "intimacao", destinatario_nome: "", destinatario_id: "", descricao: "" });
+  const mandadoLookup = useProfileLookup();
   const expedirMandado = useMutation({
     mutationFn: async () => {
       if (!mandadoForm.destinatario_nome || !mandadoForm.descricao) throw new Error("Preencha todos os campos.");
