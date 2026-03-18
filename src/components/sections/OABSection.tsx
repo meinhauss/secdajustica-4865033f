@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Briefcase, Award, Users, Search, Plus, CheckCircle, XCircle,
-  Clock, CreditCard, Scale, FileText, AlertTriangle, Bell,
+  Clock, Scale, FileText, AlertTriangle, Bell,
   ChevronRight, Eye, BarChart3, Shield, DollarSign, Megaphone,
   UserCheck, UserX, Medal, Crown, Star
 } from "lucide-react";
