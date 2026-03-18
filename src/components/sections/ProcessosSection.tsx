@@ -620,7 +620,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
 
         {/* DOCUMENTOS */}
         <TabsContent value="documentos" className="mt-4 space-y-4">
-          <UploadDoc onUpload={(file, nome, tipo) => uploadDoc.mutate({ file, nome, tipo })} isPending={uploadDoc.isPending} />
+          <UploadDoc onUpload={(link, nome, tipo) => uploadDoc.mutate({ link, nome, tipo })} isPending={uploadDoc.isPending} />
           {!documentos?.length ? (
             <p className="text-center py-8 text-sm text-muted-foreground">Nenhum documento anexado.</p>
           ) : (
