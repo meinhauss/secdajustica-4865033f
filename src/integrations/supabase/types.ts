@@ -1205,6 +1205,7 @@ export type Database = {
           numero: string
           prioridade: boolean | null
           reu_nome: string
+          sigilo: string
           status: Database["public"]["Enums"]["processo_status"]
           updated_at: string
           valor_causa: number | null
@@ -1223,6 +1224,7 @@ export type Database = {
           numero: string
           prioridade?: boolean | null
           reu_nome: string
+          sigilo?: string
           status?: Database["public"]["Enums"]["processo_status"]
           updated_at?: string
           valor_causa?: number | null
@@ -1241,6 +1243,7 @@ export type Database = {
           numero?: string
           prioridade?: boolean | null
           reu_nome?: string
+          sigilo?: string
           status?: Database["public"]["Enums"]["processo_status"]
           updated_at?: string
           valor_causa?: number | null
