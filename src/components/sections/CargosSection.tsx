@@ -88,7 +88,7 @@ const ROLE_HIERARCHY = [
     permissions: ["inqueritos", "provas", "relatorios", "remessa_mp", "mandados_judiciais"],
   },
   {
-    level: 7,
+    level: 8,
     role: "investigador",
     label: "Investigador",
     icon: SearchIcon,
