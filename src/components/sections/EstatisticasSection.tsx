@@ -66,7 +66,7 @@ export default function EstatisticasSection() {
             <p className="text-sm text-muted-foreground text-center py-4">Sem dados.</p>
           ) : (
             <div className="space-y-3">
-              {Object.entries(tipoBoCount).map(([tipo, count]) => (
+              {Object.entries(tipoBoCount).map(([tipo, count]: [string, number]) => (
                 <div key={tipo} className="flex items-center gap-3">
                   <span className="text-xs uppercase tracking-wider text-muted-foreground w-28">{tipo}</span>
                   <div className="flex-1 h-6 bg-secondary rounded-full overflow-hidden">
