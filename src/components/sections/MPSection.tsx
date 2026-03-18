@@ -300,7 +300,7 @@ function MPDashboard({ isMP, onSelectIP }: { isMP: boolean; onSelectIP: (id: str
                     <div className="flex items-center gap-2 mb-1">
                       <Send className="h-4 w-4 text-institutional" />
                       <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${cfg.color}`}>{cfg.label}</span>
-                      <span className="text-[10px] text-muted-foreground">Prazo: {r.prazo_dias} dias</span>
+                      <span className="text-[10px] text-muted-foreground">Prazo: {r.prazo_dias} horas</span>
                     </div>
                     <p className="text-sm text-foreground">{r.descricao}</p>
                     {r.resposta && <p className="text-xs text-muted-foreground mt-1 bg-secondary/50 rounded p-2">Resposta: {r.resposta}</p>}
