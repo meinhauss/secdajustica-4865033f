@@ -294,7 +294,7 @@ function OABDashboard({ isAdmin }: { isAdmin: boolean }) {
           <TabsTrigger value="advogados" className="rounded-lg text-xs"><Users className="h-3 w-3 mr-1" /> Advogados ({stats.advogados})</TabsTrigger>
           {isAdmin && <TabsTrigger value="inscricoes" className="rounded-lg text-xs"><Clock className="h-3 w-3 mr-1" /> Inscrições ({inscricoes?.length || 0})</TabsTrigger>}
           <TabsTrigger value="ranking" className="rounded-lg text-xs"><Award className="h-3 w-3 mr-1" /> Ranking</TabsTrigger>
-          <TabsTrigger value="honorarios" className="rounded-lg text-xs"><DollarSign className="h-3 w-3 mr-1" /> Honorários</TabsTrigger>
+          
           {isAdmin && <TabsTrigger value="disciplinar" className="rounded-lg text-xs"><AlertTriangle className="h-3 w-3 mr-1" /> Disciplinar ({stats.disciplinares})</TabsTrigger>}
           <TabsTrigger value="comunicados" className="rounded-lg text-xs"><Megaphone className="h-3 w-3 mr-1" /> Comunicados</TabsTrigger>
           <TabsTrigger value="estatisticas" className="rounded-lg text-xs"><BarChart3 className="h-3 w-3 mr-1" /> Estatísticas</TabsTrigger>
