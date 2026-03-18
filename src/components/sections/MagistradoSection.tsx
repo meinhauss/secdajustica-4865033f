@@ -819,6 +819,21 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         </ActionCard>
       )}
 
+      {/* SUSPEIÇÃO FORM */}
+      {activeAction === "suspeicao" && (
+        <ActionCard title="Declarar Suspeição" icon={ShieldAlert} onCancel={() => setActiveAction("none")}>
+          <div className="bg-destructive/5 rounded-lg p-3 mb-4 border border-destructive/20">
+            <p className="text-xs text-destructive font-medium">⚠️ Ao declarar suspeição, o processo será removido da sua lista e redistribuído automaticamente por sorteio a outro magistrado. Esta ação é irreversível.</p>
+          </div>
+          <form onSubmit={(e) => { e.preventDefault(); const fd = new FormData(e.currentTarget); declararSuspeicao.mutate(fd.get("justificativa") as string); }} className="space-y-4">
+            <Textarea name="justificativa" placeholder="Justificativa da suspeição (art. 145 do CPC)..." rows={4} className="rounded-xl" required />
+            <Button type="submit" disabled={declararSuspeicao.isPending} variant="destructive" className="rounded-xl">
+              {declararSuspeicao.isPending ? "Processando..." : "Confirmar Suspeição e Redistribuir"}
+            </Button>
+          </form>
+        </ActionCard>
+      )}
+
       {/* Peças & Pareceres */}
       <Tabs defaultValue="movimentacoes" className="w-full">
         <TabsList className="w-full justify-start rounded-xl bg-secondary/50 p-1 h-auto gap-1 flex-wrap">
