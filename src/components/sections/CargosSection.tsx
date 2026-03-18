@@ -158,7 +158,9 @@ const PERMISSION_LABELS: Record<string, string> = {
   denuncias: "Denúncias",
   arquivamentos: "Arquivamentos",
   pareceres: "Pareceres",
-  
+  concursos_mp: "Concursos do MP",
+  supervisao_mp: "Supervisão de Promotores",
+  nomeacoes_mp: "Nomeações no MP",
   inqueritos: "Instaurar Inquéritos",
   provas: "Gestão de Provas",
   relatorios: "Relatórios",
