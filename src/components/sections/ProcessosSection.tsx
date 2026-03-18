@@ -1168,3 +1168,65 @@ function AddAudiencia({ onAdd }: { onAdd: (a: { tipo: string; data_hora: string;
     </Dialog>
   );
 }
+
+const CERTIDAO_TIPOS = [
+  { value: "cumprimento_mandado", label: "Certidão de Cumprimento de Mandado" },
+  { value: "citacao", label: "Certidão de Citação" },
+  { value: "intimacao", label: "Certidão de Intimação" },
+  { value: "diligencia_negativa", label: "Certidão Negativa de Diligência" },
+  { value: "penhora", label: "Certidão de Penhora" },
+  { value: "busca_apreensao", label: "Certidão de Busca e Apreensão" },
+  { value: "avaliacao", label: "Certidão de Avaliação" },
+  { value: "outra", label: "Outra Certidão" },
+];
+
+const CERTIDAO_TEMPLATES: Record<string, string> = {
+  cumprimento_mandado: `CERTIDÃO DE CUMPRIMENTO DE MANDADO\n\nCertifico e dou fé que, em cumprimento ao mandado expedido nos presentes autos, dirigi-me ao endereço indicado, onde procedi à [citação/intimação/penhora/busca e apreensão] de [nome da parte].\n\n[Descrever detalhadamente as circunstâncias do cumprimento]\n\nO referido é verdade. Dou fé.\n\n[Comarca], [data].\n\n[Nome do Oficial de Justiça]\nOficial de Justiça`,
+  citacao: `CERTIDÃO DE CITAÇÃO\n\nCertifico e dou fé que, no dia [data], às [horário], citei pessoalmente [nome do citando], no endereço [endereço], entregando-lhe a contrafé do mandado.\n\n[O citando declarou / recusou-se a assinar]\n\nO referido é verdade. Dou fé.\n\n[Comarca], [data].\n\n[Nome do Oficial de Justiça]\nOficial de Justiça`,
+  intimacao: `CERTIDÃO DE INTIMAÇÃO\n\nCertifico e dou fé que, no dia [data], intimei pessoalmente [nome do intimando] do teor da decisão/despacho proferido nos presentes autos.\n\nO referido é verdade. Dou fé.\n\n[Comarca], [data].\n\n[Nome do Oficial de Justiça]\nOficial de Justiça`,
+  diligencia_negativa: `CERTIDÃO NEGATIVA DE DILIGÊNCIA\n\nCertifico e dou fé que, em cumprimento ao mandado expedido nos presentes autos, dirigi-me ao endereço [endereço], porém não logrei êxito em encontrar [nome da parte], pelo motivo: [descrever o motivo].\n\nO referido é verdade. Dou fé.\n\n[Comarca], [data].\n\n[Nome do Oficial de Justiça]\nOficial de Justiça`,
+  penhora: `CERTIDÃO DE PENHORA\n\nCertifico e dou fé que, em cumprimento ao mandado de penhora, procedi à constrição dos seguintes bens: [descrever bens penhorados].\n\nO referido é verdade. Dou fé.\n\n[Comarca], [data].\n\n[Nome do Oficial de Justiça]\nOficial de Justiça`,
+  busca_apreensao: `CERTIDÃO DE BUSCA E APREENSÃO\n\nCertifico e dou fé que, em cumprimento ao mandado de busca e apreensão, dirigi-me ao endereço [endereço] e procedi à [descrever o resultado].\n\nO referido é verdade. Dou fé.\n\n[Comarca], [data].\n\n[Nome do Oficial de Justiça]\nOficial de Justiça`,
+  avaliacao: `CERTIDÃO DE AVALIAÇÃO\n\nCertifico e dou fé que, em cumprimento, procedi à avaliação dos bens penhorados, atribuindo-lhes o valor de [valor].\n\n[Descrição dos bens e critérios de avaliação]\n\nO referido é verdade. Dou fé.\n\n[Comarca], [data].\n\n[Nome do Oficial de Justiça]\nOficial de Justiça`,
+  outra: `CERTIDÃO\n\nCertifico e dou fé que [conteúdo da certidão].\n\nO referido é verdade. Dou fé.\n\n[Comarca], [data].\n\n[Nome do Oficial de Justiça]\nOficial de Justiça`,
+};
+
+function AddCertidao({ onAdd, isPending }: { onAdd: (cert: { tipo: string; conteudo: string }) => void; isPending: boolean }) {
+  const [open, setOpen] = useState(false);
+  const [tipo, setTipo] = useState("cumprimento_mandado");
+  const [conteudo, setConteudo] = useState(CERTIDAO_TEMPLATES["cumprimento_mandado"]);
+
+  const handleTipoChange = (newTipo: string) => {
+    setTipo(newTipo);
+    setConteudo(CERTIDAO_TEMPLATES[newTipo] || "");
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="rounded-xl"><ScrollText className="h-4 w-4 mr-2" /> Juntar Certidão de Cumprimento</Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader><DialogTitle>Nova Certidão de Cumprimento</DialogTitle></DialogHeader>
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          onAdd({ tipo, conteudo });
+          setOpen(false);
+          setTipo("cumprimento_mandado");
+          setConteudo(CERTIDAO_TEMPLATES["cumprimento_mandado"]);
+        }} className="space-y-3 mt-3">
+          <Select value={tipo} onValueChange={handleTipoChange}>
+            <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {CERTIDAO_TIPOS.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Textarea placeholder="Conteúdo da certidão..." value={conteudo} onChange={(e) => setConteudo(e.target.value)} required className="rounded-xl min-h-[200px] font-mono text-xs" />
+          <Button type="submit" disabled={isPending} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
+            {isPending ? "Juntando..." : "Juntar Certidão"}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
