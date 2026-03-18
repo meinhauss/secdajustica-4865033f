@@ -424,60 +424,6 @@ function OABDashboard({ isAdmin }: { isAdmin: boolean }) {
           )}
         </TabsContent>
 
-        {/* HONORÁRIOS */}
-        <TabsContent value="honorarios" className="mt-4">
-          <div className="space-y-4">
-            {isAdmin && (
-              <div className="flex justify-end">
-                <Dialog open={openHonorario} onOpenChange={setOpenHonorario}>
-                  <DialogTrigger asChild>
-                    <Button size="sm" className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
-                      <Plus className="h-4 w-4 mr-1" /> Adicionar Honorário
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-md">
-                    <DialogHeader><DialogTitle className="font-display">Cadastrar Honorário</DialogTitle></DialogHeader>
-                    <form onSubmit={(e) => { e.preventDefault(); criarHonorario.mutate(); }} className="space-y-4 mt-4">
-                      <Input placeholder="Tipo de atuação (ex: Audiência Criminal)" value={honForm.tipo_atuacao} onChange={(e) => setHonForm({ ...honForm, tipo_atuacao: e.target.value })} className="rounded-xl" required />
-                      <Input placeholder="Descrição (opcional)" value={honForm.descricao} onChange={(e) => setHonForm({ ...honForm, descricao: e.target.value })} className="rounded-xl" />
-                      <div className="grid grid-cols-2 gap-3">
-                        <Input type="number" step="0.01" placeholder="Valor Mínimo (R$)" value={honForm.valor_minimo} onChange={(e) => setHonForm({ ...honForm, valor_minimo: e.target.value })} className="rounded-xl" required />
-                        <Input type="number" step="0.01" placeholder="Valor Sugerido (R$)" value={honForm.valor_sugerido} onChange={(e) => setHonForm({ ...honForm, valor_sugerido: e.target.value })} className="rounded-xl" />
-                      </div>
-                      <Button type="submit" disabled={criarHonorario.isPending} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
-                        {criarHonorario.isPending ? "Salvando..." : "Cadastrar Honorário"}
-                      </Button>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            )}
-            {!honorarios?.length ? <EmptyState icon={DollarSign} text="Nenhum honorário cadastrado na tabela." /> : (
-              <div className="bg-card rounded-xl border border-border shadow-institutional overflow-hidden">
-                <div className="grid grid-cols-12 gap-2 p-3 bg-secondary/50 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                  <div className="col-span-5">Tipo de Atuação</div>
-                  <div className="col-span-3">Valor Mínimo</div>
-                  <div className="col-span-3">Valor Sugerido</div>
-                  <div className="col-span-1">Status</div>
-                </div>
-                {honorarios.map((h: any) => (
-                  <div key={h.id} className="grid grid-cols-12 gap-2 p-3 border-t border-border items-center text-sm">
-                    <div className="col-span-5">
-                      <p className="font-medium text-foreground">{h.tipo_atuacao}</p>
-                      {h.descricao && <p className="text-xs text-muted-foreground">{h.descricao}</p>}
-                    </div>
-                    <div className="col-span-3 font-mono text-foreground">R$ {Number(h.valor_minimo).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div>
-                    <div className="col-span-3 font-mono text-muted-foreground">{h.valor_sugerido ? `R$ ${Number(h.valor_sugerido).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "—"}</div>
-                    <div className="col-span-1">
-                      <span className={`w-2 h-2 rounded-full inline-block ${h.ativo ? 'bg-green-500' : 'bg-muted-foreground'}`} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </TabsContent>
-
         {/* DISCIPLINAR */}
         {isAdmin && (
           <TabsContent value="disciplinar" className="mt-4">
