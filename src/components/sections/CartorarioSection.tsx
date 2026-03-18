@@ -283,9 +283,11 @@ export default function CartorarioSection() {
                 ))}
               </SelectContent>
             </Select>
-            <Button onClick={() => setShowNovoRegistro(true)}>
-              <Plus className="h-4 w-4 mr-1" /> Nova Solicitação
-            </Button>
+            {canSolicitar && (
+              <Button onClick={() => setShowNovoRegistro(true)}>
+                <Plus className="h-4 w-4 mr-1" /> Nova Solicitação
+              </Button>
+            )}
           </div>
 
           <Card>
