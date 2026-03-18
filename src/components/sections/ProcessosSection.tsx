@@ -142,8 +142,14 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
 
       const autorDisplay = form.autor_id ? `${form.autor_nome} (ID: ${form.autor_id})` : form.autor_nome;
       const reuDisplay = form.reu_id ? `${form.reu_nome} (ID: ${form.reu_id})` : form.reu_nome;
+      const anexosValidos = anexoLinks.filter(l => l.trim());
+      const descricaoCompleta = [
+        form.descricao,
+        form.peticao_link ? `\n\n📄 Petição: ${form.peticao_link}` : "",
+        anexosValidos.length ? `\n\n📎 Anexos:\n${anexosValidos.map((l, i) => `${i + 1}. ${l}`).join("\n")}` : "",
+      ].join("");
       const { data: processo, error } = await supabase.from("processos").insert({
-        numero: "", classe: form.classe as any, assunto: form.assunto, descricao: form.descricao,
+        numero: "", classe: form.classe as any, assunto: form.assunto, descricao: descricaoCompleta,
         autor_nome: autorDisplay, reu_nome: reuDisplay, vara: form.vara,
         valor_causa: parseCurrencyToNumber(form.valor_causa),
         juiz_id: juizId,
