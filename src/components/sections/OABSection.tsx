@@ -232,7 +232,7 @@ function OABDashboard({ isAdmin }: { isAdmin: boolean }) {
   const stats = {
     advogados: carteiras?.filter((c: any) => c.status === "ativo").length || 0,
     inscricoesPendentes: pendentes.length,
-    honorarios: honorarios?.length || 0,
+    
     disciplinares: disciplinares?.filter((d: any) => d.status !== "arquivado").length || 0,
   };
 
