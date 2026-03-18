@@ -300,7 +300,7 @@ function MPDashboard({ isMP, onSelectIP }: { isMP: boolean; onSelectIP: (id: str
                     <div className="flex items-center gap-2 mb-1">
                       <Send className="h-4 w-4 text-institutional" />
                       <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${cfg.color}`}>{cfg.label}</span>
-                      <span className="text-[10px] text-muted-foreground">Prazo: {r.prazo_dias} dias</span>
+                      <span className="text-[10px] text-muted-foreground">Prazo: {r.prazo_dias} horas</span>
                     </div>
                     <p className="text-sm text-foreground">{r.descricao}</p>
                     {r.resposta && <p className="text-xs text-muted-foreground mt-1 bg-secondary/50 rounded p-2">Resposta: {r.resposta}</p>}
@@ -744,7 +744,7 @@ function InqueritoMPDetail({ ipId, onBack }: { ipId: string; onBack: () => void 
           </h3>
           <form onSubmit={(e) => { e.preventDefault(); requisitarDiligencia.mutate(); }} className="space-y-4">
             <Textarea placeholder="Descreva a diligência a ser requisitada ao Delegado..." value={reqForm.descricao} onChange={(e) => setReqForm({ ...reqForm, descricao: e.target.value })} required rows={4} className="rounded-xl" />
-            <Input type="number" placeholder="Prazo em dias" value={reqForm.prazo_dias} onChange={(e) => setReqForm({ ...reqForm, prazo_dias: e.target.value })} className="rounded-xl w-40" />
+            <Input type="number" placeholder="Prazo em horas" value={reqForm.prazo_dias} onChange={(e) => setReqForm({ ...reqForm, prazo_dias: e.target.value })} className="rounded-xl w-40" />
             <div className="flex gap-2">
               <Button type="submit" disabled={requisitarDiligencia.isPending} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
                 {requisitarDiligencia.isPending ? "Enviando..." : "Requisitar Diligência"}

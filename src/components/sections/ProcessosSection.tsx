@@ -68,7 +68,7 @@ const ATO_TEMPLATES: Record<string, string> = {
   despacho: `DESPACHO\n\nVistos.\n\nCite-se o(a) réu(é) para que, no prazo legal, apresente contestação, sob pena de revelia.\n\nIntimem-se.\n\n[Comarca], [data].\n\n[Magistrado]\nJuiz(a) de Direito`,
   sentenca: `SENTENÇA\n\nVistos, relatados e discutidos estes autos.\n\n[RELATÓRIO]\n\n[FUNDAMENTAÇÃO]\n\n[DISPOSITIVO]\n\nAnte o exposto, JULGO [PROCEDENTE/IMPROCEDENTE] o pedido formulado na inicial.\n\nCustas na forma da lei. Sem condenação em honorários.\n\nP.R.I.\n\n[Comarca], [data].\n\n[Magistrado]\nJuiz(a) de Direito`,
   mandado: `MANDADO DE [CITAÇÃO/INTIMAÇÃO/BUSCA E APREENSÃO]\n\nO(A) Dr(a). [Magistrado], Juiz(a) de Direito da [Vara], da Comarca de [Comarca],\n\nMANDA ao(à) Sr(a). Oficial de Justiça que, em cumprimento ao presente, proceda à [diligência] em face de [parte].\n\nCumpra-se.\n\n[Comarca], [data].`,
-  intimacao: `INTIMAÇÃO\n\nFica V.Sa. INTIMADO(A) para [finalidade], no prazo de [X] dias úteis, sob pena de [consequência].\n\nProcesso nº [número]\n\n[Comarca], [data].`,
+  intimacao: `INTIMAÇÃO\n\nFica V.Sa. INTIMADO(A) para [finalidade], no prazo de [X] horas, sob pena de [consequência].\n\nProcesso nº [número]\n\n[Comarca], [data].`,
   alvara: `ALVARÁ DE [LEVANTAMENTO/SOLTURA]\n\nO(A) Dr(a). [Magistrado], Juiz(a) de Direito,\n\nAUTORIZA [beneficiário] a [finalidade], conforme decisão proferida nos autos do processo nº [número].\n\nValidade: [prazo].\n\n[Comarca], [data].`,
   certidao: `CERTIDÃO\n\nCertifico e dou fé que [conteúdo da certidão].\n\nO referido é verdade. Dou fé.\n\n[Comarca], [data].\n\n[Servidor]\nEscrivão(ã) Judicial`,
   decisao: `DECISÃO INTERLOCUTÓRIA\n\nVistos.\n\n[Fundamentação]\n\nAnte o exposto, [DEFIRO/INDEFIRO] o pedido de [objeto].\n\nIntimem-se.\n\n[Comarca], [data].\n\n[Magistrado]\nJuiz(a) de Direito`,
@@ -452,13 +452,13 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const createPrazo = useMutation({
     mutationFn: async (prazo: { descricao: string; tipo: string; dias_uteis: number }) => {
       const dataFim = new Date();
-      dataFim.setDate(dataFim.getDate() + prazo.dias_uteis);
+      dataFim.setHours(dataFim.getHours() + prazo.dias_uteis);
       const { error } = await supabase.from("prazos_processuais").insert({
         processo_id: processoId, descricao: prazo.descricao, tipo: prazo.tipo,
         dias_uteis: prazo.dias_uteis, data_fim: dataFim.toISOString(), responsavel_id: user?.id,
       });
       if (error) throw error;
-      await addMovimentacao.mutateAsync({ tipo: "prazo", descricao: `Prazo definido: ${prazo.descricao} (${prazo.dias_uteis} dias)` });
+      await addMovimentacao.mutateAsync({ tipo: "prazo", descricao: `Prazo definido: ${prazo.descricao} (${prazo.dias_uteis} horas)` });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["prazos", processoId] });
@@ -673,7 +673,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                       <Timer className={`h-4 w-4 ${isExpired ? "text-destructive" : "text-institutional"}`} />
                       <span className="text-sm font-medium text-foreground flex-1">{p.descricao}</span>
                       <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${isExpired ? "bg-destructive/10 text-destructive" : "bg-gold/10 text-gold-dark"}`}>
-                        {isExpired ? "Vencido" : `${p.dias_uteis}d úteis`}
+                        {isExpired ? "Vencido" : `${p.dias_uteis}h`}
                       </span>
                     </div>
                     <p className="text-[10px] text-muted-foreground mt-1">
@@ -1110,7 +1110,7 @@ function AddPrazo({ onAdd }: { onAdd: (p: { descricao: string; tipo: string; dia
   const [open, setOpen] = useState(false);
   const [desc, setDesc] = useState("");
   const [tipo, setTipo] = useState("intimacao");
-  const [dias, setDias] = useState("5");
+  const [dias, setDias] = useState("24");
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -1130,7 +1130,7 @@ function AddPrazo({ onAdd }: { onAdd: (p: { descricao: string; tipo: string; dia
             </SelectContent>
           </Select>
           <Input placeholder="Descrição do prazo" value={desc} onChange={(e) => setDesc(e.target.value)} required className="rounded-xl" />
-          <Input type="number" placeholder="Dias úteis" value={dias} onChange={(e) => setDias(e.target.value)} min="1" required className="rounded-xl" />
+          <Input type="number" placeholder="Horas" value={dias} onChange={(e) => setDias(e.target.value)} min="1" required className="rounded-xl" />
           <Button type="submit" className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">Registrar Prazo</Button>
         </form>
       </DialogContent>
