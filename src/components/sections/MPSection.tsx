@@ -630,55 +630,157 @@ function InqueritoMPDetail({ ipId, onBack }: { ipId: string; onBack: () => void 
           <div className="flex items-center gap-2 flex-wrap">
             <h2 className="font-display text-xl font-bold text-foreground">{ip.numero}</h2>
             <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${cfg.color}`}>{cfg.label}</span>
+            {ip.sigilo && <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">Sigiloso</span>}
           </div>
           <p className="text-sm text-muted-foreground">Inquérito Policial — Análise Ministerial</p>
         </div>
       </div>
 
-      {/* Info */}
-      <div className="bg-card rounded-xl p-5 border border-border shadow-institutional">
-        <h3 className="font-display text-sm font-semibold text-foreground mb-2">Descrição dos Fatos</h3>
-        <p className="text-sm text-foreground whitespace-pre-wrap">{ip.descricao}</p>
-        {ip.relatorio_final && (
-          <div className="mt-4 p-3 rounded-lg bg-secondary/50 border border-border">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Relatório Final do Delegado</p>
-            <p className="text-sm text-foreground whitespace-pre-wrap">{ip.relatorio_final}</p>
+      {/* Tabs for full inquiry view */}
+      <Tabs defaultValue="resumo" className="w-full">
+        <TabsList className="w-full justify-start rounded-xl bg-secondary/50 p-1 h-auto gap-1 flex-wrap">
+          <TabsTrigger value="resumo" className="rounded-lg text-xs"><FileText className="h-3 w-3 mr-1" /> Resumo</TabsTrigger>
+          <TabsTrigger value="envolvidos" className="rounded-lg text-xs"><AlertTriangle className="h-3 w-3 mr-1" /> Envolvidos ({envolvidos?.length || 0})</TabsTrigger>
+          <TabsTrigger value="diligencias" className="rounded-lg text-xs"><Search className="h-3 w-3 mr-1" /> Diligências ({diligencias?.length || 0})</TabsTrigger>
+          <TabsTrigger value="oitivas" className="rounded-lg text-xs"><BookOpen className="h-3 w-3 mr-1" /> Oitivas ({oitivas?.length || 0})</TabsTrigger>
+          {bo && <TabsTrigger value="bo" className="rounded-lg text-xs"><Shield className="h-3 w-3 mr-1" /> Boletim de Ocorrência</TabsTrigger>}
+        </TabsList>
+
+        {/* RESUMO */}
+        <TabsContent value="resumo" className="mt-4 space-y-4">
+          <div className="bg-card rounded-xl p-5 border border-border shadow-institutional">
+            <h3 className="font-display text-sm font-semibold text-foreground mb-2">Descrição dos Fatos</h3>
+            <p className="text-sm text-foreground whitespace-pre-wrap">{ip.descricao}</p>
+            <div className="flex gap-4 mt-3 text-xs text-muted-foreground flex-wrap">
+              <span>Tipo: <strong className="text-foreground">{ip.tipo}</strong></span>
+              <span>Instaurado: {format(new Date(ip.data_instauracao), "dd/MM/yyyy", { locale: ptBR })}</span>
+              {ip.data_conclusao && <span>Concluso: {format(new Date(ip.data_conclusao), "dd/MM/yyyy", { locale: ptBR })}</span>}
+              <span>Remetido MP: {ip.remetido_mp ? "Sim" : "Não"}</span>
+            </div>
           </div>
+
+          {ip.relatorio_final && (
+            <div className="bg-card rounded-xl p-5 border border-border shadow-institutional">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Relatório Final do Delegado</p>
+              <p className="text-sm text-foreground whitespace-pre-wrap">{ip.relatorio_final}</p>
+            </div>
+          )}
+
+          {/* Quick summary cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="bg-card rounded-xl p-3 border border-border text-center">
+              <p className="text-lg font-bold text-foreground">{investigados.length}</p>
+              <p className="text-[10px] text-muted-foreground uppercase">Investigados</p>
+            </div>
+            <div className="bg-card rounded-xl p-3 border border-border text-center">
+              <p className="text-lg font-bold text-foreground">{vitimas.length}</p>
+              <p className="text-[10px] text-muted-foreground uppercase">Vítimas</p>
+            </div>
+            <div className="bg-card rounded-xl p-3 border border-border text-center">
+              <p className="text-lg font-bold text-foreground">{diligencias?.length || 0}</p>
+              <p className="text-[10px] text-muted-foreground uppercase">Diligências</p>
+            </div>
+            <div className="bg-card rounded-xl p-3 border border-border text-center">
+              <p className="text-lg font-bold text-foreground">{oitivas?.length || 0}</p>
+              <p className="text-[10px] text-muted-foreground uppercase">Oitivas</p>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* ENVOLVIDOS */}
+        <TabsContent value="envolvidos" className="mt-4 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <EnvolvidoCardFull title="Investigados" items={investigados} icon={AlertTriangle} color="text-destructive" />
+            <EnvolvidoCardFull title="Vítimas" items={vitimas} icon={Shield} color="text-gold-dark" />
+            <EnvolvidoCardFull title="Testemunhas" items={testemunhas} icon={Eye} color="text-institutional" />
+          </div>
+        </TabsContent>
+
+        {/* DILIGÊNCIAS COMPLETAS */}
+        <TabsContent value="diligencias" className="mt-4 space-y-3">
+          {!diligencias?.length ? (
+            <EmptyState icon={Search} text="Nenhuma diligência registrada neste inquérito." />
+          ) : (
+            diligencias.map((d, i) => (
+              <motion.div key={d.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
+                className="bg-card rounded-xl p-4 border border-border shadow-institutional">
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-institutional/10 text-institutional">{d.tipo}</span>
+                  <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${d.status === 'concluida' ? 'bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400' : 'bg-gold/10 text-gold-dark'}`}>{d.status}</span>
+                  {d.responsavel_nome && <span className="text-[10px] text-muted-foreground ml-auto">Resp: {d.responsavel_nome}</span>}
+                </div>
+                <p className="text-sm text-foreground whitespace-pre-wrap">{d.descricao}</p>
+                {d.resultado && (
+                  <div className="mt-2 p-3 rounded-lg bg-secondary/50 border border-border">
+                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Resultado</p>
+                    <p className="text-sm text-foreground whitespace-pre-wrap">{d.resultado}</p>
+                  </div>
+                )}
+                <p className="text-[10px] text-muted-foreground mt-2">{format(new Date(d.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
+              </motion.div>
+            ))
+          )}
+        </TabsContent>
+
+        {/* OITIVAS COMPLETAS */}
+        <TabsContent value="oitivas" className="mt-4 space-y-3">
+          {!oitivas?.length ? (
+            <EmptyState icon={BookOpen} text="Nenhuma oitiva registrada neste inquérito." />
+          ) : (
+            oitivas.map((o, i) => (
+              <motion.div key={o.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
+                className="bg-card rounded-xl p-4 border border-border shadow-institutional">
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  <BookOpen className="h-4 w-4 text-institutional" />
+                  <span className="text-sm font-semibold text-foreground">{o.nome_depoente}</span>
+                  <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{o.tipo}</span>
+                </div>
+                <pre className="text-sm text-foreground whitespace-pre-wrap font-sans bg-secondary/30 rounded-lg p-3 max-h-64 overflow-y-auto">{o.conteudo}</pre>
+                <p className="text-[10px] text-muted-foreground mt-2">{format(new Date(o.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
+              </motion.div>
+            ))
+          )}
+        </TabsContent>
+
+        {/* BOLETIM DE OCORRÊNCIA */}
+        {bo && (
+          <TabsContent value="bo" className="mt-4 space-y-4">
+            <div className="bg-card rounded-xl p-5 border border-border shadow-institutional">
+              <div className="flex items-center gap-2 mb-3 flex-wrap">
+                <span className="font-mono text-sm font-semibold text-institutional">{bo.numero}</span>
+                <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-institutional/10 text-institutional">{bo.tipo}</span>
+                <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{bo.status}</span>
+              </div>
+              <div className="space-y-3 text-sm">
+                <div><span className="text-xs text-muted-foreground uppercase">Vítima:</span> <span className="text-foreground">{bo.vitima_nome}</span></div>
+                {bo.local_fato && <div><span className="text-xs text-muted-foreground uppercase">Local:</span> <span className="text-foreground">{bo.local_fato}</span></div>}
+                {bo.data_fato && <div><span className="text-xs text-muted-foreground uppercase">Data do fato:</span> <span className="text-foreground">{format(new Date(bo.data_fato), "dd/MM/yyyy HH:mm", { locale: ptBR })}</span></div>}
+                <div>
+                  <span className="text-xs text-muted-foreground uppercase">Descrição:</span>
+                  <p className="text-foreground whitespace-pre-wrap mt-1">{bo.descricao}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Envolvidos do BO */}
+            {envolvidosBo && envolvidosBo.length > 0 && (
+              <div className="bg-card rounded-xl p-5 border border-border shadow-institutional">
+                <h3 className="font-display text-sm font-semibold text-foreground mb-3">Envolvidos no B.O.</h3>
+                <div className="space-y-2">
+                  {envolvidosBo.map((e: any) => (
+                    <div key={e.id} className="flex items-center gap-2 text-sm py-1 border-b border-border last:border-0">
+                      <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{e.tipo}</span>
+                      <span className="text-foreground">{e.nome}</span>
+                      {e.id_personagem && <span className="text-xs text-muted-foreground">(ID: {e.id_personagem})</span>}
+                      {e.observacoes && <span className="text-xs text-muted-foreground ml-auto">{e.observacoes}</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </TabsContent>
         )}
-        <div className="flex gap-4 mt-3 text-xs text-muted-foreground">
-          <span>Instaurado: {format(new Date(ip.data_instauracao), "dd/MM/yyyy", { locale: ptBR })}</span>
-          {ip.data_conclusao && <span>Concluso: {format(new Date(ip.data_conclusao), "dd/MM/yyyy", { locale: ptBR })}</span>}
-        </div>
-      </div>
-
-      {/* Envolvidos */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <EnvolvidoCard title="Investigados" items={investigados} icon={AlertTriangle} color="text-destructive" />
-        <EnvolvidoCard title="Vítimas" items={vitimas} icon={Shield} color="text-gold-dark" />
-        <EnvolvidoCard title="Testemunhas" items={testemunhas} icon={Eye} color="text-institutional" />
-      </div>
-
-      {/* Diligências & Oitivas summary */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-card rounded-xl p-5 border border-border shadow-institutional">
-          <h3 className="font-display text-sm font-semibold text-foreground mb-3">Diligências ({diligencias?.length || 0})</h3>
-          {diligencias?.slice(0, 5).map((d) => (
-            <div key={d.id} className="flex items-center gap-2 py-1.5 border-b border-border last:border-0 text-xs">
-              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${d.status === 'concluida' ? 'bg-green-500' : 'bg-gold'}`} />
-              <span className="text-foreground flex-1 line-clamp-1">{d.descricao}</span>
-              <span className="text-muted-foreground">{d.status}</span>
-            </div>
-          )) || <p className="text-xs text-muted-foreground">Sem diligências.</p>}
-        </div>
-        <div className="bg-card rounded-xl p-5 border border-border shadow-institutional">
-          <h3 className="font-display text-sm font-semibold text-foreground mb-3">Oitivas ({oitivas?.length || 0})</h3>
-          {oitivas?.slice(0, 5).map((o) => (
-            <div key={o.id} className="flex items-center gap-2 py-1.5 border-b border-border last:border-0 text-xs">
-              <span className="text-foreground flex-1">{o.nome_depoente} ({o.tipo})</span>
-            </div>
-          )) || <p className="text-xs text-muted-foreground">Sem oitivas.</p>}
-        </div>
-      </div>
+      </Tabs>
 
       {/* Actions */}
       {ip.status === "remetido_mp" && activeAction === "none" && (
