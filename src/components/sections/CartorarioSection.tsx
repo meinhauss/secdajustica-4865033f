@@ -140,6 +140,7 @@ export default function CartorarioSection() {
     toast({ title: "Solicitação registrada com sucesso" });
     setShowNovoRegistro(false);
     setForm({ tipo: "certidao_nascimento", requerente_nome: "", id_personagem: "", partes_envolvidas: "", descricao: "", observacoes: "" });
+    requerenteLookup.clear();
     fetchRegistros();
   };
 

@@ -13,11 +13,24 @@ import {
   Gavel, FileText, Clock, Search, ArrowLeft, ChevronRight,
   Calendar, Shield, Send, BookOpen, BarChart3, Eye,
   CheckCircle, AlertTriangle, Scale, Plus, Stamp, Scroll,
-  PenTool, Users, MapPin, ShieldAlert, Lock
+  PenTool, Users, MapPin, ShieldAlert, Lock, User
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+
+/* ─── Profile Lookup Hook ─── */
+function useProfileLookup() {
+  const [result, setResult] = useState<{ nome_completo: string; id_personagem: string } | null>(null);
+  const lookup = async (idPersonagem: string) => {
+    setResult(null);
+    if (!idPersonagem) return null;
+    const { data } = await supabase.from("profiles").select("nome_completo, id_personagem").eq("id_personagem", idPersonagem).maybeSingle();
+    if (data) setResult({ nome_completo: data.nome_completo, id_personagem: data.id_personagem || "" });
+    return data;
+  };
+  return { result, lookup, clear: () => setResult(null) };
+}
 
 /* ─── Status configs ─── */
 const PROC_STATUS: Record<string, { label: string; color: string }> = {
