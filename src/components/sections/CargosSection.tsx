@@ -59,6 +59,16 @@ const ROLE_HIERARCHY = [
   },
   {
     level: 5,
+    role: "procurador_geral",
+    label: "Procurador-Geral de Justiça",
+    icon: Scale,
+    color: "text-violet-600",
+    bgColor: "bg-violet-600/10",
+    description: "Chefe do Ministério Público. Responsável por concursos, nomeações e supervisão dos promotores.",
+    permissions: ["ver_inqueritos", "denuncias", "arquivamentos", "pareceres", "concursos_mp", "supervisao_mp", "nomeacoes_mp"],
+  },
+  {
+    level: 6,
     role: "ministerio_publico",
     label: "Promotor de Justiça",
     icon: Scale,
