@@ -782,19 +782,20 @@ function AddAto({ onAdd }: { onAdd: (ato: { tipo: string; titulo: string; conteu
   );
 }
 
-function UploadDoc({ onUpload, isPending }: { onUpload: (file: File, nome: string, tipo: string) => void; isPending: boolean }) {
+function UploadDoc({ onUpload, isPending }: { onUpload: (link: string, nome: string, tipo: string) => void; isPending: boolean }) {
   const [open, setOpen] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
+  const [link, setLink] = useState("");
   const [nome, setNome] = useState("");
   const [tipo, setTipo] = useState("peticao");
+  const [showInstrucoes, setShowInstrucoes] = useState(false);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="rounded-xl"><Upload className="h-4 w-4 mr-2" /> Juntar Documento</Button>
       </DialogTrigger>
-      <DialogContent>
-        <DialogHeader><DialogTitle>Juntar Documento</DialogTitle></DialogHeader>
-        <form onSubmit={(e) => { e.preventDefault(); if (file) { onUpload(file, nome, tipo); setOpen(false); setFile(null); setNome(""); } }} className="space-y-3 mt-3">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader><DialogTitle>Juntar Documento por Link</DialogTitle></DialogHeader>
+        <form onSubmit={(e) => { e.preventDefault(); if (link.trim()) { onUpload(link.trim(), nome, tipo); setOpen(false); setLink(""); setNome(""); } }} className="space-y-3 mt-3">
           <Select value={tipo} onValueChange={setTipo}>
             <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -808,9 +809,53 @@ function UploadDoc({ onUpload, isPending }: { onUpload: (file: File, nome: strin
             </SelectContent>
           </Select>
           <Input placeholder="Nome do documento" value={nome} onChange={(e) => setNome(e.target.value)} required className="rounded-xl" />
-          <Input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} required className="rounded-xl" />
-          <Button type="submit" disabled={isPending} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
-            {isPending ? "Enviando..." : "Anexar Documento"}
+          <Input placeholder="Cole o link do Google Drive ou Google Docs" value={link} onChange={(e) => setLink(e.target.value)} required className="rounded-xl" />
+          
+          <button type="button" onClick={() => setShowInstrucoes(!showInstrucoes)} className="text-xs text-primary hover:underline flex items-center gap-1">
+            <FileText className="h-3 w-3" />
+            {showInstrucoes ? "Ocultar instruções" : "Como compartilhar arquivos?"}
+          </button>
+
+          {showInstrucoes && (
+            <div className="bg-muted/50 rounded-xl p-4 text-xs text-muted-foreground space-y-3 border border-border">
+              <p className="font-semibold text-foreground text-sm">📋 Como enviar documentos por link</p>
+              
+              <div className="space-y-1">
+                <p className="font-medium text-foreground">Google Drive (arquivos/pastas):</p>
+                <ol className="list-decimal list-inside space-y-0.5 pl-1">
+                  <li>Acesse <span className="font-medium">drive.google.com</span></li>
+                  <li>Faça upload do arquivo ou crie uma pasta</li>
+                  <li>Clique com botão direito no arquivo → <strong>"Compartilhar"</strong></li>
+                  <li>Em "Acesso geral", selecione <strong>"Qualquer pessoa com o link"</strong></li>
+                  <li>Clique em <strong>"Copiar link"</strong> e cole no campo acima</li>
+                </ol>
+              </div>
+
+              <div className="space-y-1">
+                <p className="font-medium text-foreground">Google Docs (documentos de texto):</p>
+                <ol className="list-decimal list-inside space-y-0.5 pl-1">
+                  <li>Abra o documento no Google Docs</li>
+                  <li>Clique em <strong>"Compartilhar"</strong> (canto superior direito)</li>
+                  <li>Em "Acesso geral", selecione <strong>"Qualquer pessoa com o link"</strong></li>
+                  <li>Defina como <strong>"Leitor"</strong> (recomendado)</li>
+                  <li>Clique em <strong>"Copiar link"</strong> e cole no campo acima</li>
+                </ol>
+              </div>
+
+              <div className="bg-destructive/10 rounded-lg p-2 border border-destructive/20">
+                <p className="text-destructive font-medium">⚠️ Importante: Libere o acesso ANTES de colar o link!</p>
+                <p className="mt-0.5">Se o link não estiver acessível, o documento não poderá ser visualizado.</p>
+              </div>
+
+              <a href="https://www.youtube.com/watch?v=KGCdxnkyjoc" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline font-medium">
+                🎬 Tutorial em vídeo: Como fazer upload no Google Drive
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+          )}
+
+          <Button type="submit" disabled={isPending || !link.trim()} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
+            {isPending ? "Salvando..." : "Juntar Documento"}
           </Button>
         </form>
       </DialogContent>
