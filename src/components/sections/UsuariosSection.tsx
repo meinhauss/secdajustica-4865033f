@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Constants } from "@/integrations/supabase/types";
 
@@ -35,6 +36,8 @@ export default function UsuariosSection() {
   const [editForm, setEditForm] = useState({ nome_completo: "", discord: "", id_personagem: "", telefone_ingame: "" });
   const [addRoleUserId, setAddRoleUserId] = useState<string | null>(null);
   const [newRole, setNewRole] = useState("");
+  const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
+  const [deleteUserName, setDeleteUserName] = useState("");
 
   const { data: profiles } = useQuery({
     queryKey: ["all-profiles"],
@@ -95,6 +98,25 @@ export default function UsuariosSection() {
     onError: (err: any) => toast.error(err.message),
   });
 
+  const deleteUser = useMutation({
+    mutationFn: async (userId: string) => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const res = await supabase.functions.invoke("delete-user", {
+        body: { user_id: userId },
+        headers: { Authorization: `Bearer ${sessionData.session?.access_token}` },
+      });
+      if (res.error) throw new Error(res.error.message);
+      if (res.data?.error) throw new Error(res.data.error);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["all-profiles"] });
+      queryClient.invalidateQueries({ queryKey: ["all-roles"] });
+      setDeleteUserId(null);
+      toast.success("Usuário excluído com sucesso!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
   const openEdit = (profile: any) => {
     setEditingUserId(profile.id);
     setEditForm({
@@ -151,6 +173,9 @@ export default function UsuariosSection() {
                   <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" className="rounded-lg h-8 text-xs" onClick={() => openEdit(p)}>
                       <Pencil className="h-3 w-3 mr-1" /> Editar
+                    </Button>
+                    <Button variant="outline" size="sm" className="rounded-lg h-8 text-xs text-destructive hover:bg-destructive/10" onClick={() => { setDeleteUserId(p.user_id); setDeleteUserName(p.nome_completo); }}>
+                      <Trash2 className="h-3 w-3 mr-1" /> Excluir
                     </Button>
                   </div>
                 </div>
@@ -228,6 +253,28 @@ export default function UsuariosSection() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete User Confirmation */}
+      <AlertDialog open={!!deleteUserId} onOpenChange={(open) => !open && setDeleteUserId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display">Excluir Usuário</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o usuário <strong>{deleteUserName}</strong>? Esta ação é irreversível e removerá todos os dados, cargos e acesso do usuário.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteUser.isPending}
+              onClick={() => deleteUserId && deleteUser.mutate(deleteUserId)}
+            >
+              {deleteUser.isPending ? "Excluindo..." : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
