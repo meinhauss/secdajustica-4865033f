@@ -178,7 +178,8 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["processos"] });
       setOpen(false);
-      setForm({ classe: "civil", assunto: "", descricao: "", autor_nome: "", autor_id: "", reu_nome: "", reu_id: "", vara: "1ª Vara Cível", valor_causa: "" });
+      setForm({ classe: "civil", assunto: "", descricao: "", autor_nome: "", autor_id: "", reu_nome: "", reu_id: "", vara: "1ª Vara Cível", valor_causa: "", peticao_link: "" });
+      setAnexoLinks([""]);
       autorLookup.clear(); reuLookup.clear();
       toast.success("Processo cadastrado e distribuído por sorteio!");
     },
