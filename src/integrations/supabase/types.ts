@@ -14,6 +14,84 @@ export type Database = {
   }
   public: {
     Tables: {
+      apelacoes: {
+        Row: {
+          apelante_id: string | null
+          apelante_nome: string
+          apelante_tipo: string
+          created_at: string
+          data_distribuicao: string | null
+          data_julgamento: string | null
+          decisao_dispositivo: string | null
+          decisao_fundamentacao: string | null
+          decisao_tipo: string | null
+          desembargador_id: string | null
+          fundamentacao: string
+          id: string
+          numero_acordao: string | null
+          pedido: string
+          processo_id: string
+          sentenca_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          apelante_id?: string | null
+          apelante_nome: string
+          apelante_tipo?: string
+          created_at?: string
+          data_distribuicao?: string | null
+          data_julgamento?: string | null
+          decisao_dispositivo?: string | null
+          decisao_fundamentacao?: string | null
+          decisao_tipo?: string | null
+          desembargador_id?: string | null
+          fundamentacao: string
+          id?: string
+          numero_acordao?: string | null
+          pedido: string
+          processo_id: string
+          sentenca_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          apelante_id?: string | null
+          apelante_nome?: string
+          apelante_tipo?: string
+          created_at?: string
+          data_distribuicao?: string | null
+          data_julgamento?: string | null
+          decisao_dispositivo?: string | null
+          decisao_fundamentacao?: string | null
+          decisao_tipo?: string | null
+          desembargador_id?: string | null
+          fundamentacao?: string
+          id?: string
+          numero_acordao?: string | null
+          pedido?: string
+          processo_id?: string
+          sentenca_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "apelacoes_processo_id_fkey"
+            columns: ["processo_id"]
+            isOneToOne: false
+            referencedRelation: "processos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "apelacoes_sentenca_id_fkey"
+            columns: ["sentenca_id"]
+            isOneToOne: false
+            referencedRelation: "sentencas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       arquivamentos_mp: {
         Row: {
           created_at: string
