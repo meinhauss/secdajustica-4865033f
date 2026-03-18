@@ -174,6 +174,9 @@ export default function UsuariosSection() {
                     <Button variant="outline" size="sm" className="rounded-lg h-8 text-xs" onClick={() => openEdit(p)}>
                       <Pencil className="h-3 w-3 mr-1" /> Editar
                     </Button>
+                    <Button variant="outline" size="sm" className="rounded-lg h-8 text-xs text-destructive hover:bg-destructive/10" onClick={() => { setDeleteUserId(p.user_id); setDeleteUserName(p.nome_completo); }}>
+                      <Trash2 className="h-3 w-3 mr-1" /> Excluir
+                    </Button>
                   </div>
                 </div>
                 {/* Roles */}
