@@ -696,6 +696,21 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         </div>
       </div>
 
+      {/* Sigilo */}
+      <div className="bg-card rounded-xl p-4 border border-border shadow-institutional">
+        <h3 className="font-display text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+          <Lock className="h-3.5 w-3.5" /> Sigilo do Processo
+        </h3>
+        <div className="flex flex-wrap gap-2">
+          {Object.entries(SIGILO_LABELS).map(([key, label]) => (
+            <Button key={key} variant={(processo as any).sigilo === key || (!( processo as any).sigilo && key === "publico") ? "default" : "outline"} size="sm" className="rounded-lg text-xs"
+              onClick={() => updateSigilo.mutate(key)} disabled={(processo as any).sigilo === key || (!(processo as any).sigilo && key === "publico")}>
+              {label}
+            </Button>
+          ))}
+        </div>
+      </div>
+
       {/* Actions */}
       {activeAction === "none" && (
         <div className="bg-card rounded-xl p-5 border border-border shadow-institutional">
@@ -712,6 +727,9 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             </Button>
             <Button onClick={() => setActiveAction("sentenca")} className="rounded-xl bg-gold hover:bg-gold/90 text-foreground">
               <Scroll className="h-4 w-4 mr-2" /> Proferir Sentença
+            </Button>
+            <Button onClick={() => setActiveAction("suspeicao")} variant="outline" className="rounded-xl border-destructive/50 text-destructive hover:bg-destructive/10">
+              <ShieldAlert className="h-4 w-4 mr-2" /> Declarar Suspeição
             </Button>
           </div>
         </div>
