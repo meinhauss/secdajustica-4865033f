@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import {
-  FileText, Scale, Shield, Users, Clock, CheckCircle, Gavel, Send,
+  FileText, Scale, Users, Clock, CheckCircle, Gavel, Send,
   Briefcase, GraduationCap, Stamp, BarChart3, Bell, ArrowRight
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
