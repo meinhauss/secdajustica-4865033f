@@ -712,9 +712,9 @@ function InqueritoMPDetail({ ipId, onBack }: { ipId: string; onBack: () => void 
         {/* ENVOLVIDOS */}
         <TabsContent value="envolvidos" className="mt-4 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <EnvolvidoCardFull title="Investigados" items={investigados} icon={AlertTriangle} color="text-destructive" />
-            <EnvolvidoCardFull title="Vítimas" items={vitimas} icon={Shield} color="text-gold-dark" />
-            <EnvolvidoCardFull title="Testemunhas" items={testemunhas} icon={Eye} color="text-institutional" />
+            <EnvolvidoCard title="Investigados" items={investigados} icon={AlertTriangle} color="text-destructive" />
+            <EnvolvidoCard title="Vítimas" items={vitimas} icon={Shield} color="text-gold-dark" />
+            <EnvolvidoCard title="Testemunhas" items={testemunhas} icon={Eye} color="text-institutional" />
           </div>
         </TabsContent>
 
