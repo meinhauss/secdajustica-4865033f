@@ -36,6 +36,8 @@ export default function UsuariosSection() {
   const [editForm, setEditForm] = useState({ nome_completo: "", discord: "", id_personagem: "", telefone_ingame: "" });
   const [addRoleUserId, setAddRoleUserId] = useState<string | null>(null);
   const [newRole, setNewRole] = useState("");
+  const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
+  const [deleteUserName, setDeleteUserName] = useState("");
 
   const { data: profiles } = useQuery({
     queryKey: ["all-profiles"],
