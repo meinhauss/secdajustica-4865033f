@@ -78,7 +78,7 @@ const ROLE_HIERARCHY = [
     permissions: ["ver_inqueritos", "denuncias", "diligencias", "arquivamentos", "pareceres", "audiencias"],
   },
   {
-    level: 6,
+    level: 7,
     role: "delegado",
     label: "Delegado de Polícia",
     icon: Shield,
