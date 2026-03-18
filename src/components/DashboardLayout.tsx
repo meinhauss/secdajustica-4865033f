@@ -6,7 +6,7 @@ import {
   LogOut, Menu, X, Home, Briefcase, Calendar, Crown, GraduationCap, Stamp
  } from "lucide-react";
 import logoSjc from "@/assets/logo-tjsp.png";
-
+import NotificacoesBell from "@/components/NotificacoesBell";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
