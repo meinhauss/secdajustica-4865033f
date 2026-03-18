@@ -185,7 +185,7 @@ export default function LoginPage() {
 function TabInicio({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
   const cards = [
   { icon: FileText, title: "Consulta Processual", desc: "Acompanhe processos judiciais em andamento na Comarca.", action: "Consultar", tab: "login" as Tab },
-  { icon: Shield, title: "Delegacia Virtual", desc: "Registre Boletins de Ocorrência de forma online e rápida.", action: "Acessar", tab: "login" as Tab },
+  
   { icon: Scale, title: "Ministério Público", desc: "Portal do Ministério Público para denúncias e pareceres.", action: "Acessar", tab: "login" as Tab },
   { icon: GraduationCap, title: "Concursos Públicos", desc: "Editais abertos, inscrições e resultados de concursos.", action: "Ver Editais", tab: "concursos" as Tab },
   { icon: Users, title: "Portal da OAB", desc: "Cadastro de advogados, carteira digital e honorários.", action: "Acessar", tab: "login" as Tab },
