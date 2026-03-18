@@ -40,12 +40,6 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
     }, enabled: isMagistrado || isAdmin,
   });
 
-  const { data: bosCount } = useQuery({
-    queryKey: ["dash-bos"], queryFn: async () => {
-      const { count } = await supabase.from("boletins_ocorrencia").select("*", { count: "exact", head: true });
-      return count || 0;
-    },
-  });
 
   const { data: audienciasCount } = useQuery({
     queryKey: ["dash-audiencias"], queryFn: async () => {
