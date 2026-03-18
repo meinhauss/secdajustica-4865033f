@@ -246,42 +246,6 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
               <Input placeholder="Valor da Causa (R$)" value={form.valor_causa} onChange={(e) => { const raw = e.target.value.replace(/\D/g, ""); setForm({ ...form, valor_causa: raw ? formatCurrency(raw) : "" }); }} className="rounded-xl" />
               <Textarea placeholder="Síntese (resumo) dos fatos" value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} className="rounded-xl" />
 
-
-  const { data: certidoes } = useQuery({
-    queryKey: ["certidoes", processoId],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("certificacoes").select("*").eq("processo_id", processoId).order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const createCertidao = useMutation({
-    mutationFn: async (cert: { tipo: string; conteudo: string }) => {
-      const { error } = await supabase.from("certificacoes").insert({
-        processo_id: processoId, tipo: cert.tipo, conteudo: cert.conteudo,
-        emitido_por: user?.id, emitido_por_nome: profile?.nome_completo || "Oficial de Justiça",
-      });
-      if (error) throw error;
-      await addMovimentacao.mutateAsync({ tipo: "certidao_oficial", descricao: `Certidão de ${cert.tipo} juntada pelo Oficial de Justiça.\n\n${cert.conteudo}` });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["certidoes", processoId] });
-      toast.success("Certidão juntada com sucesso!");
-    },
-  });
-
-  const signCertidao = useMutation({
-    mutationFn: async (certId: string) => {
-      const { error } = await supabase.from("certificacoes").update({ assinado: true, data_assinatura: new Date().toISOString() }).eq("id", certId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["certidoes", processoId] });
-      toast.success("Certidão assinada digitalmente!");
-    },
-  });
-
               <Button type="submit" disabled={createProcesso.isPending} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
                 {createProcesso.isPending ? "Cadastrando..." : "Cadastrar Processo"}
               </Button>
