@@ -128,7 +128,7 @@ const ROLE_HIERARCHY = [
     permissions: ["ver_processos_habilitados", "peticoes", "consulta_publica", "honorarios"],
   },
   {
-    level: 11,
+    level: 12,
     role: "cidadao",
     label: "Cidadão",
     icon: UserCheck,
