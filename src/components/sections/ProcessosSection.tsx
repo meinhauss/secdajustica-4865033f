@@ -506,13 +506,9 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   });
 
   const uploadDoc = useMutation({
-    mutationFn: async ({ file, nome, tipo }: { file: File; nome: string; tipo: string }) => {
-      const filePath = `${processoId}/${Date.now()}-${file.name}`;
-      const { error: uploadErr } = await supabase.storage.from("documentos-processuais").upload(filePath, file);
-      if (uploadErr) throw uploadErr;
-      const { data: urlData } = supabase.storage.from("documentos-processuais").getPublicUrl(filePath);
+    mutationFn: async ({ link, nome, tipo }: { link: string; nome: string; tipo: string }) => {
       const { error } = await supabase.from("documentos_processo").insert({
-        processo_id: processoId, nome, tipo, arquivo_url: urlData.publicUrl, autor_id: user?.id,
+        processo_id: processoId, nome, tipo, arquivo_url: link, autor_id: user?.id,
       });
       if (error) throw error;
       await addMovimentacao.mutateAsync({ tipo: "juntada", descricao: `Documento juntado: ${nome}` });
