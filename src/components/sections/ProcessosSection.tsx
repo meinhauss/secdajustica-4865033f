@@ -432,7 +432,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         processo_id: processoId, ...ato, autor_id: user?.id, autor_nome: profile?.nome_completo || "Sistema",
       });
       if (error) throw error;
-      await addMovimentacao.mutateAsync({ tipo: "ato_judicial", descricao: `${ato.tipo.toUpperCase()}: ${ato.titulo}` });
+      await addMovimentacao.mutateAsync({ tipo: "ato_judicial", descricao: `${ato.tipo.toUpperCase()} — ${ato.titulo}\n\n${ato.conteudo}` });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["atos", processoId] });

@@ -440,7 +440,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
       await supabase.from("movimentacoes").insert({
         processo_id: processoId,
         tipo: "despacho",
-        descricao: `Despacho: ${despachoForm.titulo}`,
+        descricao: `DESPACHO — ${despachoForm.titulo}\n\n${despachoForm.conteudo}`,
         autor_id: user!.id,
       });
     },
@@ -498,7 +498,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
       await supabase.from("movimentacoes").insert({
         processo_id: processoId,
         tipo: "mandado_expedido",
-        descricao: `Mandado de ${MANDADO_TIPOS.find(t => t.value === mandadoForm.tipo)?.label || mandadoForm.tipo} expedido — ${mandadoForm.destinatario_nome}.`,
+        descricao: `MANDADO DE ${(MANDADO_TIPOS.find(t => t.value === mandadoForm.tipo)?.label || mandadoForm.tipo).toUpperCase()}\n\nDestinatário: ${mandadoForm.destinatario_nome}\n\n${mandadoForm.descricao}`,
         autor_id: user!.id,
       });
     },
@@ -531,7 +531,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
       await supabase.from("movimentacoes").insert({
         processo_id: processoId,
         tipo: "sentenca",
-        descricao: `Sentença proferida e publicada.`,
+        descricao: `SENTENÇA\n\n${sentencaForm.ementa ? `Ementa: ${sentencaForm.ementa}\n\n` : ""}Fundamentação:\n${sentencaForm.fundamentacao}\n\nDispositivo:\n${sentencaForm.dispositivo}`,
         autor_id: user!.id,
       });
     },
