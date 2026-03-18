@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import {
-  FileText, Scale, Shield, Users, Clock, CheckCircle, Gavel, Send,
+  FileText, Scale, Users, Clock, CheckCircle, Gavel, Send,
   Briefcase, GraduationCap, Stamp, BarChart3, Bell, ArrowRight
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 const JUDICIAL_ROLES = ["admin", "magistrado", "presidente_tribunal", "desembargador", "ministerio_publico", "advogado"];
-const POLICE_ROLES = ["admin", "delegado", "investigador"];
+
 
 interface DashboardHomeProps {
   onNavigate?: (section: string) => void;
@@ -20,7 +20,7 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
   const { profile, roles } = useAuth();
 
   const isJudicial = roles.some((r) => JUDICIAL_ROLES.includes(r));
-  const isPolice = roles.some((r) => POLICE_ROLES.includes(r));
+  
   const isAdmin = roles.includes("admin");
   const isAdvogado = roles.includes("advogado");
   const isMagistrado = roles.includes("magistrado") || roles.includes("desembargador") || roles.includes("presidente_tribunal");
@@ -40,12 +40,6 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
     }, enabled: isMagistrado || isAdmin,
   });
 
-  const { data: bosCount } = useQuery({
-    queryKey: ["dash-bos"], queryFn: async () => {
-      const { count } = await supabase.from("boletins_ocorrencia").select("*", { count: "exact", head: true });
-      return count || 0;
-    },
-  });
 
   const { data: audienciasCount } = useQuery({
     queryKey: ["dash-audiencias"], queryFn: async () => {
@@ -88,7 +82,7 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
   const stats: { label: string; value: number; icon: any; onClick?: string }[] = [];
   if (isJudicial || isAdmin) stats.push({ label: "Processos", value: processosCount ?? 0, icon: FileText, onClick: "processos" });
   if (isMagistrado || isAdmin) stats.push({ label: "Conclusos p/ Decisão", value: processosConclusos ?? 0, icon: Gavel, onClick: "magistrado" });
-  stats.push({ label: "Boletins de Ocorrência", value: bosCount ?? 0, icon: Shield, onClick: "delegacia" });
+  
   if (isJudicial || isAdmin) stats.push({ label: "Audiências Agendadas", value: audienciasCount ?? 0, icon: Clock, onClick: "audiencias" });
   if (isJudicial || isAdmin) stats.push({ label: "Intimações Pendentes", value: intimacoesPendentes ?? 0, icon: Bell, onClick: "cartorio" });
   stats.push({ label: "Concursos Abertos", value: concursosAbertos ?? 0, icon: GraduationCap, onClick: "concursos" });
@@ -98,7 +92,7 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
   if (isJudicial) quickActions.push({ label: "Processos", icon: FileText, section: "processos", desc: "Gerenciar processos judiciais" });
   if (isMagistrado || isAdmin) quickActions.push({ label: "Portal Magistrado", icon: Gavel, section: "magistrado", desc: "Despachos, sentenças e mandados" });
   if (isMP || isAdmin) quickActions.push({ label: "Ministério Público", icon: Scale, section: "mp", desc: "Denúncias e pareceres" });
-  if (isPolice || isAdmin) quickActions.push({ label: "Delegacia Virtual", icon: Shield, section: "delegacia", desc: "B.O.s e inquéritos" });
+  
   if (isAdvogado || isAdmin) quickActions.push({ label: "Portal OAB", icon: Briefcase, section: "oab", desc: "Inscrição e carteira digital" });
   if (isJudicial || isAdmin) quickActions.push({ label: "Cartório", icon: Stamp, section: "cartorio", desc: "Protocolos e intimações" });
   if (isJudicial || isAdmin) quickActions.push({ label: "Audiências", icon: Clock, section: "audiencias", desc: "Agenda de audiências" });

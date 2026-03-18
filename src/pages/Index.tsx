@@ -4,7 +4,7 @@ import LoginPage from "@/components/LoginPage";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardHome from "@/components/sections/DashboardHome";
 import ProcessosSection from "@/components/sections/ProcessosSection";
-import DelegaciaSection from "@/components/sections/DelegaciaSection";
+
 import ConsultaPublicaSection from "@/components/sections/ConsultaPublicaSection";
 import MagistradoSection from "@/components/sections/MagistradoSection";
 import MPSection from "@/components/sections/MPSection";
@@ -39,7 +39,7 @@ const Index = () => {
       case "dashboard": return <DashboardHome onNavigate={setActiveSection} />;
       case "meu-perfil": return <MeuPerfilSection />;
       case "processos": return <ProcessosSection />;
-      case "delegacia": return <DelegaciaSection />;
+      
       case "consulta": return <ConsultaPublicaSection />;
       case "magistrado": return <MagistradoSection />;
       case "mp": return <MPSection />;
