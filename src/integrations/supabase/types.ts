@@ -1613,6 +1613,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      sortear_magistrado: { Args: never; Returns: string }
     }
     Enums: {
       classe_processual:
