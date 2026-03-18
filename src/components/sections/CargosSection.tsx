@@ -124,8 +124,8 @@ const ROLE_HIERARCHY = [
     icon: UserCheck,
     color: "text-muted-foreground",
     bgColor: "bg-muted",
-    description: "Registro de B.O., consulta pública de processos, acompanhamento e notificações.",
-    permissions: ["bo_online", "consulta_publica", "acompanhamento", "notificacoes"],
+    description: "Consulta pública de processos, acompanhamento e notificações.",
+    permissions: ["consulta_publica", "acompanhamento", "notificacoes"],
   },
 ];
 
