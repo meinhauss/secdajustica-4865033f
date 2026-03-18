@@ -271,7 +271,7 @@ function TabInicio({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
             {[
             { date: "17/03/2026", title: "Sistema Judiciário Eletrônico entra em operação na Comarca" },
             { date: "15/03/2026", title: "Novas varas judiciais são criadas para atender demanda crescente" },
-            { date: "12/03/2026", title: "Delegacia Virtual permite registro de B.O. online 24 horas" }].
+            { date: "12/03/2026", title: "Portal de Consulta Pública amplia acesso à informação processual" }].
             map((news) =>
             <div key={news.title} className="bg-card rounded-lg p-4 border border-border flex items-center gap-4">
                 <span className="text-xs text-muted-foreground font-mono whitespace-nowrap">{news.date}</span>
