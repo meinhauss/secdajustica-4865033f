@@ -536,6 +536,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
           <TabsTrigger value="documentos" className="rounded-lg text-xs"><File className="h-3 w-3 mr-1" /> Documentos</TabsTrigger>
           <TabsTrigger value="prazos" className="rounded-lg text-xs"><Timer className="h-3 w-3 mr-1" /> Prazos</TabsTrigger>
           <TabsTrigger value="audiencias" className="rounded-lg text-xs"><Calendar className="h-3 w-3 mr-1" /> Audiências</TabsTrigger>
+          {(isOficialJustica || isJudicial) && <TabsTrigger value="certidoes" className="rounded-lg text-xs"><ScrollText className="h-3 w-3 mr-1" /> Certidões</TabsTrigger>}
         </TabsList>
 
         {/* TIMELINE */}
