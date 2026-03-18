@@ -540,7 +540,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
 
         {/* TIMELINE */}
         <TabsContent value="timeline" className="mt-4 space-y-4">
-          {(isJudicial || isMP) && <AddMovimentacao onAdd={(tipo, desc) => addMovimentacao.mutate({ tipo, descricao: desc })} />}
+          {canAddMovimentacao && <AddMovimentacao roles={roles} onAdd={(tipo, desc) => addMovimentacao.mutate({ tipo, descricao: desc })} />}
           {!movimentacoes?.length ? (
             <p className="text-center py-8 text-sm text-muted-foreground">Nenhuma movimentação registrada.</p>
           ) : (
