@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 const JUDICIAL_ROLES = ["admin", "magistrado", "presidente_tribunal", "desembargador", "ministerio_publico", "advogado"];
-const POLICE_ROLES = ["admin", "delegado", "investigador"];
+
 
 interface DashboardHomeProps {
   onNavigate?: (section: string) => void;
