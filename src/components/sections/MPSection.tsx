@@ -53,7 +53,7 @@ export default function MPSection() {
   const [view, setView] = useState<"list" | "inquerito-detail" | "processo-detail">("list");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const isMP = roles.some((r) => ["admin", "ministerio_publico"].includes(r));
+  const isMP = roles.some((r) => ["admin", "ministerio_publico", "procurador_geral"].includes(r));
 
   if (view === "inquerito-detail" && selectedId) {
     return <InqueritoMPDetail ipId={selectedId} onBack={() => { setView("list"); setSelectedId(null); }} />;

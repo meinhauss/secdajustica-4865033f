@@ -46,6 +46,7 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
       desembargador: "Desembargador(a)",
       magistrado: "Magistrado(a)",
       ministerio_publico: "Promotor(a)",
+      procurador_geral: "Procurador(a)-Geral",
       delegado: "Delegado(a)",
       investigador: "Investigador(a)",
       oficial_justica: "Oficial de Justiça",
