@@ -1394,7 +1394,7 @@ function AddMovimentacao({ roles, onAdd }: { roles: string[]; onAdd: (tipo: stri
   const isMP = roles.includes("ministerio_publico");
   const isAdvogado = roles.includes("advogado");
   const isOficialJustica = roles.includes("oficial_justica");
-  const isDelegado = roles.includes("delegado");
+  const isPolicia = roles.some(r => ["policia_civil", "policia_militar", "policia_federal"].includes(r));
 
   const tiposPermitidos: { value: string; label: string }[] = [];
 
