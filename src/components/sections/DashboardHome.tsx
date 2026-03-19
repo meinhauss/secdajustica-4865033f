@@ -102,7 +102,7 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
         .order("created_at", { ascending: false })
         .limit(5);
       return data || [];
-    }, enabled: (isJudicial || isAdmin) && !!profile?.user_id,
+    }, enabled: !!profile?.user_id,
   });
 
   const nav = (s: string) => onNavigate?.(s);
