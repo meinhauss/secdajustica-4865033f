@@ -384,7 +384,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     (p: any) => p.advogado_id === user?.id && p.status === "ativa"
   );
 
-  const canAddMovimentacao = isJudicial || isMP || isOficialJustica || isDelegado || (isAdvogado && advogadoTemProcuracao);
+  const canAddMovimentacao = isJudicial || isMP || isOficialJustica || isPolicia || (isAdvogado && advogadoTemProcuracao);
 
   const [showProcuracao, setShowProcuracao] = useState(false);
   const [procForm, setProcForm] = useState({ parte: "autor", documento_url: "" });
