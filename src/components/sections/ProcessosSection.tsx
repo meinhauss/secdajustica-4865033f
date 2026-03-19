@@ -597,6 +597,62 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     },
   });
 
+  // Interessados no processo (opt-in)
+  const { data: interessadosData } = useQuery({
+    queryKey: ["interessados", processoId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("interessados_processo").select("*").eq("processo_id", processoId).order("created_at", { ascending: false });
+      if (error) throw error;
+      // Fetch profiles for names
+      const userIds = [...new Set((data || []).map(i => i.user_id))];
+      let profilesMap: Record<string, string> = {};
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase.from("profiles").select("user_id, nome_completo").in("user_id", userIds);
+        if (profiles) profiles.forEach(p => { profilesMap[p.user_id] = p.nome_completo; });
+      }
+      return (data || []).map(i => ({ ...i, nome: profilesMap[i.user_id] || "Usuário" }));
+    },
+  });
+
+  const ORGAOS_INTERESSADOS = [
+    { role: "ministerio_publico", label: "Ministério Público" },
+    { role: "delegado", label: "Polícia Civil" },
+    { role: "investigador", label: "Polícia Civil" },
+  ];
+
+  const canManifestInteresse = roles.some(r => ["ministerio_publico", "delegado", "investigador"].includes(r));
+  const userOrgao = roles.includes("ministerio_publico") ? "Ministério Público" : roles.includes("delegado") || roles.includes("investigador") ? "Polícia Civil" : null;
+  const jaInteressado = interessadosData?.some(i => i.user_id === user?.id);
+
+  const manifestarInteresse = useMutation({
+    mutationFn: async () => {
+      if (!userOrgao) throw new Error("Seu cargo não permite manifestar-se como interessado.");
+      const qualificacao = roles.includes("ministerio_publico") && processo?.classe !== "criminal" ? "custos legis" : "interessado";
+      const { error } = await supabase.from("interessados_processo").insert({
+        processo_id: processoId, user_id: user?.id, orgao: userOrgao, qualificacao,
+      } as any);
+      if (error) throw error;
+      await addMovimentacao.mutateAsync({ tipo: "interessado", descricao: `${userOrgao} manifestou-se como interessado no processo (${qualificacao}).` });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["interessados", processoId] });
+      toast.success("Manifestação de interesse registrada!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  const retirarInteresse = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("interessados_processo").delete().eq("processo_id", processoId).eq("user_id", user?.id);
+      if (error) throw error;
+      await addMovimentacao.mutateAsync({ tipo: "interessado", descricao: `${userOrgao} retirou sua manifestação de interesse no processo.` });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["interessados", processoId] });
+      toast.success("Manifestação de interesse retirada.");
+    },
+  });
+
   // Sentenças do processo
   const { data: sentencasProc } = useQuery({
     queryKey: ["sentencas-proc", processoId],
@@ -673,14 +729,6 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   if (!processo) return <div className="text-center py-12 text-muted-foreground">Carregando...</div>;
 
   const cfg = STATUS_CONFIG[processo.status] || STATUS_CONFIG.novo;
-
-  // Determine interested parties (MP as interessado in non-criminal cases, etc.)
-  const interessados: string[] = [];
-  if (processo.classe !== "criminal" && isMP) {
-    // MP can appear as interested party in non-criminal cases
-  }
-  // Find MP pareceres to show as interested
-  const mpInteressado = processo.classe !== "criminal";
 
   // Advogados from procuracoes
   const advAutor = procuracoes?.filter((p: any) => p.status === "ativa" && p.parte === "autor") || [];
@@ -778,19 +826,31 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
 
           {/* Interessados */}
           <div className="border-t border-border pt-4">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Interessados</h3>
-            <div className="flex flex-wrap gap-2">
-              {mpInteressado && (
-                <span className="text-xs px-3 py-1.5 rounded-lg bg-institutional/10 text-institutional font-medium flex items-center gap-1.5">
-                  <Scale className="h-3.5 w-3.5" /> Ministério Público (custos legis)
-                </span>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Interessados</h3>
+              {canManifestInteresse && !jaInteressado && (
+                <Button size="sm" variant="outline" className="h-7 text-xs rounded-lg" onClick={() => manifestarInteresse.mutate()}>
+                  <Scale className="h-3.5 w-3.5 mr-1" /> Manifestar-se como Interessado
+                </Button>
               )}
+              {canManifestInteresse && jaInteressado && (
+                <Button size="sm" variant="ghost" className="h-7 text-xs rounded-lg text-destructive" onClick={() => retirarInteresse.mutate()}>
+                  <X className="h-3.5 w-3.5 mr-1" /> Retirar Interesse
+                </Button>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2">
               {processo.classe === "criminal" && (
                 <span className="text-xs px-3 py-1.5 rounded-lg bg-institutional/10 text-institutional font-medium flex items-center gap-1.5">
                   <Scale className="h-3.5 w-3.5" /> Ministério Público (parte)
                 </span>
               )}
-              {!mpInteressado && processo.classe !== "criminal" && (
+              {interessadosData && interessadosData.length > 0 && interessadosData.map((int: any) => (
+                <span key={int.id} className="text-xs px-3 py-1.5 rounded-lg bg-institutional/10 text-institutional font-medium flex items-center gap-1.5">
+                  <Scale className="h-3.5 w-3.5" /> {int.orgao} — {int.nome} ({int.qualificacao})
+                </span>
+              ))}
+              {(!interessadosData || interessadosData.length === 0) && processo.classe !== "criminal" && (
                 <p className="text-xs text-muted-foreground italic">Nenhum interessado registrado.</p>
               )}
             </div>
