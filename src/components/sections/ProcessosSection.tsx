@@ -770,30 +770,8 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
           )}
         </TabsContent>
 
-        {/* DOCUMENTOS */}
-        <TabsContent value="documentos" className="mt-4 space-y-4">
-          <UploadDoc onUpload={(link, nome, tipo) => uploadDoc.mutate({ link, nome, tipo })} isPending={uploadDoc.isPending} />
-          {!documentos?.length ? (
-            <p className="text-center py-8 text-sm text-muted-foreground">Nenhum documento anexado.</p>
-          ) : (
-            <div className="space-y-2">
-              {documentos.map((d: any) => (
-                <div key={d.id} className="bg-card rounded-xl p-3 border border-border flex items-center gap-3">
-                  <File className="h-5 w-5 text-institutional flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{d.nome}</p>
-                    <p className="text-[10px] text-muted-foreground">{d.tipo} — {format(new Date(d.created_at), "dd/MM/yyyy", { locale: ptBR })}</p>
-                  </div>
-                  {d.arquivo_url && (
-                    <a href={d.arquivo_url} target="_blank" rel="noopener noreferrer">
-                      <Button variant="ghost" size="sm" className="rounded-lg"><Eye className="h-4 w-4" /></Button>
-                    </a>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </TabsContent>
+
+
 
         {/* PRAZOS */}
         <TabsContent value="prazos" className="mt-4 space-y-4">
