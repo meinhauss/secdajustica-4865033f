@@ -91,7 +91,7 @@ export default function LoginPage() {
       <header className="bg-institutional border-b border-sidebar-border">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <img src={logoTjsp} alt="SJC-SP" className="h-14 rounded-lg drop-shadow" />
+            <img src={logoSjc} alt="SJC-SP" className="h-14 rounded-lg drop-shadow" />
             <div>
               <h1 className="font-display text-xl lg:text-2xl font-bold text-sidebar-foreground leading-tight">
                 Secretaria da Justiça e Cidadania
