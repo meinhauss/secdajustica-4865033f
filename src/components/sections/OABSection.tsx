@@ -597,16 +597,18 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
                               <p className="text-sm font-medium text-foreground">{format(new Date(insc.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
                             </div>
                           </div>
-                          {insc.justificativa && (
-                            <div className="bg-secondary/30 rounded-lg p-3">
-                              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Justificativa / Experiência</p>
-                              <p className="text-sm text-foreground whitespace-pre-wrap">{insc.justificativa}</p>
+                          {insc.motivo_indeferimento && (
+                            <div className="bg-accent/10 rounded-lg p-3 border border-accent/30">
+                              <p className="text-[10px] text-accent-foreground uppercase tracking-wider font-semibold mb-1">⚠️ Complementação Solicitada</p>
+                              <p className="text-sm text-foreground">{insc.motivo_indeferimento}</p>
                             </div>
                           )}
-                          {insc.motivo_indeferimento && (
-                            <div className="bg-destructive/5 rounded-lg p-3 border border-destructive/20">
-                              <p className="text-[10px] text-destructive uppercase tracking-wider mb-1">Motivo da Decisão Anterior</p>
-                              <p className="text-sm text-foreground">{insc.motivo_indeferimento}</p>
+                          {insc.justificativa && (
+                            <div className={`rounded-lg p-3 border ${insc.motivo_indeferimento ? "bg-institutional/5 border-institutional/30" : "bg-secondary/30 border-transparent"}`}>
+                              <p className={`text-[10px] uppercase tracking-wider font-semibold mb-1 ${insc.motivo_indeferimento ? "text-institutional" : "text-muted-foreground"}`}>
+                                {insc.motivo_indeferimento ? "📩 Resposta do Solicitante" : "Justificativa / Experiência"}
+                              </p>
+                              <p className="text-sm text-foreground whitespace-pre-wrap">{insc.justificativa}</p>
                             </div>
                           )}
 
