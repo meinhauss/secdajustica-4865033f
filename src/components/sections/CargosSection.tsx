@@ -193,6 +193,7 @@ const PERMISSION_LABELS: Record<string, string> = {
   
   acompanhamento: "Acompanhamento",
   notificacoes: "Notificações",
+  inscricao_oab: "Inscrição na OAB",
 };
 
 export default function CargosSection() {
