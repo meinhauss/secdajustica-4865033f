@@ -50,8 +50,6 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
       magistrado: "Magistrado(a)",
       ministerio_publico: "Promotor(a)",
       procurador_geral: "Procurador(a)-Geral",
-      delegado: "Delegado(a)",
-      investigador: "Investigador(a)",
       oficial_justica: "Oficial de Justiça",
       presidente_oab: "Presidente da OAB",
       advogado: "Advogado(a)",
