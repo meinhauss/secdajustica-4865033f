@@ -597,6 +597,62 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     },
   });
 
+  // Interessados no processo (opt-in)
+  const { data: interessadosData } = useQuery({
+    queryKey: ["interessados", processoId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("interessados_processo").select("*").eq("processo_id", processoId).order("created_at", { ascending: false });
+      if (error) throw error;
+      // Fetch profiles for names
+      const userIds = [...new Set((data || []).map(i => i.user_id))];
+      let profilesMap: Record<string, string> = {};
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase.from("profiles").select("user_id, nome_completo").in("user_id", userIds);
+        if (profiles) profiles.forEach(p => { profilesMap[p.user_id] = p.nome_completo; });
+      }
+      return (data || []).map(i => ({ ...i, nome: profilesMap[i.user_id] || "Usuário" }));
+    },
+  });
+
+  const ORGAOS_INTERESSADOS = [
+    { role: "ministerio_publico", label: "Ministério Público" },
+    { role: "delegado", label: "Polícia Civil" },
+    { role: "investigador", label: "Polícia Civil" },
+  ];
+
+  const canManifestInteresse = roles.some(r => ["ministerio_publico", "delegado", "investigador"].includes(r));
+  const userOrgao = roles.includes("ministerio_publico") ? "Ministério Público" : roles.includes("delegado") || roles.includes("investigador") ? "Polícia Civil" : null;
+  const jaInteressado = interessadosData?.some(i => i.user_id === user?.id);
+
+  const manifestarInteresse = useMutation({
+    mutationFn: async () => {
+      if (!userOrgao) throw new Error("Seu cargo não permite manifestar-se como interessado.");
+      const qualificacao = roles.includes("ministerio_publico") && processo?.classe !== "criminal" ? "custos legis" : "interessado";
+      const { error } = await supabase.from("interessados_processo").insert({
+        processo_id: processoId, user_id: user?.id, orgao: userOrgao, qualificacao,
+      } as any);
+      if (error) throw error;
+      await addMovimentacao.mutateAsync({ tipo: "interessado", descricao: `${userOrgao} manifestou-se como interessado no processo (${qualificacao}).` });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["interessados", processoId] });
+      toast.success("Manifestação de interesse registrada!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  const retirarInteresse = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("interessados_processo").delete().eq("processo_id", processoId).eq("user_id", user?.id);
+      if (error) throw error;
+      await addMovimentacao.mutateAsync({ tipo: "interessado", descricao: `${userOrgao} retirou sua manifestação de interesse no processo.` });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["interessados", processoId] });
+      toast.success("Manifestação de interesse retirada.");
+    },
+  });
+
   // Sentenças do processo
   const { data: sentencasProc } = useQuery({
     queryKey: ["sentencas-proc", processoId],
