@@ -213,7 +213,7 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle className="font-display">Cadastrar Novo Processo</DialogTitle></DialogHeader>
             <form onSubmit={(e) => { e.preventDefault(); createProcesso.mutate(); }} className="space-y-4 mt-4">
-              <Select value={form.classe} onValueChange={(v) => setForm({ ...form, classe: v })}>
+              <Select value={form.classe} onValueChange={(v) => setForm({ ...form, classe: v, vara: CLASSE_VARA_MAP[v] || "" })}>
                 <SelectTrigger className="rounded-xl"><SelectValue placeholder="Classe Processual" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="criminal">Criminal</SelectItem>
