@@ -370,7 +370,9 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
 
   // Magistrado/desembargador can only act on their assigned processes
   const isAssignedJudge = (isMagistradoOrDesembargador) && processo?.juiz_id === user?.id;
-  const isJudicial = isAdmin || isPresidenteTribunal || isAssignedJudge;
+  // Juízes/desembargadores NÃO podem agir na aba Processos — só via Portal do Juiz
+  const isJudicial = isAdmin || isPresidenteTribunal;
+  const isJudicialReadOnly = isAdmin || isPresidenteTribunal || isAssignedJudge;
 
   // Procuracoes
   const { data: procuracoes } = useQuery({
@@ -1034,7 +1036,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
           
           <TabsTrigger value="prazos" className="rounded-lg text-xs"><Timer className="h-3 w-3 mr-1" /> Prazos</TabsTrigger>
           <TabsTrigger value="audiencias" className="rounded-lg text-xs"><Calendar className="h-3 w-3 mr-1" /> Audiências</TabsTrigger>
-          {(isOficialJustica || isJudicial) && <TabsTrigger value="certidoes" className="rounded-lg text-xs"><ScrollText className="h-3 w-3 mr-1" /> Certidões</TabsTrigger>}
+          {(isOficialJustica || isJudicialReadOnly) && <TabsTrigger value="certidoes" className="rounded-lg text-xs"><ScrollText className="h-3 w-3 mr-1" /> Certidões</TabsTrigger>}
           {processo.status === "sentenciado" && <TabsTrigger value="apelacoes" className="rounded-lg text-xs"><Scale className="h-3 w-3 mr-1" /> Apelações</TabsTrigger>}
         </TabsList>
 
@@ -1296,7 +1298,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         </TabsContent>
 
         {/* CERTIDÕES */}
-        {(isOficialJustica || isJudicial) && (
+        {(isOficialJustica || isJudicialReadOnly) && (
           <TabsContent value="certidoes" className="mt-4 space-y-4">
             {isOficialJustica && <AddCertidao onAdd={(cert) => createCertidao.mutate(cert)} isPending={createCertidao.isPending} />}
             {!certidoes?.length ? (
@@ -1442,7 +1444,7 @@ function AddMovimentacao({ roles, onAdd }: { roles: string[]; onAdd: (tipo: stri
   const [novoAnexoUrl, setNovoAnexoUrl] = useState("");
   const [showInstrucoes, setShowInstrucoes] = useState(false);
 
-  const isJudicial = roles.some((r) => ["admin", "magistrado", "presidente_tribunal", "desembargador"].includes(r));
+  const isJudicial = roles.some((r) => ["admin", "presidente_tribunal"].includes(r));
   const isMP = roles.includes("ministerio_publico");
   const isAdvogado = roles.includes("advogado");
   const isOficialJustica = roles.includes("oficial_justica");
