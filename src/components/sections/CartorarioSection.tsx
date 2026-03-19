@@ -512,19 +512,37 @@ export default function CartorarioSection() {
                 </div>
               </div>
 
+              {showDetalhes.documento_url && (
+                <div className="col-span-2">
+                  <p className="text-xs text-muted-foreground">Documento Anexo</p>
+                  <a href={showDetalhes.documento_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline flex items-center gap-1">
+                    <Link className="h-3 w-3" /> {showDetalhes.documento_url}
+                  </a>
+                </div>
+              )}
+
               {isCartorario && showDetalhes.status !== "emitido" && showDetalhes.status !== "recusado" && (
-                <div className="flex gap-2 pt-2 border-t border-border">
-                  {showDetalhes.status === "solicitado" && (
-                    <Button size="sm" variant="outline" onClick={() => handleUpdateStatus(showDetalhes.id, "em_analise")}>
-                      <Eye className="h-3 w-3 mr-1" /> Analisar
+                <div className="col-span-2 space-y-3 pt-2 border-t border-border">
+                  <div>
+                    <Label className="text-xs">Link do Documento Emitido</Label>
+                    <div className="relative">
+                      <Link className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input value={emitirUrl} onChange={(e) => setEmitirUrl(e.target.value)} placeholder="https://..." className="pl-10" />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    {showDetalhes.status === "solicitado" && (
+                      <Button size="sm" variant="outline" onClick={() => handleUpdateStatus(showDetalhes.id, "em_analise")}>
+                        <Eye className="h-3 w-3 mr-1" /> Analisar
+                      </Button>
+                    )}
+                    <Button size="sm" onClick={() => handleUpdateStatus(showDetalhes.id, "emitido", emitirUrl)}>
+                      <CheckCircle className="h-3 w-3 mr-1" /> Emitir Documento
                     </Button>
-                  )}
-                  <Button size="sm" onClick={() => handleUpdateStatus(showDetalhes.id, "emitido")}>
-                    <CheckCircle className="h-3 w-3 mr-1" /> Emitir Documento
-                  </Button>
-                  <Button size="sm" variant="destructive" onClick={() => handleUpdateStatus(showDetalhes.id, "recusado")}>
-                    Recusar
-                  </Button>
+                    <Button size="sm" variant="destructive" onClick={() => handleUpdateStatus(showDetalhes.id, "recusado")}>
+                      Recusar
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
