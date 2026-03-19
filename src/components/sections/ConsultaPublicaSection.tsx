@@ -72,9 +72,7 @@ export default function ConsultaPublicaSection() {
                 </span>
               </div>
               <p className="text-sm font-medium text-foreground">{p.assunto}</p>
-              <p className="text-xs text-muted-foreground">
-                {p.autor_nome} × {p.reu_nome} — {p.vara}
-              </p>
+              <p className="text-xs text-muted-foreground">{p.vara}</p>
             </motion.div>
           ))}
         </div>
