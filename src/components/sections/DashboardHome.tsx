@@ -1,9 +1,8 @@
 import { motion } from "framer-motion";
 import {
   FileText, Scale, Users, Clock, CheckCircle, Gavel, Send,
-  Briefcase, GraduationCap, Stamp, BarChart3, Bell, ArrowRight, Search
+  Briefcase, GraduationCap, Stamp, BarChart3, Bell, ArrowRight
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -148,22 +147,6 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
         <p className="text-muted-foreground text-sm mt-1">
           Painel de controle — Secretaria da Justiça e Cidadania — SP
         </p>
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.15 }}
-          className="mt-4"
-        >
-          <Button
-            size="lg"
-            onClick={() => nav("consulta")}
-            className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold text-base px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all gap-3"
-          >
-            <Search className="h-5 w-5" />
-            Consultar Credencial
-            <ArrowRight className="h-5 w-5" />
-          </Button>
-        </motion.div>
       </div>
 
       {/* Stats Grid */}
@@ -184,24 +167,6 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
             <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider leading-tight">
               {stat.label}
             </p>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-        {quickActions.map((action, i) => (
-          <motion.div
-            key={action.section}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.04 }}
-            onClick={() => nav(action.section)}
-            className="bg-card rounded-xl p-4 shadow-institutional border border-border cursor-pointer hover:border-accent transition-colors flex flex-col gap-1"
-          >
-            <action.icon className="h-5 w-5 text-accent mb-1" />
-            <span className="text-sm font-semibold text-foreground">{action.label}</span>
-            <span className="text-[10px] text-muted-foreground">{action.desc}</span>
           </motion.div>
         ))}
       </div>
