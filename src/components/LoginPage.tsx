@@ -295,25 +295,25 @@ function TabInicio({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
 function TabInstitucional() {
   const organs = [
   {
-    icon: Gavel,
+    logo: logoTjsp,
     name: "Tribunal de Justiça",
     desc: "Órgão máximo do Poder Judiciário estadual, responsável pela administração da justiça e julgamento de recursos em segunda instância.",
     competencias: ["Julgar recursos cíveis e criminais", "Administrar a justiça estadual", "Nomear magistrados", "Supervisionar comarcas"]
   },
   {
-    icon: Scale,
+    logo: logoMpsp,
     name: "Ministério Público",
     desc: "Instituição essencial à função jurisdicional do Estado, responsável pela defesa da ordem jurídica e dos interesses sociais.",
     competencias: ["Oferecer denúncias criminais", "Fiscalizar o cumprimento da lei", "Defender interesses coletivos", "Expedir recomendações"]
   },
   {
-    icon: Shield,
+    logo: govLogo,
     name: "Polícia Civil",
     desc: "Órgão responsável pela investigação criminal, apuração de infrações penais e manutenção da ordem pública.",
     competencias: ["Investigar crimes", "Registrar Boletins de Ocorrência", "Conduzir inquéritos policiais", "Remeter inquéritos ao MP"]
   },
   {
-    icon: Building2,
+    logo: logoOabsp,
     name: "Ordem dos Advogados (OAB)",
     desc: "Entidade responsável pela regulamentação da advocacia, defesa das prerrogativas profissionais e fiscalização ética.",
     competencias: ["Cadastrar advogados", "Emitir carteiras profissionais", "Fiscalizar a advocacia", "Definir tabela de honorários"]
