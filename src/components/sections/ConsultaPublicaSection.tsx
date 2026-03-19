@@ -139,6 +139,20 @@ export default function ConsultaPublicaSection() {
         });
       }
 
+      // Fetch OAB cards for users missing oab_numero
+      const missingOab = userIds.filter((uid) => !userMap[uid].oab_numero);
+      if (missingOab.length) {
+        const { data: oabCards } = await supabase
+          .from("carteiras_oab")
+          .select("user_id, numero_oab")
+          .in("user_id", missingOab);
+        oabCards?.forEach((c) => {
+          if (c.numero_oab) {
+            userMap[c.user_id].oab_numero = c.numero_oab;
+          }
+        });
+      }
+
       const { data: roles } = await supabase
         .from("user_roles")
         .select("user_id, role")
