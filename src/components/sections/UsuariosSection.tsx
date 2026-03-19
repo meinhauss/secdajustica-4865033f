@@ -2,17 +2,12 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Users, Pencil, X, Save, Plus, Trash2, Search } from "lucide-react";
+import { Users, Pencil, Save, Trash2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Constants } from "@/integrations/supabase/types";
-
-const ALL_ROLES = Constants.public.Enums.user_role;
-
 const ROLE_LABELS: Record<string, string> = {
   admin: "Administrador",
   magistrado: "Magistrado",
@@ -35,8 +30,6 @@ export default function UsuariosSection() {
   const [search, setSearch] = useState("");
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ nome_completo: "", discord: "", id_personagem: "", telefone_ingame: "" });
-  const [addRoleUserId, setAddRoleUserId] = useState<string | null>(null);
-  const [newRole, setNewRole] = useState("");
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
   const [deleteUserName, setDeleteUserName] = useState("");
 
@@ -71,33 +64,6 @@ export default function UsuariosSection() {
     onError: (err: any) => toast.error(err.message),
   });
 
-  const addRole = useMutation({
-    mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
-      const existing = allRoles?.find((r) => r.user_id === userId && r.role === role);
-      if (existing) throw new Error("Usuário já possui este cargo.");
-      const { error } = await supabase.from("user_roles").insert({ user_id: userId, role: role as any });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["all-roles"] });
-      setAddRoleUserId(null);
-      setNewRole("");
-      toast.success("Cargo adicionado!");
-    },
-    onError: (err: any) => toast.error(err.message),
-  });
-
-  const removeRole = useMutation({
-    mutationFn: async (roleId: string) => {
-      const { error } = await supabase.from("user_roles").delete().eq("id", roleId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["all-roles"] });
-      toast.success("Cargo removido!");
-    },
-    onError: (err: any) => toast.error(err.message),
-  });
 
   const deleteUser = useMutation({
     mutationFn: async (userId: string) => {
@@ -180,20 +146,16 @@ export default function UsuariosSection() {
                     </Button>
                   </div>
                 </div>
-                {/* Roles */}
+                {/* Roles (read-only) */}
                 <div className="flex items-center gap-2 flex-wrap mt-3 pt-3 border-t border-border">
                   {userRoles.map((r) => (
-                    <span key={r.id} className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-gold/10 text-gold-dark inline-flex items-center gap-1">
+                    <span key={r.id} className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-gold/10 text-gold-dark">
                       {ROLE_LABELS[r.role] || r.role}
-                      <button onClick={() => removeRole.mutate(r.id)} className="hover:text-destructive ml-0.5" title="Remover cargo">
-                        <X className="h-3 w-3" />
-                      </button>
                     </span>
                   ))}
-                  <Button variant="ghost" size="sm" className="h-6 px-2 text-xs rounded-lg text-institutional"
-                    onClick={() => { setAddRoleUserId(p.user_id); setNewRole(""); }}>
-                    <Plus className="h-3 w-3 mr-0.5" /> Cargo
-                  </Button>
+                  {userRoles.length === 0 && (
+                    <span className="text-[10px] text-muted-foreground italic">Sem cargos atribuídos</span>
+                  )}
                 </div>
               </div>
             );
@@ -233,27 +195,6 @@ export default function UsuariosSection() {
         </DialogContent>
       </Dialog>
 
-      {/* Add Role Dialog */}
-      <Dialog open={!!addRoleUserId} onOpenChange={(open) => !open && setAddRoleUserId(null)}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader><DialogTitle className="font-display">Adicionar Cargo</DialogTitle></DialogHeader>
-          <div className="space-y-4 mt-4">
-            <Select value={newRole} onValueChange={setNewRole}>
-              <SelectTrigger className="rounded-xl"><SelectValue placeholder="Selecione um cargo" /></SelectTrigger>
-              <SelectContent>
-                {ALL_ROLES.map((r) => (
-                  <SelectItem key={r} value={r}>{ROLE_LABELS[r] || r}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button disabled={!newRole || addRole.isPending}
-              onClick={() => addRoleUserId && addRole.mutate({ userId: addRoleUserId, role: newRole })}
-              className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
-              <Plus className="h-4 w-4 mr-1" /> {addRole.isPending ? "Adicionando..." : "Adicionar Cargo"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Delete User Confirmation */}
       <AlertDialog open={!!deleteUserId} onOpenChange={(open) => !open && setDeleteUserId(null)}>
