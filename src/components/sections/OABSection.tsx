@@ -94,6 +94,7 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
   const [statusDialog, setStatusDialog] = useState<{ open: boolean; carteira: any }>({ open: false, carteira: null });
   const [newStatus, setNewStatus] = useState("");
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; carteira: any }>({ open: false, carteira: null });
+  const [complementacaoTexto, setComplementacaoTexto] = useState("");
 
   // Data
   const { data: inscricoes } = useQuery({
