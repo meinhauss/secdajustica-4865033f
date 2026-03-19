@@ -1780,6 +1780,7 @@ export type Database = {
           _advogado_autor_id: string
           _advogado_reu_id: string
           _juiz_id: string
+          _processo_id: string
           _sigilo: string
           _user_id: string
         }
