@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Search, IdCard } from "lucide-react";
 import { motion } from "framer-motion";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const ROLE_LABELS: Record<string, string> = {
   admin: "Administrador",
@@ -92,28 +93,38 @@ export default function ConsultaPublicaSection() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: i * 0.03 }}
-              className="bg-card rounded-xl p-4 border border-border"
+              className="bg-card rounded-xl p-4 border border-border flex gap-4 items-start"
             >
-              <div className="flex items-center gap-2 flex-wrap mb-1">
-                {p.id_personagem && (
-                  <span className="font-mono text-sm font-semibold text-institutional">ID: {p.id_personagem}</span>
-                )}
-                {p.oab_numero && (
-                  <span className="font-mono text-sm font-semibold text-institutional">{p.oab_numero}</span>
-                )}
-                {p.roles
-                  .filter((r: string) => r !== "cidadao")
-                  .map((r: string) => (
-                    <span
-                      key={r}
-                      className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground"
-                    >
-                      {ROLE_LABELS[r] || r}
-                    </span>
-                  ))}
+              <Avatar className="h-16 w-16 border border-border shrink-0">
+                {p.avatar_url ? (
+                  <AvatarImage src={p.avatar_url} alt={p.nome_completo} className="object-cover" />
+                ) : null}
+                <AvatarFallback className="text-lg bg-secondary text-secondary-foreground">
+                  {p.nome_completo?.split(" ").slice(0, 2).map((n: string) => n[0]).join("").toUpperCase() || "?"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  {p.id_personagem && (
+                    <span className="font-mono text-sm font-semibold text-institutional">ID: {p.id_personagem}</span>
+                  )}
+                  {p.oab_numero && (
+                    <span className="font-mono text-sm font-semibold text-institutional">{p.oab_numero}</span>
+                  )}
+                  {p.roles
+                    .filter((r: string) => r !== "cidadao")
+                    .map((r: string) => (
+                      <span
+                        key={r}
+                        className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground"
+                      >
+                        {ROLE_LABELS[r] || r}
+                      </span>
+                    ))}
+                </div>
+                <p className="text-sm font-medium text-foreground">{p.nome_completo}</p>
+                {p.cargo && <p className="text-xs text-muted-foreground">{p.cargo}</p>}
               </div>
-              <p className="text-sm font-medium text-foreground">{p.nome_completo}</p>
-              {p.cargo && <p className="text-xs text-muted-foreground">{p.cargo}</p>}
             </motion.div>
           ))}
         </div>
