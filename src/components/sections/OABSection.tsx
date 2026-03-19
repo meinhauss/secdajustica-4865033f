@@ -144,9 +144,18 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
 
   // ── INSCRIÇÃO ──
   const [inscForm, setInscForm] = useState({ especialidade: "Geral", justificativa: "" });
+
+  // Check if user already has an active inscription
+  const minhaInscricao = inscricoes?.find((i: any) => i.user_id === user?.id && ["pendente", "complementacao"].includes(i.status));
+  const jaAprovada = inscricoes?.some((i: any) => i.user_id === user?.id && i.status === "aprovada");
+  const podeInscrever = !minhaInscricao && !jaAprovada;
+
   const solicitarInscricao = useMutation({
     mutationFn: async () => {
       if (!profile) throw new Error("Perfil não encontrado.");
+      // Double-check no duplicate
+      const { data: existing } = await supabase.from("inscricoes_oab").select("id, status").eq("user_id", user!.id).in("status", ["pendente", "complementacao", "aprovada"]);
+      if (existing && existing.length > 0) throw new Error("Você já possui uma inscrição em andamento ou aprovada.");
       const { error } = await supabase.from("inscricoes_oab").insert({
         user_id: user!.id,
         nome_completo: profile.nome_completo,
@@ -162,6 +171,24 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
       setOpenInscricao(false);
       setInscForm({ especialidade: "Geral", justificativa: "" });
       toast.success("Inscrição solicitada com sucesso!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  // ── RESPONDER COMPLEMENTAÇÃO ──
+  const responderComplementacao = useMutation({
+    mutationFn: async ({ inscricaoId, resposta }: { inscricaoId: string; resposta: string }) => {
+      if (!resposta.trim()) throw new Error("Preencha a resposta da complementação.");
+      const { error } = await supabase.from("inscricoes_oab").update({
+        justificativa: resposta,
+        status: "pendente",
+      } as any).eq("id", inscricaoId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["oab-inscricoes"] });
+      setComplementacaoTexto("");
+      toast.success("Complementação enviada! Aguarde nova análise.");
     },
     onError: (err: any) => toast.error(err.message),
   });
