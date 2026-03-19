@@ -631,7 +631,7 @@ function InqueritoMPDetail({ ipId, onBack }: { ipId: string; onBack: () => void 
       queryClient.invalidateQueries({ queryKey: ["mp-inqueritos"] });
       setActiveAction("none");
       setReqForm({ descricao: "", prazo_dias: "10" });
-      toast.success("Diligência requisitada ao Delegado!");
+      toast.success("Diligência requisitada à Polícia!");
     },
     onError: (err: any) => toast.error(err.message),
   });
@@ -683,7 +683,7 @@ function InqueritoMPDetail({ ipId, onBack }: { ipId: string; onBack: () => void 
 
           {ip.relatorio_final && (
             <div className="bg-card rounded-xl p-5 border border-border shadow-institutional">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Relatório Final do Delegado</p>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Relatório Final da Polícia</p>
               <p className="text-sm text-foreground whitespace-pre-wrap">{ip.relatorio_final}</p>
             </div>
           )}
@@ -867,7 +867,7 @@ function InqueritoMPDetail({ ipId, onBack }: { ipId: string; onBack: () => void 
             <Send className="h-4 w-4 text-institutional" /> Requisição de Diligência
           </h3>
           <form onSubmit={(e) => { e.preventDefault(); requisitarDiligencia.mutate(); }} className="space-y-4">
-            <Textarea placeholder="Descreva a diligência a ser requisitada ao Delegado..." value={reqForm.descricao} onChange={(e) => setReqForm({ ...reqForm, descricao: e.target.value })} required rows={4} className="rounded-xl" />
+            <Textarea placeholder="Descreva a diligência a ser requisitada à Polícia..." value={reqForm.descricao} onChange={(e) => setReqForm({ ...reqForm, descricao: e.target.value })} required rows={4} className="rounded-xl" />
             <Input type="number" placeholder="Prazo em horas" value={reqForm.prazo_dias} onChange={(e) => setReqForm({ ...reqForm, prazo_dias: e.target.value })} className="rounded-xl w-40" />
             <div className="flex gap-2">
               <Button type="submit" disabled={requisitarDiligencia.isPending} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">

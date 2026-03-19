@@ -31,13 +31,13 @@ const CONCURSO_STATUS: Record<string, { label: string; color: string }> = {
 };
 
 const CARGOS_JURIDICOS = [
-  "Magistrado", "Promotor de Justiça", "Delegado de Polícia", "Defensor Público",
-  "Oficial de Justiça", "Analista Judiciário", "Técnico Judiciário", "Escrivão",
-  "Investigador", "Perito Criminal", "Assessor Jurídico"
+  "Magistrado", "Promotor de Justiça", "Polícia Civil", "Polícia Militar", "Polícia Federal",
+  "Defensor Público", "Oficial de Justiça", "Analista Judiciário", "Técnico Judiciário",
+  "Escrivão", "Perito Criminal", "Assessor Jurídico"
 ];
 
 const CARGOS_MP = ["Promotor de Justiça"];
-const CARGOS_TJ = ["Magistrado", "Delegado de Polícia", "Defensor Público", "Oficial de Justiça", "Analista Judiciário", "Técnico Judiciário", "Escrivão", "Investigador", "Perito Criminal", "Assessor Jurídico"];
+const CARGOS_TJ = ["Magistrado", "Polícia Civil", "Polícia Militar", "Polícia Federal", "Defensor Público", "Oficial de Justiça", "Analista Judiciário", "Técnico Judiciário", "Escrivão", "Perito Criminal", "Assessor Jurídico"];
 
 const TIPO_QUESTAO_LABELS: Record<string, string> = {
   objetiva: "Múltipla Escolha (A-D)",
@@ -557,8 +557,8 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
       const cargoRoleMap: Record<string, string> = {
         "Magistrado": "magistrado", "Promotor de Justiça": "ministerio_publico",
         "Procurador-Geral de Justiça": "procurador_geral",
-        "Delegado de Polícia": "delegado", "Oficial de Justiça": "oficial_justica",
-        "Investigador": "investigador",
+        "Polícia Civil": "policia_civil", "Polícia Militar": "policia_militar",
+        "Polícia Federal": "policia_federal", "Oficial de Justiça": "oficial_justica",
       };
       const role = cargoRoleMap[concurso?.cargo] || null;
       if (role) {

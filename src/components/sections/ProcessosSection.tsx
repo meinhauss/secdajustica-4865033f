@@ -344,7 +344,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const isMP = roles.includes("ministerio_publico");
   const isAdvogado = roles.includes("advogado");
   const isOficialJustica = roles.includes("oficial_justica");
-  const isDelegado = roles.includes("delegado");
+  const isPolicia = roles.some(r => ["policia_civil", "policia_militar", "policia_federal"].includes(r));
   // Move processo query up so we can compute permissions based on juiz_id
   const { data: processo } = useQuery({
     queryKey: ["processo", processoId],
@@ -384,7 +384,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     (p: any) => p.advogado_id === user?.id && p.status === "ativa"
   );
 
-  const canAddMovimentacao = isJudicial || isMP || isOficialJustica || isDelegado || (isAdvogado && advogadoTemProcuracao);
+  const canAddMovimentacao = isJudicial || isMP || isOficialJustica || isPolicia || (isAdvogado && advogadoTemProcuracao);
 
   const [showProcuracao, setShowProcuracao] = useState(false);
   const [procForm, setProcForm] = useState({ parte: "autor", documento_url: "" });
@@ -616,12 +616,13 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
 
   const ORGAOS_INTERESSADOS = [
     { role: "ministerio_publico", label: "Ministério Público" },
-    { role: "delegado", label: "Polícia Civil" },
-    { role: "investigador", label: "Polícia Civil" },
+    { role: "policia_civil", label: "Polícia Civil" },
+    { role: "policia_militar", label: "Polícia Militar" },
+    { role: "policia_federal", label: "Polícia Federal" },
   ];
 
-  const canManifestInteresse = roles.some(r => ["ministerio_publico", "delegado", "investigador"].includes(r));
-  const userOrgao = roles.includes("ministerio_publico") ? "Ministério Público" : roles.includes("delegado") || roles.includes("investigador") ? "Polícia Civil" : null;
+  const canManifestInteresse = roles.some(r => ["ministerio_publico", "policia_civil", "policia_militar", "policia_federal"].includes(r));
+  const userOrgao = roles.includes("ministerio_publico") ? "Ministério Público" : roles.includes("policia_civil") ? "Polícia Civil" : roles.includes("policia_militar") ? "Polícia Militar" : roles.includes("policia_federal") ? "Polícia Federal" : null;
   const jaInteressado = interessadosData?.some(i => i.user_id === user?.id);
 
   const manifestarInteresse = useMutation({
@@ -1393,7 +1394,7 @@ function AddMovimentacao({ roles, onAdd }: { roles: string[]; onAdd: (tipo: stri
   const isMP = roles.includes("ministerio_publico");
   const isAdvogado = roles.includes("advogado");
   const isOficialJustica = roles.includes("oficial_justica");
-  const isDelegado = roles.includes("delegado");
+  const isPolicia = roles.some(r => ["policia_civil", "policia_militar", "policia_federal"].includes(r));
 
   const tiposPermitidos: { value: string; label: string }[] = [];
 
@@ -1438,7 +1439,7 @@ function AddMovimentacao({ roles, onAdd }: { roles: string[]; onAdd: (tipo: stri
       { value: "diligencia", label: "Diligência" },
     );
   }
-  if (isDelegado) {
+  if (isPolicia) {
     tiposPermitidos.push(
       { value: "relatorio_policial", label: "Relatório Policial" },
       { value: "remessa_inquerito", label: "Remessa de Inquérito" },

@@ -17,9 +17,9 @@ interface DashboardLayoutProps {
 }
 
 const menuItems = [
-  { id: "dashboard", label: "Painel Geral", icon: Home, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "presidente_oab", "bacharel_direito"] },
-  { id: "meu-perfil", label: "Meu Perfil", icon: Users, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "presidente_oab", "bacharel_direito"] },
-  { id: "processos", label: "Processos", icon: FileText, roles: ["admin", "ministerio_publico", "procurador_geral", "advogado", "oficial_justica"] },
+  { id: "dashboard", label: "Painel Geral", icon: Home, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal"] },
+  { id: "meu-perfil", label: "Meu Perfil", icon: Users, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal"] },
+  { id: "processos", label: "Processos", icon: FileText, roles: ["admin", "ministerio_publico", "procurador_geral", "advogado", "oficial_justica", "policia_civil", "policia_militar", "policia_federal"] },
   { id: "magistrado", label: "Portal Magistrado", icon: Gavel, roles: ["admin", "magistrado", "presidente_tribunal", "desembargador"] },
   { id: "tribunal", label: "Tribunal de Justiça", icon: Scale, roles: ["admin", "desembargador", "presidente_tribunal"] },
   { id: "mp", label: "Ministério Público", icon: Scale, roles: ["admin", "ministerio_publico", "procurador_geral"] },
@@ -27,8 +27,8 @@ const menuItems = [
   { id: "oab", label: "Portal OAB", icon: Briefcase, roles: ["admin", "advogado", "presidente_oab", "bacharel_direito"] },
   { id: "audiencias", label: "Audiências", icon: Calendar, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "advogado", "presidente_tribunal", "desembargador"] },
   { id: "consulta", label: "Consulta Pública", icon: BookOpen, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "oficial_justica", "advogado", "presidente_tribunal", "desembargador", "presidente_oab"] },
-  { id: "concursos", label: "Concursos", icon: GraduationCap, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "presidente_oab", "bacharel_direito"] },
-  { id: "cartorio", label: "Cartório Civil", icon: Stamp, roles: ["admin", "oficial_justica", "magistrado", "ministerio_publico", "procurador_geral", "advogado", "presidente_tribunal", "desembargador", "cidadao", "presidente_oab", "bacharel_direito"] },
+  { id: "concursos", label: "Concursos", icon: GraduationCap, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal"] },
+  { id: "cartorio", label: "Cartório Civil", icon: Stamp, roles: ["admin", "oficial_justica", "magistrado", "ministerio_publico", "procurador_geral", "advogado", "presidente_tribunal", "desembargador", "cidadao", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal"] },
   { id: "cargos", label: "Cargos e Hierarquia", icon: Crown, roles: ["admin"] },
   { id: "usuarios", label: "Usuários", icon: Users, roles: ["admin"] },
   { id: "estatisticas", label: "Estatísticas", icon: BarChart3, roles: ["admin", "magistrado", "presidente_tribunal"] },
@@ -55,6 +55,9 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
       advogado: "Advogado(a)",
       bacharel_direito: "Bacharel em Direito",
       cidadao: "Cidadão",
+      policia_civil: "Polícia Civil",
+      policia_militar: "Polícia Militar",
+      policia_federal: "Polícia Federal",
     };
     return labels[role] || role;
   };

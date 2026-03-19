@@ -1801,7 +1801,7 @@ export type Database = {
         | "admin"
         | "magistrado"
         | "ministerio_publico"
-        | "delegado"
+        | "policia_civil"
         | "oficial_justica"
         | "advogado"
         | "cidadao"
@@ -1811,6 +1811,8 @@ export type Database = {
         | "presidente_oab"
         | "procurador_geral"
         | "bacharel_direito"
+        | "policia_militar"
+        | "policia_federal"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1956,7 +1958,7 @@ export const Constants = {
         "admin",
         "magistrado",
         "ministerio_publico",
-        "delegado",
+        "policia_civil",
         "oficial_justica",
         "advogado",
         "cidadao",
@@ -1966,6 +1968,8 @@ export const Constants = {
         "presidente_oab",
         "procurador_geral",
         "bacharel_direito",
+        "policia_militar",
+        "policia_federal",
       ],
     },
   },
