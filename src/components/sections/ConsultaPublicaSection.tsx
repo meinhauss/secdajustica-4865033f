@@ -263,7 +263,7 @@ export default function ConsultaPublicaSection() {
                 {/* Card Footer */}
                 <div className="bg-secondary/50 px-5 py-2 flex items-center justify-between border-t border-border">
                   <span className="text-[9px] text-muted-foreground font-mono tracking-widest">CREDENCIAL DIGITAL</span>
-                  <span className="text-[9px] text-emerald-600 font-semibold">✓ Verificada</span>
+                  <span className="text-[9px] text-accent font-semibold">✓ Verificada</span>
                 </div>
               </motion.div>
             );
