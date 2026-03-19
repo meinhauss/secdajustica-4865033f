@@ -10,6 +10,8 @@ import {
   Phone, MapPin, Clock, ChevronRight, ExternalLink, GraduationCap } from
 "lucide-react";
 import logoTjsp from "@/assets/logo-tjsp.png";
+import logoMpsp from "@/assets/logo-mpsp.png";
+import logoOabsp from "@/assets/logo-oabsp.png";
 import govLogo from "@/assets/gov-logo.png";
 import { toast } from "sonner";
 
