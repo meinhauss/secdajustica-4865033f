@@ -162,7 +162,7 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
         await supabase.from("movimentacoes").insert({
           processo_id: processo.id,
           tipo: "distribuicao",
-          descricao: `Processo distribuído por sorteio ao(à) magistrado(a) ${juizNome || "designado(a)"}`,
+          descricao: `Processo distribuído por sorteio ao(à) Juiz(a) de Direito ${juizNome || "designado(a)"}`,
           autor_id: user?.id,
         });
 
@@ -901,7 +901,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
           <div>
             <p className="text-sm font-medium text-amber-800 dark:text-amber-300">Processo não atribuído a você</p>
             <p className="text-xs text-amber-700 dark:text-amber-400 mt-1">
-              Este processo está atribuído a outro magistrado. Você pode visualizar, mas não pode realizar movimentações judiciais.
+              Este processo está atribuído a outro Juiz de Direito. Você pode visualizar, mas não pode realizar movimentações judiciais.
             </p>
           </div>
         </div>
@@ -1069,7 +1069,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             atos?.forEach((a: any) => items.push({
               id: `ato-${a.id}`, date: a.created_at, tipo: `ato judicial — ${a.tipo}`,
               titulo: a.titulo, descricao: a.conteudo,
-              autor: a.autor_nome || "Magistrado",
+              autor: a.autor_nome || "Juiz de Direito",
               badge_color: "bg-institutional/10 text-institutional",
             }));
 
@@ -1102,7 +1102,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               id: `sent-${s.id}`, date: s.created_at, tipo: `sentença — ${s.tipo}`,
               titulo: s.ementa || "Sentença",
               descricao: `Fundamentação: ${s.fundamentacao}\n\nDispositivo: ${s.dispositivo}`,
-              autor: "Magistrado",
+              autor: "Juiz de Direito",
               badge_color: "bg-purple-100 text-purple-800 dark:bg-purple-950/30 dark:text-purple-400",
             }));
 

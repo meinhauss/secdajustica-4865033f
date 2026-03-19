@@ -178,7 +178,7 @@ function MagistradoDashboard({ onSelectProcesso }: { onSelectProcesso: (id: stri
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-display text-2xl font-bold text-foreground">Portal do Magistrado</h2>
+        <h2 className="font-display text-2xl font-bold text-foreground">Portal do Juiz de Direito</h2>
         <p className="text-sm text-muted-foreground">Gabinete Digital — Processos, despachos, audiências e decisões</p>
       </div>
 
@@ -544,7 +544,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         conteudo: despachoForm.conteudo,
         tipo: despachoForm.tipo,
         autor_id: user!.id,
-        autor_nome: profile?.nome_completo || "Magistrado",
+        autor_nome: profile?.nome_completo || "Juiz de Direito",
         assinado: true,
         data_assinatura: new Date().toISOString(),
       });

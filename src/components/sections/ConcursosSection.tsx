@@ -31,13 +31,13 @@ const CONCURSO_STATUS: Record<string, { label: string; color: string }> = {
 };
 
 const CARGOS_JURIDICOS = [
-  "Magistrado", "Promotor de Justiça", "Polícia Civil", "Polícia Militar", "Polícia Federal",
+  "Juiz de Direito", "Promotor de Justiça", "Polícia Civil", "Polícia Militar", "Polícia Federal",
   "Defensor Público", "Oficial de Justiça", "Analista Judiciário", "Técnico Judiciário",
   "Escrivão", "Perito Criminal", "Assessor Jurídico"
 ];
 
 const CARGOS_MP = ["Promotor de Justiça"];
-const CARGOS_TJ = ["Magistrado", "Polícia Civil", "Polícia Militar", "Polícia Federal", "Defensor Público", "Oficial de Justiça", "Analista Judiciário", "Técnico Judiciário", "Escrivão", "Perito Criminal", "Assessor Jurídico"];
+const CARGOS_TJ = ["Juiz de Direito", "Polícia Civil", "Polícia Militar", "Polícia Federal", "Defensor Público", "Oficial de Justiça", "Analista Judiciário", "Técnico Judiciário", "Escrivão", "Perito Criminal", "Assessor Jurídico"];
 
 const TIPO_QUESTAO_LABELS: Record<string, string> = {
   objetiva: "Múltipla Escolha (A-D)",
@@ -171,7 +171,7 @@ function ConcursosDashboard({ isAdmin, isPresidenteTribunal, isMP, isFullAdmin, 
   const availableCargos = isFullAdmin ? CARGOS_JURIDICOS : isMP ? CARGOS_MP : isPresidenteTribunal ? CARGOS_TJ : CARGOS_JURIDICOS;
 
   const [form, setForm] = useState({
-    titulo: "", cargo: availableCargos[0] || "Magistrado", vagas: "1", requisitos: "", conteudo_programatico: "",
+    titulo: "", cargo: availableCargos[0] || "Juiz de Direito", vagas: "1", requisitos: "", conteudo_programatico: "",
     regras_classificacao: "", data_abertura: "", data_encerramento_inscricoes: "", data_prova: "", data_resultado: "",
     tempo_prova_minutos: "60",
   });
@@ -199,7 +199,7 @@ function ConcursosDashboard({ isAdmin, isPresidenteTribunal, isMP, isFullAdmin, 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["concursos"] });
       setOpenConcurso(false);
-      setForm({ titulo: "", cargo: availableCargos[0] || "Magistrado", vagas: "1", requisitos: "", conteudo_programatico: "", regras_classificacao: "", data_abertura: "", data_encerramento_inscricoes: "", data_prova: "", data_resultado: "", tempo_prova_minutos: "60" });
+      setForm({ titulo: "", cargo: availableCargos[0] || "Juiz de Direito", vagas: "1", requisitos: "", conteudo_programatico: "", regras_classificacao: "", data_abertura: "", data_encerramento_inscricoes: "", data_prova: "", data_resultado: "", tempo_prova_minutos: "60" });
       toast.success("Concurso criado com sucesso!");
     },
     onError: (err: any) => toast.error(err.message),
@@ -555,7 +555,7 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
       const insc = inscricoes?.find((i: any) => i.id === inscricaoId);
       if (!insc) throw new Error("Inscrição não encontrada.");
       const cargoRoleMap: Record<string, string> = {
-        "Magistrado": "magistrado", "Promotor de Justiça": "ministerio_publico",
+        "Juiz de Direito": "magistrado", "Promotor de Justiça": "ministerio_publico",
         "Procurador-Geral de Justiça": "procurador_geral",
         "Polícia Civil": "policia_civil", "Polícia Militar": "policia_militar",
         "Polícia Federal": "policia_federal", "Oficial de Justiça": "oficial_justica",

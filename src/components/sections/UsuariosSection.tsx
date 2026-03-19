@@ -10,7 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { toast } from "sonner";
 const ROLE_LABELS: Record<string, string> = {
   admin: "Administrador",
-  magistrado: "Magistrado",
+  magistrado: "Juiz de Direito",
   ministerio_publico: "Promotor de Justiça",
   policia_civil: "Polícia Civil",
   policia_militar: "Polícia Militar",
