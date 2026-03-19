@@ -628,6 +628,10 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const userOrgao = roles.includes("ministerio_publico") ? "Ministério Público" : roles.includes("policia_civil") ? "Polícia Civil" : roles.includes("policia_militar") ? "Polícia Militar" : roles.includes("policia_federal") ? "Polícia Federal" : roles.includes("hospital") ? "Hospital" : null;
   const jaInteressado = interessadosData?.some(i => i.user_id === user?.id);
 
+  // Institutional roles (MP/PC/PM/PF/Hospital) can only move after qualifying as interested
+  const institucionalInteressado = isInstitucional && jaInteressado;
+  const canAddMovimentacao = isJudicial || isOficialJustica || (isAdvogado && advogadoTemProcuracao) || institucionalInteressado;
+
   const manifestarInteresse = useMutation({
     mutationFn: async () => {
       if (!userOrgao) throw new Error("Seu cargo não permite manifestar-se como interessado.");
