@@ -716,7 +716,11 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                         <span className="text-[10px] text-muted-foreground ml-auto">{format(new Date(item.date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
                       </div>
                       {item.titulo && <p className="text-sm font-semibold text-foreground mb-1">{item.titulo}</p>}
-                      <p className="text-sm text-foreground whitespace-pre-wrap">{item.descricao}</p>
+                      <p className="text-sm text-foreground whitespace-pre-wrap">{item.descricao.split(/(https?:\/\/[^\s]+)/g).map((part, i) =>
+                        /^https?:\/\//.test(part) ? (
+                          <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80 break-all">{part}</a>
+                        ) : part
+                      )}</p>
                       {item.link && (
                         <a href={item.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-2 text-xs text-primary hover:underline">
                           <ExternalLink className="h-3 w-3" /> Abrir documento
