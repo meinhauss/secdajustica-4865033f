@@ -178,7 +178,7 @@ function MagistradoDashboard({ onSelectProcesso }: { onSelectProcesso: (id: stri
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-display text-2xl font-bold text-foreground">Portal do Magistrado</h2>
+        <h2 className="font-display text-2xl font-bold text-foreground">Portal do Juiz de Direito</h2>
         <p className="text-sm text-muted-foreground">Gabinete Digital — Processos, despachos, audiências e decisões</p>
       </div>
 
