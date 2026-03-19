@@ -73,8 +73,9 @@ function EmptyState({ icon: Icon, text }: { icon: any; text: string }) {
 export default function OABSection() {
   const { roles } = useAuth();
   const isAdmin = roles.some((r) => ["admin", "presidente_oab"].includes(r));
+  const isBacharel = roles.includes("bacharel_direito");
 
-  return <OABDashboard isAdmin={isAdmin} />;
+  return <OABDashboard isAdmin={isAdmin} isBacharel={isBacharel} />;
 }
 
 /* ═══════════════════════════════════════════ */

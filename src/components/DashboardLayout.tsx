@@ -53,6 +53,7 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
       oficial_justica: "Oficial de Justiça",
       presidente_oab: "Presidente da OAB",
       advogado: "Advogado(a)",
+      bacharel_direito: "Bacharel em Direito",
       cidadao: "Cidadão",
     };
     return labels[role] || role;
