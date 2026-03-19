@@ -634,9 +634,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const institucionalInteressado = isInstitucional && jaInteressado;
   // After sentencing, no new movimentações — only appeals are allowed
   const isSentenciado = processo?.status === "sentenciado";
-  // Juízes e desembargadores só movimentam via Portal do Juiz — aqui apenas admin, presidente, oficial, advogado e institucionais
-  const canAddMovimentacaoJudicial = isAdmin || isPresidenteTribunal;
-  const canAddMovimentacao = !isSentenciado && (canAddMovimentacaoJudicial || isOficialJustica || (isAdvogado && advogadoTemProcuracao) || institucionalInteressado);
+  const canAddMovimentacao = !isSentenciado && (isJudicial || isOficialJustica || (isAdvogado && advogadoTemProcuracao) || institucionalInteressado);
 
   const manifestarInteresse = useMutation({
     mutationFn: async () => {
