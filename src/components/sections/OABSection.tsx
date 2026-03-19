@@ -179,11 +179,28 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
   const responderComplementacao = useMutation({
     mutationFn: async ({ inscricaoId, resposta }: { inscricaoId: string; resposta: string }) => {
       if (!resposta.trim()) throw new Error("Preencha a resposta da complementação.");
+      const insc = inscricoes?.find((i: any) => i.id === inscricaoId);
       const { error } = await supabase.from("inscricoes_oab").update({
         justificativa: resposta,
         status: "pendente",
       } as any).eq("id", inscricaoId);
       if (error) throw error;
+
+      // Notify all presidente_oab users
+      const { data: presidenteRoles } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "presidente_oab" as any);
+      if (presidenteRoles && presidenteRoles.length > 0) {
+        const notifs = presidenteRoles.map((r: any) => ({
+          user_id: r.user_id,
+          titulo: "Complementação respondida — Inscrição OAB",
+          mensagem: `${insc?.nome_completo || "Solicitante"} respondeu à complementação solicitada.`,
+          tipo: "info",
+          link_secao: "oab",
+        }));
+        await supabase.from("notificacoes").insert(notifs);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["oab-inscricoes"] });
