@@ -400,15 +400,33 @@ function TabCredencial() {
 
 function TabTransparencia() {
   const [stats, setStats] = useState<any>(null);
-  const [magistrados, setMagistrados] = useState<any[]>([]);
+  const [servidores, setServidores] = useState<any[]>([]);
   const [loadingStats, setLoadingStats] = useState(true);
+
+  const ROLE_LABELS_T: Record<string, string> = {
+    admin: "Administrador",
+    magistrado: "Magistrado(a)",
+    ministerio_publico: "Promotor(a) de Justiça",
+    oficial_justica: "Oficial de Justiça",
+    advogado: "Advogado(a)",
+    presidente_tribunal: "Presidente do Tribunal",
+    desembargador: "Desembargador(a)",
+    presidente_oab: "Presidente da OAB",
+    procurador_geral: "Procurador(a)-Geral",
+    bacharel_direito: "Bacharel em Direito",
+    policia_civil: "Polícia Civil",
+    policia_militar: "Polícia Militar",
+    policia_federal: "Polícia Federal",
+    hospital: "Hospital",
+    investigador: "Investigador(a)",
+  };
 
   useState(() => {
     const load = async () => {
-      const [processosRes, audienciasRes, magistradosRes] = await Promise.all([
+      const [processosRes, audienciasRes, rolesRes] = await Promise.all([
         supabase.from("processos").select("status, classe", { count: "exact" }),
         supabase.from("audiencias").select("status", { count: "exact" }),
-        supabase.from("profiles").select("nome_completo, cargo").not("cargo", "is", null),
+        supabase.from("user_roles").select("user_id, role").neq("role", "cidadao"),
       ]);
 
       const processos = processosRes.data || [];
@@ -426,7 +444,30 @@ function TabTransparencia() {
         classeCounts,
       });
 
-      setMagistrados((magistradosRes.data || []).slice(0, 20));
+      const rolesData = rolesRes.data || [];
+      const userRolesMap: Record<string, string[]> = {};
+      rolesData.forEach((r: any) => {
+        if (!userRolesMap[r.user_id]) userRolesMap[r.user_id] = [];
+        userRolesMap[r.user_id].push(r.role);
+      });
+
+      const userIds = Object.keys(userRolesMap);
+      let profilesList: any[] = [];
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id, nome_completo, cargo")
+          .in("user_id", userIds);
+        profilesList = (profiles || []).map((p: any) => ({
+          ...p,
+          displayRole: (userRolesMap[p.user_id] || [])
+            .filter((r: string) => r !== "cidadao")
+            .map((r: string) => ROLE_LABELS_T[r] || r)
+            .join(", "),
+        }));
+      }
+
+      setServidores(profilesList.slice(0, 50));
       setLoadingStats(false);
     };
     load();
