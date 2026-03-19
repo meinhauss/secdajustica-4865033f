@@ -338,12 +338,13 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
 function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: () => void }) {
   const { user, profile, roles } = useAuth();
   const queryClient = useQueryClient();
-  const isJudicial = roles.some((r) => ["admin", "magistrado", "presidente_tribunal", "desembargador"].includes(r));
+  const isAdmin = roles.includes("admin");
+  const isMagistradoOrDesembargador = roles.some((r) => ["magistrado", "desembargador"].includes(r));
+  const isPresidenteTribunal = roles.includes("presidente_tribunal");
   const isMP = roles.includes("ministerio_publico");
   const isAdvogado = roles.includes("advogado");
   const isOficialJustica = roles.includes("oficial_justica");
   const isDelegado = roles.includes("delegado");
-  const isCartorario = roles.some((r) => ["admin", "magistrado", "presidente_tribunal", "desembargador"].includes(r));
   // Procuracoes
   const { data: procuracoes } = useQuery({
     queryKey: ["procuracoes", processoId],
