@@ -50,12 +50,6 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
     }, enabled: isJudicial || isAdmin,
   });
 
-  const { data: concursosAbertos } = useQuery({
-    queryKey: ["dash-concursos"], queryFn: async () => {
-      const { count } = await supabase.from("concursos").select("*", { count: "exact", head: true }).eq("status", "inscricoes_abertas");
-      return count || 0;
-    },
-  });
 
   const nav = (s: string) => onNavigate?.(s);
 
