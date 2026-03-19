@@ -14,7 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Label } from "@/components/ui/label";
 import {
   FileText, Plus, Search, CheckCircle, Clock, Eye, Stamp,
-  Heart, Home, Users, ScrollText, FileSignature, Baby, BarChart3, User
+  Heart, Home, Users, ScrollText, FileSignature, Baby, BarChart3, User, Link
 } from "lucide-react";
 
 /* ─── Profile Lookup Hook ─── */
@@ -104,7 +104,9 @@ export default function CartorarioSection() {
     partes_envolvidas: "",
     descricao: "",
     observacoes: "",
+    documento_url: "",
   });
+  const [emitirUrl, setEmitirUrl] = useState("");
 
   useEffect(() => { fetchRegistros(); }, []);
 
@@ -132,6 +134,7 @@ export default function CartorarioSection() {
       partes_envolvidas: form.partes_envolvidas || null,
       descricao: form.descricao,
       observacoes: form.observacoes || null,
+      documento_url: form.documento_url || null,
     } as any);
     if (error) {
       toast({ title: "Erro ao solicitar", description: error.message, variant: "destructive" });
@@ -139,19 +142,21 @@ export default function CartorarioSection() {
     }
     toast({ title: "Solicitação registrada com sucesso" });
     setShowNovoRegistro(false);
-    setForm({ tipo: "certidao_nascimento", requerente_nome: "", id_personagem: "", partes_envolvidas: "", descricao: "", observacoes: "" });
+    setForm({ tipo: "certidao_nascimento", requerente_nome: "", id_personagem: "", partes_envolvidas: "", descricao: "", observacoes: "", documento_url: "" });
     requerenteLookup.clear();
     fetchRegistros();
   };
 
-  const handleUpdateStatus = async (id: string, status: string) => {
+  const handleUpdateStatus = async (id: string, status: string, docUrl?: string) => {
     const updateData: any = { status };
     if (status === "emitido") {
       updateData.emitido_por = user?.id;
       updateData.emitido_por_nome = profile?.nome_completo || "Servidor";
+      if (docUrl) updateData.documento_url = docUrl;
     }
     await supabase.from("registros_cartorio").update(updateData).eq("id", id);
     toast({ title: `Status atualizado para: ${statusLabel(status)}` });
+    setEmitirUrl("");
     fetchRegistros();
     setShowDetalhes(null);
   };
@@ -436,6 +441,13 @@ export default function CartorarioSection() {
               <Label>Observações</Label>
               <Textarea value={form.observacoes} onChange={(e) => setForm((f) => ({ ...f, observacoes: e.target.value }))} placeholder="Informações adicionais..." rows={2} />
             </div>
+            <div>
+              <Label>Link do Documento Anexo</Label>
+              <div className="relative">
+                <Link className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input value={form.documento_url} onChange={(e) => setForm((f) => ({ ...f, documento_url: e.target.value }))} placeholder="https://..." className="pl-10" />
+              </div>
+            </div>
             <Button className="w-full" onClick={handleSolicitar}>
               <Stamp className="h-4 w-4 mr-1" /> Solicitar Documento
             </Button>
@@ -500,19 +512,37 @@ export default function CartorarioSection() {
                 </div>
               </div>
 
+              {showDetalhes.documento_url && (
+                <div className="col-span-2">
+                  <p className="text-xs text-muted-foreground">Documento Anexo</p>
+                  <a href={showDetalhes.documento_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline flex items-center gap-1">
+                    <Link className="h-3 w-3" /> {showDetalhes.documento_url}
+                  </a>
+                </div>
+              )}
+
               {isCartorario && showDetalhes.status !== "emitido" && showDetalhes.status !== "recusado" && (
-                <div className="flex gap-2 pt-2 border-t border-border">
-                  {showDetalhes.status === "solicitado" && (
-                    <Button size="sm" variant="outline" onClick={() => handleUpdateStatus(showDetalhes.id, "em_analise")}>
-                      <Eye className="h-3 w-3 mr-1" /> Analisar
+                <div className="col-span-2 space-y-3 pt-2 border-t border-border">
+                  <div>
+                    <Label className="text-xs">Link do Documento Emitido</Label>
+                    <div className="relative">
+                      <Link className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input value={emitirUrl} onChange={(e) => setEmitirUrl(e.target.value)} placeholder="https://..." className="pl-10" />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    {showDetalhes.status === "solicitado" && (
+                      <Button size="sm" variant="outline" onClick={() => handleUpdateStatus(showDetalhes.id, "em_analise")}>
+                        <Eye className="h-3 w-3 mr-1" /> Analisar
+                      </Button>
+                    )}
+                    <Button size="sm" onClick={() => handleUpdateStatus(showDetalhes.id, "emitido", emitirUrl)}>
+                      <CheckCircle className="h-3 w-3 mr-1" /> Emitir Documento
                     </Button>
-                  )}
-                  <Button size="sm" onClick={() => handleUpdateStatus(showDetalhes.id, "emitido")}>
-                    <CheckCircle className="h-3 w-3 mr-1" /> Emitir Documento
-                  </Button>
-                  <Button size="sm" variant="destructive" onClick={() => handleUpdateStatus(showDetalhes.id, "recusado")}>
-                    Recusar
-                  </Button>
+                    <Button size="sm" variant="destructive" onClick={() => handleUpdateStatus(showDetalhes.id, "recusado")}>
+                      Recusar
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
