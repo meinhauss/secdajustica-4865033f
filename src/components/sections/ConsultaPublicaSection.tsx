@@ -2,8 +2,13 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
-import { Search, IdCard } from "lucide-react";
+import { Search, IdCard, Phone } from "lucide-react";
 import { motion } from "framer-motion";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 import logoTjsp from "@/assets/logo-tjsp.png";
 import logoMpsp from "@/assets/logo-mpsp.png";
@@ -62,8 +67,21 @@ function getPrimaryRole(roles: string[]): string {
   return roles[0] || "cidadao";
 }
 
+/** Returns a display cargo, avoiding duplication with role badges */
+function getDisplayCargo(cargo: string | null, roles: string[]): string | null {
+  if (!cargo) return null;
+  const cargoLower = cargo.toLowerCase().trim();
+  // If the cargo text is essentially the same as a role label, skip it
+  const roleLabelsLower = roles.map((r) => (ROLE_LABELS[r] || r).toLowerCase());
+  if (roleLabelsLower.some((label) => cargoLower === label || cargoLower.includes(label) || label.includes(cargoLower))) {
+    return null;
+  }
+  return cargo;
+}
+
 export default function ConsultaPublicaSection() {
   const [search, setSearch] = useState("");
+  const [photoDialog, setPhotoDialog] = useState<{ url: string; name: string } | null>(null);
 
   const { data: resultados } = useQuery({
     queryKey: ["consulta-credenciais", search],
@@ -73,7 +91,7 @@ export default function ConsultaPublicaSection() {
 
       const { data: profilesById, error: e1 } = await supabase
         .from("profiles")
-        .select("user_id, nome_completo, id_personagem, cargo, oab_numero, avatar_url")
+        .select("user_id, nome_completo, id_personagem, cargo, oab_numero, avatar_url, telefone_ingame")
         .eq("id_personagem", term)
         .limit(50);
       if (e1) throw e1;
@@ -100,6 +118,7 @@ export default function ConsultaPublicaSection() {
             cargo: null,
             oab_numero: c.numero_oab,
             avatar_url: null,
+            telefone_ingame: null,
           };
         } else {
           userMap[c.user_id].oab_numero = c.numero_oab;
@@ -113,7 +132,7 @@ export default function ConsultaPublicaSection() {
       if (missingProfiles.length) {
         const { data: extraProfiles } = await supabase
           .from("profiles")
-          .select("user_id, nome_completo, id_personagem, cargo, avatar_url")
+          .select("user_id, nome_completo, id_personagem, cargo, avatar_url, telefone_ingame")
           .in("user_id", missingProfiles);
         extraProfiles?.forEach((p) => {
           userMap[p.user_id] = { ...userMap[p.user_id], ...p };
@@ -168,6 +187,7 @@ export default function ConsultaPublicaSection() {
           {resultados.map((p, i) => {
             const primaryRole = getPrimaryRole(p.roles);
             const institution = getInstitutionForRole(primaryRole);
+            const displayCargo = getDisplayCargo(p.cargo, p.roles);
 
             return (
               <motion.div
@@ -194,17 +214,25 @@ export default function ConsultaPublicaSection() {
 
                 {/* Card Body with watermark */}
                 <div className="bg-card p-5 flex gap-5 relative overflow-hidden min-h-[140px]">
-                  {/* Watermark */}
+                  {/* Watermark — large and evident */}
                   <img
                     src={institution.logo}
                     alt=""
                     aria-hidden="true"
-                    className="absolute right-[-20px] bottom-[-10px] w-36 h-36 object-contain opacity-[0.06] pointer-events-none select-none"
+                    className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 object-contain opacity-[0.08] pointer-events-none select-none"
                   />
 
-                  {/* Photo */}
+                  {/* Photo — clickable */}
                   <div className="flex-shrink-0 relative z-10">
-                    <div className="w-20 h-24 rounded-lg border-2 border-border overflow-hidden bg-secondary flex items-center justify-center shadow-sm">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (p.avatar_url) {
+                          setPhotoDialog({ url: p.avatar_url, name: p.nome_completo });
+                        }
+                      }}
+                      className={`w-20 h-24 rounded-lg border-2 border-border overflow-hidden bg-secondary flex items-center justify-center shadow-sm transition-transform ${p.avatar_url ? "cursor-pointer hover:scale-105 hover:border-primary/50" : "cursor-default"}`}
+                    >
                       {p.avatar_url ? (
                         <img src={p.avatar_url} alt={p.nome_completo} className="w-full h-full object-cover" />
                       ) : (
@@ -212,7 +240,7 @@ export default function ConsultaPublicaSection() {
                           {p.nome_completo?.split(" ").slice(0, 2).map((n: string) => n[0]).join("").toUpperCase() || "?"}
                         </span>
                       )}
-                    </div>
+                    </button>
                   </div>
 
                   {/* Info */}
@@ -222,7 +250,7 @@ export default function ConsultaPublicaSection() {
                       <p className="text-sm font-semibold text-foreground truncate">{p.nome_completo}</p>
                     </div>
 
-                    <div className="flex gap-4">
+                    <div className="flex gap-4 flex-wrap">
                       {p.id_personagem && (
                         <div>
                           <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">ID</p>
@@ -237,10 +265,17 @@ export default function ConsultaPublicaSection() {
                       )}
                     </div>
 
-                    {p.cargo && (
+                    {displayCargo && (
                       <div>
                         <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Cargo</p>
-                        <p className="text-xs text-foreground">{p.cargo}</p>
+                        <p className="text-xs text-foreground">{displayCargo}</p>
+                      </div>
+                    )}
+
+                    {p.telefone_ingame && (
+                      <div className="flex items-center gap-1.5">
+                        <Phone className="h-3 w-3 text-muted-foreground" />
+                        <p className="text-xs font-mono text-foreground">{p.telefone_ingame}</p>
                       </div>
                     )}
 
@@ -270,6 +305,20 @@ export default function ConsultaPublicaSection() {
           })}
         </div>
       )}
+
+      {/* Photo enlargement dialog */}
+      <Dialog open={!!photoDialog} onOpenChange={() => setPhotoDialog(null)}>
+        <DialogContent className="max-w-md p-2 bg-card">
+          <DialogTitle className="sr-only">{photoDialog?.name || "Foto"}</DialogTitle>
+          {photoDialog?.url && (
+            <img
+              src={photoDialog.url}
+              alt={photoDialog.name}
+              className="w-full h-auto rounded-lg object-contain max-h-[70vh]"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
