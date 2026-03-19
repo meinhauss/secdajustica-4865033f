@@ -502,7 +502,7 @@ function TabTransparencia() {
           <p className="text-xs text-muted-foreground mt-1">Processos Sentenciados</p>
         </div>
         <div className="bg-card rounded-xl p-5 border border-border shadow-institutional text-center">
-          <p className="text-2xl font-bold text-foreground">{magistrados.length}</p>
+          <p className="text-2xl font-bold text-foreground">{servidores.length}</p>
           <p className="text-xs text-muted-foreground mt-1">Servidores Cadastrados</p>
         </div>
       </div>
