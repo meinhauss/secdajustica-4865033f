@@ -345,6 +345,31 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const isAdvogado = roles.includes("advogado");
   const isOficialJustica = roles.includes("oficial_justica");
   const isDelegado = roles.includes("delegado");
+  // Move processo query up so we can compute permissions based on juiz_id
+  const { data: processo } = useQuery({
+    queryKey: ["processo", processoId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("processos").select("*").eq("id", processoId).single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Judge profile lookup
+  const { data: juizProfile } = useQuery({
+    queryKey: ["juiz-profile", processo?.juiz_id],
+    queryFn: async () => {
+      if (!processo?.juiz_id) return null;
+      const { data } = await supabase.from("profiles").select("nome_completo").eq("user_id", processo.juiz_id).maybeSingle();
+      return data;
+    },
+    enabled: !!processo?.juiz_id,
+  });
+
+  // Magistrado/desembargador can only act on their assigned processes
+  const isAssignedJudge = (isMagistradoOrDesembargador) && processo?.juiz_id === user?.id;
+  const isJudicial = isAdmin || isPresidenteTribunal || isAssignedJudge;
+
   // Procuracoes
   const { data: procuracoes } = useQuery({
     queryKey: ["procuracoes", processoId],
