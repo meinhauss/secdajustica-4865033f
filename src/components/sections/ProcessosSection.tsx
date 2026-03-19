@@ -1039,6 +1039,12 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         {/* TIMELINE — unified view */}
         <TabsContent value="timeline" className="mt-4 space-y-4">
           {canAddMovimentacao && <AddMovimentacao roles={roles} onAdd={(tipo, desc) => addMovimentacao.mutate({ tipo, descricao: desc })} />}
+          {isInstitucional && !jaInteressado && (
+            <div className="bg-muted/50 border border-border rounded-xl p-4 text-sm text-muted-foreground flex items-center gap-2">
+              <Scale className="h-4 w-4 text-institutional" />
+              Para movimentar neste processo, é necessário primeiro manifestar-se como interessado na seção acima.
+            </div>
+          )}
           {(() => {
             // Build unified timeline from all sources
             type TimelineItem = { id: string; date: string; tipo: string; titulo: string; descricao: string; autor?: string; link?: string; badge_color?: string };
