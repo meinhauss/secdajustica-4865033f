@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import ConsultaPublicaSection from "@/components/sections/ConsultaPublicaSection";
 import {
   Scale, Shield, Gavel, BookOpen, Building2, Users, FileText,
   Phone, MapPin, Clock, ChevronRight, ExternalLink, GraduationCap } from
@@ -390,96 +391,10 @@ function TabServicos() {
 }
 
 function TabCredencial() {
-  const [searchNum, setSearchNum] = useState("");
-  const [result, setResult] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [searched, setSearched] = useState(false);
-
-  const handleSearch = async () => {
-    if (!searchNum.trim()) return;
-    setLoading(true);
-    setSearched(true);
-    const { data } = await supabase
-      .from("carteiras_oab")
-      .select("numero_oab, nome_completo, especialidade, status, data_inscricao, id_personagem")
-      .eq("numero_oab", searchNum.trim())
-      .maybeSingle();
-    setResult(data);
-    setLoading(false);
-  };
-
-  const statusColor = (s: string) => {
-    if (s === "ativo") return "bg-emerald-100 text-emerald-800";
-    if (s === "suspenso") return "bg-amber-100 text-amber-800";
-    return "bg-destructive/10 text-destructive";
-  };
-
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
-      <h2 className="font-display text-2xl font-bold text-foreground mb-2">Consulta de Credencial</h2>
-      <p className="text-muted-foreground mb-8">Verifique a autenticidade e o status de uma inscrição na OAB.</p>
-
-      <div className="max-w-md mx-auto">
-        <div className="flex gap-2">
-          <Input
-            placeholder="Número da inscrição (ex: OAB/SP 000001)"
-            value={searchNum}
-            onChange={(e) => setSearchNum(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-            className="rounded-xl h-12"
-          />
-          <Button onClick={handleSearch} disabled={loading} className="rounded-xl h-12 px-6 bg-institutional hover:bg-institutional-light text-gold-light">
-            {loading ? "..." : "Consultar"}
-          </Button>
-        </div>
-
-        {searched && !loading && !result && (
-          <div className="mt-8 text-center py-8 bg-card rounded-xl border border-border">
-            <Scale className="h-10 w-10 mx-auto mb-3 text-muted-foreground opacity-30" />
-            <p className="text-muted-foreground text-sm">Nenhuma credencial encontrada com esse número.</p>
-          </div>
-        )}
-
-        {result && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-8 bg-card rounded-xl border border-border shadow-institutional overflow-hidden"
-          >
-            <div className="bg-institutional p-4">
-              <p className="text-[10px] uppercase tracking-widest text-sidebar-foreground/50">Ordem dos Advogados do Brasil — Seção SP</p>
-              <p className="font-display text-lg font-bold text-sidebar-foreground mt-1">{result.numero_oab}</p>
-            </div>
-            <div className="p-5 space-y-3">
-              <div>
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Nome do Portador</p>
-                <p className="text-sm font-semibold text-foreground">{result.nome_completo}</p>
-              </div>
-              {result.id_personagem && (
-                <div>
-                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground">ID Personagem</p>
-                  <p className="text-sm text-foreground">{result.id_personagem}</p>
-                </div>
-              )}
-              {result.especialidade && (
-                <div>
-                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Especialidade</p>
-                  <p className="text-sm text-foreground">{result.especialidade}</p>
-                </div>
-              )}
-              <div>
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Data de Inscrição</p>
-                <p className="text-sm text-foreground">{new Date(result.data_inscricao).toLocaleDateString("pt-BR")}</p>
-              </div>
-              <div>
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Status</p>
-                <span className={`text-xs font-semibold px-3 py-1 rounded-full ${statusColor(result.status)}`}>
-                  {result.status.charAt(0).toUpperCase() + result.status.slice(1)}
-                </span>
-              </div>
-            </div>
-          </motion.div>
-        )}
+      <div className="max-w-4xl">
+        <ConsultaPublicaSection />
       </div>
     </div>
   );
