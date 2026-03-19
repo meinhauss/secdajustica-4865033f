@@ -98,7 +98,7 @@ export type Database = {
           id: string
           inquerito_id: string
           justificativa: string
-          promotor_id: string
+          promotor_id: string | null
           status: string
         }
         Insert: {
@@ -106,7 +106,7 @@ export type Database = {
           id?: string
           inquerito_id: string
           justificativa: string
-          promotor_id: string
+          promotor_id?: string | null
           status?: string
         }
         Update: {
@@ -114,7 +114,7 @@ export type Database = {
           id?: string
           inquerito_id?: string
           justificativa?: string
-          promotor_id?: string
+          promotor_id?: string | null
           status?: string
         }
         Relationships: [
@@ -523,7 +523,7 @@ export type Database = {
           inquerito_id: string | null
           numero_protocolo: string
           processo_id: string | null
-          promotor_id: string
+          promotor_id: string | null
           resumo: string
           status: string
           tipificacao: string
@@ -536,7 +536,7 @@ export type Database = {
           inquerito_id?: string | null
           numero_protocolo?: string
           processo_id?: string | null
-          promotor_id: string
+          promotor_id?: string | null
           resumo: string
           status?: string
           tipificacao?: string
@@ -549,7 +549,7 @@ export type Database = {
           inquerito_id?: string | null
           numero_protocolo?: string
           processo_id?: string | null
-          promotor_id?: string
+          promotor_id?: string | null
           resumo?: string
           status?: string
           tipificacao?: string
@@ -990,7 +990,7 @@ export type Database = {
           descricao: string
           destinatario_nome: string
           id: string
-          magistrado_id: string
+          magistrado_id: string | null
           observacoes: string | null
           processo_id: string
           status: string
@@ -1004,7 +1004,7 @@ export type Database = {
           descricao: string
           destinatario_nome: string
           id?: string
-          magistrado_id: string
+          magistrado_id?: string | null
           observacoes?: string | null
           processo_id: string
           status?: string
@@ -1018,7 +1018,7 @@ export type Database = {
           descricao?: string
           destinatario_nome?: string
           id?: string
-          magistrado_id?: string
+          magistrado_id?: string | null
           observacoes?: string | null
           processo_id?: string
           status?: string
@@ -1157,7 +1157,7 @@ export type Database = {
           created_at: string
           id: string
           processo_id: string
-          promotor_id: string
+          promotor_id: string | null
           tipo: string
         }
         Insert: {
@@ -1165,7 +1165,7 @@ export type Database = {
           created_at?: string
           id?: string
           processo_id: string
-          promotor_id: string
+          promotor_id?: string | null
           tipo?: string
         }
         Update: {
@@ -1173,7 +1173,7 @@ export type Database = {
           created_at?: string
           id?: string
           processo_id?: string
-          promotor_id?: string
+          promotor_id?: string | null
           tipo?: string
         }
         Relationships: [
@@ -1235,7 +1235,7 @@ export type Database = {
       }
       procedimentos_disciplinares: {
         Row: {
-          advogado_user_id: string
+          advogado_user_id: string | null
           created_at: string
           denunciante_id: string | null
           descricao: string
@@ -1247,7 +1247,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          advogado_user_id: string
+          advogado_user_id?: string | null
           created_at?: string
           denunciante_id?: string | null
           descricao: string
@@ -1259,7 +1259,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          advogado_user_id?: string
+          advogado_user_id?: string | null
           created_at?: string
           denunciante_id?: string | null
           descricao?: string
@@ -1334,7 +1334,7 @@ export type Database = {
       }
       procuracoes: {
         Row: {
-          advogado_id: string
+          advogado_id: string | null
           advogado_nome: string
           created_at: string
           documento_url: string | null
@@ -1347,7 +1347,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          advogado_id: string
+          advogado_id?: string | null
           advogado_nome: string
           created_at?: string
           documento_url?: string | null
@@ -1360,7 +1360,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          advogado_id?: string
+          advogado_id?: string | null
           advogado_nome?: string
           created_at?: string
           documento_url?: string | null
@@ -1588,7 +1588,7 @@ export type Database = {
           id: string
           inquerito_id: string
           prazo_dias: number
-          promotor_id: string
+          promotor_id: string | null
           resposta: string | null
           status: string
           updated_at: string
@@ -1599,7 +1599,7 @@ export type Database = {
           id?: string
           inquerito_id: string
           prazo_dias?: number
-          promotor_id: string
+          promotor_id?: string | null
           resposta?: string | null
           status?: string
           updated_at?: string
@@ -1610,7 +1610,7 @@ export type Database = {
           id?: string
           inquerito_id?: string
           prazo_dias?: number
-          promotor_id?: string
+          promotor_id?: string | null
           resposta?: string | null
           status?: string
           updated_at?: string
@@ -1679,7 +1679,7 @@ export type Database = {
           ementa: string | null
           fundamentacao: string
           id: string
-          magistrado_id: string
+          magistrado_id: string | null
           processo_id: string
           tipo: string
         }
@@ -1691,7 +1691,7 @@ export type Database = {
           ementa?: string | null
           fundamentacao: string
           id?: string
-          magistrado_id: string
+          magistrado_id?: string | null
           processo_id: string
           tipo?: string
         }
@@ -1703,7 +1703,7 @@ export type Database = {
           ementa?: string | null
           fundamentacao?: string
           id?: string
-          magistrado_id?: string
+          magistrado_id?: string | null
           processo_id?: string
           tipo?: string
         }
