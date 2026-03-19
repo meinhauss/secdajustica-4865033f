@@ -177,7 +177,36 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
         motivo_indeferimento: motivo || null,
       } as any).eq("id", inscricaoId);
 
-      if (action === "aprovada") {
+      // Send notification to the applicant
+      if (action === "complementacao") {
+        await supabase.from("notificacoes").insert({
+          user_id: insc.user_id,
+          titulo: "Complementação solicitada — Inscrição OAB",
+          mensagem: motivo
+            ? `A OAB solicitou complementação na sua inscrição: ${motivo}`
+            : "A OAB solicitou complementação na sua inscrição. Acesse o Portal OAB para mais detalhes.",
+          tipo: "alerta",
+          link_secao: "oab",
+        });
+      } else if (action === "indeferida") {
+        await supabase.from("notificacoes").insert({
+          user_id: insc.user_id,
+          titulo: "Inscrição OAB indeferida",
+          mensagem: motivo
+            ? `Sua inscrição na OAB foi indeferida. Motivo: ${motivo}`
+            : "Sua inscrição na OAB foi indeferida. Acesse o Portal OAB para mais detalhes.",
+          tipo: "erro",
+          link_secao: "oab",
+        });
+      } else if (action === "aprovada") {
+        await supabase.from("notificacoes").insert({
+          user_id: insc.user_id,
+          titulo: "Inscrição OAB aprovada!",
+          mensagem: "Parabéns! Sua inscrição na OAB foi aprovada. Sua carteira digital já está disponível.",
+          tipo: "sucesso",
+          link_secao: "oab",
+        });
+
         await supabase.from("carteiras_oab").insert({
           user_id: insc.user_id,
           inscricao_id: inscricaoId,
