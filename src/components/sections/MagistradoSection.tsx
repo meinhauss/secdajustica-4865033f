@@ -544,7 +544,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         conteudo: despachoForm.conteudo,
         tipo: despachoForm.tipo,
         autor_id: user!.id,
-        autor_nome: profile?.nome_completo || "Magistrado",
+        autor_nome: profile?.nome_completo || "Juiz de Direito",
         assinado: true,
         data_assinatura: new Date().toISOString(),
       });

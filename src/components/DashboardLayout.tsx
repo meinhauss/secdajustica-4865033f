@@ -47,7 +47,7 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
       admin: "Administrador",
       presidente_tribunal: "Presidente do Tribunal",
       desembargador: "Desembargador(a)",
-      magistrado: "Magistrado(a)",
+      magistrado: "Juiz(a) de Direito",
       ministerio_publico: "Promotor(a)",
       procurador_geral: "Procurador(a)-Geral",
       oficial_justica: "Oficial de Justiça",

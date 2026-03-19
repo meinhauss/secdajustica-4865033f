@@ -901,7 +901,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
           <div>
             <p className="text-sm font-medium text-amber-800 dark:text-amber-300">Processo não atribuído a você</p>
             <p className="text-xs text-amber-700 dark:text-amber-400 mt-1">
-              Este processo está atribuído a outro magistrado. Você pode visualizar, mas não pode realizar movimentações judiciais.
+              Este processo está atribuído a outro Juiz de Direito. Você pode visualizar, mas não pode realizar movimentações judiciais.
             </p>
           </div>
         </div>
