@@ -213,7 +213,7 @@ const PERMISSION_LABELS: Record<string, string> = {
   honorarios: "Honorários",
   
   acompanhamento: "Acompanhamento",
-  notificacoes: "Notificações",
+  
   inscricao_oab: "Inscrição na OAB",
 };
 
