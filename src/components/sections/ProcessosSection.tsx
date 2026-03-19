@@ -386,7 +386,9 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     (p: any) => p.advogado_id === user?.id && p.status === "ativa"
   );
 
-  const canAddMovimentacao = isJudicial || isMP || isOficialJustica || isPolicia || (isAdvogado && advogadoTemProcuracao);
+  // Institutional roles (MP/PC/PM/PF/Hospital) can only act after qualifying as interested
+  const institucionalInteressado = isInstitucional && jaInteressado;
+  const canAddMovimentacao = isJudicial || isOficialJustica || (isAdvogado && advogadoTemProcuracao) || institucionalInteressado;
 
   const [showProcuracao, setShowProcuracao] = useState(false);
   const [procForm, setProcForm] = useState({ parte: "autor", documento_url: "" });
