@@ -442,14 +442,6 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     onError: (err: any) => toast.error(err.message),
   });
 
-  const { data: processo } = useQuery({
-    queryKey: ["processo", processoId],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("processos").select("*").eq("id", processoId).single();
-      if (error) throw error;
-      return data;
-    },
-  });
 
   const { data: movimentacoes } = useQuery({
     queryKey: ["movimentacoes", processoId],
