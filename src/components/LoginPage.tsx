@@ -238,7 +238,7 @@ function TabInicio({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
               variant="outline"
               className="rounded-xl h-12 px-8 border-accent text-accent hover:bg-accent/10">
               
-              Ver Serviços
+              Consultar Credencial
             </Button>
           </motion.div>
         </div>
