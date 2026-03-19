@@ -75,6 +75,13 @@ const ATO_TEMPLATES: Record<string, string> = {
   acordao: `ACÓRDÃO\n\nVistos, relatados e discutidos estes autos.\n\nACORDAM os Desembargadores da [Câmara], por [unanimidade/maioria], em [dar/negar] provimento ao recurso.\n\n[Ementa]\n\n[Voto do Relator]\n\n[Comarca], [data].`,
 };
 
+const CLASSE_VARA_MAP: Record<string, string> = {
+  criminal: "Vara Criminal",
+  civil: "Vara Cível",
+  administrativo: "Vara da Fazenda Pública",
+  constitucional: "Vara da Fazenda Pública",
+};
+
 /* ═══════════════════════════════════════════ */
 /*  MAIN COMPONENT                             */
 /* ═══════════════════════════════════════════ */
@@ -206,7 +213,7 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle className="font-display">Cadastrar Novo Processo</DialogTitle></DialogHeader>
             <form onSubmit={(e) => { e.preventDefault(); createProcesso.mutate(); }} className="space-y-4 mt-4">
-              <Select value={form.classe} onValueChange={(v) => setForm({ ...form, classe: v })}>
+              <Select value={form.classe} onValueChange={(v) => setForm({ ...form, classe: v, vara: CLASSE_VARA_MAP[v] || "" })}>
                 <SelectTrigger className="rounded-xl"><SelectValue placeholder="Classe Processual" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="criminal">Criminal</SelectItem>
