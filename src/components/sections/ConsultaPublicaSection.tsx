@@ -40,7 +40,7 @@ export default function ConsultaPublicaSection() {
       <div className="relative max-w-xl">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Número do processo, nome, ou ID do personagem..."
+          placeholder="Número do processo ou assunto..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-10 rounded-xl h-12 text-base"
