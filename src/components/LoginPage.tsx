@@ -66,26 +66,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {/* Top Gov Bar */}
-      <div className="bg-institutional-dark">
-        <div className="max-w-7xl mx-auto px-4 py-1.5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={govLogo} alt="gov.br" className="h-6" />
-            <span className="text-[11px] text-sidebar-foreground/60 hidden sm:block">
-              Governo da Jaguaré RP — Estado de São Paulo
-            </span>
-          </div>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setActiveTab("login")}
-              className="flex items-center gap-2 text-[11px] text-gold font-semibold hover:text-gold-light transition-colors">
-              
-              <img src={govLogo} alt="" className="h-4" />
-              Entrar com GOV.BR
-            </button>
-          </div>
-        </div>
-      </div>
 
       {/* Header */}
       <header className="bg-institutional border-b border-sidebar-border">
