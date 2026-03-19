@@ -826,19 +826,31 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
 
           {/* Interessados */}
           <div className="border-t border-border pt-4">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Interessados</h3>
-            <div className="flex flex-wrap gap-2">
-              {mpInteressado && (
-                <span className="text-xs px-3 py-1.5 rounded-lg bg-institutional/10 text-institutional font-medium flex items-center gap-1.5">
-                  <Scale className="h-3.5 w-3.5" /> Ministério Público (custos legis)
-                </span>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Interessados</h3>
+              {canManifestInteresse && !jaInteressado && (
+                <Button size="sm" variant="outline" className="h-7 text-xs rounded-lg" onClick={() => manifestarInteresse.mutate()}>
+                  <Scale className="h-3.5 w-3.5 mr-1" /> Manifestar-se como Interessado
+                </Button>
               )}
+              {canManifestInteresse && jaInteressado && (
+                <Button size="sm" variant="ghost" className="h-7 text-xs rounded-lg text-destructive" onClick={() => retirarInteresse.mutate()}>
+                  <X className="h-3.5 w-3.5 mr-1" /> Retirar Interesse
+                </Button>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2">
               {processo.classe === "criminal" && (
                 <span className="text-xs px-3 py-1.5 rounded-lg bg-institutional/10 text-institutional font-medium flex items-center gap-1.5">
                   <Scale className="h-3.5 w-3.5" /> Ministério Público (parte)
                 </span>
               )}
-              {!mpInteressado && processo.classe !== "criminal" && (
+              {interessadosData && interessadosData.length > 0 && interessadosData.map((int: any) => (
+                <span key={int.id} className="text-xs px-3 py-1.5 rounded-lg bg-institutional/10 text-institutional font-medium flex items-center gap-1.5">
+                  <Scale className="h-3.5 w-3.5" /> {int.orgao} — {int.nome} ({int.qualificacao})
+                </span>
+              ))}
+              {(!interessadosData || interessadosData.length === 0) && processo.classe !== "criminal" && (
                 <p className="text-xs text-muted-foreground italic">Nenhum interessado registrado.</p>
               )}
             </div>
