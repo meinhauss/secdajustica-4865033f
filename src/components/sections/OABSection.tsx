@@ -81,7 +81,7 @@ export default function OABSection() {
 /* ═══════════════════════════════════════════ */
 /*  DASHBOARD                                  */
 /* ═══════════════════════════════════════════ */
-function OABDashboard({ isAdmin }: { isAdmin: boolean }) {
+function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: boolean }) {
   const { user, profile } = useAuth();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
