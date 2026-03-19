@@ -63,8 +63,23 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
   });
 
   const { data: recentMovimentacoes } = useQuery({
-    queryKey: ["dash-movimentacoes"], queryFn: async () => {
-      const { data } = await supabase.from("movimentacoes").select("id, tipo, descricao, created_at, processo_id, autor_id").order("created_at", { ascending: false }).limit(8);
+    queryKey: ["dash-movimentacoes", profile?.user_id], queryFn: async () => {
+      const userId = profile?.user_id;
+      if (!userId) return [];
+
+      // Get processo IDs where the user is involved
+      const { data: userProcessos } = await supabase.from("processos")
+        .select("id")
+        .or(`juiz_id.eq.${userId},advogado_autor_id.eq.${userId},advogado_reu_id.eq.${userId}`);
+      
+      const processoIds = (userProcessos || []).map(p => p.id);
+      if (!processoIds.length) return [];
+
+      const { data } = await supabase.from("movimentacoes")
+        .select("id, tipo, descricao, created_at, processo_id, autor_id")
+        .in("processo_id", processoIds)
+        .order("created_at", { ascending: false })
+        .limit(8);
       if (!data?.length) return [];
       const autorIds = [...new Set(data.map(m => m.autor_id).filter(Boolean))];
       let profilesMap: Record<string, string> = {};
@@ -74,6 +89,7 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
       }
       return data.map(m => ({ ...m, autor_nome: m.autor_id ? profilesMap[m.autor_id] || "Usuário do sistema" : "Sistema" }));
     },
+    enabled: !!profile?.user_id,
   });
 
   const { data: recentProcessos } = useQuery({
