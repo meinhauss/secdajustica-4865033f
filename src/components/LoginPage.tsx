@@ -400,15 +400,33 @@ function TabCredencial() {
 
 function TabTransparencia() {
   const [stats, setStats] = useState<any>(null);
-  const [magistrados, setMagistrados] = useState<any[]>([]);
+  const [servidores, setServidores] = useState<any[]>([]);
   const [loadingStats, setLoadingStats] = useState(true);
+
+  const ROLE_LABELS_T: Record<string, string> = {
+    admin: "Administrador",
+    magistrado: "Magistrado(a)",
+    ministerio_publico: "Promotor(a) de Justiça",
+    oficial_justica: "Oficial de Justiça",
+    advogado: "Advogado(a)",
+    presidente_tribunal: "Presidente do Tribunal",
+    desembargador: "Desembargador(a)",
+    presidente_oab: "Presidente da OAB",
+    procurador_geral: "Procurador(a)-Geral",
+    bacharel_direito: "Bacharel em Direito",
+    policia_civil: "Polícia Civil",
+    policia_militar: "Polícia Militar",
+    policia_federal: "Polícia Federal",
+    hospital: "Hospital",
+    investigador: "Investigador(a)",
+  };
 
   useState(() => {
     const load = async () => {
-      const [processosRes, audienciasRes, magistradosRes] = await Promise.all([
+      const [processosRes, audienciasRes, rolesRes] = await Promise.all([
         supabase.from("processos").select("status, classe", { count: "exact" }),
         supabase.from("audiencias").select("status", { count: "exact" }),
-        supabase.from("profiles").select("nome_completo, cargo").not("cargo", "is", null),
+        supabase.from("user_roles").select("user_id, role").neq("role", "cidadao"),
       ]);
 
       const processos = processosRes.data || [];
@@ -426,7 +444,30 @@ function TabTransparencia() {
         classeCounts,
       });
 
-      setMagistrados((magistradosRes.data || []).slice(0, 20));
+      const rolesData = rolesRes.data || [];
+      const userRolesMap: Record<string, string[]> = {};
+      rolesData.forEach((r: any) => {
+        if (!userRolesMap[r.user_id]) userRolesMap[r.user_id] = [];
+        userRolesMap[r.user_id].push(r.role);
+      });
+
+      const userIds = Object.keys(userRolesMap);
+      let profilesList: any[] = [];
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id, nome_completo, cargo")
+          .in("user_id", userIds);
+        profilesList = (profiles || []).map((p: any) => ({
+          ...p,
+          displayRole: (userRolesMap[p.user_id] || [])
+            .filter((r: string) => r !== "cidadao")
+            .map((r: string) => ROLE_LABELS_T[r] || r)
+            .join(", "),
+        }));
+      }
+
+      setServidores(profilesList.slice(0, 50));
       setLoadingStats(false);
     };
     load();
@@ -461,7 +502,7 @@ function TabTransparencia() {
           <p className="text-xs text-muted-foreground mt-1">Processos Sentenciados</p>
         </div>
         <div className="bg-card rounded-xl p-5 border border-border shadow-institutional text-center">
-          <p className="text-2xl font-bold text-foreground">{magistrados.length}</p>
+          <p className="text-2xl font-bold text-foreground">{servidores.length}</p>
           <p className="text-xs text-muted-foreground mt-1">Servidores Cadastrados</p>
         </div>
       </div>
@@ -508,16 +549,16 @@ function TabTransparencia() {
         </div>
 
         {/* Composição */}
-        {magistrados.length > 0 && (
+        {servidores.length > 0 && (
           <div className="bg-card rounded-xl p-6 border border-border shadow-institutional lg:col-span-2">
             <h3 className="font-display text-base font-semibold text-foreground mb-4">Servidores da Comarca</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-              {magistrados.map((m, i) => (
+              {servidores.map((m, i) => (
                 <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 text-sm">
                   <Users className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <div className="min-w-0">
                     <p className="font-medium text-foreground truncate">{m.nome_completo}</p>
-                    <p className="text-xs text-muted-foreground">{m.cargo}</p>
+                    <p className="text-xs text-muted-foreground">{m.displayRole || m.cargo}</p>
                   </div>
                 </div>
               ))}
