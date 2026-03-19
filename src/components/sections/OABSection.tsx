@@ -262,6 +262,8 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
 
         await supabase.from("profiles").update({ cargo: "Advogado(a)" }).eq("user_id", insc.user_id);
         await supabase.from("user_roles").insert({ user_id: insc.user_id, role: "advogado" as any }).select();
+        // Remove bacharel_direito role
+        await supabase.from("user_roles").delete().eq("user_id", insc.user_id).eq("role", "bacharel_direito" as any);
       }
     },
     onSuccess: () => {
