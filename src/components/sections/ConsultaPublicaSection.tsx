@@ -2,25 +2,23 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
-import { Search, IdCard, Shield } from "lucide-react";
+import { Search, IdCard } from "lucide-react";
 import { motion } from "framer-motion";
 
 import logoTjsp from "@/assets/logo-tjsp.png";
 import logoMpsp from "@/assets/logo-mpsp.png";
 import logoOabsp from "@/assets/logo-oabsp.png";
-import govLogo from "@/assets/gov-logo.png";
+import logoSjc from "@/assets/logo-sjc.jpg";
 
 const ROLE_LABELS: Record<string, string> = {
   admin: "Administrador",
   magistrado: "Magistrado(a)",
   ministerio_publico: "Ministério Público",
-  delegado: "Delegado(a)",
   oficial_justica: "Oficial de Justiça",
   advogado: "Advogado(a)",
   cidadao: "Cidadão",
   presidente_tribunal: "Presidente do Tribunal",
   desembargador: "Desembargador(a)",
-  investigador: "Investigador(a)",
   presidente_oab: "Presidente da OAB",
   procurador_geral: "Procurador(a)-Geral",
   bacharel_direito: "Bacharel em Direito",
@@ -36,6 +34,7 @@ function getInstitutionForRole(role: string): InstitutionInfo {
     case "magistrado":
     case "desembargador":
     case "presidente_tribunal":
+    case "oficial_justica":
       return { name: "Tribunal de Justiça de São Paulo", logo: logoTjsp };
     case "ministerio_publico":
     case "procurador_geral":
@@ -44,13 +43,8 @@ function getInstitutionForRole(role: string): InstitutionInfo {
     case "presidente_oab":
     case "bacharel_direito":
       return { name: "OAB — Seção São Paulo", logo: logoOabsp };
-    case "delegado":
-    case "investigador":
-      return { name: "Polícia Civil — Estado de São Paulo", logo: govLogo };
-    case "oficial_justica":
-      return { name: "Tribunal de Justiça de São Paulo", logo: logoTjsp };
     default:
-      return { name: "Secretaria da Justiça e Cidadania", logo: govLogo };
+      return { name: "Secretaria da Justiça e Cidadania", logo: logoSjc };
   }
 }
 
@@ -59,7 +53,6 @@ function getPrimaryRole(roles: string[]): string {
     "presidente_tribunal", "desembargador", "magistrado",
     "procurador_geral", "ministerio_publico",
     "presidente_oab", "advogado",
-    "delegado", "investigador",
     "oficial_justica", "bacharel_direito",
     "admin", "cidadao",
   ];

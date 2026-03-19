@@ -12,6 +12,7 @@ import {
 import logoTjsp from "@/assets/logo-tjsp.png";
 import logoMpsp from "@/assets/logo-mpsp.png";
 import logoOabsp from "@/assets/logo-oabsp.png";
+import logoSjc from "@/assets/logo-sjc.jpg";
 import govLogo from "@/assets/gov-logo.png";
 import { toast } from "sonner";
 
