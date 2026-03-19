@@ -686,7 +686,126 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         <InfoCard label="Valor" value={processo.valor_causa ? Number(processo.valor_causa).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "—"} />
       </div>
 
-      {/* Tabs */}
+      {/* Advogados / Procurações */}
+      <div className="bg-card rounded-xl border border-border p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><UserCheck className="h-4 w-4 text-institutional" /> Advogados Constituídos</h3>
+          <div className="flex gap-2">
+            {isAdvogado && !advogadoTemProcuracao && (
+              <Button size="sm" variant="outline" className="rounded-lg text-xs" onClick={() => setShowProcuracao(true)}>
+                <ShieldCheck className="h-3 w-3 mr-1" /> Juntar Procuração
+              </Button>
+            )}
+            {isAdvogado && advogadoTemProcuracao && (
+              <Button size="sm" variant="destructive" className="rounded-lg text-xs" onClick={() => setShowRenuncia(true)}>
+                <ShieldOff className="h-3 w-3 mr-1" /> Renunciar Mandato
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Active procuracoes list */}
+        {(!procuracoes || procuracoes.filter((p: any) => p.status === "ativa").length === 0) ? (
+          <p className="text-xs text-muted-foreground">Nenhum advogado constituído neste processo.</p>
+        ) : (
+          <div className="space-y-2">
+            {procuracoes.filter((p: any) => p.status === "ativa").map((p: any) => (
+              <div key={p.id} className="flex items-center gap-3 bg-secondary/30 rounded-lg p-2.5">
+                <ShieldCheck className="h-4 w-4 text-green-600 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-foreground">{p.advogado_nome}</p>
+                  <p className="text-[10px] text-muted-foreground">Advogado(a) do(a) {p.parte === "autor" ? "AUTOR" : "RÉU"} — desde {format(new Date(p.created_at), "dd/MM/yyyy", { locale: ptBR })}</p>
+                </div>
+                {p.documento_url && (
+                  <a href={p.documento_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1">
+                    <ExternalLink className="h-3 w-3" /> Procuração
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Renunciados */}
+        {procuracoes && procuracoes.filter((p: any) => p.status === "renunciada").length > 0 && (
+          <div className="pt-2 border-t border-border/50">
+            <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-1">Renúncias</p>
+            {procuracoes.filter((p: any) => p.status === "renunciada").map((p: any) => (
+              <div key={p.id} className="flex items-center gap-3 bg-destructive/5 rounded-lg p-2 mb-1">
+                <ShieldOff className="h-3.5 w-3.5 text-destructive flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] text-muted-foreground"><span className="font-medium text-foreground/70">{p.advogado_nome}</span> — renunciou em {p.renunciada_em ? format(new Date(p.renunciada_em), "dd/MM/yyyy", { locale: ptBR }) : "—"}</p>
+                  {p.motivo_renuncia && <p className="text-[10px] text-muted-foreground italic">Motivo: {p.motivo_renuncia}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Aviso para advogado sem procuração */}
+        {isAdvogado && !advogadoTemProcuracao && (
+          <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/30 rounded-lg p-3 flex items-start gap-2">
+            <AlertTriangle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-amber-800 dark:text-amber-300">
+              Você precisa juntar uma <strong>procuração</strong> para se qualificar como advogado(a) de uma das partes antes de realizar qualquer movimentação neste processo.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Modal Juntar Procuração */}
+      <Dialog open={showProcuracao} onOpenChange={setShowProcuracao}>
+        <DialogContent className="rounded-2xl">
+          <DialogHeader><DialogTitle>Juntar Procuração</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-medium text-foreground">Parte representada</label>
+              <Select value={procForm.parte} onValueChange={(v) => setProcForm({ ...procForm, parte: v })}>
+                <SelectTrigger className="rounded-xl mt-1"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="autor">Autor</SelectItem>
+                  <SelectItem value="reu">Réu</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-foreground">Link da procuração (documento)</label>
+              <Input
+                className="rounded-xl mt-1"
+                placeholder="https://..."
+                value={procForm.documento_url}
+                onChange={(e) => setProcForm({ ...procForm, documento_url: e.target.value })}
+              />
+            </div>
+            <Button className="w-full rounded-xl" onClick={() => juntarProcuracao.mutate()} disabled={juntarProcuracao.isPending}>
+              {juntarProcuracao.isPending ? "Juntando..." : "Juntar Procuração"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Renúncia */}
+      <Dialog open={showRenuncia} onOpenChange={setShowRenuncia}>
+        <DialogContent className="rounded-2xl">
+          <DialogHeader><DialogTitle>Renunciar ao Mandato</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">Ao renunciar, você não poderá mais realizar movimentações neste processo como advogado constituído.</p>
+            <div>
+              <label className="text-xs font-medium text-foreground">Motivo (opcional)</label>
+              <Textarea
+                className="rounded-xl mt-1"
+                placeholder="Informe o motivo da renúncia..."
+                value={motivoRenuncia}
+                onChange={(e) => setMotivoRenuncia(e.target.value)}
+              />
+            </div>
+            <Button variant="destructive" className="w-full rounded-xl" onClick={() => renunciarProcuracao.mutate()} disabled={renunciarProcuracao.isPending}>
+              {renunciarProcuracao.isPending ? "Processando..." : "Confirmar Renúncia"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Tabs defaultValue="timeline" className="w-full">
         <TabsList className="w-full justify-start rounded-xl bg-secondary/50 p-1 flex-wrap h-auto gap-1">
           <TabsTrigger value="timeline" className="rounded-lg text-xs"><History className="h-3 w-3 mr-1" /> Timeline</TabsTrigger>
