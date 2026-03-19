@@ -1069,7 +1069,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             atos?.forEach((a: any) => items.push({
               id: `ato-${a.id}`, date: a.created_at, tipo: `ato judicial — ${a.tipo}`,
               titulo: a.titulo, descricao: a.conteudo,
-              autor: a.autor_nome || "Magistrado",
+              autor: a.autor_nome || "Juiz de Direito",
               badge_color: "bg-institutional/10 text-institutional",
             }));
 
