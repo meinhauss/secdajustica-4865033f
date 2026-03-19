@@ -890,7 +890,20 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               badge_color: "bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400",
             }));
 
-            // Sort by date descending
+            // Procurações
+            procuracoes?.forEach((p: any) => items.push({
+              id: `proc-${p.id}`, date: p.status === "renunciada" && p.renunciada_em ? p.renunciada_em : p.created_at,
+              tipo: p.status === "renunciada" ? "renúncia de mandato" : "procuração",
+              titulo: p.status === "renunciada" ? `Renúncia — ${p.advogado_nome}` : `Procuração — ${p.advogado_nome}`,
+              descricao: p.status === "renunciada"
+                ? `${p.advogado_nome} renunciou ao mandato de advogado(a) do(a) ${p.parte === "autor" ? "AUTOR" : "RÉU"}.${p.motivo_renuncia ? `\nMotivo: ${p.motivo_renuncia}` : ""}`
+                : `${p.advogado_nome} juntou procuração qualificando-se como advogado(a) do(a) ${p.parte === "autor" ? "AUTOR" : "RÉU"}.`,
+              link: p.documento_url || undefined,
+              badge_color: p.status === "renunciada"
+                ? "bg-red-100 text-red-800 dark:bg-red-950/30 dark:text-red-400"
+                : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400",
+            }));
+
             items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
             if (!items.length) return <p className="text-center py-8 text-sm text-muted-foreground">Nenhuma movimentação registrada.</p>;
