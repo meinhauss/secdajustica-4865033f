@@ -75,6 +75,13 @@ const ATO_TEMPLATES: Record<string, string> = {
   acordao: `ACÓRDÃO\n\nVistos, relatados e discutidos estes autos.\n\nACORDAM os Desembargadores da [Câmara], por [unanimidade/maioria], em [dar/negar] provimento ao recurso.\n\n[Ementa]\n\n[Voto do Relator]\n\n[Comarca], [data].`,
 };
 
+const CLASSE_VARA_MAP: Record<string, string> = {
+  criminal: "Vara Criminal",
+  civil: "Vara Cível",
+  administrativo: "Vara da Fazenda Pública",
+  constitucional: "Vara da Fazenda Pública",
+};
+
 /* ═══════════════════════════════════════════ */
 /*  MAIN COMPONENT                             */
 /* ═══════════════════════════════════════════ */
