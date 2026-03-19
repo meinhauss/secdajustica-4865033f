@@ -12,6 +12,7 @@ import {
 import logoTjsp from "@/assets/logo-tjsp.png";
 import logoMpsp from "@/assets/logo-mpsp.png";
 import logoOabsp from "@/assets/logo-oabsp.png";
+import logoSjc from "@/assets/logo-sjc.jpg";
 import govLogo from "@/assets/gov-logo.png";
 import { toast } from "sonner";
 
@@ -90,7 +91,7 @@ export default function LoginPage() {
       <header className="bg-institutional border-b border-sidebar-border">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <img src={logoTjsp} alt="SJC-SP" className="h-14 rounded-lg drop-shadow" />
+            <img src={logoSjc} alt="SJC-SP" className="h-14 rounded-lg drop-shadow" />
             <div>
               <h1 className="font-display text-xl lg:text-2xl font-bold text-sidebar-foreground leading-tight">
                 Secretaria da Justiça e Cidadania
@@ -305,12 +306,6 @@ function TabInstitucional() {
     name: "Ministério Público",
     desc: "Instituição essencial à função jurisdicional do Estado, responsável pela defesa da ordem jurídica e dos interesses sociais.",
     competencias: ["Oferecer denúncias criminais", "Fiscalizar o cumprimento da lei", "Defender interesses coletivos", "Expedir recomendações"]
-  },
-  {
-    logo: govLogo,
-    name: "Polícia Civil",
-    desc: "Órgão responsável pela investigação criminal, apuração de infrações penais e manutenção da ordem pública.",
-    competencias: ["Investigar crimes", "Registrar Boletins de Ocorrência", "Conduzir inquéritos policiais", "Remeter inquéritos ao MP"]
   },
   {
     logo: logoOabsp,
