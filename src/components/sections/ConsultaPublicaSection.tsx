@@ -293,19 +293,14 @@ export default function ConsultaPublicaSection() {
                       </div>
                     )}
 
-                    {/* Role badges */}
-                    <div className="flex flex-wrap gap-1 pt-1">
-                      {p.roles
-                        .filter((r: string) => r !== "cidadao")
-                        .map((r: string) => (
-                          <span
-                            key={r}
-                            className="text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-gold/15 text-gold-dark border border-gold/20"
-                          >
-                            {ROLE_LABELS[r] || r}
-                          </span>
-                        ))}
-                    </div>
+                    {/* Single highest role badge */}
+                    {primaryRole !== "cidadao" && (
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        <span className="text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-gold/15 text-gold-dark border border-gold/20">
+                          {ROLE_LABELS[primaryRole] || primaryRole}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 

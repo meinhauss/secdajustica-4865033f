@@ -126,7 +126,7 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
   if (isJudicial || isAdmin) quickActions.push({ label: "Cartório", icon: Stamp, section: "cartorio", desc: "Protocolos e intimações" });
   if (isJudicial || isAdmin) quickActions.push({ label: "Audiências", icon: Clock, section: "audiencias", desc: "Agenda de audiências" });
   quickActions.push({ label: "Concursos", icon: GraduationCap, section: "concursos", desc: "Editais e inscrições" });
-  quickActions.push({ label: "Consulta Pública", icon: Scale, section: "consulta", desc: "Consultar andamento processual" });
+  quickActions.push({ label: "Consultar Credencial", icon: Scale, section: "consulta", desc: "Verificar credenciais de servidores" });
 
   const statusColor = (s: string) => {
     const m: Record<string, string> = {
