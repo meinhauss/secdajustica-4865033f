@@ -676,7 +676,7 @@ export default function CartorarioSection() {
                 <Stamp className="h-4 w-4 mr-1" /> Solicitar Documento
               </Button>
             </div>
-          </ScrollArea>
+          </div>
         </DialogContent>
       </Dialog>
 
