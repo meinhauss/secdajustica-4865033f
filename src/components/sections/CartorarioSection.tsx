@@ -12,22 +12,61 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   FileText, Plus, Search, CheckCircle, Clock, Eye, Stamp,
-  Heart, Home, Users, ScrollText, FileSignature, Baby, BarChart3, User, Link
+  Heart, Home, Users, ScrollText, FileSignature, Baby, BarChart3, User, Link, X, Trash2, ExternalLink
 } from "lucide-react";
 
-/* ─── Profile Lookup Hook ─── */
-function useProfileLookup() {
-  const [result, setResult] = useState<{ nome_completo: string; id_personagem: string } | null>(null);
-  const lookup = async (idPersonagem: string) => {
-    setResult(null);
-    if (!idPersonagem) return null;
-    const { data } = await supabase.from("profiles").select("nome_completo, id_personagem").eq("id_personagem", idPersonagem).maybeSingle();
-    if (data) setResult({ nome_completo: data.nome_completo, id_personagem: data.id_personagem || "" });
-    return data;
-  };
-  return { result, lookup, clear: () => setResult(null) };
+/* ─── Types ─── */
+interface PersonEntry {
+  id_personagem: string;
+  nome: string;
+}
+
+interface ProfileData {
+  nome_completo: string;
+  id_personagem: string | null;
+  cargo: string | null;
+  cpf: string | null;
+  discord: string | null;
+  telefone_ingame: string | null;
+  oab_numero: string | null;
+  avatar_url: string | null;
+}
+
+/* ─── Profile Lookup ─── */
+async function lookupProfile(idPersonagem: string): Promise<ProfileData | null> {
+  if (!idPersonagem.trim()) return null;
+  const { data } = await supabase
+    .from("profiles")
+    .select("nome_completo, id_personagem, cargo, cpf, discord, telefone_ingame, oab_numero, avatar_url")
+    .eq("id_personagem", idPersonagem.trim())
+    .maybeSingle();
+  return data as ProfileData | null;
+}
+
+/* ─── Helpers ─── */
+function parseJsonArray<T>(val: string | null): T[] {
+  if (!val) return [];
+  try {
+    const parsed = JSON.parse(val);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function parseLinks(val: string | null): string[] {
+  if (!val) return [];
+  try {
+    const parsed = JSON.parse(val);
+    if (Array.isArray(parsed)) return parsed;
+  } catch {
+    // legacy single URL
+    if (val.startsWith("http")) return [val];
+  }
+  return [];
 }
 
 const TIPOS_REGISTRO = [
@@ -82,12 +121,182 @@ const statusLabel = (s: string) => {
   return map[s] || s;
 };
 
+const getTipoLabel = (tipo: string) =>
+  TIPOS_REGISTRO.find((t) => t.value === tipo)?.label || tipo.replace(/_/g, " ");
+
+/* ─── Person Input Component ─── */
+function PersonInput({ label, entries, onChange }: {
+  label: string;
+  entries: PersonEntry[];
+  onChange: (entries: PersonEntry[]) => void;
+}) {
+  const [idInput, setIdInput] = useState("");
+  const [lookingUp, setLookingUp] = useState(false);
+
+  const addPerson = async () => {
+    if (!idInput.trim()) return;
+    if (entries.some((e) => e.id_personagem === idInput.trim())) {
+      toast({ title: "ID já adicionado", variant: "destructive" });
+      return;
+    }
+    setLookingUp(true);
+    const profile = await lookupProfile(idInput);
+    setLookingUp(false);
+    if (profile) {
+      onChange([...entries, { id_personagem: profile.id_personagem || idInput.trim(), nome: profile.nome_completo }]);
+      setIdInput("");
+    } else {
+      toast({ title: "Personagem não encontrado", description: `ID "${idInput}" não existe no sistema.`, variant: "destructive" });
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            value={idInput}
+            onChange={(e) => setIdInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addPerson(); } }}
+            placeholder="Digite o ID do Personagem"
+            className="pl-10"
+          />
+        </div>
+        <Button type="button" size="sm" variant="outline" onClick={addPerson} disabled={lookingUp || !idInput.trim()}>
+          {lookingUp ? <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" /> : <Plus className="h-4 w-4" />}
+        </Button>
+      </div>
+      {entries.length > 0 && (
+        <div className="space-y-1">
+          {entries.map((e, i) => (
+            <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/60 border border-border text-xs">
+              <User className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+              <span className="font-medium text-foreground">{e.nome}</span>
+              <span className="text-muted-foreground">ID: {e.id_personagem}</span>
+              <button type="button" className="ml-auto text-muted-foreground hover:text-destructive" onClick={() => onChange(entries.filter((_, j) => j !== i))}>
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Links Input Component ─── */
+function LinksInput({ label, links, onChange }: {
+  label: string;
+  links: string[];
+  onChange: (links: string[]) => void;
+}) {
+  const [input, setInput] = useState("");
+
+  const addLink = () => {
+    const url = input.trim();
+    if (!url) return;
+    onChange([...links, url]);
+    setInput("");
+  };
+
+  return (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Link className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addLink(); } }}
+            placeholder="https://..."
+            className="pl-10"
+          />
+        </div>
+        <Button type="button" size="sm" variant="outline" onClick={addLink} disabled={!input.trim()}>
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
+      {links.length > 0 && (
+        <div className="space-y-1">
+          {links.map((url, i) => (
+            <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/60 border border-border text-xs">
+              <Link className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+              <a href={url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate flex-1">{url}</a>
+              <button type="button" className="ml-auto text-muted-foreground hover:text-destructive flex-shrink-0" onClick={() => onChange(links.filter((_, j) => j !== i))}>
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Profile Card ─── */
+function ProfileCard({ profile, onClose }: { profile: ProfileData; onClose: () => void }) {
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2"><User className="h-4 w-4" /> Ficha do Cidadão</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 text-sm">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <p className="text-xs text-muted-foreground">Nome Completo</p>
+              <p className="font-medium">{profile.nome_completo}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">ID Personagem</p>
+              <p className="font-medium">{profile.id_personagem || "—"}</p>
+            </div>
+            {profile.cpf && (
+              <div>
+                <p className="text-xs text-muted-foreground">CPF</p>
+                <p>{profile.cpf}</p>
+              </div>
+            )}
+            {profile.cargo && (
+              <div>
+                <p className="text-xs text-muted-foreground">Cargo</p>
+                <p>{profile.cargo}</p>
+              </div>
+            )}
+            {profile.oab_numero && (
+              <div>
+                <p className="text-xs text-muted-foreground">OAB</p>
+                <p>{profile.oab_numero}</p>
+              </div>
+            )}
+            {profile.discord && (
+              <div>
+                <p className="text-xs text-muted-foreground">Discord</p>
+                <p>{profile.discord}</p>
+              </div>
+            )}
+            {profile.telefone_ingame && (
+              <div>
+                <p className="text-xs text-muted-foreground">Telefone</p>
+                <p>{profile.telefone_ingame}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ─── Main Component ─── */
 export default function CartorarioSection() {
   const { user, profile, roles } = useAuth();
   const isAdmin = roles.includes("admin");
   const isCartorario = isAdmin || roles.includes("oficial_justica");
   const canSolicitar = isAdmin || isCartorario || roles.includes("advogado");
-  const requerenteLookup = useProfileLookup();
 
   const [tab, setTab] = useState("painel");
   const [registros, setRegistros] = useState<Registro[]>([]);
@@ -96,17 +305,18 @@ export default function CartorarioSection() {
   const [loading, setLoading] = useState(true);
   const [showNovoRegistro, setShowNovoRegistro] = useState(false);
   const [showDetalhes, setShowDetalhes] = useState<Registro | null>(null);
+  const [viewingProfile, setViewingProfile] = useState<ProfileData | null>(null);
 
-  const [form, setForm] = useState({
-    tipo: "certidao_nascimento",
-    requerente_nome: "",
-    id_personagem: "",
-    partes_envolvidas: "",
-    descricao: "",
-    observacoes: "",
-    documento_url: "",
-  });
-  const [emitirUrl, setEmitirUrl] = useState("");
+  // Form state
+  const [formTipo, setFormTipo] = useState("certidao_nascimento");
+  const [formRequerentes, setFormRequerentes] = useState<PersonEntry[]>([]);
+  const [formEnvolvidos, setFormEnvolvidos] = useState<PersonEntry[]>([]);
+  const [formDescricao, setFormDescricao] = useState("");
+  const [formObservacoes, setFormObservacoes] = useState("");
+  const [formLinks, setFormLinks] = useState<string[]>([]);
+
+  // Emit state
+  const [emitirLinks, setEmitirLinks] = useState<string[]>([]);
 
   useEffect(() => { fetchRegistros(); }, []);
 
@@ -121,44 +331,73 @@ export default function CartorarioSection() {
     setLoading(false);
   };
 
+  const resetForm = () => {
+    setFormTipo("certidao_nascimento");
+    setFormRequerentes([]);
+    setFormEnvolvidos([]);
+    setFormDescricao("");
+    setFormObservacoes("");
+    setFormLinks([]);
+  };
+
   const handleSolicitar = async () => {
-    if (!form.requerente_nome || !form.descricao) {
-      toast({ title: "Preencha os campos obrigatórios", variant: "destructive" });
+    if (formRequerentes.length === 0) {
+      toast({ title: "Adicione pelo menos um requerente", variant: "destructive" });
       return;
     }
+    if (!formDescricao) {
+      toast({ title: "Preencha a descrição", variant: "destructive" });
+      return;
+    }
+
+    const requerenteNome = JSON.stringify(formRequerentes);
+    const partesEnvolvidas = formEnvolvidos.length > 0 ? JSON.stringify(formEnvolvidos) : null;
+    const documentoUrl = formLinks.length > 0 ? JSON.stringify(formLinks) : null;
+    const primaryId = formRequerentes[0]?.id_personagem || null;
+
     const { error } = await supabase.from("registros_cartorio").insert({
-      tipo: form.tipo,
+      tipo: formTipo,
       requerente_id: user?.id,
-      requerente_nome: form.requerente_nome,
-      id_personagem: form.id_personagem || null,
-      partes_envolvidas: form.partes_envolvidas || null,
-      descricao: form.descricao,
-      observacoes: form.observacoes || null,
-      documento_url: form.documento_url || null,
+      requerente_nome: requerenteNome,
+      id_personagem: primaryId,
+      partes_envolvidas: partesEnvolvidas,
+      descricao: formDescricao,
+      observacoes: formObservacoes || null,
+      documento_url: documentoUrl,
     } as any);
+
     if (error) {
       toast({ title: "Erro ao solicitar", description: error.message, variant: "destructive" });
       return;
     }
     toast({ title: "Solicitação registrada com sucesso" });
     setShowNovoRegistro(false);
-    setForm({ tipo: "certidao_nascimento", requerente_nome: "", id_personagem: "", partes_envolvidas: "", descricao: "", observacoes: "", documento_url: "" });
-    requerenteLookup.clear();
+    resetForm();
     fetchRegistros();
   };
 
-  const handleUpdateStatus = async (id: string, status: string, docUrl?: string) => {
+  const handleUpdateStatus = async (id: string, status: string) => {
     const updateData: any = { status };
     if (status === "emitido") {
       updateData.emitido_por = user?.id;
       updateData.emitido_por_nome = profile?.nome_completo || "Servidor";
-      if (docUrl) updateData.documento_url = docUrl;
+      if (emitirLinks.length > 0) {
+        // Merge with existing links
+        const existing = parseLinks(showDetalhes?.documento_url || null);
+        updateData.documento_url = JSON.stringify([...existing, ...emitirLinks]);
+      }
     }
     await supabase.from("registros_cartorio").update(updateData).eq("id", id);
     toast({ title: `Status atualizado para: ${statusLabel(status)}` });
-    setEmitirUrl("");
+    setEmitirLinks([]);
     fetchRegistros();
     setShowDetalhes(null);
+  };
+
+  const handleViewProfile = async (idPersonagem: string) => {
+    const prof = await lookupProfile(idPersonagem);
+    if (prof) setViewingProfile(prof);
+    else toast({ title: "Perfil não encontrado", variant: "destructive" });
   };
 
   // Stats
@@ -166,23 +405,28 @@ export default function CartorarioSection() {
   const emAnalise = registros.filter((r) => r.status === "em_analise").length;
   const emitidos = registros.filter((r) => r.status === "emitido").length;
 
+  // Parse display names for table
+  const getDisplayRequerentes = (r: Registro): string => {
+    const arr = parseJsonArray<PersonEntry>(r.requerente_nome);
+    if (arr.length > 0) return arr.map((p) => p.nome).join(", ");
+    return r.requerente_nome; // legacy plain text
+  };
+
   const filteredRegistros = registros.filter((r) => {
+    const displayName = getDisplayRequerentes(r);
     const matchSearch =
       r.numero_registro.toLowerCase().includes(search.toLowerCase()) ||
-      r.requerente_nome.toLowerCase().includes(search.toLowerCase()) ||
+      displayName.toLowerCase().includes(search.toLowerCase()) ||
       r.descricao.toLowerCase().includes(search.toLowerCase()) ||
       (r.id_personagem || "").toLowerCase().includes(search.toLowerCase());
     const matchTipo = filterTipo === "todos" || r.tipo === filterTipo;
     return matchSearch && matchTipo;
   });
 
-  const getTipoLabel = (tipo: string) =>
-    TIPOS_REGISTRO.find((t) => t.value === tipo)?.label || tipo.replace(/_/g, " ");
-
   if (loading)
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="w-6 h-6 border-2 border-gold border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
 
@@ -226,7 +470,6 @@ export default function CartorarioSection() {
           )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Pending */}
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
@@ -249,7 +492,7 @@ export default function CartorarioSection() {
                       <div>
                         <p className="font-medium text-foreground">{getTipoLabel(r.tipo)}</p>
                         <p className="text-xs text-muted-foreground">
-                          {r.requerente_nome} • {r.numero_registro}
+                          {getDisplayRequerentes(r)} • {r.numero_registro}
                         </p>
                       </div>
                       <Badge className={statusBadge(r.status)}>{statusLabel(r.status)}</Badge>
@@ -258,7 +501,6 @@ export default function CartorarioSection() {
               </CardContent>
             </Card>
 
-            {/* Recent emitted */}
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
@@ -276,7 +518,7 @@ export default function CartorarioSection() {
                     <div key={r.id} className="p-2 rounded-lg bg-muted/50 text-sm cursor-pointer hover:bg-muted" onClick={() => setShowDetalhes(r)}>
                       <p className="font-medium text-foreground">{getTipoLabel(r.tipo)}</p>
                       <p className="text-xs text-muted-foreground">
-                        {r.requerente_nome} • {r.numero_registro} • {new Date(r.created_at).toLocaleDateString("pt-BR")}
+                        {getDisplayRequerentes(r)} • {r.numero_registro} • {new Date(r.created_at).toLocaleDateString("pt-BR")}
                       </p>
                     </div>
                   ))}
@@ -316,8 +558,7 @@ export default function CartorarioSection() {
                 <TableRow>
                   <TableHead>Nº Registro</TableHead>
                   <TableHead>Tipo</TableHead>
-                  <TableHead>Requerente</TableHead>
-                  <TableHead>ID Personagem</TableHead>
+                  <TableHead>Requerente(s)</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Data</TableHead>
                   <TableHead>Ações</TableHead>
@@ -326,7 +567,7 @@ export default function CartorarioSection() {
               <TableBody>
                 {filteredRegistros.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                       Nenhum registro encontrado.
                     </TableCell>
                   </TableRow>
@@ -337,8 +578,7 @@ export default function CartorarioSection() {
                     <TableCell>
                       <Badge variant="outline" className="capitalize text-xs">{getTipoLabel(r.tipo)}</Badge>
                     </TableCell>
-                    <TableCell className="text-sm">{r.requerente_nome}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">{r.id_personagem || "—"}</TableCell>
+                    <TableCell className="text-sm max-w-[200px] truncate">{getDisplayRequerentes(r)}</TableCell>
                     <TableCell>
                       <Badge className={statusBadge(r.status)}>{statusLabel(r.status)}</Badge>
                     </TableCell>
@@ -366,7 +606,7 @@ export default function CartorarioSection() {
                   toast({ title: "Apenas advogados podem fazer solicitações", variant: "destructive" });
                   return;
                 }
-                setForm((f) => ({ ...f, tipo: t.value }));
+                setFormTipo(t.value);
                 setShowNovoRegistro(true);
               }}>
                 <CardContent className="p-5 flex items-start gap-3">
@@ -385,170 +625,217 @@ export default function CartorarioSection() {
       </Tabs>
 
       {/* DIALOG - Nova Solicitação */}
-      <Dialog open={showNovoRegistro} onOpenChange={setShowNovoRegistro}>
-        <DialogContent className="max-w-lg">
+      <Dialog open={showNovoRegistro} onOpenChange={(open) => { if (!open) resetForm(); setShowNovoRegistro(open); }}>
+        <DialogContent className="max-w-lg max-h-[85vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Nova Solicitação de Cartório</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Tipo de Documento *</Label>
-              <Select value={form.tipo} onValueChange={(v) => setForm((f) => ({ ...f, tipo: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {TIPOS_REGISTRO.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>ID do Personagem</Label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  value={form.id_personagem}
-                  onChange={async (e) => {
-                    const val = e.target.value;
-                    setForm((f) => ({ ...f, id_personagem: val }));
-                    const data = await requerenteLookup.lookup(val);
-                    if (data) setForm((f) => ({ ...f, requerente_nome: data.nome_completo }));
-                  }}
-                  placeholder="Ex: 12345"
-                  className="pl-10"
-                />
+          <ScrollArea className="flex-1 pr-4">
+            <div className="space-y-4 pb-4">
+              <div>
+                <Label>Tipo de Documento *</Label>
+                <Select value={formTipo} onValueChange={setFormTipo}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {TIPOS_REGISTRO.map((t) => (
+                      <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              {requerenteLookup.result && (
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 text-xs">
-                  <User className="h-3 w-3 text-green-600" />
-                  <span className="text-green-800 dark:text-green-300 font-medium">{requerenteLookup.result.nome_completo}</span>
-                </div>
-              )}
-            </div>
-            <div>
-              <Label>Nome do Requerente *</Label>
-              <Input value={form.requerente_nome} onChange={(e) => setForm((f) => ({ ...f, requerente_nome: e.target.value }))} placeholder="Nome completo" readOnly={!!requerenteLookup.result} />
-            </div>
-            <div>
-              <Label>Partes Envolvidas</Label>
-              <Input value={form.partes_envolvidas} onChange={(e) => setForm((f) => ({ ...f, partes_envolvidas: e.target.value }))} placeholder="Ex: João Silva e Maria Souza" />
-            </div>
-            <div>
-              <Label>Descrição / Detalhes *</Label>
-              <Textarea value={form.descricao} onChange={(e) => setForm((f) => ({ ...f, descricao: e.target.value }))} placeholder="Descreva o pedido..." rows={3} />
-            </div>
-            <div>
-              <Label>Observações</Label>
-              <Textarea value={form.observacoes} onChange={(e) => setForm((f) => ({ ...f, observacoes: e.target.value }))} placeholder="Informações adicionais..." rows={2} />
-            </div>
-            <div>
-              <Label>Link do Documento Anexo</Label>
-              <div className="relative">
-                <Link className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input value={form.documento_url} onChange={(e) => setForm((f) => ({ ...f, documento_url: e.target.value }))} placeholder="https://..." className="pl-10" />
+
+              <PersonInput
+                label="Requerente(s) * — buscar por ID"
+                entries={formRequerentes}
+                onChange={setFormRequerentes}
+              />
+
+              <PersonInput
+                label="Partes Envolvidas — buscar por ID"
+                entries={formEnvolvidos}
+                onChange={setFormEnvolvidos}
+              />
+
+              <div>
+                <Label>Descrição / Detalhes *</Label>
+                <Textarea value={formDescricao} onChange={(e) => setFormDescricao(e.target.value)} placeholder="Descreva o pedido..." rows={3} />
               </div>
+
+              <div>
+                <Label>Observações</Label>
+                <Textarea value={formObservacoes} onChange={(e) => setFormObservacoes(e.target.value)} placeholder="Informações adicionais..." rows={2} />
+              </div>
+
+              <LinksInput
+                label="Links / Documentos Anexos"
+                links={formLinks}
+                onChange={setFormLinks}
+              />
+
+              <Button className="w-full" onClick={handleSolicitar}>
+                <Stamp className="h-4 w-4 mr-1" /> Solicitar Documento
+              </Button>
             </div>
-            <Button className="w-full" onClick={handleSolicitar}>
-              <Stamp className="h-4 w-4 mr-1" /> Solicitar Documento
-            </Button>
-          </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
 
       {/* DIALOG - Detalhes */}
-      <Dialog open={!!showDetalhes} onOpenChange={() => setShowDetalhes(null)}>
-        <DialogContent className="max-w-lg">
+      <Dialog open={!!showDetalhes} onOpenChange={() => { setShowDetalhes(null); setEmitirLinks([]); }}>
+        <DialogContent className="max-w-lg max-h-[85vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Detalhes do Registro</DialogTitle>
           </DialogHeader>
           {showDetalhes && (
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3 text-sm">
+            <ScrollArea className="flex-1 pr-4">
+              <div className="space-y-3 pb-4">
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Nº Registro</p>
+                    <p className="font-mono font-medium">{showDetalhes.numero_registro}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Status</p>
+                    <Badge className={statusBadge(showDetalhes.status)}>{statusLabel(showDetalhes.status)}</Badge>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Tipo</p>
+                    <p className="font-medium">{getTipoLabel(showDetalhes.tipo)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Criado em</p>
+                    <p className="text-xs">{new Date(showDetalhes.created_at).toLocaleString("pt-BR")}</p>
+                  </div>
+                </div>
+
+                {/* Requerentes */}
                 <div>
-                  <p className="text-xs text-muted-foreground">Nº Registro</p>
-                  <p className="font-mono font-medium">{showDetalhes.numero_registro}</p>
+                  <p className="text-xs text-muted-foreground mb-1">Requerente(s)</p>
+                  {(() => {
+                    const arr = parseJsonArray<PersonEntry>(showDetalhes.requerente_nome);
+                    if (arr.length > 0) {
+                      return (
+                        <div className="space-y-1">
+                          {arr.map((p, i) => (
+                            <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/60 border border-border text-xs">
+                              <User className="h-3 w-3 text-muted-foreground" />
+                              <span className="font-medium">{p.nome}</span>
+                              <span className="text-muted-foreground">ID: {p.id_personagem}</span>
+                              {isCartorario && (
+                                <button className="ml-auto text-primary hover:underline text-[10px]" onClick={() => handleViewProfile(p.id_personagem)}>
+                                  Ver ficha
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    }
+                    return <p className="text-sm font-medium">{showDetalhes.requerente_nome}</p>;
+                  })()}
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Status</p>
-                  <Badge className={statusBadge(showDetalhes.status)}>{statusLabel(showDetalhes.status)}</Badge>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Tipo</p>
-                  <p className="font-medium">{getTipoLabel(showDetalhes.tipo)}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">ID Personagem</p>
-                  <p>{showDetalhes.id_personagem || "—"}</p>
-                </div>
-                <div className="col-span-2">
-                  <p className="text-xs text-muted-foreground">Requerente</p>
-                  <p className="font-medium">{showDetalhes.requerente_nome}</p>
-                </div>
+
+                {/* Envolvidos */}
                 {showDetalhes.partes_envolvidas && (
-                  <div className="col-span-2">
-                    <p className="text-xs text-muted-foreground">Partes Envolvidas</p>
-                    <p>{showDetalhes.partes_envolvidas}</p>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Partes Envolvidas</p>
+                    {(() => {
+                      const arr = parseJsonArray<PersonEntry>(showDetalhes.partes_envolvidas);
+                      if (arr.length > 0) {
+                        return (
+                          <div className="space-y-1">
+                            {arr.map((p, i) => (
+                              <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/60 border border-border text-xs">
+                                <Users className="h-3 w-3 text-muted-foreground" />
+                                <span className="font-medium">{p.nome}</span>
+                                <span className="text-muted-foreground">ID: {p.id_personagem}</span>
+                                {isCartorario && (
+                                  <button className="ml-auto text-primary hover:underline text-[10px]" onClick={() => handleViewProfile(p.id_personagem)}>
+                                    Ver ficha
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      }
+                      return <p className="text-sm">{showDetalhes.partes_envolvidas}</p>;
+                    })()}
                   </div>
                 )}
-                <div className="col-span-2">
+
+                {/* Descrição */}
+                <div>
                   <p className="text-xs text-muted-foreground">Descrição</p>
                   <p className="text-sm">{showDetalhes.descricao}</p>
                 </div>
+
                 {showDetalhes.observacoes && (
-                  <div className="col-span-2">
+                  <div>
                     <p className="text-xs text-muted-foreground">Observações</p>
                     <p className="text-sm">{showDetalhes.observacoes}</p>
                   </div>
                 )}
+
                 {showDetalhes.emitido_por_nome && (
-                  <div className="col-span-2">
+                  <div>
                     <p className="text-xs text-muted-foreground">Emitido por</p>
-                    <p>{showDetalhes.emitido_por_nome}</p>
+                    <p className="text-sm">{showDetalhes.emitido_por_nome}</p>
                   </div>
                 )}
-                <div>
-                  <p className="text-xs text-muted-foreground">Criado em</p>
-                  <p className="text-xs">{new Date(showDetalhes.created_at).toLocaleString("pt-BR")}</p>
-                </div>
-              </div>
 
-              {showDetalhes.documento_url && (
-                <div className="col-span-2">
-                  <p className="text-xs text-muted-foreground">Documento Anexo</p>
-                  <a href={showDetalhes.documento_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline flex items-center gap-1">
-                    <Link className="h-3 w-3" /> {showDetalhes.documento_url}
-                  </a>
-                </div>
-              )}
+                {/* Links */}
+                {(() => {
+                  const links = parseLinks(showDetalhes.documento_url);
+                  if (links.length === 0) return null;
+                  return (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Documentos Anexos</p>
+                      <div className="space-y-1">
+                        {links.map((url, i) => (
+                          <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/60 border border-border text-xs text-primary hover:underline">
+                            <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                            <span className="truncate">{url}</span>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
 
-              {isCartorario && showDetalhes.status !== "emitido" && showDetalhes.status !== "recusado" && (
-                <div className="col-span-2 space-y-3 pt-2 border-t border-border">
-                  <div>
-                    <Label className="text-xs">Link do Documento Emitido</Label>
-                    <div className="relative">
-                      <Link className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input value={emitirUrl} onChange={(e) => setEmitirUrl(e.target.value)} placeholder="https://..." className="pl-10" />
+                {/* Ações do cartorário */}
+                {isCartorario && showDetalhes.status !== "emitido" && showDetalhes.status !== "recusado" && (
+                  <div className="space-y-3 pt-2 border-t border-border">
+                    <LinksInput
+                      label="Anexar Links ao Emitir"
+                      links={emitirLinks}
+                      onChange={setEmitirLinks}
+                    />
+                    <div className="flex gap-2">
+                      {showDetalhes.status === "solicitado" && (
+                        <Button size="sm" variant="outline" onClick={() => handleUpdateStatus(showDetalhes.id, "em_analise")}>
+                          <Eye className="h-3 w-3 mr-1" /> Analisar
+                        </Button>
+                      )}
+                      <Button size="sm" onClick={() => handleUpdateStatus(showDetalhes.id, "emitido")}>
+                        <CheckCircle className="h-3 w-3 mr-1" /> Emitir Documento
+                      </Button>
+                      <Button size="sm" variant="destructive" onClick={() => handleUpdateStatus(showDetalhes.id, "recusado")}>
+                        Recusar
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    {showDetalhes.status === "solicitado" && (
-                      <Button size="sm" variant="outline" onClick={() => handleUpdateStatus(showDetalhes.id, "em_analise")}>
-                        <Eye className="h-3 w-3 mr-1" /> Analisar
-                      </Button>
-                    )}
-                    <Button size="sm" onClick={() => handleUpdateStatus(showDetalhes.id, "emitido", emitirUrl)}>
-                      <CheckCircle className="h-3 w-3 mr-1" /> Emitir Documento
-                    </Button>
-                    <Button size="sm" variant="destructive" onClick={() => handleUpdateStatus(showDetalhes.id, "recusado")}>
-                      Recusar
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            </ScrollArea>
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Profile Card Dialog */}
+      {viewingProfile && (
+        <ProfileCard profile={viewingProfile} onClose={() => setViewingProfile(null)} />
+      )}
     </div>
   );
 }
