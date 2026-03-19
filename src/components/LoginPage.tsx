@@ -403,14 +403,12 @@ function TabTransparencia() {
   const [magistrados, setMagistrados] = useState<any[]>([]);
   const [loadingStats, setLoadingStats] = useState(true);
 
-  useEffect(() => {
+  useState(() => {
     const load = async () => {
-      const [processosRes, audienciasRes, servidoresRes] = await Promise.all([
+      const [processosRes, audienciasRes, magistradosRes] = await Promise.all([
         supabase.from("processos").select("status, classe", { count: "exact" }),
         supabase.from("audiencias").select("status", { count: "exact" }),
-        supabase.from("user_roles")
-          .select("role, user_id, profiles!inner(nome_completo)")
-          .not("role", "eq", "cidadao"),
+        supabase.from("profiles").select("nome_completo, cargo").not("cargo", "is", null),
       ]);
 
       const processos = processosRes.data || [];
@@ -428,33 +426,11 @@ function TabTransparencia() {
         classeCounts,
       });
 
-      const ROLE_LABELS: Record<string, string> = {
-        admin: "Administrador", magistrado: "Magistrado", ministerio_publico: "Promotor de Justiça",
-        policia_civil: "Polícia Civil", oficial_justica: "Oficial de Justiça", advogado: "Advogado(a)",
-        presidente_tribunal: "Presidente do Tribunal", desembargador: "Desembargador(a)",
-        investigador: "Investigador(a)", presidente_oab: "Presidente da OAB",
-        procurador_geral: "Procurador-Geral", bacharel_direito: "Bacharel em Direito",
-        policia_militar: "Polícia Militar", policia_federal: "Polícia Federal", hospital: "Hospital",
-      };
-
-      // Deduplicate by user_id, keeping highest role
-      const ROLE_PRIORITY = ["presidente_tribunal", "desembargador", "procurador_geral", "magistrado", "ministerio_publico", "presidente_oab", "policia_federal", "policia_civil", "policia_militar", "oficial_justica", "advogado", "investigador", "bacharel_direito", "hospital", "admin"];
-      const userMap = new Map<string, { nome_completo: string; cargo: string }>();
-      (servidoresRes.data || []).forEach((r: any) => {
-        const uid = r.user_id;
-        const nome = (r.profiles as any)?.nome_completo || "Servidor";
-        const currentPriority = userMap.has(uid) ? ROLE_PRIORITY.indexOf(Object.keys(ROLE_LABELS).find(k => ROLE_LABELS[k] === userMap.get(uid)!.cargo) || "") : 999;
-        const newPriority = ROLE_PRIORITY.indexOf(r.role);
-        if (!userMap.has(uid) || (newPriority !== -1 && newPriority < currentPriority)) {
-          userMap.set(uid, { nome_completo: nome, cargo: ROLE_LABELS[r.role] || r.role });
-        }
-      });
-
-      setMagistrados(Array.from(userMap.values()).slice(0, 30));
+      setMagistrados((magistradosRes.data || []).slice(0, 20));
       setLoadingStats(false);
     };
     load();
-  }, []);
+  });
 
   if (loadingStats) {
     return (
