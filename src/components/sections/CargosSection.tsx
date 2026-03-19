@@ -109,6 +109,16 @@ const ROLE_HIERARCHY = [
   },
   {
     level: 10,
+    role: "hospital",
+    label: "Hospital",
+    icon: Shield,
+    color: "text-pink-500",
+    bgColor: "bg-pink-500/10",
+    description: "Instituição hospitalar. Pode manifestar interesse em processos judiciais quando pertinente.",
+    permissions: ["consulta_publica", "manifestar_interesse"],
+  },
+  {
+    level: 11,
     role: "oficial_justica",
     label: "Oficial de Justiça",
     icon: BadgeCheck,
@@ -118,7 +128,7 @@ const ROLE_HIERARCHY = [
     permissions: ["mandados", "ordens_judiciais", "cumprimento", "certificacoes", "diligencias"],
   },
   {
-    level: 11,
+    level: 12,
     role: "presidente_oab",
     label: "Presidente da OAB",
     icon: Star,
@@ -128,7 +138,7 @@ const ROLE_HIERARCHY = [
     permissions: ["gerir_advogados", "aprovacao_cadastros", "fiscalizacao", "sancoes", "concursos"],
   },
   {
-    level: 12,
+    level: 13,
     role: "advogado",
     label: "Advogado",
     icon: Briefcase,
@@ -138,7 +148,7 @@ const ROLE_HIERARCHY = [
     permissions: ["ver_processos_habilitados", "peticoes", "consulta_publica", "honorarios"],
   },
   {
-    level: 13,
+    level: 14,
     role: "bacharel_direito",
     label: "Bacharel em Direito",
     icon: Briefcase,
@@ -148,7 +158,7 @@ const ROLE_HIERARCHY = [
     permissions: ["consulta_publica", "concursos", "inscricao_oab"],
   },
   {
-    level: 14,
+    level: 15,
     role: "cidadao",
     label: "Cidadão",
     icon: UserCheck,
@@ -196,6 +206,7 @@ const PERMISSION_LABELS: Record<string, string> = {
   fiscalizacao: "Fiscalização Ética",
   sancoes: "Sanções Administrativas",
   concursos: "Concursos",
+  manifestar_interesse: "Manifestar Interesse em Processos",
   ver_processos_habilitados: "Processos Habilitados",
   peticoes: "Petições",
   consulta_publica: "Consulta Pública",

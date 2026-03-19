@@ -23,6 +23,7 @@ const ROLE_LABELS: Record<string, string> = {
   presidente_oab: "Presidente da OAB",
   procurador_geral: "Procurador-Geral",
   bacharel_direito: "Bacharel em Direito",
+  hospital: "Hospital",
 };
 
 export default function UsuariosSection() {

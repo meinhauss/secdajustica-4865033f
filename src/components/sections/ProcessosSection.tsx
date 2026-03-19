@@ -621,8 +621,8 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     { role: "policia_federal", label: "Polícia Federal" },
   ];
 
-  const canManifestInteresse = roles.some(r => ["ministerio_publico", "policia_civil", "policia_militar", "policia_federal"].includes(r));
-  const userOrgao = roles.includes("ministerio_publico") ? "Ministério Público" : roles.includes("policia_civil") ? "Polícia Civil" : roles.includes("policia_militar") ? "Polícia Militar" : roles.includes("policia_federal") ? "Polícia Federal" : null;
+  const canManifestInteresse = roles.some(r => ["ministerio_publico", "policia_civil", "policia_militar", "policia_federal", "hospital"].includes(r));
+  const userOrgao = roles.includes("ministerio_publico") ? "Ministério Público" : roles.includes("policia_civil") ? "Polícia Civil" : roles.includes("policia_militar") ? "Polícia Militar" : roles.includes("policia_federal") ? "Polícia Federal" : roles.includes("hospital") ? "Hospital" : null;
   const jaInteressado = interessadosData?.some(i => i.user_id === user?.id);
 
   const manifestarInteresse = useMutation({
