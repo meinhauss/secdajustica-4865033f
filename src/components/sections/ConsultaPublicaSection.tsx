@@ -175,15 +175,15 @@ export default function ConsultaPublicaSection() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: i * 0.05 }}
-                className="relative rounded-2xl overflow-hidden border border-border shadow-institutional"
+                className="relative rounded-2xl overflow-hidden border border-border shadow-institutional group"
               >
-                {/* Card Header - institution bar with logo */}
+                {/* Card Header */}
                 <div className="gradient-institutional px-5 py-3 flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     <img
                       src={institution.logo}
                       alt={institution.name}
-                      className="h-7 w-auto object-contain rounded"
+                      className="h-8 w-auto object-contain rounded bg-white/90 p-0.5"
                     />
                     <span className="text-[10px] uppercase tracking-[0.12em] font-semibold text-sidebar-foreground/80 leading-tight">
                       {institution.name}
@@ -192,11 +192,19 @@ export default function ConsultaPublicaSection() {
                   <span className="text-[9px] text-sidebar-foreground/40 font-mono">SP</span>
                 </div>
 
-                {/* Card Body */}
-                <div className="bg-card p-5 flex gap-5">
+                {/* Card Body with watermark */}
+                <div className="bg-card p-5 flex gap-5 relative overflow-hidden min-h-[140px]">
+                  {/* Watermark */}
+                  <img
+                    src={institution.logo}
+                    alt=""
+                    aria-hidden="true"
+                    className="absolute right-[-20px] bottom-[-10px] w-36 h-36 object-contain opacity-[0.06] pointer-events-none select-none"
+                  />
+
                   {/* Photo */}
-                  <div className="flex-shrink-0">
-                    <div className="w-20 h-24 rounded-lg border-2 border-border overflow-hidden bg-secondary flex items-center justify-center">
+                  <div className="flex-shrink-0 relative z-10">
+                    <div className="w-20 h-24 rounded-lg border-2 border-border overflow-hidden bg-secondary flex items-center justify-center shadow-sm">
                       {p.avatar_url ? (
                         <img src={p.avatar_url} alt={p.nome_completo} className="w-full h-full object-cover" />
                       ) : (
@@ -208,7 +216,7 @@ export default function ConsultaPublicaSection() {
                   </div>
 
                   {/* Info */}
-                  <div className="min-w-0 flex-1 space-y-2">
+                  <div className="min-w-0 flex-1 space-y-2 relative z-10">
                     <div>
                       <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Nome</p>
                       <p className="text-sm font-semibold text-foreground truncate">{p.nome_completo}</p>
@@ -254,8 +262,8 @@ export default function ConsultaPublicaSection() {
 
                 {/* Card Footer */}
                 <div className="bg-secondary/50 px-5 py-2 flex items-center justify-between border-t border-border">
-                  <span className="text-[9px] text-muted-foreground font-mono">CREDENCIAL DIGITAL</span>
-                  <span className="text-[9px] text-muted-foreground">✓ Verificada</span>
+                  <span className="text-[9px] text-muted-foreground font-mono tracking-widest">CREDENCIAL DIGITAL</span>
+                  <span className="text-[9px] text-accent font-semibold">✓ Verificada</span>
                 </div>
               </motion.div>
             );
