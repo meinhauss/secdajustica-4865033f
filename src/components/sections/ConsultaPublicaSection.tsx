@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
-import { Search, IdCard } from "lucide-react";
+import { Search, IdCard, Shield } from "lucide-react";
 import { motion } from "framer-motion";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
@@ -129,44 +129,90 @@ export default function ConsultaPublicaSection() {
           <p>{search ? "Nenhum servidor ou profissional encontrado." : "Digite o número da OAB ou ID do servidor para pesquisar."}</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {resultados.map((p, i) => (
             <motion.div
               key={p.user_id}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: i * 0.03 }}
-              className="bg-card rounded-xl p-4 border border-border flex gap-4 items-start"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: i * 0.05 }}
+              className="relative rounded-2xl overflow-hidden border border-border shadow-institutional"
             >
-              <Avatar className="h-16 w-16 border border-border shrink-0">
-                {p.avatar_url ? (
-                  <AvatarImage src={p.avatar_url} alt={p.nome_completo} className="object-cover" />
-                ) : null}
-                <AvatarFallback className="text-lg bg-secondary text-secondary-foreground">
-                  {p.nome_completo?.split(" ").slice(0, 2).map((n: string) => n[0]).join("").toUpperCase() || "?"}
-                </AvatarFallback>
-              </Avatar>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap mb-1">
-                  {p.id_personagem && (
-                    <span className="font-mono text-sm font-semibold text-institutional">ID: {p.id_personagem}</span>
-                  )}
-                  {p.oab_numero && (
-                    <span className="font-mono text-sm font-semibold text-institutional">{p.oab_numero}</span>
-                  )}
-                  {p.roles
-                    .filter((r: string) => r !== "cidadao")
-                    .map((r: string) => (
-                      <span
-                        key={r}
-                        className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground"
-                      >
-                        {ROLE_LABELS[r] || r}
-                      </span>
-                    ))}
+              {/* Card Header - institutional bar */}
+              <div className="gradient-institutional px-5 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-gold" />
+                  <span className="text-[10px] uppercase tracking-[0.15em] font-semibold text-sidebar-foreground/80">
+                    Secretaria da Justiça e Cidadania
+                  </span>
                 </div>
-                <p className="text-sm font-medium text-foreground">{p.nome_completo}</p>
-                {p.cargo && <p className="text-xs text-muted-foreground">{p.cargo}</p>}
+                <span className="text-[9px] text-sidebar-foreground/40 font-mono">SP</span>
+              </div>
+
+              {/* Card Body */}
+              <div className="bg-card p-5 flex gap-5">
+                {/* Photo */}
+                <div className="flex-shrink-0">
+                  <div className="w-20 h-24 rounded-lg border-2 border-border overflow-hidden bg-secondary flex items-center justify-center">
+                    {p.avatar_url ? (
+                      <img src={p.avatar_url} alt={p.nome_completo} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-2xl font-bold text-muted-foreground">
+                        {p.nome_completo?.split(" ").slice(0, 2).map((n: string) => n[0]).join("").toUpperCase() || "?"}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Info */}
+                <div className="min-w-0 flex-1 space-y-2">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Nome</p>
+                    <p className="text-sm font-semibold text-foreground truncate">{p.nome_completo}</p>
+                  </div>
+
+                  <div className="flex gap-4">
+                    {p.id_personagem && (
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">ID</p>
+                        <p className="text-sm font-mono font-bold text-foreground">{p.id_personagem}</p>
+                      </div>
+                    )}
+                    {p.oab_numero && (
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">OAB</p>
+                        <p className="text-sm font-mono font-bold text-foreground">{p.oab_numero}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {p.cargo && (
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Cargo</p>
+                      <p className="text-xs text-foreground">{p.cargo}</p>
+                    </div>
+                  )}
+
+                  {/* Role badges */}
+                  <div className="flex flex-wrap gap-1 pt-1">
+                    {p.roles
+                      .filter((r: string) => r !== "cidadao")
+                      .map((r: string) => (
+                        <span
+                          key={r}
+                          className="text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-gold/15 text-gold-dark border border-gold/20"
+                        >
+                          {ROLE_LABELS[r] || r}
+                        </span>
+                      ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Card Footer */}
+              <div className="bg-secondary/50 px-5 py-2 flex items-center justify-between border-t border-border">
+                <span className="text-[9px] text-muted-foreground font-mono">CREDENCIAL DIGITAL</span>
+                <span className="text-[9px] text-muted-foreground">✓ Verificada</span>
               </div>
             </motion.div>
           ))}
