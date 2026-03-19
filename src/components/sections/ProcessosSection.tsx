@@ -766,6 +766,11 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
           </div>
           <div className="flex items-center gap-3">
             <span className={`text-[10px] uppercase tracking-wider font-semibold px-3 py-1 rounded-full ${cfg.color}`}>{cfg.label}</span>
+            {(processo as any).sigilo && (processo as any).sigilo !== "publico" && (
+              <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive flex items-center gap-1">
+                <Lock className="h-3 w-3" /> {(processo as any).sigilo === "segredo_justica" ? "Segredo de Justiça" : "Sigilo Absoluto"}
+              </span>
+            )}
             {isJudicial && (
               <Select value={processo.status} onValueChange={(v) => updateStatus.mutate(v)}>
                 <SelectTrigger className="rounded-xl w-44 h-8 text-xs"><SelectValue /></SelectTrigger>
