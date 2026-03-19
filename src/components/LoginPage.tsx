@@ -181,6 +181,13 @@ export default function LoginPage() {
           <p className="text-accent/60 font-medium">Secretaria da Justiça e Cidadania — Estado de São Paulo — Cidade RP</p>
           <p>Sistema Integrado de Gestão Jurídica • Todos os direitos reservados</p>
           <p>Este sistema é destinado exclusivamente para uso em Roleplay (RP).</p>
+          <p className="mt-3 text-accent/50 text-xs">
+            Sistema produzido por:{" "}
+            <a href="https://discord.com/users/meinhaus" target="_blank" rel="noopener noreferrer" className="text-gold hover:underline font-medium">
+              Mein Haus
+            </a>{" "}
+            — Todos os direitos reservados
+          </p>
         </div>
       </footer>
     </div>);

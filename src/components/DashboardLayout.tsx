@@ -173,6 +173,15 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
             {children}
           </motion.div>
         </main>
+        <footer className="py-3 px-4 border-t border-border bg-card text-center">
+          <p className="text-xs text-muted-foreground">
+            Sistema produzido por:{" "}
+            <a href="https://discord.com/users/meinhaus" target="_blank" rel="noopener noreferrer" className="text-gold hover:underline font-medium">
+              Mein Haus
+            </a>{" "}
+            — Todos os direitos reservados
+          </p>
+        </footer>
       </div>
     </div>
   );
