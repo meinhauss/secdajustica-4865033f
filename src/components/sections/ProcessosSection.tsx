@@ -13,7 +13,7 @@ import {
   Plus, FileText, Search, Eye, User, ArrowLeft, Clock, Gavel,
   Upload, Calendar, AlertTriangle, CheckCircle, PenTool, History,
   File, Scale, Timer, ChevronRight, X, ExternalLink, ScrollText,
-  ShieldCheck, ShieldOff, UserCheck
+  ShieldCheck, ShieldOff, UserCheck, Lock
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
