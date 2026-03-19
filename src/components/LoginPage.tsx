@@ -549,16 +549,16 @@ function TabTransparencia() {
         </div>
 
         {/* Composição */}
-        {magistrados.length > 0 && (
+        {servidores.length > 0 && (
           <div className="bg-card rounded-xl p-6 border border-border shadow-institutional lg:col-span-2">
             <h3 className="font-display text-base font-semibold text-foreground mb-4">Servidores da Comarca</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-              {magistrados.map((m, i) => (
+              {servidores.map((m, i) => (
                 <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 text-sm">
                   <Users className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <div className="min-w-0">
                     <p className="font-medium text-foreground truncate">{m.nome_completo}</p>
-                    <p className="text-xs text-muted-foreground">{m.cargo}</p>
+                    <p className="text-xs text-muted-foreground">{m.displayRole || m.cargo}</p>
                   </div>
                 </div>
               ))}
