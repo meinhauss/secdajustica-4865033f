@@ -94,6 +94,7 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
   const [statusDialog, setStatusDialog] = useState<{ open: boolean; carteira: any }>({ open: false, carteira: null });
   const [newStatus, setNewStatus] = useState("");
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; carteira: any }>({ open: false, carteira: null });
+  const [complementacaoTexto, setComplementacaoTexto] = useState("");
 
   // Data
   const { data: inscricoes } = useQuery({
@@ -143,9 +144,18 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
 
   // ── INSCRIÇÃO ──
   const [inscForm, setInscForm] = useState({ especialidade: "Geral", justificativa: "" });
+
+  // Check if user already has an active inscription
+  const minhaInscricao = inscricoes?.find((i: any) => i.user_id === user?.id && ["pendente", "complementacao"].includes(i.status));
+  const jaAprovada = inscricoes?.some((i: any) => i.user_id === user?.id && i.status === "aprovada");
+  const podeInscrever = !minhaInscricao && !jaAprovada;
+
   const solicitarInscricao = useMutation({
     mutationFn: async () => {
       if (!profile) throw new Error("Perfil não encontrado.");
+      // Double-check no duplicate
+      const { data: existing } = await supabase.from("inscricoes_oab").select("id, status").eq("user_id", user!.id).in("status", ["pendente", "complementacao", "aprovada"]);
+      if (existing && existing.length > 0) throw new Error("Você já possui uma inscrição em andamento ou aprovada.");
       const { error } = await supabase.from("inscricoes_oab").insert({
         user_id: user!.id,
         nome_completo: profile.nome_completo,
@@ -161,6 +171,24 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
       setOpenInscricao(false);
       setInscForm({ especialidade: "Geral", justificativa: "" });
       toast.success("Inscrição solicitada com sucesso!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  // ── RESPONDER COMPLEMENTAÇÃO ──
+  const responderComplementacao = useMutation({
+    mutationFn: async ({ inscricaoId, resposta }: { inscricaoId: string; resposta: string }) => {
+      if (!resposta.trim()) throw new Error("Preencha a resposta da complementação.");
+      const { error } = await supabase.from("inscricoes_oab").update({
+        justificativa: resposta,
+        status: "pendente",
+      } as any).eq("id", inscricaoId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["oab-inscricoes"] });
+      setComplementacaoTexto("");
+      toast.success("Complementação enviada! Aguarde nova análise.");
     },
     onError: (err: any) => toast.error(err.message),
   });
@@ -316,34 +344,92 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
           <p className="text-sm text-muted-foreground">Ordem dos Advogados — Inscrição, carteira digital e serviços institucionais</p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <Dialog open={openInscricao} onOpenChange={setOpenInscricao}>
-            <DialogTrigger asChild>
-              <Button className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light" size="sm">
-                <Plus className="h-4 w-4 mr-1" /> Solicitar Inscrição
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader><DialogTitle className="font-display">Solicitar Inscrição na OAB</DialogTitle></DialogHeader>
-              <form onSubmit={(e) => { e.preventDefault(); solicitarInscricao.mutate(); }} className="space-y-4 mt-4">
-                <div className="bg-secondary/50 rounded-lg p-3">
-                  <p className="text-sm font-medium text-foreground">{profile?.nome_completo}</p>
-                  {profile?.id_personagem && <p className="text-xs text-muted-foreground">ID: {profile.id_personagem}</p>}
-                </div>
-                <Select value={inscForm.especialidade} onValueChange={(v) => setInscForm({ ...inscForm, especialidade: v })}>
-                  <SelectTrigger className="rounded-xl"><SelectValue placeholder="Especialidade" /></SelectTrigger>
-                  <SelectContent>
-                    {ESPECIALIDADES.map((e) => <SelectItem key={e} value={e}>{e}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Textarea placeholder="Justificativa / experiência profissional (opcional)" value={inscForm.justificativa} onChange={(e) => setInscForm({ ...inscForm, justificativa: e.target.value })} rows={3} className="rounded-xl" />
-                <Button type="submit" disabled={solicitarInscricao.isPending} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
-                  {solicitarInscricao.isPending ? "Enviando..." : "Solicitar Inscrição"}
+          {podeInscrever && !isAdmin && (
+            <Dialog open={openInscricao} onOpenChange={setOpenInscricao}>
+              <DialogTrigger asChild>
+                <Button className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light" size="sm">
+                  <Plus className="h-4 w-4 mr-1" /> Solicitar Inscrição
                 </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader><DialogTitle className="font-display">Solicitar Inscrição na OAB</DialogTitle></DialogHeader>
+                <form onSubmit={(e) => { e.preventDefault(); solicitarInscricao.mutate(); }} className="space-y-4 mt-4">
+                  <div className="bg-secondary/50 rounded-lg p-3">
+                    <p className="text-sm font-medium text-foreground">{profile?.nome_completo}</p>
+                    {profile?.id_personagem && <p className="text-xs text-muted-foreground">ID: {profile.id_personagem}</p>}
+                  </div>
+                  <Select value={inscForm.especialidade} onValueChange={(v) => setInscForm({ ...inscForm, especialidade: v })}>
+                    <SelectTrigger className="rounded-xl"><SelectValue placeholder="Especialidade" /></SelectTrigger>
+                    <SelectContent>
+                      {ESPECIALIDADES.map((e) => <SelectItem key={e} value={e}>{e}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Textarea placeholder="Justificativa / experiência profissional (opcional)" value={inscForm.justificativa} onChange={(e) => setInscForm({ ...inscForm, justificativa: e.target.value })} rows={3} className="rounded-xl" />
+                  <Button type="submit" disabled={solicitarInscricao.isPending} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
+                    {solicitarInscricao.isPending ? "Enviando..." : "Solicitar Inscrição"}
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       </div>
+
+      {/* User's own inscription status card */}
+      {minhaInscricao && !isAdmin && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+          className="bg-card rounded-xl p-5 border border-border shadow-institutional">
+          <div className="flex items-center gap-3 mb-3">
+            <div className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${INSCRICAO_STATUS[minhaInscricao.status]?.color || "bg-muted text-muted-foreground"}`}>
+              {INSCRICAO_STATUS[minhaInscricao.status]?.label || minhaInscricao.status}
+            </div>
+            <span className="text-sm font-semibold text-foreground">Minha Inscrição na OAB</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+            <div>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Especialidade</p>
+              <p className="text-foreground">{minhaInscricao.especialidade || "—"}</p>
+            </div>
+            <div>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Data da Solicitação</p>
+              <p className="text-foreground">{format(new Date(minhaInscricao.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
+            </div>
+          </div>
+
+          {/* Show complementação request and response form */}
+          {minhaInscricao.status === "complementacao" && (
+            <div className="mt-4 space-y-3">
+              {minhaInscricao.motivo_indeferimento && (
+                <div className="bg-accent/10 rounded-lg p-3 border border-accent/30">
+                  <p className="text-[10px] text-accent-foreground uppercase tracking-wider font-semibold mb-1">⚠️ Complementação Solicitada pela OAB</p>
+                  <p className="text-sm text-foreground">{minhaInscricao.motivo_indeferimento}</p>
+                </div>
+              )}
+              <div>
+                <label className="text-xs text-muted-foreground">Sua resposta / complementação</label>
+                <Textarea
+                  placeholder="Informe os dados solicitados pela OAB..."
+                  value={complementacaoTexto}
+                  onChange={(e) => setComplementacaoTexto(e.target.value)}
+                  rows={4}
+                  className="rounded-xl mt-1"
+                />
+              </div>
+              <Button
+                onClick={() => responderComplementacao.mutate({ inscricaoId: minhaInscricao.id, resposta: complementacaoTexto })}
+                disabled={responderComplementacao.isPending || !complementacaoTexto.trim()}
+                className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light"
+              >
+                {responderComplementacao.isPending ? "Enviando..." : "Enviar Complementação"}
+              </Button>
+            </div>
+          )}
+
+          {minhaInscricao.status === "pendente" && (
+            <p className="text-xs text-muted-foreground mt-3">Sua inscrição está em análise. Você será notificado quando houver atualização.</p>
+          )}
+        </motion.div>
+      )}
 
       {/* Stats */}
       <div className={`grid grid-cols-2 ${isAdmin ? 'sm:grid-cols-3' : 'sm:grid-cols-1'} gap-3`}>
