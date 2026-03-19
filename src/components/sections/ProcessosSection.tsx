@@ -344,7 +344,77 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const isOficialJustica = roles.includes("oficial_justica");
   const isDelegado = roles.includes("delegado");
   const isCartorario = roles.some((r) => ["admin", "magistrado", "presidente_tribunal", "desembargador"].includes(r));
-  const canAddMovimentacao = isJudicial || isMP || isAdvogado || isOficialJustica || isDelegado;
+  // Procuracoes
+  const { data: procuracoes } = useQuery({
+    queryKey: ["procuracoes", processoId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("procuracoes").select("*").eq("processo_id", processoId).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[] || [];
+    },
+  });
+
+  const advogadoTemProcuracao = isAdvogado && procuracoes?.some(
+    (p: any) => p.advogado_id === user?.id && p.status === "ativa"
+  );
+
+  const canAddMovimentacao = isJudicial || isMP || isOficialJustica || isDelegado || (isAdvogado && advogadoTemProcuracao);
+
+  const [showProcuracao, setShowProcuracao] = useState(false);
+  const [procForm, setProcForm] = useState({ parte: "autor", documento_url: "" });
+
+  const juntarProcuracao = useMutation({
+    mutationFn: async () => {
+      if (!procForm.documento_url) throw new Error("Informe o link da procuração.");
+      const { error } = await supabase.from("procuracoes").insert({
+        processo_id: processoId,
+        advogado_id: user?.id,
+        advogado_nome: profile?.nome_completo || "Advogado",
+        parte: procForm.parte,
+        documento_url: procForm.documento_url,
+        status: "ativa",
+      });
+      if (error) throw error;
+      await addMovimentacao.mutateAsync({
+        tipo: "procuracao",
+        descricao: `PROCURAÇÃO juntada por ${profile?.nome_completo || "Advogado"} — qualificando-se como advogado(a) do(a) ${procForm.parte === "autor" ? "AUTOR" : "RÉU"}.\nDocumento: ${procForm.documento_url}`,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["procuracoes", processoId] });
+      setShowProcuracao(false);
+      setProcForm({ parte: "autor", documento_url: "" });
+      toast.success("Procuração juntada com sucesso!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  const [showRenuncia, setShowRenuncia] = useState(false);
+  const [motivoRenuncia, setMotivoRenuncia] = useState("");
+
+  const renunciarProcuracao = useMutation({
+    mutationFn: async () => {
+      const minhaProcuracao = procuracoes?.find((p: any) => p.advogado_id === user?.id && p.status === "ativa");
+      if (!minhaProcuracao) throw new Error("Nenhuma procuração ativa encontrada.");
+      const { error } = await supabase.from("procuracoes").update({
+        status: "renunciada",
+        renunciada_em: new Date().toISOString(),
+        motivo_renuncia: motivoRenuncia || null,
+      }).eq("id", minhaProcuracao.id);
+      if (error) throw error;
+      await addMovimentacao.mutateAsync({
+        tipo: "renuncia",
+        descricao: `RENÚNCIA DE MANDATO por ${profile?.nome_completo || "Advogado"} — parte: ${minhaProcuracao.parte === "autor" ? "AUTOR" : "RÉU"}.${motivoRenuncia ? `\nMotivo: ${motivoRenuncia}` : ""}`,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["procuracoes", processoId] });
+      setShowRenuncia(false);
+      setMotivoRenuncia("");
+      toast.success("Renúncia registrada com sucesso.");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
 
   const { data: processo } = useQuery({
     queryKey: ["processo", processoId],
