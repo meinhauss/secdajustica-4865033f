@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
 import {
   FileText, Scale, Users, Clock, CheckCircle, Gavel, Send,
-  Briefcase, GraduationCap, Stamp, BarChart3, Bell, ArrowRight
+  Briefcase, GraduationCap, Stamp, BarChart3, Bell, ArrowRight, Search
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
