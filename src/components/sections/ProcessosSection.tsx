@@ -345,6 +345,8 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const isAdvogado = roles.includes("advogado");
   const isOficialJustica = roles.includes("oficial_justica");
   const isPolicia = roles.some(r => ["policia_civil", "policia_militar", "policia_federal"].includes(r));
+  const isHospital = roles.includes("hospital");
+  const isInstitucional = isMP || isPolicia || isHospital;
   // Move processo query up so we can compute permissions based on juiz_id
   const { data: processo } = useQuery({
     queryKey: ["processo", processoId],
@@ -384,7 +386,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     (p: any) => p.advogado_id === user?.id && p.status === "ativa"
   );
 
-  const canAddMovimentacao = isJudicial || isMP || isOficialJustica || isPolicia || (isAdvogado && advogadoTemProcuracao);
+  // canAddMovimentacao is computed after jaInteressado below
 
   const [showProcuracao, setShowProcuracao] = useState(false);
   const [procForm, setProcForm] = useState({ parte: "autor", documento_url: "" });
@@ -619,11 +621,16 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     { role: "policia_civil", label: "Polícia Civil" },
     { role: "policia_militar", label: "Polícia Militar" },
     { role: "policia_federal", label: "Polícia Federal" },
+    { role: "hospital", label: "Hospital" },
   ];
 
   const canManifestInteresse = roles.some(r => ["ministerio_publico", "policia_civil", "policia_militar", "policia_federal", "hospital"].includes(r));
   const userOrgao = roles.includes("ministerio_publico") ? "Ministério Público" : roles.includes("policia_civil") ? "Polícia Civil" : roles.includes("policia_militar") ? "Polícia Militar" : roles.includes("policia_federal") ? "Polícia Federal" : roles.includes("hospital") ? "Hospital" : null;
   const jaInteressado = interessadosData?.some(i => i.user_id === user?.id);
+
+  // Institutional roles (MP/PC/PM/PF/Hospital) can only move after qualifying as interested
+  const institucionalInteressado = isInstitucional && jaInteressado;
+  const canAddMovimentacao = isJudicial || isOficialJustica || (isAdvogado && advogadoTemProcuracao) || institucionalInteressado;
 
   const manifestarInteresse = useMutation({
     mutationFn: async () => {
@@ -1032,6 +1039,12 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         {/* TIMELINE — unified view */}
         <TabsContent value="timeline" className="mt-4 space-y-4">
           {canAddMovimentacao && <AddMovimentacao roles={roles} onAdd={(tipo, desc) => addMovimentacao.mutate({ tipo, descricao: desc })} />}
+          {isInstitucional && !jaInteressado && (
+            <div className="bg-muted/50 border border-border rounded-xl p-4 text-sm text-muted-foreground flex items-center gap-2">
+              <Scale className="h-4 w-4 text-institutional" />
+              Para movimentar neste processo, é necessário primeiro manifestar-se como interessado na seção acima.
+            </div>
+          )}
           {(() => {
             // Build unified timeline from all sources
             type TimelineItem = { id: string; date: string; tipo: string; titulo: string; descricao: string; autor?: string; link?: string; badge_color?: string };
@@ -1395,6 +1408,7 @@ function AddMovimentacao({ roles, onAdd }: { roles: string[]; onAdd: (tipo: stri
   const isAdvogado = roles.includes("advogado");
   const isOficialJustica = roles.includes("oficial_justica");
   const isPolicia = roles.some(r => ["policia_civil", "policia_militar", "policia_federal"].includes(r));
+  const isHospital = roles.includes("hospital");
 
   const tiposPermitidos: { value: string; label: string }[] = [];
 
@@ -1443,6 +1457,15 @@ function AddMovimentacao({ roles, onAdd }: { roles: string[]; onAdd: (tipo: stri
     tiposPermitidos.push(
       { value: "relatorio_policial", label: "Relatório Policial" },
       { value: "remessa_inquerito", label: "Remessa de Inquérito" },
+      { value: "informacao_policial", label: "Informação Policial" },
+    );
+  }
+  if (isHospital) {
+    tiposPermitidos.push(
+      { value: "laudo_medico", label: "Laudo Médico" },
+      { value: "relatorio_hospitalar", label: "Relatório Hospitalar" },
+      { value: "atestado_medico", label: "Atestado Médico" },
+      { value: "informacao_hospitalar", label: "Informação Hospitalar" },
     );
   }
   if (!tiposPermitidos.length) {
