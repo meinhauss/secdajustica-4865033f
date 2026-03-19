@@ -621,6 +621,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     { role: "policia_civil", label: "Polícia Civil" },
     { role: "policia_militar", label: "Polícia Militar" },
     { role: "policia_federal", label: "Polícia Federal" },
+    { role: "hospital", label: "Hospital" },
   ];
 
   const canManifestInteresse = roles.some(r => ["ministerio_publico", "policia_civil", "policia_militar", "policia_federal", "hospital"].includes(r));
