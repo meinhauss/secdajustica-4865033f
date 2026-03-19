@@ -191,16 +191,6 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
         .from("user_roles")
         .select("user_id")
         .eq("role", "presidente_oab" as any);
-      if (presidenteRoles && presidenteRoles.length > 0) {
-        const notifs = presidenteRoles.map((r: any) => ({
-          user_id: r.user_id,
-          titulo: "Complementação respondida — Inscrição OAB",
-          mensagem: `${insc?.nome_completo || "Solicitante"} respondeu à complementação solicitada.`,
-          tipo: "info",
-          link_secao: "oab",
-        }));
-        await supabase.from("notificacoes").insert(notifs);
-      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["oab-inscricoes"] });
