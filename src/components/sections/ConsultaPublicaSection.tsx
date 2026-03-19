@@ -13,7 +13,7 @@ export default function ConsultaPublicaSection() {
     queryFn: async () => {
       let query = supabase
         .from("processos")
-        .select("numero, classe, status, assunto, autor_nome, reu_nome, vara, created_at")
+        .select("numero, classe, status, assunto, vara, created_at")
         .order("created_at", { ascending: false })
         .limit(50);
       if (search) {
