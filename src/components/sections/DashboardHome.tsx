@@ -173,7 +173,7 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Processos */}
-        {(isJudicial || isAdmin) && (
+        {recentProcessos && recentProcessos.length > 0 && (
           <Card className="lg:col-span-1">
             <CardHeader className="pb-3 flex flex-row items-center justify-between">
               <CardTitle className="text-base">Últimos Processos</CardTitle>
