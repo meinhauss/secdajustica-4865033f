@@ -33,7 +33,7 @@ export default function ConsultaPublicaSection() {
       <div>
         <h2 className="font-display text-2xl font-bold text-foreground">Consulta Pública</h2>
         <p className="text-sm text-muted-foreground">
-          Pesquise processos por número, assunto, nome das partes ou ID do personagem
+          Pesquise processos por número ou assunto
         </p>
       </div>
 
