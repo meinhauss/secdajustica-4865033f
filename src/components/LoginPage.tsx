@@ -10,6 +10,8 @@ import {
   Phone, MapPin, Clock, ChevronRight, ExternalLink, GraduationCap } from
 "lucide-react";
 import logoTjsp from "@/assets/logo-tjsp.png";
+import logoMpsp from "@/assets/logo-mpsp.png";
+import logoOabsp from "@/assets/logo-oabsp.png";
 import govLogo from "@/assets/gov-logo.png";
 import { toast } from "sonner";
 
@@ -293,25 +295,25 @@ function TabInicio({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
 function TabInstitucional() {
   const organs = [
   {
-    icon: Gavel,
+    logo: logoTjsp,
     name: "Tribunal de Justiça",
     desc: "Órgão máximo do Poder Judiciário estadual, responsável pela administração da justiça e julgamento de recursos em segunda instância.",
     competencias: ["Julgar recursos cíveis e criminais", "Administrar a justiça estadual", "Nomear magistrados", "Supervisionar comarcas"]
   },
   {
-    icon: Scale,
+    logo: logoMpsp,
     name: "Ministério Público",
     desc: "Instituição essencial à função jurisdicional do Estado, responsável pela defesa da ordem jurídica e dos interesses sociais.",
     competencias: ["Oferecer denúncias criminais", "Fiscalizar o cumprimento da lei", "Defender interesses coletivos", "Expedir recomendações"]
   },
   {
-    icon: Shield,
+    logo: govLogo,
     name: "Polícia Civil",
     desc: "Órgão responsável pela investigação criminal, apuração de infrações penais e manutenção da ordem pública.",
     competencias: ["Investigar crimes", "Registrar Boletins de Ocorrência", "Conduzir inquéritos policiais", "Remeter inquéritos ao MP"]
   },
   {
-    icon: Building2,
+    logo: logoOabsp,
     name: "Ordem dos Advogados (OAB)",
     desc: "Entidade responsável pela regulamentação da advocacia, defesa das prerrogativas profissionais e fiscalização ética.",
     competencias: ["Cadastrar advogados", "Emitir carteiras profissionais", "Fiscalizar a advocacia", "Definir tabela de honorários"]
@@ -333,8 +335,8 @@ function TabInstitucional() {
           className="bg-card rounded-xl p-6 border border-border shadow-institutional">
           
             <div className="flex items-start gap-4">
-              <div className="p-3 rounded-xl bg-institutional/10 flex-shrink-0">
-                <org.icon className="h-6 w-6 text-institutional" />
+              <div className="p-2 rounded-xl bg-secondary flex-shrink-0">
+                <img src={org.logo} alt={org.name} className="h-10 w-auto object-contain" />
               </div>
               <div className="flex-1">
                 <h3 className="font-display text-lg font-semibold text-foreground mb-1">{org.name}</h3>
