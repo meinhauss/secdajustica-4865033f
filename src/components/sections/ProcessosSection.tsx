@@ -630,7 +630,9 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
 
   // Institutional roles (MP/PC/PM/PF/Hospital) can only move after qualifying as interested
   const institucionalInteressado = isInstitucional && jaInteressado;
-  const canAddMovimentacao = isJudicial || isOficialJustica || (isAdvogado && advogadoTemProcuracao) || institucionalInteressado;
+  // After sentencing, no new movimentações — only appeals are allowed
+  const isSentenciado = processo?.status === "sentenciado";
+  const canAddMovimentacao = !isSentenciado && (isJudicial || isOficialJustica || (isAdvogado && advogadoTemProcuracao) || institucionalInteressado);
 
   const manifestarInteresse = useMutation({
     mutationFn: async () => {
