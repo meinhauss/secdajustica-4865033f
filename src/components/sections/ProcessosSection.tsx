@@ -1300,7 +1300,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         </TabsContent>
 
         {/* CERTIDÕES */}
-        {(isOficialJustica || isJudicial) && (
+        {(isOficialJustica || isJudicialReadOnly) && (
           <TabsContent value="certidoes" className="mt-4 space-y-4">
             {isOficialJustica && <AddCertidao onAdd={(cert) => createCertidao.mutate(cert)} isPending={createCertidao.isPending} />}
             {!certidoes?.length ? (
