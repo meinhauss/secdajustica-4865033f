@@ -388,7 +388,7 @@ function ProcessoList({ processos, onSelect, emptyText }: { processos: any[]; on
 /*  PROCESSO DETAIL                            */
 /* ═══════════════════════════════════════════ */
 function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: () => void }) {
-  const { user, profile } = useAuth();
+  const { user, profile, roles } = useAuth();
   const queryClient = useQueryClient();
   const [activeAction, setActiveAction] = useState<string>("none");
 
@@ -399,6 +399,17 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
       if (error) throw error;
       return data;
     },
+  });
+
+  // Judge profile lookup
+  const { data: juizProfile } = useQuery({
+    queryKey: ["mag-juiz-profile", processo?.juiz_id],
+    queryFn: async () => {
+      if (!processo?.juiz_id) return null;
+      const { data } = await supabase.from("profiles").select("nome_completo").eq("user_id", processo.juiz_id).maybeSingle();
+      return data;
+    },
+    enabled: !!processo?.juiz_id,
   });
 
   const { data: movs } = useQuery({
@@ -451,6 +462,76 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
       return data as any[];
     },
   });
+
+  // Procuracoes
+  const { data: procuracoes } = useQuery({
+    queryKey: ["mag-procuracoes", processoId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("procuracoes").select("*").eq("processo_id", processoId).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[] || [];
+    },
+  });
+
+  // Interessados
+  const { data: interessadosData } = useQuery({
+    queryKey: ["mag-interessados", processoId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("interessados_processo").select("*").eq("processo_id", processoId).order("created_at", { ascending: false });
+      if (error) throw error;
+      const userIds = [...new Set((data || []).map(i => i.user_id))];
+      let profilesMap: Record<string, string> = {};
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase.from("profiles").select("user_id, nome_completo").in("user_id", userIds);
+        if (profiles) profiles.forEach(p => { profilesMap[p.user_id] = p.nome_completo; });
+      }
+      return (data || []).map(i => ({ ...i, nome: profilesMap[i.user_id] || "Usuário" }));
+    },
+  });
+
+  // Sentenças
+  const { data: sentencasProc } = useQuery({
+    queryKey: ["mag-sentencas-proc", processoId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("sentencas").select("*").eq("processo_id", processoId).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
+  // Apelações
+  const { data: apelacoesProc } = useQuery({
+    queryKey: ["mag-apelacoes-proc", processoId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("apelacoes").select("*").eq("processo_id", processoId).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
+  // Prazos
+  const { data: prazos } = useQuery({
+    queryKey: ["mag-prazos", processoId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("prazos_processuais").select("*").eq("processo_id", processoId).order("data_fim", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Certidões
+  const { data: certidoes } = useQuery({
+    queryKey: ["mag-certidoes", processoId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("certificacoes").select("*").eq("processo_id", processoId).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Advogados from procuracoes
+  const advAutor = procuracoes?.filter((p: any) => p.status === "ativa" && p.parte === "autor") || [];
+  const advReu = procuracoes?.filter((p: any) => p.status === "ativa" && p.parte === "reu") || [];
 
   // ── DESPACHO ──
   const [despachoForm, setDespachoForm] = useState({ titulo: "", conteudo: "", tipo: "despacho" });
@@ -617,20 +698,16 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const declararSuspeicao = useMutation({
     mutationFn: async (justificativa: string) => {
       if (!justificativa) throw new Error("Informe a justificativa.");
-      // Register movement
       await supabase.from("movimentacoes").insert({
         processo_id: processoId,
         tipo: "suspeicao",
         descricao: `DECLARAÇÃO DE SUSPEIÇÃO\n\nO(A) Magistrado(a) ${profile?.nome_completo} declarou-se suspeito(a) para atuar neste processo.\n\nJustificativa: ${justificativa}`,
         autor_id: user!.id,
       });
-      // Call sortear_magistrado to get new judge
       const { data: newJudgeId, error: sortError } = await supabase.rpc("sortear_magistrado");
       if (sortError) throw sortError;
-      // Update the process with the new judge
       const { error } = await supabase.from("processos").update({ juiz_id: newJudgeId } as any).eq("id", processoId);
       if (error) throw error;
-      // Log reassignment
       await supabase.from("movimentacoes").insert({
         processo_id: processoId,
         tipo: "redistribuicao",
@@ -651,6 +728,12 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     queryClient.invalidateQueries({ queryKey: ["mag-movs", processoId] });
     queryClient.invalidateQueries({ queryKey: ["mag-proc-atos", processoId] });
     queryClient.invalidateQueries({ queryKey: ["mag-proc-aud", processoId] });
+    queryClient.invalidateQueries({ queryKey: ["mag-procuracoes", processoId] });
+    queryClient.invalidateQueries({ queryKey: ["mag-interessados", processoId] });
+    queryClient.invalidateQueries({ queryKey: ["mag-sentencas-proc", processoId] });
+    queryClient.invalidateQueries({ queryKey: ["mag-apelacoes-proc", processoId] });
+    queryClient.invalidateQueries({ queryKey: ["mag-prazos", processoId] });
+    queryClient.invalidateQueries({ queryKey: ["mag-certidoes", processoId] });
     queryClient.invalidateQueries({ queryKey: ["mag-processos"] });
     queryClient.invalidateQueries({ queryKey: ["mag-atos"] });
     queryClient.invalidateQueries({ queryKey: ["mag-audiencias"] });
@@ -664,13 +747,19 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="sm" onClick={onBack} className="rounded-lg"><ArrowLeft className="h-4 w-4 mr-1" /> Voltar</Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="font-display text-xl font-bold text-foreground">{processo.numero}</h2>
-            <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${cfg.color}`}>{cfg.label}</span>
+      {/* Back button */}
+      <Button variant="ghost" size="sm" onClick={onBack} className="rounded-lg"><ArrowLeft className="h-4 w-4 mr-1" /> Voltar</Button>
+
+      {/* ═══ CABEÇALHO DO PROCESSO ═══ */}
+      <div className="bg-card rounded-xl border border-border shadow-institutional overflow-hidden">
+        {/* Top bar with number and status */}
+        <div className="bg-institutional/5 border-b border-border px-5 py-4 flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Nº do Processo</p>
+            <h2 className="font-display text-xl font-bold text-foreground font-mono">{processo.numero}</h2>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className={`text-[10px] uppercase tracking-wider font-semibold px-3 py-1 rounded-full ${cfg.color}`}>{cfg.label}</span>
             <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{processo.classe}</span>
             {processo.prioridade && <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">Urgente</span>}
             {(processo as any).sigilo && (processo as any).sigilo !== "publico" && (
@@ -679,24 +768,110 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               </span>
             )}
           </div>
-          <p className="text-sm text-muted-foreground">{processo.autor_nome} vs {processo.reu_nome}</p>
+        </div>
+
+        <div className="p-5 space-y-5">
+          {/* Dados do processo */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-3">
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Data de Autuação</p>
+              <p className="text-sm font-medium text-foreground">{format(new Date(processo.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Situação</p>
+              <p className="text-sm font-medium text-foreground">{cfg.label}</p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Órgão Julgador</p>
+              <p className="text-sm font-medium text-foreground">{processo.vara || "—"}</p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Juiz(a)</p>
+              <p className="text-sm font-medium text-foreground">{juizProfile?.nome_completo || "Não atribuído"}</p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Classe Processual</p>
+              <p className="text-sm font-medium text-foreground capitalize">{processo.classe}</p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Assunto</p>
+              <p className="text-sm font-medium text-foreground">{processo.assunto}</p>
+            </div>
+          </div>
+
+          {/* Partes e Representantes */}
+          <div className="border-t border-border pt-4">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Partes e Representantes</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="bg-secondary/30 rounded-lg p-3">
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-1">Autor</p>
+                <p className="text-sm font-medium text-foreground">{processo.autor_nome}</p>
+                {advAutor.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {advAutor.map((a: any) => (
+                      <p key={a.id} className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Shield className="h-3 w-3 text-institutional" /> Adv. {a.advogado_nome}
+                      </p>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="bg-secondary/30 rounded-lg p-3">
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-1">Réu</p>
+                <p className="text-sm font-medium text-foreground">{processo.reu_nome}</p>
+                {advReu.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {advReu.map((a: any) => (
+                      <p key={a.id} className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Shield className="h-3 w-3 text-institutional" /> Adv. {a.advogado_nome}
+                      </p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Interessados */}
+          <div className="border-t border-border pt-4">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Interessados</h3>
+            <div className="flex flex-wrap gap-2">
+              {processo.classe === "criminal" && (
+                <span className="text-xs px-3 py-1.5 rounded-lg bg-institutional/10 text-institutional font-medium flex items-center gap-1.5">
+                  <Scale className="h-3.5 w-3.5" /> Ministério Público (parte)
+                </span>
+              )}
+              {interessadosData && interessadosData.length > 0 && interessadosData.map((int: any) => (
+                <span key={int.id} className="text-xs px-3 py-1.5 rounded-lg bg-institutional/10 text-institutional font-medium flex items-center gap-1.5">
+                  <Scale className="h-3.5 w-3.5" /> {int.orgao} — {int.nome} ({int.qualificacao})
+                </span>
+              ))}
+              {(!interessadosData || interessadosData.length === 0) && processo.classe !== "criminal" && (
+                <p className="text-xs text-muted-foreground italic">Nenhum interessado registrado.</p>
+              )}
+            </div>
+          </div>
+
+          {/* Informações Adicionais */}
+          {(processo.valor_causa || processo.descricao) && (
+            <div className="border-t border-border pt-4">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Informações Adicionais</h3>
+              {processo.valor_causa && (
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Valor da Causa</p>
+                  <p className="text-sm font-bold text-foreground">{Number(processo.valor_causa).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
+                </div>
+              )}
+              {processo.descricao && (
+                <div className="mt-3">
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Síntese dos Fatos</p>
+                  <p className="text-sm text-foreground whitespace-pre-wrap mt-1">{processo.descricao}</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Processo Info */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <InfoCard label="Assunto" value={processo.assunto} />
-        <InfoCard label="Vara" value={processo.vara || "Não definida"} />
-        <InfoCard label="Valor da Causa" value={processo.valor_causa ? `R$ ${Number(processo.valor_causa).toLocaleString("pt-BR")}` : "—"} />
-        <InfoCard label="Distribuído em" value={format(new Date(processo.created_at), "dd/MM/yyyy", { locale: ptBR })} />
-      </div>
-
-      {processo.descricao && (
-        <div className="bg-card rounded-xl p-5 border border-border shadow-institutional">
-          <h3 className="font-display text-sm font-semibold text-foreground mb-2">Descrição</h3>
-          <p className="text-sm text-foreground whitespace-pre-wrap">{processo.descricao}</p>
-        </div>
-      )}
 
       {/* Quick Status */}
       <div className="bg-card rounded-xl p-4 border border-border shadow-institutional">
@@ -718,7 +893,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         </h3>
         <div className="flex flex-wrap gap-2">
           {Object.entries(SIGILO_LABELS).map(([key, label]) => (
-            <Button key={key} variant={(processo as any).sigilo === key || (!( processo as any).sigilo && key === "publico") ? "default" : "outline"} size="sm" className="rounded-lg text-xs"
+            <Button key={key} variant={(processo as any).sigilo === key || (!(processo as any).sigilo && key === "publico") ? "default" : "outline"} size="sm" className="rounded-lg text-xs"
               onClick={() => updateSigilo.mutate(key)} disabled={(processo as any).sigilo === key || (!(processo as any).sigilo && key === "publico")}>
               {label}
             </Button>
@@ -871,14 +1046,52 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         </ActionCard>
       )}
 
-      {/* Peças & Pareceres */}
+      {/* Advogados Constituídos */}
+      <div className="bg-card rounded-xl border border-border p-4 space-y-3">
+        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Users className="h-4 w-4 text-institutional" /> Advogados Constituídos</h3>
+        {(!procuracoes || procuracoes.filter((p: any) => p.status === "ativa").length === 0) ? (
+          <p className="text-xs text-muted-foreground">Nenhum advogado constituído neste processo.</p>
+        ) : (
+          <div className="space-y-2">
+            {procuracoes.filter((p: any) => p.status === "ativa").map((p: any) => (
+              <div key={p.id} className="flex items-center gap-3 bg-secondary/30 rounded-lg p-2.5">
+                <Shield className="h-4 w-4 text-green-600 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-foreground">{p.advogado_nome}</p>
+                  <p className="text-[10px] text-muted-foreground">Advogado(a) do(a) {p.parte === "autor" ? "AUTOR" : "RÉU"} — desde {format(new Date(p.created_at), "dd/MM/yyyy", { locale: ptBR })}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        {procuracoes && procuracoes.filter((p: any) => p.status === "renunciada").length > 0 && (
+          <div className="pt-2 border-t border-border/50">
+            <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-1">Renúncias</p>
+            {procuracoes.filter((p: any) => p.status === "renunciada").map((p: any) => (
+              <div key={p.id} className="flex items-center gap-3 bg-destructive/5 rounded-lg p-2 mb-1">
+                <ShieldAlert className="h-3.5 w-3.5 text-destructive flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] text-muted-foreground"><span className="font-medium text-foreground/70">{p.advogado_nome}</span> — renunciou em {p.renunciada_em ? format(new Date(p.renunciada_em), "dd/MM/yyyy", { locale: ptBR }) : "—"}</p>
+                  {p.motivo_renuncia && <p className="text-[10px] text-muted-foreground italic">Motivo: {p.motivo_renuncia}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Tabs with all information */}
       <Tabs defaultValue="movimentacoes" className="w-full">
         <TabsList className="w-full justify-start rounded-xl bg-secondary/50 p-1 h-auto gap-1 flex-wrap">
           <TabsTrigger value="movimentacoes" className="rounded-lg text-xs">Movimentações ({movs?.length || 0})</TabsTrigger>
           <TabsTrigger value="atos" className="rounded-lg text-xs">Atos Judiciais ({atos?.length || 0})</TabsTrigger>
           <TabsTrigger value="audiencias_proc" className="rounded-lg text-xs">Audiências ({audiencias?.length || 0})</TabsTrigger>
+          <TabsTrigger value="prazos" className="rounded-lg text-xs">Prazos ({prazos?.length || 0})</TabsTrigger>
           <TabsTrigger value="documentos" className="rounded-lg text-xs">Documentos ({docs?.length || 0})</TabsTrigger>
           <TabsTrigger value="pareceres_mp" className="rounded-lg text-xs">Pareceres MP ({pareceres?.length || 0})</TabsTrigger>
+          <TabsTrigger value="certidoes" className="rounded-lg text-xs">Certidões ({certidoes?.length || 0})</TabsTrigger>
+          {sentencasProc && sentencasProc.length > 0 && <TabsTrigger value="sentencas" className="rounded-lg text-xs">Sentenças ({sentencasProc.length})</TabsTrigger>}
+          {apelacoesProc && apelacoesProc.length > 0 && <TabsTrigger value="apelacoes" className="rounded-lg text-xs">Apelações ({apelacoesProc.length})</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="movimentacoes" className="mt-4">
@@ -911,9 +1124,11 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-institutional/10 text-institutional">{a.tipo}</span>
                     {a.assinado && <CheckCircle className="h-3 w-3 text-green-600" />}
+                    <span className="text-[10px] text-muted-foreground ml-auto">{format(new Date(a.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</span>
                   </div>
                   <p className="text-sm font-medium text-foreground">{a.titulo}</p>
                   <p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">{a.conteudo}</p>
+                  {a.autor_nome && <p className="text-[10px] text-muted-foreground mt-1 italic">Por: {a.autor_nome}</p>}
                 </div>
               ))}
             </div>
@@ -929,7 +1144,25 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                   <div>
                     <p className="text-sm text-foreground">{a.tipo} — {format(new Date(a.data_hora), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
                     <p className="text-xs text-muted-foreground">{a.local} • {a.status}</p>
+                    {a.observacoes && <p className="text-xs text-muted-foreground mt-0.5">{a.observacoes}</p>}
                   </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="prazos" className="mt-4">
+          {!prazos?.length ? <p className="text-sm text-muted-foreground text-center py-8">Nenhum prazo registrado.</p> : (
+            <div className="space-y-2">
+              {prazos.map((p) => (
+                <div key={p.id} className="bg-secondary/30 rounded-lg p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 dark:bg-orange-950/30 dark:text-orange-400">{p.tipo}</span>
+                    <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${p.status === "cumprido" ? "bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400" : p.status === "expirado" ? "bg-destructive/10 text-destructive" : "bg-gold/10 text-gold-dark"}`}>{p.status}</span>
+                  </div>
+                  <p className="text-sm text-foreground">{p.descricao}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{p.dias_uteis} horas — De {format(new Date(p.data_inicio), "dd/MM/yyyy HH:mm", { locale: ptBR })} até {format(new Date(p.data_fim), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
                 </div>
               ))}
             </div>
@@ -942,10 +1175,16 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               {docs.map((d) => (
                 <div key={d.id} className="bg-secondary/30 rounded-lg p-3 flex items-center gap-3">
                   <FileText className="h-4 w-4 text-institutional flex-shrink-0" />
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm font-medium text-foreground">{d.nome}</p>
                     <p className="text-xs text-muted-foreground">{d.tipo} • {format(new Date(d.created_at), "dd/MM/yyyy", { locale: ptBR })}</p>
+                    {d.descricao && <p className="text-xs text-muted-foreground mt-0.5">{d.descricao}</p>}
                   </div>
+                  {d.arquivo_url && (
+                    <a href={d.arquivo_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1">
+                      <Eye className="h-3 w-3" /> Ver
+                    </a>
+                  )}
                 </div>
               ))}
             </div>
@@ -965,6 +1204,80 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             </div>
           )}
         </TabsContent>
+
+        <TabsContent value="certidoes" className="mt-4">
+          {!certidoes?.length ? <p className="text-sm text-muted-foreground text-center py-8">Nenhuma certidão.</p> : (
+            <div className="space-y-2">
+              {certidoes.map((c: any) => (
+                <div key={c.id} className="bg-secondary/30 rounded-lg p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-institutional/10 text-institutional">{c.tipo}</span>
+                    {c.assinado && <CheckCircle className="h-3 w-3 text-green-600" />}
+                  </div>
+                  <p className="text-sm text-foreground whitespace-pre-wrap">{c.conteudo}</p>
+                  {c.emitido_por_nome && <p className="text-[10px] text-muted-foreground mt-1 italic">Emitida por: {c.emitido_por_nome}</p>}
+                  <p className="text-xs text-muted-foreground mt-1">{format(new Date(c.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        {sentencasProc && sentencasProc.length > 0 && (
+          <TabsContent value="sentencas" className="mt-4">
+            <div className="space-y-2">
+              {sentencasProc.map((s: any) => (
+                <div key={s.id} className="bg-secondary/30 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Scroll className="h-4 w-4 text-gold-dark" />
+                    <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-institutional/10 text-institutional">{s.tipo?.replace(/_/g, " ")}</span>
+                    {s.assinado && <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400">Assinada</span>}
+                  </div>
+                  {s.ementa && <p className="text-sm font-medium text-foreground mb-2">{s.ementa}</p>}
+                  <div className="space-y-2">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Fundamentação</p>
+                      <p className="text-xs text-foreground whitespace-pre-wrap mt-1">{s.fundamentacao}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Dispositivo</p>
+                      <p className="text-xs text-foreground whitespace-pre-wrap mt-1">{s.dispositivo}</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">{format(new Date(s.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+        )}
+
+        {apelacoesProc && apelacoesProc.length > 0 && (
+          <TabsContent value="apelacoes" className="mt-4">
+            <div className="space-y-2">
+              {apelacoesProc.map((a: any) => (
+                <div key={a.id} className="bg-secondary/30 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Scale className="h-4 w-4 text-institutional" />
+                    <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-institutional/10 text-institutional">{a.apelante_tipo === "defesa" ? "Defesa" : "Acusação"}</span>
+                    <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${a.status === "julgada" ? "bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400" : "bg-gold/10 text-gold-dark"}`}>{a.status}</span>
+                    {a.numero_acordao && <span className="text-[10px] font-mono text-muted-foreground">{a.numero_acordao}</span>}
+                  </div>
+                  <p className="text-sm font-medium text-foreground">Apelante: {a.apelante_nome}</p>
+                  <p className="text-xs text-foreground whitespace-pre-wrap mt-1">{a.fundamentacao}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Pedido: {a.pedido}</p>
+                  {a.decisao_tipo && (
+                    <div className="mt-2 pt-2 border-t border-border/50">
+                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Decisão: {a.decisao_tipo}</p>
+                      {a.decisao_fundamentacao && <p className="text-xs text-foreground mt-1">{a.decisao_fundamentacao}</p>}
+                      {a.decisao_dispositivo && <p className="text-xs text-foreground mt-1">{a.decisao_dispositivo}</p>}
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-2">{format(new Date(a.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
