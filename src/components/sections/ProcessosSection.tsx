@@ -1402,6 +1402,7 @@ function AddMovimentacao({ roles, onAdd }: { roles: string[]; onAdd: (tipo: stri
   const isAdvogado = roles.includes("advogado");
   const isOficialJustica = roles.includes("oficial_justica");
   const isPolicia = roles.some(r => ["policia_civil", "policia_militar", "policia_federal"].includes(r));
+  const isHospital = roles.includes("hospital");
 
   const tiposPermitidos: { value: string; label: string }[] = [];
 
@@ -1450,6 +1451,15 @@ function AddMovimentacao({ roles, onAdd }: { roles: string[]; onAdd: (tipo: stri
     tiposPermitidos.push(
       { value: "relatorio_policial", label: "Relatório Policial" },
       { value: "remessa_inquerito", label: "Remessa de Inquérito" },
+      { value: "informacao_policial", label: "Informação Policial" },
+    );
+  }
+  if (isHospital) {
+    tiposPermitidos.push(
+      { value: "laudo_medico", label: "Laudo Médico" },
+      { value: "relatorio_hospitalar", label: "Relatório Hospitalar" },
+      { value: "atestado_medico", label: "Atestado Médico" },
+      { value: "informacao_hospitalar", label: "Informação Hospitalar" },
     );
   }
   if (!tiposPermitidos.length) {
