@@ -227,6 +227,7 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
             ))}
           </CardContent>
         </Card>
+        )}
       </div>
     </div>
   );
