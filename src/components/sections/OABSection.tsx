@@ -431,6 +431,13 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
         </motion.div>
       )}
 
+      {/* Stats */}
+      <div className={`grid grid-cols-2 ${isAdmin ? 'sm:grid-cols-3' : 'sm:grid-cols-1'} gap-3`}>
+        <StatCard label="Advogados Ativos" value={stats.advogados} icon={Users} delay={0} />
+        {isAdmin && <StatCard label="Inscrições Pendentes" value={stats.inscricoesPendentes} icon={Clock} delay={0.05} />}
+        {isAdmin && <StatCard label="Proc. Disciplinares" value={stats.disciplinares} icon={AlertTriangle} delay={0.15} />}
+      </div>
+
       {/* Search */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
