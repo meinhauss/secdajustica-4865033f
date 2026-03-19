@@ -234,10 +234,11 @@ function TabInicio({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
               <ChevronRight className="ml-1 h-4 w-4" />
             </Button>
             <Button
-              onClick={() => onNavigate("servicos")}
+              onClick={() => onNavigate("credencial")}
               variant="outline"
-              className="rounded-xl h-12 px-8 border-accent text-accent hover:bg-accent/10">
+              className="rounded-xl h-12 px-8 border-gold text-gold hover:bg-gold/10 font-semibold text-base">
               
+              <Scale className="mr-2 h-5 w-5" />
               Consultar Credencial
             </Button>
           </motion.div>
