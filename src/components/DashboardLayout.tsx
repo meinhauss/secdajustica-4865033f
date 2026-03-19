@@ -157,7 +157,7 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
           <div className="ml-auto flex items-center gap-2">
             <NotificacoesBell onNavigate={onSectionChange} />
             <span className="text-xs text-muted-foreground hidden sm:block">
-              Sistema Judiciário v1.0
+              Sistema Judiciário vBETA
             </span>
           </div>
         </header>
