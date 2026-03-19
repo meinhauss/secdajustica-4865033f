@@ -13,7 +13,7 @@ import {
   Plus, FileText, Search, Eye, User, ArrowLeft, Clock, Gavel,
   Upload, Calendar, AlertTriangle, CheckCircle, PenTool, History,
   File, Scale, Timer, ChevronRight, X, ExternalLink, ScrollText,
-  ShieldCheck, ShieldOff, UserCheck
+  ShieldCheck, ShieldOff, UserCheck, Lock
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -314,6 +314,11 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
                       <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${cfg.color}`}>{cfg.label}</span>
                       <span className="text-[10px] uppercase tracking-wider font-medium px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{p.classe}</span>
                       {p.prioridade && <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">Prioritário</span>}
+                      {(p as any).sigilo && (p as any).sigilo !== "publico" && (
+                        <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive flex items-center gap-1">
+                          <Lock className="h-3 w-3" /> {(p as any).sigilo === "segredo_justica" ? "Segredo de Justiça" : "Sigilo Absoluto"}
+                        </span>
+                      )}
                     </div>
                     <p className="text-sm font-medium text-foreground mt-1 truncate">{p.assunto}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
@@ -761,6 +766,11 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
           </div>
           <div className="flex items-center gap-3">
             <span className={`text-[10px] uppercase tracking-wider font-semibold px-3 py-1 rounded-full ${cfg.color}`}>{cfg.label}</span>
+            {(processo as any).sigilo && (processo as any).sigilo !== "publico" && (
+              <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive flex items-center gap-1">
+                <Lock className="h-3 w-3" /> {(processo as any).sigilo === "segredo_justica" ? "Segredo de Justiça" : "Sigilo Absoluto"}
+              </span>
+            )}
             {isJudicial && (
               <Select value={processo.status} onValueChange={(v) => updateStatus.mutate(v)}>
                 <SelectTrigger className="rounded-xl w-44 h-8 text-xs"><SelectValue /></SelectTrigger>
