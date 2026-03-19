@@ -682,12 +682,12 @@ export default function CartorarioSection() {
 
       {/* DIALOG - Detalhes */}
       <Dialog open={!!showDetalhes} onOpenChange={() => { setShowDetalhes(null); setEmitirLinks([]); }}>
-        <DialogContent className="max-w-lg max-h-[85vh] flex flex-col">
-          <DialogHeader>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>Detalhes do Registro</DialogTitle>
           </DialogHeader>
           {showDetalhes && (
-            <ScrollArea className="flex-1 pr-4">
+            <div className="flex-1 overflow-y-auto pr-2">
               <div className="space-y-3 pb-4">
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
