@@ -69,33 +69,6 @@ export default function UsuariosSection() {
     onError: (err: any) => toast.error(err.message),
   });
 
-  const addRole = useMutation({
-    mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
-      const existing = allRoles?.find((r) => r.user_id === userId && r.role === role);
-      if (existing) throw new Error("Usuário já possui este cargo.");
-      const { error } = await supabase.from("user_roles").insert({ user_id: userId, role: role as any });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["all-roles"] });
-      setAddRoleUserId(null);
-      setNewRole("");
-      toast.success("Cargo adicionado!");
-    },
-    onError: (err: any) => toast.error(err.message),
-  });
-
-  const removeRole = useMutation({
-    mutationFn: async (roleId: string) => {
-      const { error } = await supabase.from("user_roles").delete().eq("id", roleId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["all-roles"] });
-      toast.success("Cargo removido!");
-    },
-    onError: (err: any) => toast.error(err.message),
-  });
 
   const deleteUser = useMutation({
     mutationFn: async (userId: string) => {
