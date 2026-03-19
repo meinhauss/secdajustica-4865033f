@@ -58,6 +58,7 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
       policia_civil: "Polícia Civil",
       policia_militar: "Polícia Militar",
       policia_federal: "Polícia Federal",
+      hospital: "Hospital",
     };
     return labels[role] || role;
   };

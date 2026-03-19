@@ -109,6 +109,16 @@ const ROLE_HIERARCHY = [
   },
   {
     level: 10,
+    role: "hospital",
+    label: "Hospital",
+    icon: Shield,
+    color: "text-pink-500",
+    bgColor: "bg-pink-500/10",
+    description: "Instituição hospitalar. Pode manifestar interesse em processos judiciais quando pertinente.",
+    permissions: ["consulta_publica", "manifestar_interesse"],
+  },
+  {
+    level: 11,
     role: "oficial_justica",
     label: "Oficial de Justiça",
     icon: BadgeCheck,
