@@ -148,7 +148,7 @@ const ROLE_HIERARCHY = [
     permissions: ["consulta_publica", "concursos", "inscricao_oab"],
   },
   {
-    level: 13,
+    level: 14,
     role: "cidadao",
     label: "Cidadão",
     icon: UserCheck,
