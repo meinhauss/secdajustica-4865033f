@@ -128,7 +128,7 @@ const ROLE_HIERARCHY = [
     permissions: ["mandados", "ordens_judiciais", "cumprimento", "certificacoes", "diligencias"],
   },
   {
-    level: 11,
+    level: 12,
     role: "presidente_oab",
     label: "Presidente da OAB",
     icon: Star,
@@ -138,7 +138,7 @@ const ROLE_HIERARCHY = [
     permissions: ["gerir_advogados", "aprovacao_cadastros", "fiscalizacao", "sancoes", "concursos"],
   },
   {
-    level: 12,
+    level: 13,
     role: "advogado",
     label: "Advogado",
     icon: Briefcase,
@@ -148,7 +148,7 @@ const ROLE_HIERARCHY = [
     permissions: ["ver_processos_habilitados", "peticoes", "consulta_publica", "honorarios"],
   },
   {
-    level: 13,
+    level: 14,
     role: "bacharel_direito",
     label: "Bacharel em Direito",
     icon: Briefcase,
@@ -158,7 +158,7 @@ const ROLE_HIERARCHY = [
     permissions: ["consulta_publica", "concursos", "inscricao_oab"],
   },
   {
-    level: 14,
+    level: 15,
     role: "cidadao",
     label: "Cidadão",
     icon: UserCheck,
