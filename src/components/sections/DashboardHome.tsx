@@ -148,6 +148,22 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
         <p className="text-muted-foreground text-sm mt-1">
           Painel de controle — Secretaria da Justiça e Cidadania — SP
         </p>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.15 }}
+          className="mt-4"
+        >
+          <Button
+            size="lg"
+            onClick={() => nav("consulta")}
+            className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold text-base px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all gap-3"
+          >
+            <Search className="h-5 w-5" />
+            Consultar Credencial
+            <ArrowRight className="h-5 w-5" />
+          </Button>
+        </motion.div>
       </div>
 
       {/* Stats Grid */}
