@@ -134,6 +134,7 @@ export default function CartorarioSection() {
       partes_envolvidas: form.partes_envolvidas || null,
       descricao: form.descricao,
       observacoes: form.observacoes || null,
+      documento_url: form.documento_url || null,
     } as any);
     if (error) {
       toast({ title: "Erro ao solicitar", description: error.message, variant: "destructive" });
