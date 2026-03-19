@@ -93,10 +93,16 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
   });
 
   const { data: recentProcessos } = useQuery({
-    queryKey: ["dash-recent-processos"], queryFn: async () => {
-      const { data } = await supabase.from("processos").select("id, numero, autor_nome, reu_nome, status, classe, assunto").order("created_at", { ascending: false }).limit(5);
+    queryKey: ["dash-recent-processos", profile?.user_id], queryFn: async () => {
+      const userId = profile?.user_id;
+      if (!userId) return [];
+      const { data } = await supabase.from("processos")
+        .select("id, numero, autor_nome, reu_nome, status, classe, assunto")
+        .or(`juiz_id.eq.${userId},advogado_autor_id.eq.${userId},advogado_reu_id.eq.${userId}`)
+        .order("created_at", { ascending: false })
+        .limit(5);
       return data || [];
-    }, enabled: isJudicial || isAdmin,
+    }, enabled: (isJudicial || isAdmin) && !!profile?.user_id,
   });
 
   const nav = (s: string) => onNavigate?.(s);
