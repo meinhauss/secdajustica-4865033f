@@ -158,8 +158,6 @@ export default function LoginPage() {
       {/* Footer */}
       <footer className="bg-institutional-dark text-sidebar-foreground/50 text-[11px] py-6">
         <div className="max-w-7xl mx-auto px-4 text-center space-y-2">
-          <p className="text-accent/60 font-medium">Secretaria da Justiça e Cidadania — Estado de São Paulo — Jaguaré RP</p>
-          <p>Sistema Integrado de Gestão Jurídica • Todos os direitos reservados</p>
           <p>Este sistema é destinado exclusivamente para uso em Roleplay (RP).</p>
           <p className="mt-3 text-accent/50 text-xs">
             Sistema produzido por:{" "}
