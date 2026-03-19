@@ -656,13 +656,36 @@ function TabLogin(props: LoginProps) {
           </Button>
         </form>
 
-        <div className="mt-4 text-center">
-          <button
-            onClick={() => setIsSignUp(!isSignUp)}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            
-            {isSignUp ? "Já possui conta? Faça login" : "Não possui conta? Registre-se"}
-          </button>
+        <div className="mt-4 text-center space-y-2">
+          {!isSignUp && (
+            <button
+              onClick={async () => {
+                if (!email) {
+                  toast.error("Digite seu e-mail primeiro");
+                  return;
+                }
+                try {
+                  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: `${window.location.origin}/reset-password`,
+                  });
+                  if (error) throw error;
+                  toast.success("E-mail de recuperação enviado! Verifique sua caixa de entrada.");
+                } catch (err: any) {
+                  toast.error(err.message || "Erro ao enviar e-mail de recuperação");
+                }
+              }}
+              className="text-sm text-accent hover:text-accent/80 transition-colors"
+            >
+              Esqueci minha senha
+            </button>
+          )}
+          <div>
+            <button
+              onClick={() => setIsSignUp(!isSignUp)}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              {isSignUp ? "Já possui conta? Faça login" : "Não possui conta? Registre-se"}
+            </button>
+          </div>
         </div>
 
         <div className="mt-8 p-4 rounded-lg bg-secondary/50 border border-border">
