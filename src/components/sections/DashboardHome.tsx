@@ -171,6 +171,24 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
         ))}
       </div>
 
+      {/* Quick Actions */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        {quickActions.map((action, i) => (
+          <motion.div
+            key={action.section}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.04 }}
+            onClick={() => nav(action.section)}
+            className="bg-card rounded-xl p-4 shadow-institutional border border-border cursor-pointer hover:border-accent transition-colors flex flex-col gap-1"
+          >
+            <action.icon className="h-5 w-5 text-accent mb-1" />
+            <span className="text-sm font-semibold text-foreground">{action.label}</span>
+            <span className="text-[10px] text-muted-foreground">{action.desc}</span>
+          </motion.div>
+        ))}
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Processos */}
         {recentProcessos && recentProcessos.length > 0 && (
