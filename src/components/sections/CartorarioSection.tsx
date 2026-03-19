@@ -14,7 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Label } from "@/components/ui/label";
 import {
   FileText, Plus, Search, CheckCircle, Clock, Eye, Stamp,
-  Heart, Home, Users, ScrollText, FileSignature, Baby, BarChart3, User
+  Heart, Home, Users, ScrollText, FileSignature, Baby, BarChart3, User, Link
 } from "lucide-react";
 
 /* ─── Profile Lookup Hook ─── */
