@@ -45,6 +45,7 @@ const Index = () => {
       case "consulta": return <ConsultaPublicaSection />;
       case "magistrado": return <MagistradoSection />;
       case "tribunal": return <TribunalSection />;
+      case "jurisprudencia": return <JurisprudenciaSection />;
       case "mp": return <MPSection />;
       case "audiencias": return <AudienciasSection />;
       case "oab": return <OABSection />;
