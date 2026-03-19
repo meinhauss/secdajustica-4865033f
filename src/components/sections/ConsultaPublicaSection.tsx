@@ -18,7 +18,7 @@ export default function ConsultaPublicaSection() {
         .limit(50);
       if (search) {
         query = query.or(
-          `numero.ilike.%${search}%,assunto.ilike.%${search}%,autor_nome.ilike.%${search}%,reu_nome.ilike.%${search}%`
+          `numero.ilike.%${search}%,assunto.ilike.%${search}%`
         );
       }
       const { data, error } = await query;
