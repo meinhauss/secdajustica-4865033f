@@ -441,6 +441,13 @@ export default function CartorarioSection() {
               <Label>Observações</Label>
               <Textarea value={form.observacoes} onChange={(e) => setForm((f) => ({ ...f, observacoes: e.target.value }))} placeholder="Informações adicionais..." rows={2} />
             </div>
+            <div>
+              <Label>Link do Documento Anexo</Label>
+              <div className="relative">
+                <Link className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input value={form.documento_url} onChange={(e) => setForm((f) => ({ ...f, documento_url: e.target.value }))} placeholder="https://..." className="pl-10" />
+              </div>
+            </div>
             <Button className="w-full" onClick={handleSolicitar}>
               <Stamp className="h-4 w-4 mr-1" /> Solicitar Documento
             </Button>
