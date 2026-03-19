@@ -5,7 +5,7 @@ import {
   Scale, Gavel, BookOpen, FileText, Users, BarChart3,
   LogOut, Menu, X, Home, Briefcase, Calendar, Crown, GraduationCap, Stamp
  } from "lucide-react";
-import logoSjc from "@/assets/logo-tjsp.png";
+import logoSjc from "@/assets/logo-sjc.jpg";
 import logoMpsp from "@/assets/logo-mpsp.png";
 import logoOabsp from "@/assets/logo-oabsp.png";
 import NotificacoesBell from "@/components/NotificacoesBell";
