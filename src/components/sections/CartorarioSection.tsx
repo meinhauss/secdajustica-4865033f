@@ -827,7 +827,7 @@ export default function CartorarioSection() {
                   </div>
                 )}
               </div>
-            </ScrollArea>
+            </div>
           )}
         </DialogContent>
       </Dialog>
