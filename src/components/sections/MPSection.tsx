@@ -683,7 +683,7 @@ function InqueritoMPDetail({ ipId, onBack }: { ipId: string; onBack: () => void 
 
           {ip.relatorio_final && (
             <div className="bg-card rounded-xl p-5 border border-border shadow-institutional">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Relatório Final do Delegado</p>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Relatório Final da Polícia</p>
               <p className="text-sm text-foreground whitespace-pre-wrap">{ip.relatorio_final}</p>
             </div>
           )}
