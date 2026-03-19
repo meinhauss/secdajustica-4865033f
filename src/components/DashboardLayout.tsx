@@ -17,8 +17,8 @@ interface DashboardLayoutProps {
 }
 
 const menuItems = [
-  { id: "dashboard", label: "Painel Geral", icon: Home, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "delegado", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "investigador", "presidente_oab", "bacharel_direito"] },
-  { id: "meu-perfil", label: "Meu Perfil", icon: Users, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "delegado", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "investigador", "presidente_oab", "bacharel_direito"] },
+  { id: "dashboard", label: "Painel Geral", icon: Home, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "presidente_oab", "bacharel_direito"] },
+  { id: "meu-perfil", label: "Meu Perfil", icon: Users, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "presidente_oab", "bacharel_direito"] },
   { id: "processos", label: "Processos", icon: FileText, roles: ["admin", "ministerio_publico", "procurador_geral", "advogado", "oficial_justica"] },
   { id: "magistrado", label: "Portal Magistrado", icon: Gavel, roles: ["admin", "magistrado", "presidente_tribunal", "desembargador"] },
   { id: "tribunal", label: "Tribunal de Justiça", icon: Scale, roles: ["admin", "desembargador", "presidente_tribunal"] },
