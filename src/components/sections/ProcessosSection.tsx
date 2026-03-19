@@ -730,14 +730,6 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
 
   const cfg = STATUS_CONFIG[processo.status] || STATUS_CONFIG.novo;
 
-  // Determine interested parties (MP as interessado in non-criminal cases, etc.)
-  const interessados: string[] = [];
-  if (processo.classe !== "criminal" && isMP) {
-    // MP can appear as interested party in non-criminal cases
-  }
-  // Find MP pareceres to show as interested
-  const mpInteressado = processo.classe !== "criminal";
-
   // Advogados from procuracoes
   const advAutor = procuracoes?.filter((p: any) => p.status === "ativa" && p.parte === "autor") || [];
   const advReu = procuracoes?.filter((p: any) => p.status === "ativa" && p.parte === "reu") || [];
