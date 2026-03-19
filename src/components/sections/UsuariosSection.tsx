@@ -26,6 +26,7 @@ const ROLE_LABELS: Record<string, string> = {
   investigador: "Investigador",
   presidente_oab: "Presidente da OAB",
   procurador_geral: "Procurador-Geral",
+  bacharel_direito: "Bacharel em Direito",
 };
 
 export default function UsuariosSection() {
