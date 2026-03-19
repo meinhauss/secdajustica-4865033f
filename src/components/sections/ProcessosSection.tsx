@@ -166,14 +166,6 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
           autor_id: user?.id,
         });
 
-        // 4. Notify the assigned judge
-        await supabase.from("notificacoes").insert({
-          user_id: juizId,
-          titulo: "Novo processo distribuído",
-          mensagem: `O processo ${processo.numero} (${form.assunto}) foi distribuído a você por sorteio.`,
-          tipo: "info",
-          link_secao: "processos",
-        });
       }
     },
     onSuccess: () => {
