@@ -681,7 +681,7 @@ export default function CartorarioSection() {
 
       {/* DIALOG - Detalhes */}
       <Dialog open={!!showDetalhes} onOpenChange={() => { setShowDetalhes(null); setEmitirLinks([]); }}>
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
+        <DialogContent className="max-w-lg !max-h-[85vh] !overflow-hidden !flex !flex-col">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle>Detalhes do Registro</DialogTitle>
           </DialogHeader>
