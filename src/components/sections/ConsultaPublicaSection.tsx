@@ -31,17 +31,60 @@ export default function ConsultaPublicaSection() {
       if (!search.trim()) return [];
       const term = search.trim();
 
-      // Search profiles by id_personagem or oab_numero
-      const { data: profiles, error } = await supabase
+      // Search profiles by exact id_personagem
+      const { data: profilesById, error: e1 } = await supabase
         .from("profiles")
         .select("user_id, nome_completo, id_personagem, cargo, oab_numero, avatar_url")
-        .or(`id_personagem.ilike.%${term}%,oab_numero.ilike.%${term}%`)
+        .eq("id_personagem", term)
         .limit(50);
-      if (error) throw error;
-      if (!profiles?.length) return [];
+      if (e1) throw e1;
 
-      // Fetch roles for found users
-      const userIds = profiles.map((p) => p.user_id);
+      // Also search carteiras_oab by numero_oab (ilike for partial match)
+      const { data: carteiras, error: e2 } = await supabase
+        .from("carteiras_oab")
+        .select("user_id, numero_oab, nome_completo, id_personagem, especialidade, status")
+        .ilike("numero_oab", `%${term}%`)
+        .limit(50);
+      if (e2) throw e2;
+
+      // Merge user_ids from both sources
+      const userMap: Record<string, any> = {};
+
+      profilesById?.forEach((p) => {
+        userMap[p.user_id] = { ...p, oab_info: null };
+      });
+
+      carteiras?.forEach((c) => {
+        if (!userMap[c.user_id]) {
+          userMap[c.user_id] = {
+            user_id: c.user_id,
+            nome_completo: c.nome_completo,
+            id_personagem: c.id_personagem,
+            cargo: null,
+            oab_numero: c.numero_oab,
+            avatar_url: null,
+          };
+        } else {
+          userMap[c.user_id].oab_numero = c.numero_oab;
+        }
+      });
+
+      const userIds = Object.keys(userMap);
+      if (!userIds.length) return [];
+
+      // Fetch full profiles for carteira-only matches
+      const missingProfiles = userIds.filter((uid) => !profilesById?.some((p) => p.user_id === uid));
+      if (missingProfiles.length) {
+        const { data: extraProfiles } = await supabase
+          .from("profiles")
+          .select("user_id, nome_completo, id_personagem, cargo, avatar_url")
+          .in("user_id", missingProfiles);
+        extraProfiles?.forEach((p) => {
+          userMap[p.user_id] = { ...userMap[p.user_id], ...p };
+        });
+      }
+
+      // Fetch roles
       const { data: roles } = await supabase
         .from("user_roles")
         .select("user_id, role")
@@ -53,7 +96,7 @@ export default function ConsultaPublicaSection() {
         rolesMap[r.user_id].push(r.role);
       });
 
-      return profiles.map((p) => ({
+      return Object.values(userMap).map((p: any) => ({
         ...p,
         roles: rolesMap[p.user_id] || [],
       }));
