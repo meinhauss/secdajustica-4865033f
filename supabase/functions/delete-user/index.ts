@@ -42,7 +42,31 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Você não pode excluir a si mesmo" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Delete related data first (tables that reference user_id)
+    // Nullify references in tables that have FK to auth.users
+    await supabaseAdmin.from("movimentacoes").update({ autor_id: null }).eq("autor_id", user_id);
+    await supabaseAdmin.from("atos_judiciais").update({ autor_id: null }).eq("autor_id", user_id);
+    await supabaseAdmin.from("mandados").update({ cumprido_por: null }).eq("cumprido_por", user_id);
+    await supabaseAdmin.from("processos").update({ juiz_id: null }).eq("juiz_id", user_id);
+    await supabaseAdmin.from("processos").update({ advogado_autor_id: null }).eq("advogado_autor_id", user_id);
+    await supabaseAdmin.from("processos").update({ advogado_reu_id: null }).eq("advogado_reu_id", user_id);
+    await supabaseAdmin.from("sentencas").update({ magistrado_id: null }).eq("magistrado_id", user_id);
+    await supabaseAdmin.from("intimacoes").update({ destinatario_id: null }).eq("destinatario_id", user_id);
+    await supabaseAdmin.from("procuracoes").update({ advogado_id: null }).eq("advogado_id", user_id);
+    await supabaseAdmin.from("documentos_processo").update({ autor_id: null }).eq("autor_id", user_id);
+    await supabaseAdmin.from("protocolos").update({ remetente_id: null }).eq("remetente_id", user_id);
+    await supabaseAdmin.from("prazos_processuais").update({ responsavel_id: null }).eq("responsavel_id", user_id);
+    await supabaseAdmin.from("certificacoes").update({ emitido_por: null }).eq("emitido_por", user_id);
+    await supabaseAdmin.from("pareceres_mp").update({ promotor_id: null }).eq("promotor_id", user_id);
+    await supabaseAdmin.from("denuncias_mp").update({ promotor_id: null }).eq("promotor_id", user_id);
+    await supabaseAdmin.from("requisicoes_diligencia_mp").update({ promotor_id: null }).eq("promotor_id", user_id);
+    await supabaseAdmin.from("arquivamentos_mp").update({ promotor_id: null }).eq("promotor_id", user_id);
+    await supabaseAdmin.from("procedimentos_disciplinares").update({ advogado_user_id: null }).eq("advogado_user_id", user_id);
+    await supabaseAdmin.from("procedimentos_disciplinares").update({ denunciante_id: null }).eq("denunciante_id", user_id);
+    await supabaseAdmin.from("notificacoes").delete().eq("user_id", user_id);
+    await supabaseAdmin.from("inscricoes_oab").delete().eq("user_id", user_id);
+    await supabaseAdmin.from("inscricoes_concurso").delete().eq("user_id", user_id);
+
+    // Delete owned records
     await supabaseAdmin.from("cargo_historico").delete().eq("user_id", user_id);
     await supabaseAdmin.from("user_roles").delete().eq("user_id", user_id);
     await supabaseAdmin.from("carteiras_oab").delete().eq("user_id", user_id);
