@@ -335,8 +335,8 @@ function TabInstitucional() {
           className="bg-card rounded-xl p-6 border border-border shadow-institutional">
           
             <div className="flex items-start gap-4">
-              <div className="p-3 rounded-xl bg-institutional/10 flex-shrink-0">
-                <org.icon className="h-6 w-6 text-institutional" />
+              <div className="p-2 rounded-xl bg-secondary flex-shrink-0">
+                <img src={org.logo} alt={org.name} className="h-10 w-auto object-contain" />
               </div>
               <div className="flex-1">
                 <h3 className="font-display text-lg font-semibold text-foreground mb-1">{org.name}</h3>
