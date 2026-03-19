@@ -104,7 +104,9 @@ export default function CartorarioSection() {
     partes_envolvidas: "",
     descricao: "",
     observacoes: "",
+    documento_url: "",
   });
+  const [emitirUrl, setEmitirUrl] = useState("");
 
   useEffect(() => { fetchRegistros(); }, []);
 
