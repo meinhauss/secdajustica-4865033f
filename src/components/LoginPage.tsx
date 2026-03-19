@@ -284,7 +284,7 @@ function TabInicio({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
           <h3 className="font-display text-xl font-semibold text-foreground mb-6">Últimas Notícias</h3>
           <div className="space-y-3">
             {[
-            { date: "17/03/2026", title: "Sistema Judiciário Eletrônico entra em operação na Comarca" },
+            { date: "19/03/2026", title: "Sistema Judiciário Eletrônico entra em operação na Comarca" },
             { date: "15/03/2026", title: "Novas varas judiciais são criadas para atender demanda crescente" },
             { date: "12/03/2026", title: "Portal de Consulta Pública amplia acesso à informação processual" }].
             map((news) =>
