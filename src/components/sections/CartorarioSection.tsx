@@ -626,11 +626,11 @@ export default function CartorarioSection() {
 
       {/* DIALOG - Nova Solicitação */}
       <Dialog open={showNovoRegistro} onOpenChange={(open) => { if (!open) resetForm(); setShowNovoRegistro(open); }}>
-        <DialogContent className="max-w-lg max-h-[85vh] flex flex-col">
-          <DialogHeader>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>Nova Solicitação de Cartório</DialogTitle>
           </DialogHeader>
-          <ScrollArea className="flex-1 pr-4">
+          <div className="flex-1 overflow-y-auto pr-2">
             <div className="space-y-4 pb-4">
               <div>
                 <Label>Tipo de Documento *</Label>
