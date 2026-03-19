@@ -58,7 +58,7 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
   if (isMagistrado || isAdmin) stats.push({ label: "Conclusos p/ Decisão", value: processosConclusos ?? 0, icon: Gavel, onClick: "magistrado" });
   if (isJudicial || isAdmin) stats.push({ label: "Audiências Agendadas", value: audienciasCount ?? 0, icon: Clock, onClick: "audiencias" });
   if (isJudicial || isAdmin) stats.push({ label: "Intimações Pendentes", value: intimacoesPendentes ?? 0, icon: Bell, onClick: "cartorio" });
-  stats.push({ label: "Concursos Abertos", value: concursosAbertos ?? 0, icon: GraduationCap, onClick: "concursos" });
+  
 
   const quickActions: { label: string; icon: any; section: string; desc: string }[] = [];
   if (isJudicial) quickActions.push({ label: "Processos", icon: FileText, section: "processos", desc: "Gerenciar processos judiciais" });
