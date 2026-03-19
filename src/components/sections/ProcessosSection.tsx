@@ -627,33 +627,115 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
           {processo.status === "sentenciado" && <TabsTrigger value="apelacoes" className="rounded-lg text-xs"><Scale className="h-3 w-3 mr-1" /> Apelações</TabsTrigger>}
         </TabsList>
 
-        {/* TIMELINE */}
+        {/* TIMELINE — unified view */}
         <TabsContent value="timeline" className="mt-4 space-y-4">
           {canAddMovimentacao && <AddMovimentacao roles={roles} onAdd={(tipo, desc) => addMovimentacao.mutate({ tipo, descricao: desc })} />}
-          {!movimentacoes?.length ? (
-            <p className="text-center py-8 text-sm text-muted-foreground">Nenhuma movimentação registrada.</p>
-          ) : (
-            <div className="relative pl-6 border-l-2 border-border space-y-4">
-              {movimentacoes.map((m) => (
-                <motion.div key={m.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="relative">
-                  <div className="absolute -left-[25px] top-1 w-3 h-3 rounded-full bg-institutional border-2 border-background" />
-                  <div className="bg-card rounded-xl p-3 border border-border">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{m.tipo.replace(/_/g, " ")}</span>
-                      <span className="text-[10px] text-muted-foreground ml-auto">{format(new Date(m.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
+          {(() => {
+            // Build unified timeline from all sources
+            type TimelineItem = { id: string; date: string; tipo: string; titulo: string; descricao: string; autor?: string; link?: string; badge_color?: string };
+            const items: TimelineItem[] = [];
+
+            // Movimentações
+            movimentacoes?.forEach(m => items.push({
+              id: `mov-${m.id}`, date: m.created_at, tipo: m.tipo.replace(/_/g, " "),
+              titulo: "", descricao: m.descricao, autor: (m as any).autor_nome || "Sistema",
+              badge_color: "bg-secondary text-secondary-foreground",
+            }));
+
+            // Atos Judiciais
+            atos?.forEach((a: any) => items.push({
+              id: `ato-${a.id}`, date: a.created_at, tipo: `ato judicial — ${a.tipo}`,
+              titulo: a.titulo, descricao: a.conteudo,
+              autor: a.autor_nome || "Magistrado",
+              badge_color: "bg-institutional/10 text-institutional",
+            }));
+
+            // Documentos (com links)
+            documentos?.forEach((d: any) => items.push({
+              id: `doc-${d.id}`, date: d.created_at, tipo: `documento — ${d.tipo}`,
+              titulo: d.nome, descricao: d.descricao || "",
+              link: d.arquivo_url || undefined,
+              badge_color: "bg-blue-100 text-blue-800 dark:bg-blue-950/30 dark:text-blue-400",
+            }));
+
+            // Audiências
+            audiencias?.forEach((a: any) => items.push({
+              id: `aud-${a.id}`, date: a.created_at, tipo: `audiência — ${a.tipo}`,
+              titulo: `Audiência de ${a.tipo}`,
+              descricao: `Data: ${format(new Date(a.data_hora), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })} — Local: ${a.local || "Não definido"} — Status: ${a.status}${a.observacoes ? `\nObs: ${a.observacoes}` : ""}`,
+              badge_color: "bg-amber-100 text-amber-800 dark:bg-amber-950/30 dark:text-amber-400",
+            }));
+
+            // Prazos
+            prazos?.forEach((p: any) => items.push({
+              id: `prazo-${p.id}`, date: p.created_at, tipo: `prazo — ${p.tipo}`,
+              titulo: p.descricao,
+              descricao: `${p.dias_uteis} horas — De ${format(new Date(p.data_inicio), "dd/MM/yyyy HH:mm", { locale: ptBR })} até ${format(new Date(p.data_fim), "dd/MM/yyyy HH:mm", { locale: ptBR })} — Status: ${p.status}`,
+              badge_color: "bg-orange-100 text-orange-800 dark:bg-orange-950/30 dark:text-orange-400",
+            }));
+
+            // Sentenças
+            sentencasProc?.forEach((s: any) => items.push({
+              id: `sent-${s.id}`, date: s.created_at, tipo: `sentença — ${s.tipo}`,
+              titulo: s.ementa || "Sentença",
+              descricao: `Fundamentação: ${s.fundamentacao}\n\nDispositivo: ${s.dispositivo}`,
+              autor: "Magistrado",
+              badge_color: "bg-purple-100 text-purple-800 dark:bg-purple-950/30 dark:text-purple-400",
+            }));
+
+            // Apelações
+            apelacoesProc?.forEach((ap: any) => items.push({
+              id: `apel-${ap.id}`, date: ap.created_at, tipo: "apelação",
+              titulo: `Recurso por ${ap.apelante_nome} (${ap.apelante_tipo})`,
+              descricao: `Fundamentação: ${ap.fundamentacao}\nPedido: ${ap.pedido}${ap.decisao_tipo ? `\n\nDecisão: ${ap.decisao_tipo} — ${ap.decisao_dispositivo}` : ""}`,
+              badge_color: "bg-red-100 text-red-800 dark:bg-red-950/30 dark:text-red-400",
+            }));
+
+            // Certidões
+            certidoes?.forEach((c: any) => items.push({
+              id: `cert-${c.id}`, date: c.created_at, tipo: `certidão — ${c.tipo}`,
+              titulo: `Certidão de ${c.tipo}`,
+              descricao: c.conteudo,
+              autor: c.emitido_por_nome || "Oficial de Justiça",
+              badge_color: "bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400",
+            }));
+
+            // Sort by date descending
+            items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+            if (!items.length) return <p className="text-center py-8 text-sm text-muted-foreground">Nenhuma movimentação registrada.</p>;
+
+            return (
+              <div className="relative pl-6 border-l-2 border-border space-y-4">
+                {items.map((item) => (
+                  <motion.div key={item.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="relative">
+                    <div className="absolute -left-[25px] top-1 w-3 h-3 rounded-full bg-institutional border-2 border-background" />
+                    <div className="bg-card rounded-xl p-3 border border-border">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${item.badge_color}`}>{item.tipo}</span>
+                        <span className="text-[10px] text-muted-foreground ml-auto">{format(new Date(item.date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
+                      </div>
+                      {item.titulo && <p className="text-sm font-semibold text-foreground mb-1">{item.titulo}</p>}
+                      <p className="text-sm text-foreground whitespace-pre-wrap">{item.descricao}</p>
+                      {item.link && (
+                        <a href={item.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-2 text-xs text-primary hover:underline">
+                          <ExternalLink className="h-3 w-3" /> Abrir documento
+                        </a>
+                      )}
+                      {item.autor && (
+                        <div className="mt-2 pt-2 border-t border-border/50">
+                          <p className="text-[10px] text-muted-foreground italic flex items-center gap-1">
+                            <PenTool className="h-3 w-3" />
+                            Assinado digitalmente por: <span className="font-semibold text-foreground/80">{item.autor}</span>
+                          </p>
+                        </div>
+                      )}
                     </div>
-                    <p className="text-sm text-foreground whitespace-pre-wrap">{m.descricao}</p>
-                    <div className="mt-2 pt-2 border-t border-border/50">
-                      <p className="text-[10px] text-muted-foreground italic flex items-center gap-1">
-                        <PenTool className="h-3 w-3" />
-                        Assinado digitalmente por: <span className="font-semibold text-foreground/80">{(m as any).autor_nome || "Sistema"}</span>
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          )}
+                  </motion.div>
+                ))}
+              </div>
+            );
+          })()}
         </TabsContent>
 
         {/* ATOS JUDICIAIS */}
