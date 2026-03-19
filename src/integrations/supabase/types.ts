@@ -1332,6 +1332,56 @@ export type Database = {
         }
         Relationships: []
       }
+      procuracoes: {
+        Row: {
+          advogado_id: string
+          advogado_nome: string
+          created_at: string
+          documento_url: string | null
+          id: string
+          motivo_renuncia: string | null
+          parte: string
+          processo_id: string
+          renunciada_em: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          advogado_id: string
+          advogado_nome: string
+          created_at?: string
+          documento_url?: string | null
+          id?: string
+          motivo_renuncia?: string | null
+          parte?: string
+          processo_id: string
+          renunciada_em?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          advogado_id?: string
+          advogado_nome?: string
+          created_at?: string
+          documento_url?: string | null
+          id?: string
+          motivo_renuncia?: string | null
+          parte?: string
+          processo_id?: string
+          renunciada_em?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "procuracoes_processo_id_fkey"
+            columns: ["processo_id"]
+            isOneToOne: false
+            referencedRelation: "processos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
