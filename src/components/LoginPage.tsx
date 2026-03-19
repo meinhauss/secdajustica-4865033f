@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import ConsultaPublicaSection from "@/components/sections/ConsultaPublicaSection";
 import {
   Scale, Shield, Gavel, BookOpen, Building2, Users, FileText,
   Phone, MapPin, Clock, ChevronRight, ExternalLink, GraduationCap } from
