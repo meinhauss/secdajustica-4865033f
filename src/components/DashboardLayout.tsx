@@ -8,7 +8,7 @@ import {
 import logoSjc from "@/assets/logo-sjc.jpg";
 import logoMpsp from "@/assets/logo-mpsp.png";
 import logoOabsp from "@/assets/logo-oabsp.png";
-import NotificacoesBell from "@/components/NotificacoesBell";
+
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -155,7 +155,7 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
             {filteredItems.find((i) => i.id === activeSection)?.label || "Painel"}
           </h1>
           <div className="ml-auto flex items-center gap-2">
-            <NotificacoesBell onNavigate={onSectionChange} />
+            
             <span className="text-xs text-muted-foreground hidden sm:block">
               Sistema Judiciário vBETA
             </span>

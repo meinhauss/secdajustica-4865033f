@@ -164,8 +164,8 @@ const ROLE_HIERARCHY = [
     icon: UserCheck,
     color: "text-muted-foreground",
     bgColor: "bg-muted",
-    description: "Consulta pública de processos, acompanhamento e notificações.",
-    permissions: ["consulta_publica", "acompanhamento", "notificacoes"],
+    description: "Consulta pública de processos e acompanhamento.",
+    permissions: ["consulta_publica", "acompanhamento"],
   },
 ];
 
@@ -213,7 +213,7 @@ const PERMISSION_LABELS: Record<string, string> = {
   honorarios: "Honorários",
   
   acompanhamento: "Acompanhamento",
-  notificacoes: "Notificações",
+  
   inscricao_oab: "Inscrição na OAB",
 };
 
