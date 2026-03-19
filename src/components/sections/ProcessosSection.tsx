@@ -370,7 +370,9 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
 
   // Magistrado/desembargador can only act on their assigned processes
   const isAssignedJudge = (isMagistradoOrDesembargador) && processo?.juiz_id === user?.id;
-  const isJudicial = isAdmin || isPresidenteTribunal || isAssignedJudge;
+  // Juízes/desembargadores NÃO podem agir na aba Processos — só via Portal do Juiz
+  const isJudicial = isAdmin || isPresidenteTribunal;
+  const isJudicialReadOnly = isAdmin || isPresidenteTribunal || isAssignedJudge;
 
   // Procuracoes
   const { data: procuracoes } = useQuery({
