@@ -308,12 +308,6 @@ function TabInstitucional() {
     competencias: ["Oferecer denúncias criminais", "Fiscalizar o cumprimento da lei", "Defender interesses coletivos", "Expedir recomendações"]
   },
   {
-    logo: govLogo,
-    name: "Polícia Civil",
-    desc: "Órgão responsável pela investigação criminal, apuração de infrações penais e manutenção da ordem pública.",
-    competencias: ["Investigar crimes", "Registrar Boletins de Ocorrência", "Conduzir inquéritos policiais", "Remeter inquéritos ao MP"]
-  },
-  {
     logo: logoOabsp,
     name: "Ordem dos Advogados (OAB)",
     desc: "Entidade responsável pela regulamentação da advocacia, defesa das prerrogativas profissionais e fiscalização ética.",
