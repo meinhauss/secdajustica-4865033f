@@ -55,6 +55,9 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
       advogado: "Advogado(a)",
       bacharel_direito: "Bacharel em Direito",
       cidadao: "Cidadão",
+      policia_civil: "Polícia Civil",
+      policia_militar: "Polícia Militar",
+      policia_federal: "Polícia Federal",
     };
     return labels[role] || role;
   };

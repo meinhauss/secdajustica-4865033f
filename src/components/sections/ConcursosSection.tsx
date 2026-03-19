@@ -557,8 +557,8 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
       const cargoRoleMap: Record<string, string> = {
         "Magistrado": "magistrado", "Promotor de Justiça": "ministerio_publico",
         "Procurador-Geral de Justiça": "procurador_geral",
-        "Delegado de Polícia": "delegado", "Oficial de Justiça": "oficial_justica",
-        "Investigador": "investigador",
+        "Polícia Civil": "policia_civil", "Polícia Militar": "policia_militar",
+        "Polícia Federal": "policia_federal", "Oficial de Justiça": "oficial_justica",
       };
       const role = cargoRoleMap[concurso?.cargo] || null;
       if (role) {
