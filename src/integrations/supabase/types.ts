@@ -929,6 +929,41 @@ export type Database = {
         }
         Relationships: []
       }
+      interessados_processo: {
+        Row: {
+          created_at: string
+          id: string
+          orgao: string
+          processo_id: string
+          qualificacao: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          orgao: string
+          processo_id: string
+          qualificacao?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          orgao?: string
+          processo_id?: string
+          qualificacao?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interessados_processo_processo_id_fkey"
+            columns: ["processo_id"]
+            isOneToOne: false
+            referencedRelation: "processos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       intimacoes: {
         Row: {
           conteudo: string
