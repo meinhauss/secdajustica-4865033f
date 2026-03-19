@@ -31,7 +31,7 @@ const CONCURSO_STATUS: Record<string, { label: string; color: string }> = {
 };
 
 const CARGOS_JURIDICOS = [
-  "Magistrado", "Promotor de Justiça", "Polícia Civil", "Polícia Militar", "Polícia Federal",
+  "Juiz de Direito", "Promotor de Justiça", "Polícia Civil", "Polícia Militar", "Polícia Federal",
   "Defensor Público", "Oficial de Justiça", "Analista Judiciário", "Técnico Judiciário",
   "Escrivão", "Perito Criminal", "Assessor Jurídico"
 ];
