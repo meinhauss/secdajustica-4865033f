@@ -5,14 +5,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { Users, Pencil, Save, Trash2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Constants } from "@/integrations/supabase/types";
-
-const ALL_ROLES = Constants.public.Enums.user_role;
-
 const ROLE_LABELS: Record<string, string> = {
   admin: "Administrador",
   magistrado: "Magistrado",
