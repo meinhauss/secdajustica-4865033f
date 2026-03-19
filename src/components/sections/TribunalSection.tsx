@@ -228,12 +228,13 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
 
   const julgarMutation = useMutation({
     mutationFn: async () => {
+      const now = new Date().toISOString();
       const { error } = await supabase.from("apelacoes").update({
         status: "julgada",
         decisao_tipo: decisaoTipo,
         decisao_fundamentacao: decisaoFund,
         decisao_dispositivo: decisaoDisp,
-        data_julgamento: new Date().toISOString(),
+        data_julgamento: now,
       }).eq("id", apelacaoId);
       if (error) throw error;
 
@@ -244,9 +245,26 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
         tipo: "acordao",
         descricao: `Acórdão proferido pelo TJ (${apelacao.numero_acordao}): ${DECISAO_LABELS[decisaoTipo] || decisaoTipo}`,
       });
+
+      // Generate jurisprudência from the acórdão
+      const ementa = `${DECISAO_LABELS[decisaoTipo] || decisaoTipo}. ${apelacao.processos?.classe ? apelacao.processos.classe.toUpperCase() + ". " : ""}${apelacao.processos?.assunto || ""}. Processo nº ${apelacao.processos?.numero || ""}.`;
+      await supabase.from("jurisprudencias").insert({
+        apelacao_id: apelacaoId,
+        processo_id: apelacao.processo_id,
+        numero_acordao: apelacao.numero_acordao,
+        classe: apelacao.processos?.classe || null,
+        assunto: apelacao.processos?.assunto || null,
+        ementa,
+        decisao_tipo: decisaoTipo,
+        decisao_fundamentacao: decisaoFund,
+        decisao_dispositivo: decisaoDisp,
+        desembargador_id: user!.id,
+        desembargador_nome: profile?.nome_completo || null,
+        data_julgamento: now,
+      });
     },
     onSuccess: () => {
-      toast.success("Acórdão registrado com sucesso!");
+      toast.success("Acórdão registrado e jurisprudência gerada!");
       setShowJulgar(false);
       queryClient.invalidateQueries({ queryKey: ["tribunal"] });
       queryClient.invalidateQueries({ queryKey: ["tribunal-apelacao"] });
