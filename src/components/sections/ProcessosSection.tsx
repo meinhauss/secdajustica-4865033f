@@ -824,6 +824,19 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         </div>
       </div>
 
+      {/* Notice for magistrado viewing process not assigned to them */}
+      {isMagistradoOrDesembargador && !isAssignedJudge && !isAdmin && (
+        <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/30 rounded-xl p-4 flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-amber-800 dark:text-amber-300">Processo não atribuído a você</p>
+            <p className="text-xs text-amber-700 dark:text-amber-400 mt-1">
+              Este processo está atribuído a outro magistrado. Você pode visualizar, mas não pode realizar movimentações judiciais.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Advogados / Procurações */}
       <div className="bg-card rounded-xl border border-border p-4 space-y-3">
         <div className="flex items-center justify-between">
