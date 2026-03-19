@@ -72,7 +72,7 @@ export default function LoginPage() {
           <div className="flex items-center gap-3">
             <img src={govLogo} alt="gov.br" className="h-6" />
             <span className="text-[11px] text-sidebar-foreground/60 hidden sm:block">
-              Governo da Cidade RP — Estado de São Paulo
+              Governo da Jaguaré RP — Estado de São Paulo
             </span>
           </div>
           <div className="flex items-center gap-4">
@@ -97,7 +97,7 @@ export default function LoginPage() {
                 Secretaria da Justiça e Cidadania
               </h1>
               <p className="text-[11px] text-sidebar-foreground/50 uppercase tracking-[0.2em]">
-                Estado de São Paulo — Cidade RP
+                Estado de São Paulo — Jaguaré RP
               </p>
             </div>
           </div>
@@ -178,7 +178,7 @@ export default function LoginPage() {
       {/* Footer */}
       <footer className="bg-institutional-dark text-sidebar-foreground/50 text-[11px] py-6">
         <div className="max-w-7xl mx-auto px-4 text-center space-y-2">
-          <p className="text-accent/60 font-medium">Secretaria da Justiça e Cidadania — Estado de São Paulo — Cidade RP</p>
+          <p className="text-accent/60 font-medium">Secretaria da Justiça e Cidadania — Estado de São Paulo — Jaguaré RP</p>
           <p>Sistema Integrado de Gestão Jurídica • Todos os direitos reservados</p>
           <p>Este sistema é destinado exclusivamente para uso em Roleplay (RP).</p>
           <p className="mt-3 text-accent/50 text-xs">
