@@ -44,11 +44,15 @@ Deno.serve(async (req) => {
 
     // Nullify references in tables that have FK to auth.users
     await supabaseAdmin.from("movimentacoes").update({ autor_id: null }).eq("autor_id", user_id);
-    await supabaseAdmin.from("atos_judiciais").update({ autor_id: null }).eq("autor_id", user_id);
-    await supabaseAdmin.from("mandados").update({ cumprido_por: null }).eq("cumprido_por", user_id);
     await supabaseAdmin.from("processos").update({ juiz_id: null }).eq("juiz_id", user_id);
     await supabaseAdmin.from("processos").update({ advogado_autor_id: null }).eq("advogado_autor_id", user_id);
     await supabaseAdmin.from("processos").update({ advogado_reu_id: null }).eq("advogado_reu_id", user_id);
+    await supabaseAdmin.from("boletins_ocorrencia").update({ vitima_id: null }).eq("vitima_id", user_id);
+    await supabaseAdmin.from("boletins_ocorrencia").update({ delegado_id: null }).eq("delegado_id", user_id);
+    await supabaseAdmin.from("cargo_historico").update({ nomeado_por: null }).eq("nomeado_por", user_id);
+    // Nullify non-FK references (no constraint but good cleanup)
+    await supabaseAdmin.from("atos_judiciais").update({ autor_id: null }).eq("autor_id", user_id);
+    await supabaseAdmin.from("mandados").update({ cumprido_por: null }).eq("cumprido_por", user_id);
     await supabaseAdmin.from("sentencas").update({ magistrado_id: null }).eq("magistrado_id", user_id);
     await supabaseAdmin.from("intimacoes").update({ destinatario_id: null }).eq("destinatario_id", user_id);
     await supabaseAdmin.from("procuracoes").update({ advogado_id: null }).eq("advogado_id", user_id);
