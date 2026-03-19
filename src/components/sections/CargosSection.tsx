@@ -129,6 +129,16 @@ const ROLE_HIERARCHY = [
   },
   {
     level: 12,
+    role: "bacharel_direito",
+    label: "Bacharel em Direito",
+    icon: Briefcase,
+    color: "text-cyan-500",
+    bgColor: "bg-cyan-500/10",
+    description: "Graduado em Direito. Apto a prestar concursos e solicitar inscrição na OAB.",
+    permissions: ["consulta_publica", "concursos", "inscricao_oab"],
+  },
+  {
+    level: 13,
     role: "cidadao",
     label: "Cidadão",
     icon: UserCheck,

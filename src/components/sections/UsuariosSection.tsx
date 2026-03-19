@@ -200,27 +200,6 @@ export default function UsuariosSection() {
         </DialogContent>
       </Dialog>
 
-      {/* Add Role Dialog */}
-      <Dialog open={!!addRoleUserId} onOpenChange={(open) => !open && setAddRoleUserId(null)}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader><DialogTitle className="font-display">Adicionar Cargo</DialogTitle></DialogHeader>
-          <div className="space-y-4 mt-4">
-            <Select value={newRole} onValueChange={setNewRole}>
-              <SelectTrigger className="rounded-xl"><SelectValue placeholder="Selecione um cargo" /></SelectTrigger>
-              <SelectContent>
-                {ALL_ROLES.map((r) => (
-                  <SelectItem key={r} value={r}>{ROLE_LABELS[r] || r}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button disabled={!newRole || addRole.isPending}
-              onClick={() => addRoleUserId && addRole.mutate({ userId: addRoleUserId, role: newRole })}
-              className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
-              <Plus className="h-4 w-4 mr-1" /> {addRole.isPending ? "Adicionando..." : "Adicionar Cargo"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Delete User Confirmation */}
       <AlertDialog open={!!deleteUserId} onOpenChange={(open) => !open && setDeleteUserId(null)}>
