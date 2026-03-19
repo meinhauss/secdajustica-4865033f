@@ -151,20 +151,16 @@ export default function UsuariosSection() {
                     </Button>
                   </div>
                 </div>
-                {/* Roles */}
+                {/* Roles (read-only) */}
                 <div className="flex items-center gap-2 flex-wrap mt-3 pt-3 border-t border-border">
                   {userRoles.map((r) => (
-                    <span key={r.id} className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-gold/10 text-gold-dark inline-flex items-center gap-1">
+                    <span key={r.id} className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-gold/10 text-gold-dark">
                       {ROLE_LABELS[r.role] || r.role}
-                      <button onClick={() => removeRole.mutate(r.id)} className="hover:text-destructive ml-0.5" title="Remover cargo">
-                        <X className="h-3 w-3" />
-                      </button>
                     </span>
                   ))}
-                  <Button variant="ghost" size="sm" className="h-6 px-2 text-xs rounded-lg text-institutional"
-                    onClick={() => { setAddRoleUserId(p.user_id); setNewRole(""); }}>
-                    <Plus className="h-3 w-3 mr-0.5" /> Cargo
-                  </Button>
+                  {userRoles.length === 0 && (
+                    <span className="text-[10px] text-muted-foreground italic">Sem cargos atribuídos</span>
+                  )}
                 </div>
               </div>
             );
