@@ -8,7 +8,7 @@ import {
 import logoSjc from "@/assets/logo-sjc.jpg";
 import logoMpsp from "@/assets/logo-mpsp.png";
 import logoOabsp from "@/assets/logo-oabsp.png";
-import NotificacoesBell from "@/components/NotificacoesBell";
+
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
