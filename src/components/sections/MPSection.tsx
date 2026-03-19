@@ -631,7 +631,7 @@ function InqueritoMPDetail({ ipId, onBack }: { ipId: string; onBack: () => void 
       queryClient.invalidateQueries({ queryKey: ["mp-inqueritos"] });
       setActiveAction("none");
       setReqForm({ descricao: "", prazo_dias: "10" });
-      toast.success("Diligência requisitada ao Delegado!");
+      toast.success("Diligência requisitada à Polícia!");
     },
     onError: (err: any) => toast.error(err.message),
   });
