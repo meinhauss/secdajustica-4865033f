@@ -146,8 +146,22 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
         </h2>
         <p className="text-muted-foreground text-sm mt-1">
           Painel de controle — Secretaria da Justiça e Cidadania — SP
-        </p>
+      </p>
       </div>
+
+      {/* CTA Consultar Credencial */}
+      <motion.button
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={() => nav("consulta")}
+        className="w-full flex items-center justify-center gap-3 bg-primary text-primary-foreground rounded-xl px-6 py-4 shadow-lg hover:bg-primary/90 transition-colors font-bold text-lg tracking-wide"
+      >
+        <Scale className="h-6 w-6" />
+        CONSULTAR CREDENCIAL
+        <ArrowRight className="h-5 w-5" />
+      </motion.button>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
