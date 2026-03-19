@@ -345,6 +345,8 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const isAdvogado = roles.includes("advogado");
   const isOficialJustica = roles.includes("oficial_justica");
   const isPolicia = roles.some(r => ["policia_civil", "policia_militar", "policia_federal"].includes(r));
+  const isHospital = roles.includes("hospital");
+  const isInstitucional = isMP || isPolicia || isHospital;
   // Move processo query up so we can compute permissions based on juiz_id
   const { data: processo } = useQuery({
     queryKey: ["processo", processoId],
