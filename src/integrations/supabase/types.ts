@@ -1017,6 +1017,75 @@ export type Database = {
           },
         ]
       }
+      jurisprudencias: {
+        Row: {
+          apelacao_id: string
+          assunto: string | null
+          classe: string | null
+          created_at: string
+          data_julgamento: string | null
+          decisao_dispositivo: string | null
+          decisao_fundamentacao: string | null
+          decisao_tipo: string
+          desembargador_id: string | null
+          desembargador_nome: string | null
+          ementa: string
+          id: string
+          numero_acordao: string
+          processo_id: string
+          tags: string[] | null
+        }
+        Insert: {
+          apelacao_id: string
+          assunto?: string | null
+          classe?: string | null
+          created_at?: string
+          data_julgamento?: string | null
+          decisao_dispositivo?: string | null
+          decisao_fundamentacao?: string | null
+          decisao_tipo: string
+          desembargador_id?: string | null
+          desembargador_nome?: string | null
+          ementa: string
+          id?: string
+          numero_acordao: string
+          processo_id: string
+          tags?: string[] | null
+        }
+        Update: {
+          apelacao_id?: string
+          assunto?: string | null
+          classe?: string | null
+          created_at?: string
+          data_julgamento?: string | null
+          decisao_dispositivo?: string | null
+          decisao_fundamentacao?: string | null
+          decisao_tipo?: string
+          desembargador_id?: string | null
+          desembargador_nome?: string | null
+          ementa?: string
+          id?: string
+          numero_acordao?: string
+          processo_id?: string
+          tags?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jurisprudencias_apelacao_id_fkey"
+            columns: ["apelacao_id"]
+            isOneToOne: false
+            referencedRelation: "apelacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jurisprudencias_processo_id_fkey"
+            columns: ["processo_id"]
+            isOneToOne: false
+            referencedRelation: "processos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mandados: {
         Row: {
           created_at: string
