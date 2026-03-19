@@ -1181,9 +1181,11 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                         <span className="text-[10px] text-muted-foreground ml-auto">{format(new Date(item.date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
                       </div>
                       {item.titulo && <p className="text-sm font-semibold text-foreground mb-1">{item.titulo}</p>}
-                      <p className="text-sm text-foreground whitespace-pre-wrap">{item.descricao.split(/(https?:\/\/[^\s]+)/g).map((part, i) =>
-                        /^https?:\/\//.test(part) ? (
-                          <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80 break-all">{part}</a>
+                      <p className="text-sm text-foreground whitespace-pre-wrap">{item.descricao.split(/(https?:\/\/[^\s<>]+)/gi).map((part, i) =>
+                        /^https?:\/\//i.test(part) ? (
+                          <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80 break-all inline-flex items-center gap-1">
+                            <ExternalLink className="h-3 w-3 inline flex-shrink-0" />{part}
+                          </a>
                         ) : part
                       )}</p>
                       {item.link && (
