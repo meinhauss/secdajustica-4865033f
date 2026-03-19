@@ -1102,7 +1102,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               id: `sent-${s.id}`, date: s.created_at, tipo: `sentença — ${s.tipo}`,
               titulo: s.ementa || "Sentença",
               descricao: `Fundamentação: ${s.fundamentacao}\n\nDispositivo: ${s.dispositivo}`,
-              autor: "Magistrado",
+              autor: "Juiz de Direito",
               badge_color: "bg-purple-100 text-purple-800 dark:bg-purple-950/30 dark:text-purple-400",
             }));
 
