@@ -206,6 +206,7 @@ const PERMISSION_LABELS: Record<string, string> = {
   fiscalizacao: "Fiscalização Ética",
   sancoes: "Sanções Administrativas",
   concursos: "Concursos",
+  manifestar_interesse: "Manifestar Interesse em Processos",
   ver_processos_habilitados: "Processos Habilitados",
   peticoes: "Petições",
   consulta_publica: "Consulta Pública",
