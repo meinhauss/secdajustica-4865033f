@@ -13,12 +13,12 @@ export default function ConsultaPublicaSection() {
     queryFn: async () => {
       let query = supabase
         .from("processos")
-        .select("numero, classe, status, assunto, autor_nome, reu_nome, vara, created_at")
+        .select("numero, classe, status, assunto, vara, created_at")
         .order("created_at", { ascending: false })
         .limit(50);
       if (search) {
         query = query.or(
-          `numero.ilike.%${search}%,assunto.ilike.%${search}%,autor_nome.ilike.%${search}%,reu_nome.ilike.%${search}%`
+          `numero.ilike.%${search}%,assunto.ilike.%${search}%`
         );
       }
       const { data, error } = await query;
@@ -33,14 +33,14 @@ export default function ConsultaPublicaSection() {
       <div>
         <h2 className="font-display text-2xl font-bold text-foreground">Consulta Pública</h2>
         <p className="text-sm text-muted-foreground">
-          Pesquise processos por número, assunto, nome das partes ou ID do personagem
+          Pesquise processos por número ou assunto
         </p>
       </div>
 
       <div className="relative max-w-xl">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Número do processo, nome, ou ID do personagem..."
+          placeholder="Número do processo ou assunto..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-10 rounded-xl h-12 text-base"
@@ -72,9 +72,7 @@ export default function ConsultaPublicaSection() {
                 </span>
               </div>
               <p className="text-sm font-medium text-foreground">{p.assunto}</p>
-              <p className="text-xs text-muted-foreground">
-                {p.autor_nome} × {p.reu_nome} — {p.vara}
-              </p>
+              <p className="text-xs text-muted-foreground">{p.vara}</p>
             </motion.div>
           ))}
         </div>
