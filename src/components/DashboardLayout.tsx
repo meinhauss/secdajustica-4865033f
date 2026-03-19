@@ -39,9 +39,9 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
   const { signOut, profile, roles } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const filteredItems = menuItems.filter((item) =>
-    roles.length === 0 || item.roles.some((r) => roles.includes(r))
-  );
+  const filteredItems = roles.length === 0
+    ? []
+    : menuItems.filter((item) => item.roles.some((r) => roles.includes(r)));
 
   const getRoleLabel = (role: string) => {
     const labels: Record<string, string> = {
