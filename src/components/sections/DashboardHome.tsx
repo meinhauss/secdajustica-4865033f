@@ -197,7 +197,8 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
           </Card>
         )}
 
-        {/* Recent Movimentacoes */}
+        {/* Recent Movimentacoes - hidden for cidadao */}
+        {isJudicial && (
         <Card className="lg:col-span-1">
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Últimas Movimentações</CardTitle>
