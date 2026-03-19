@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "user_id é obrigatório" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    if (user_id === caller.id) {
+    if (user_id === callerId) {
       return new Response(JSON.stringify({ error: "Você não pode excluir a si mesmo" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
