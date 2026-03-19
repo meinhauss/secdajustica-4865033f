@@ -314,6 +314,11 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
                       <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${cfg.color}`}>{cfg.label}</span>
                       <span className="text-[10px] uppercase tracking-wider font-medium px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{p.classe}</span>
                       {p.prioridade && <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">Prioritário</span>}
+                      {(p as any).sigilo && (p as any).sigilo !== "publico" && (
+                        <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive flex items-center gap-1">
+                          <Lock className="h-3 w-3" /> {(p as any).sigilo === "segredo_justica" ? "Segredo de Justiça" : "Sigilo Absoluto"}
+                        </span>
+                      )}
                     </div>
                     <p className="text-sm font-medium text-foreground mt-1 truncate">{p.assunto}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
