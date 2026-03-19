@@ -147,14 +147,16 @@ export default function CartorarioSection() {
     fetchRegistros();
   };
 
-  const handleUpdateStatus = async (id: string, status: string) => {
+  const handleUpdateStatus = async (id: string, status: string, docUrl?: string) => {
     const updateData: any = { status };
     if (status === "emitido") {
       updateData.emitido_por = user?.id;
       updateData.emitido_por_nome = profile?.nome_completo || "Servidor";
+      if (docUrl) updateData.documento_url = docUrl;
     }
     await supabase.from("registros_cartorio").update(updateData).eq("id", id);
     toast({ title: `Status atualizado para: ${statusLabel(status)}` });
+    setEmitirUrl("");
     fetchRegistros();
     setShowDetalhes(null);
   };
