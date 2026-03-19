@@ -1446,7 +1446,7 @@ function AddMovimentacao({ roles, onAdd }: { roles: string[]; onAdd: (tipo: stri
   const [novoAnexoUrl, setNovoAnexoUrl] = useState("");
   const [showInstrucoes, setShowInstrucoes] = useState(false);
 
-  const isJudicial = roles.some((r) => ["admin", "magistrado", "presidente_tribunal", "desembargador"].includes(r));
+  const isJudicial = roles.some((r) => ["admin", "presidente_tribunal"].includes(r));
   const isMP = roles.includes("ministerio_publico");
   const isAdvogado = roles.includes("advogado");
   const isOficialJustica = roles.includes("oficial_justica");
