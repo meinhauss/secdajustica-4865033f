@@ -12,7 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Plus, FileText, Search, Eye, User, ArrowLeft, Clock, Gavel,
   Upload, Calendar, AlertTriangle, CheckCircle, PenTool, History,
-  File, Scale, Timer, ChevronRight, X, ExternalLink, ScrollText
+  File, Scale, Timer, ChevronRight, X, ExternalLink, ScrollText,
+  ShieldCheck, ShieldOff, UserCheck
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
