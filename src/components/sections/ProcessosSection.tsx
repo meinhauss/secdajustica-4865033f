@@ -1106,13 +1106,42 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               badge_color: "bg-purple-100 text-purple-800 dark:bg-purple-950/30 dark:text-purple-400",
             }));
 
-            // Apelações
-            apelacoesProc?.forEach((ap: any) => items.push({
-              id: `apel-${ap.id}`, date: ap.created_at, tipo: "apelação",
-              titulo: `Recurso por ${ap.apelante_nome} (${ap.apelante_tipo})`,
-              descricao: `Fundamentação: ${ap.fundamentacao}\nPedido: ${ap.pedido}${ap.decisao_tipo ? `\n\nDecisão: ${ap.decisao_tipo} — ${ap.decisao_dispositivo}` : ""}`,
-              badge_color: "bg-red-100 text-red-800 dark:bg-red-950/30 dark:text-red-400",
-            }));
+            // Apelações — full detail with all phases
+            apelacoesProc?.forEach((ap: any) => {
+              const statusLabels: Record<string, string> = {
+                interposta: "Interposta", admitida: "Admitida", em_julgamento: "Em Julgamento",
+                julgada: "Julgada", inadmitida: "Inadmitida",
+              };
+              const decisaoLabels: Record<string, string> = {
+                mantida: "Sentença Mantida", reformada_parcial: "Reformada Parcialmente",
+                reformada_total: "Reformada Totalmente", anulada: "Sentença Anulada",
+              };
+              // 1. Interposição
+              items.push({
+                id: `apel-${ap.id}`, date: ap.created_at, tipo: "apelação — interposição",
+                titulo: `Recurso de Apelação ${ap.numero_acordao || ""} interposto por ${ap.apelante_nome}`,
+                descricao: `Polo: ${ap.apelante_tipo === "defesa" ? "Defesa" : ap.apelante_tipo === "acusacao" ? "Acusação" : "Ambas as partes"}\n\nFundamentação:\n${ap.fundamentacao}\n\nPedido:\n${ap.pedido}`,
+                badge_color: "bg-red-100 text-red-800 dark:bg-red-950/30 dark:text-red-400",
+              });
+              // 2. Admissão / Inadmissão
+              if (ap.status !== "interposta" && ap.data_distribuicao) {
+                items.push({
+                  id: `apel-adm-${ap.id}`, date: ap.data_distribuicao, tipo: ap.status === "inadmitida" ? "apelação — inadmitida" : "apelação — admitida",
+                  titulo: `Apelação ${ap.numero_acordao || ""} ${ap.status === "inadmitida" ? "inadmitida" : "admitida e distribuída"}`,
+                  descricao: ap.status === "inadmitida" ? "Recurso não admitido pelo Tribunal." : "Recurso admitido e distribuído a desembargador relator.",
+                  badge_color: ap.status === "inadmitida" ? "bg-destructive/10 text-destructive" : "bg-institutional/10 text-institutional",
+                });
+              }
+              // 3. Julgamento (acórdão)
+              if (ap.status === "julgada" && ap.data_julgamento) {
+                items.push({
+                  id: `apel-julg-${ap.id}`, date: ap.data_julgamento, tipo: "apelação — acórdão",
+                  titulo: `Acórdão ${ap.numero_acordao || ""}: ${decisaoLabels[ap.decisao_tipo] || ap.decisao_tipo}`,
+                  descricao: `Decisão: ${decisaoLabels[ap.decisao_tipo] || ap.decisao_tipo}\n\nFundamentação do Acórdão:\n${ap.decisao_fundamentacao || "—"}\n\nDispositivo:\n${ap.decisao_dispositivo || "—"}`,
+                  badge_color: "bg-purple-100 text-purple-800 dark:bg-purple-950/30 dark:text-purple-400",
+                });
+              }
+            });
 
             // Certidões
             certidoes?.forEach((c: any) => items.push({
