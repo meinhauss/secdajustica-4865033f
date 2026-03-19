@@ -1775,6 +1775,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_view_processo: {
+        Args: {
+          _advogado_autor_id: string
+          _advogado_reu_id: string
+          _juiz_id: string
+          _sigilo: string
+          _user_id: string
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["user_role"]
