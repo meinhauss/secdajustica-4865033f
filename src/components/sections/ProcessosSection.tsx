@@ -1439,7 +1439,7 @@ function AddMovimentacao({ roles, onAdd }: { roles: string[]; onAdd: (tipo: stri
       { value: "diligencia", label: "Diligência" },
     );
   }
-  if (isDelegado) {
+  if (isPolicia) {
     tiposPermitidos.push(
       { value: "relatorio_policial", label: "Relatório Policial" },
       { value: "remessa_inquerito", label: "Remessa de Inquérito" },

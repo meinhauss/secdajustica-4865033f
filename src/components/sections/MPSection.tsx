@@ -867,7 +867,7 @@ function InqueritoMPDetail({ ipId, onBack }: { ipId: string; onBack: () => void 
             <Send className="h-4 w-4 text-institutional" /> Requisição de Diligência
           </h3>
           <form onSubmit={(e) => { e.preventDefault(); requisitarDiligencia.mutate(); }} className="space-y-4">
-            <Textarea placeholder="Descreva a diligência a ser requisitada ao Delegado..." value={reqForm.descricao} onChange={(e) => setReqForm({ ...reqForm, descricao: e.target.value })} required rows={4} className="rounded-xl" />
+            <Textarea placeholder="Descreva a diligência a ser requisitada à Polícia..." value={reqForm.descricao} onChange={(e) => setReqForm({ ...reqForm, descricao: e.target.value })} required rows={4} className="rounded-xl" />
             <Input type="number" placeholder="Prazo em horas" value={reqForm.prazo_dias} onChange={(e) => setReqForm({ ...reqForm, prazo_dias: e.target.value })} className="rounded-xl w-40" />
             <div className="flex gap-2">
               <Button type="submit" disabled={requisitarDiligencia.isPending} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">

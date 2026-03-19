@@ -187,7 +187,7 @@ const PERMISSION_LABELS: Record<string, string> = {
   remessa_mp: "Remessa ao MP",
   mandados_judiciais: "Solicitar Mandados",
   antecedentes: "Consulta Antecedentes",
-  acompanhamento_investigacoes: "Acompanhar Investigações",
+  processos_criminais: "Acesso a Processos Criminais",
   ordens_judiciais: "Ordens Judiciais",
   cumprimento: "Cumprimento",
   certificacoes: "Certificações Digitais",
