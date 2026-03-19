@@ -162,7 +162,7 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
         await supabase.from("movimentacoes").insert({
           processo_id: processo.id,
           tipo: "distribuicao",
-          descricao: `Processo distribuído por sorteio ao(à) magistrado(a) ${juizNome || "designado(a)"}`,
+          descricao: `Processo distribuído por sorteio ao(à) Juiz(a) de Direito ${juizNome || "designado(a)"}`,
           autor_id: user?.id,
         });
 
