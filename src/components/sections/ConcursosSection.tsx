@@ -33,11 +33,11 @@ const CONCURSO_STATUS: Record<string, { label: string; color: string }> = {
 const CARGOS_JURIDICOS = [
   "Juiz de Direito", "Promotor de Justiça", "Polícia Civil", "Polícia Militar", "Polícia Federal",
   "Defensor Público", "Oficial de Justiça", "Analista Judiciário", "Técnico Judiciário",
-  "Escrivão", "Perito Criminal", "Assessor Jurídico"
+  "Escrivão", "Perito Criminal", "Assessor Jurídico", "Bacharel em Direito"
 ];
 
 const CARGOS_MP = ["Promotor de Justiça"];
-const CARGOS_TJ = ["Juiz de Direito", "Polícia Civil", "Polícia Militar", "Polícia Federal", "Defensor Público", "Oficial de Justiça", "Analista Judiciário", "Técnico Judiciário", "Escrivão", "Perito Criminal", "Assessor Jurídico"];
+const CARGOS_TJ = ["Juiz de Direito", "Polícia Civil", "Polícia Militar", "Polícia Federal", "Defensor Público", "Oficial de Justiça", "Analista Judiciário", "Técnico Judiciário", "Escrivão", "Perito Criminal", "Assessor Jurídico", "Bacharel em Direito"];
 
 const TIPO_QUESTAO_LABELS: Record<string, string> = {
   objetiva: "Múltipla Escolha (A-D)",
