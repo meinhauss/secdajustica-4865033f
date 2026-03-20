@@ -46,8 +46,8 @@ function addFooter(doc: jsPDF, text: string) {
     doc.setPage(i);
     doc.setFontSize(7);
     doc.setTextColor(150);
-    doc.text(text, PAGE_W / 2, 290, { align: "center" });
-    doc.text(`Página ${i} de ${pages}`, PAGE_W - MARGIN, 290, { align: "right" });
+    doc.text(sanitize(text), PAGE_W / 2, 290, { align: "center" });
+    doc.text(sanitize(`Pagina ${i} de ${pages}`), PAGE_W - MARGIN, 290, { align: "right" });
   }
 }
 
