@@ -180,11 +180,11 @@ export function generateProcessoPDF(params: {
       if (y > 265) { doc.addPage(); y = 20; }
       doc.setFont("helvetica", "bold");
       doc.setFontSize(9);
-      doc.text(`${a.tipo?.toUpperCase()} — ${a.titulo}`, MARGIN + 2, y);
+      doc.text(sanitize(`${a.tipo?.toUpperCase()} - ${a.titulo}`), MARGIN + 2, y);
       y += 4;
       doc.setFont("helvetica", "normal");
       doc.setFontSize(7);
-      doc.text(`${new Date(a.created_at).toLocaleString("pt-BR")} • ${a.autor_nome || "Sistema"} ${a.assinado ? "✓ Assinado" : ""}`, MARGIN + 2, y);
+      doc.text(sanitize(`${new Date(a.created_at).toLocaleString("pt-BR")} - ${a.autor_nome || "Sistema"} ${a.assinado ? "(OK) Assinado" : ""}`), MARGIN + 2, y);
       y += 4;
       doc.setFontSize(8);
       y = addWrappedText(doc, a.conteudo || "", MARGIN + 2, y, CONTENT_W - 4, 3.5);
