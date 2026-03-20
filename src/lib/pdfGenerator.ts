@@ -222,7 +222,7 @@ export function generateProcessoPDF(params: {
       if (y > 260) { doc.addPage(); y = 20; }
       doc.setFont("helvetica", "bold");
       doc.setFontSize(9);
-      doc.text(`${s.tipo?.toUpperCase()} — ${s.assinado ? "✓ Assinado" : "Pendente de assinatura"}`, MARGIN + 2, y);
+      doc.text(sanitize(`${s.tipo?.toUpperCase()} - ${s.assinado ? "(OK) Assinado" : "Pendente de assinatura"}`), MARGIN + 2, y);
       y += 4;
       if (s.ementa) {
         doc.setFont("helvetica", "italic");
@@ -231,8 +231,8 @@ export function generateProcessoPDF(params: {
       }
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8);
-      y = addWrappedText(doc, `Fundamentação: ${s.fundamentacao || "—"}`, MARGIN + 2, y, CONTENT_W - 4, 3.5);
-      y = addWrappedText(doc, `Dispositivo: ${s.dispositivo || "—"}`, MARGIN + 2, y, CONTENT_W - 4, 3.5);
+      y = addWrappedText(doc, `Fundamentacao: ${s.fundamentacao || "-"}`, MARGIN + 2, y, CONTENT_W - 4, 3.5);
+      y = addWrappedText(doc, `Dispositivo: ${s.dispositivo || "-"}`, MARGIN + 2, y, CONTENT_W - 4, 3.5);
       y += 4;
     }
   }
