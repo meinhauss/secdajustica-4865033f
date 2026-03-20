@@ -286,7 +286,7 @@ export function generateCartorioPDF(params: {
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(100);
-  doc.text("Cartórios do Estado de São Paulo — Comarca de Jaguaré RP", PAGE_W / 2, 37, { align: "center" });
+  doc.text("Cartorios do Estado de Sao Paulo - Comarca de Jaguare RP", PAGE_W / 2, 37, { align: "center" });
 
   let y = 43;
   y = drawSeparator(doc, y);
