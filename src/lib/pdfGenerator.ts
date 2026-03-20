@@ -250,7 +250,7 @@ export function generateProcessoPDF(params: {
       if (y > 270) { doc.addPage(); y = 20; }
       doc.setFont("helvetica", "bold");
       doc.setFontSize(8);
-      doc.text(`${new Date(m.created_at).toLocaleString("pt-BR")} — ${m.tipo?.toUpperCase()}`, MARGIN + 2, y);
+      doc.text(sanitize(`${new Date(m.created_at).toLocaleString("pt-BR")} - ${m.tipo?.toUpperCase()}`), MARGIN + 2, y);
       y += 4;
       doc.setFont("helvetica", "normal");
       doc.setFontSize(7.5);
