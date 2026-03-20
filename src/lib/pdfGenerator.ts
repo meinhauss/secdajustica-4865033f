@@ -374,7 +374,7 @@ export function generateCartorioPDF(params: {
   doc.setFont("helvetica", "normal");
   doc.setTextColor(50);
   doc.setFontSize(9);
-  y = addWrappedText(doc, registro.descricao || "—", MARGIN, y, CONTENT_W, 4.5);
+  y = addWrappedText(doc, registro.descricao || "-", MARGIN, y, CONTENT_W, 4.5);
 
   if (registro.observacoes) {
     y += 4;
