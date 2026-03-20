@@ -218,6 +218,7 @@ function MPDashboard({ isMP, onSelectIP }: { isMP: boolean; onSelectIP: (id: str
           <TabsTrigger value="requisicoes" className="rounded-lg text-xs"><Send className="h-3 w-3 mr-1" /> Requisições ({stats.requisicoes})</TabsTrigger>
           <TabsTrigger value="processos" className="rounded-lg text-xs"><FileText className="h-3 w-3 mr-1" /> Processos ({stats.processos})</TabsTrigger>
           <TabsTrigger value="estatisticas" className="rounded-lg text-xs"><BarChart3 className="h-3 w-3 mr-1" /> Estatísticas</TabsTrigger>
+          <TabsTrigger value="ouvidoria" className="rounded-lg text-xs"><AlertTriangle className="h-3 w-3 mr-1" /> Ouvidoria ({denunciasOuvidoria?.length || 0})</TabsTrigger>
         </TabsList>
 
         {/* INQUÉRITOS TAB */}
