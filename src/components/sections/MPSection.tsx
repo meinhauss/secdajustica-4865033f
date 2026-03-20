@@ -945,7 +945,277 @@ function InqueritoMPDetail({ ipId, onBack }: { ipId: string; onBack: () => void 
   );
 }
 
-/* ─── Helper Components ─── */
+/* ═══════════════════════════════════════════ */
+/*  OUVIDORIA DETAIL                           */
+/* ═══════════════════════════════════════════ */
+function OuvidoriaDetail({ denunciaId, onBack }: { denunciaId: string; onBack: () => void }) {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [activeAction, setActiveAction] = useState<"none" | "inquerito" | "denuncia" | "arquivamento">("none");
+
+  const { data: denuncia } = useQuery({
+    queryKey: ["ouvidoria-detail", denunciaId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("denuncias_ouvidoria" as any).select("*").eq("id", denunciaId).single();
+      if (error) throw error;
+      return data as any;
+    },
+  });
+
+  // ── INSTAURAR INQUÉRITO ──
+  const [inqForm, setInqForm] = useState({ tipo: "criminal", descricao: "" });
+  const instaurarInquerito = useMutation({
+    mutationFn: async () => {
+      const desc = inqForm.descricao || denuncia?.descricao || "";
+      if (!desc) throw new Error("Descrição obrigatória.");
+      const { error } = await supabase.from("inqueritos").insert({
+        numero: "",
+        tipo: inqForm.tipo,
+        descricao: desc,
+        data_instauracao: new Date().toISOString(),
+        remetido_mp: true,
+      } as any);
+      if (error) throw error;
+      await supabase.from("denuncias_ouvidoria" as any).update({ status: "encaminhada" }).eq("id", denunciaId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ouvidoria-detail", denunciaId] });
+      queryClient.invalidateQueries({ queryKey: ["mp-denuncias-ouvidoria"] });
+      queryClient.invalidateQueries({ queryKey: ["mp-inqueritos"] });
+      setActiveAction("none");
+      toast.success("Inquérito instaurado com base na denúncia da ouvidoria!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  // ── OFERECER DENÚNCIA DIRETA ──
+  const [denForm, setDenForm] = useState({ resumo: "", fundamentacao: "", tipificacao: "" });
+  const oferecerDenuncia = useMutation({
+    mutationFn: async () => {
+      if (!denForm.resumo || !denForm.fundamentacao) throw new Error("Preencha resumo e fundamentação.");
+      const envolvidos = Array.isArray(denuncia?.envolvidos) ? denuncia.envolvidos : [];
+      const reuNome = envolvidos.map((e: any) => e.nome).join(", ") || "Réu a identificar";
+      const { data: processo, error: procErr } = await supabase.from("processos").insert({
+        numero: "",
+        classe: "criminal" as const,
+        assunto: denForm.tipificacao || "Ação Penal",
+        autor_nome: "Ministério Público",
+        reu_nome: reuNome,
+        descricao: denForm.resumo,
+      }).select("id, numero").single();
+      if (procErr) throw procErr;
+      const { error: denErr } = await supabase.from("denuncias_mp").insert({
+        promotor_id: user!.id,
+        resumo: denForm.resumo,
+        fundamentacao: denForm.fundamentacao,
+        tipificacao: denForm.tipificacao,
+        status: "oferecida",
+        processo_id: processo.id,
+      } as any);
+      if (denErr) throw denErr;
+      await supabase.from("movimentacoes").insert({
+        processo_id: processo.id,
+        tipo: "denuncia",
+        descricao: `Denúncia oferecida pelo MP com base em denúncia da ouvidoria. Processo ${processo.numero} distribuído.`,
+        autor_id: user!.id,
+      });
+      await supabase.from("denuncias_ouvidoria" as any).update({ status: "encaminhada" }).eq("id", denunciaId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ouvidoria-detail", denunciaId] });
+      queryClient.invalidateQueries({ queryKey: ["mp-denuncias-ouvidoria"] });
+      queryClient.invalidateQueries({ queryKey: ["mp-denuncias"] });
+      setActiveAction("none");
+      toast.success("Denúncia oferecida e processo criminal distribuído!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  // ── ARQUIVAR ──
+  const [arquivJust, setArquivJust] = useState("");
+  const arquivarDenuncia = useMutation({
+    mutationFn: async () => {
+      if (!arquivJust) throw new Error("Justificativa obrigatória.");
+      await supabase.from("denuncias_ouvidoria" as any).update({ status: "arquivada" }).eq("id", denunciaId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ouvidoria-detail", denunciaId] });
+      queryClient.invalidateQueries({ queryKey: ["mp-denuncias-ouvidoria"] });
+      setActiveAction("none");
+      toast.success("Denúncia arquivada.");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  if (!denuncia) return <div className="text-center py-12 text-muted-foreground">Carregando...</div>;
+
+  const envolvidos = Array.isArray(denuncia.envolvidos) ? denuncia.envolvidos : [];
+  const dLinks = Array.isArray(denuncia.links) ? denuncia.links : [];
+  const STATUS_MAP: Record<string, { label: string; color: string }> = {
+    recebida: { label: "Recebida", color: "bg-gold/10 text-gold-dark" },
+    em_analise: { label: "Em Análise", color: "bg-institutional/10 text-institutional" },
+    encaminhada: { label: "Encaminhada", color: "bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400" },
+    arquivada: { label: "Arquivada", color: "bg-muted text-muted-foreground" },
+  };
+  const st = STATUS_MAP[denuncia.status] || STATUS_MAP.recebida;
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="sm" onClick={onBack} className="rounded-lg"><ArrowLeft className="h-4 w-4 mr-1" /> Voltar</Button>
+        <div className="flex-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="font-display text-xl font-bold text-foreground">Denúncia da Ouvidoria</h2>
+            <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${st.color}`}>{st.label}</span>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Recebida em {format(new Date(denuncia.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+            {denuncia.nome_denunciante && denuncia.nome_denunciante !== "Anônimo" ? ` — Denunciante: ${denuncia.nome_denunciante}` : " — Denúncia Anônima"}
+          </p>
+        </div>
+      </div>
+
+      {/* Dados do Denunciante */}
+      <div className="bg-card rounded-xl p-5 border border-border shadow-institutional">
+        <h3 className="font-display text-sm font-semibold text-foreground mb-3">Dados do Denunciante</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+          <div><span className="text-xs text-muted-foreground uppercase">Nome:</span> <span className="text-foreground font-medium">{denuncia.nome_denunciante || "Anônimo"}</span></div>
+          <div><span className="text-xs text-muted-foreground uppercase">Contato:</span> <span className="text-foreground">{denuncia.contato_denunciante || "Não informado"}</span></div>
+        </div>
+      </div>
+
+      {/* Relato */}
+      <div className="bg-card rounded-xl p-5 border border-border shadow-institutional">
+        <h3 className="font-display text-sm font-semibold text-foreground mb-3">Relato da Denúncia</h3>
+        <p className="text-sm text-foreground whitespace-pre-wrap">{denuncia.descricao}</p>
+      </div>
+
+      {/* Envolvidos */}
+      {envolvidos.length > 0 && (
+        <div className="bg-card rounded-xl p-5 border border-border shadow-institutional">
+          <h3 className="font-display text-sm font-semibold text-foreground mb-3">Envolvidos Identificados ({envolvidos.length})</h3>
+          <div className="space-y-2">
+            {envolvidos.map((e: any, i: number) => (
+              <div key={i} className="flex items-center gap-3 py-2 border-b border-border last:border-0">
+                <AlertTriangle className="h-4 w-4 text-gold-dark flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-foreground">{e.nome}</p>
+                  {e.funcao && <p className="text-xs text-muted-foreground">Função/Cargo: {e.funcao}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Links e Provas */}
+      {dLinks.length > 0 && (
+        <div className="bg-card rounded-xl p-5 border border-border shadow-institutional">
+          <h3 className="font-display text-sm font-semibold text-foreground mb-3">Links de Provas e Anexos ({dLinks.length})</h3>
+          <div className="space-y-2">
+            {dLinks.map((l: string, i: number) => (
+              <a key={i} href={l} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gold hover:underline py-1">
+                <Eye className="h-4 w-4 flex-shrink-0" /> {l}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Ações - sempre visíveis exceto quando arquivada/encaminhada */}
+      {denuncia.status !== "arquivada" && denuncia.status !== "encaminhada" && activeAction === "none" && (
+        <div className="bg-card rounded-xl p-5 border border-border shadow-institutional">
+          <h3 className="font-display text-sm font-semibold text-foreground mb-4">Decisão Ministerial</h3>
+          <div className="flex flex-wrap gap-3">
+            <Button onClick={() => setActiveAction("inquerito")} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
+              <Shield className="h-4 w-4 mr-2" /> Instaurar Inquérito
+            </Button>
+            <Button onClick={() => setActiveAction("denuncia")} variant="outline" className="rounded-xl">
+              <Gavel className="h-4 w-4 mr-2" /> Oferecer Denúncia Direta
+            </Button>
+            <Button onClick={async () => {
+              await supabase.from("denuncias_ouvidoria" as any).update({ status: "em_analise" }).eq("id", denunciaId);
+              queryClient.invalidateQueries({ queryKey: ["ouvidoria-detail", denunciaId] });
+              queryClient.invalidateQueries({ queryKey: ["mp-denuncias-ouvidoria"] });
+              toast.success("Status atualizado para Em Análise.");
+            }} variant="outline" className="rounded-xl">
+              <Clock className="h-4 w-4 mr-2" /> Marcar Em Análise
+            </Button>
+            <Button onClick={() => setActiveAction("arquivamento")} variant="outline" className="rounded-xl text-muted-foreground">
+              <Archive className="h-4 w-4 mr-2" /> Arquivar
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Instaurar Inquérito Form */}
+      {activeAction === "inquerito" && (
+        <div className="bg-card rounded-xl p-5 border-2 border-institutional/30 shadow-institutional">
+          <h3 className="font-display text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Shield className="h-4 w-4 text-institutional" /> Instaurar Inquérito Policial
+          </h3>
+          <form onSubmit={(e) => { e.preventDefault(); instaurarInquerito.mutate(); }} className="space-y-4">
+            <Select value={inqForm.tipo} onValueChange={(v) => setInqForm({ ...inqForm, tipo: v })}>
+              <SelectTrigger className="rounded-xl"><SelectValue placeholder="Tipo" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="criminal">Criminal</SelectItem>
+                <SelectItem value="civil">Civil</SelectItem>
+                <SelectItem value="administrativo">Administrativo</SelectItem>
+              </SelectContent>
+            </Select>
+            <Textarea placeholder="Descrição (pré-preenchida com o relato da denúncia)..." value={inqForm.descricao || denuncia.descricao} onChange={(e) => setInqForm({ ...inqForm, descricao: e.target.value })} required rows={5} className="rounded-xl" />
+            <div className="flex gap-2">
+              <Button type="submit" disabled={instaurarInquerito.isPending} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
+                {instaurarInquerito.isPending ? "Processando..." : "Instaurar Inquérito"}
+              </Button>
+              <Button type="button" variant="ghost" onClick={() => setActiveAction("none")} className="rounded-xl">Cancelar</Button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Denúncia Direta Form */}
+      {activeAction === "denuncia" && (
+        <div className="bg-card rounded-xl p-5 border-2 border-institutional/30 shadow-institutional">
+          <h3 className="font-display text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Gavel className="h-4 w-4 text-institutional" /> Oferecimento de Denúncia
+          </h3>
+          <form onSubmit={(e) => { e.preventDefault(); oferecerDenuncia.mutate(); }} className="space-y-4">
+            <Input placeholder="Tipificação penal (ex: Art. 155, CP — Furto)" value={denForm.tipificacao} onChange={(e) => setDenForm({ ...denForm, tipificacao: e.target.value })} className="rounded-xl" />
+            <Textarea placeholder="Resumo da denúncia..." value={denForm.resumo} onChange={(e) => setDenForm({ ...denForm, resumo: e.target.value })} required rows={3} className="rounded-xl" />
+            <Textarea placeholder="Fundamentação jurídica..." value={denForm.fundamentacao} onChange={(e) => setDenForm({ ...denForm, fundamentacao: e.target.value })} required rows={5} className="rounded-xl" />
+            <div className="flex gap-2">
+              <Button type="submit" disabled={oferecerDenuncia.isPending} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
+                {oferecerDenuncia.isPending ? "Processando..." : "Oferecer Denúncia"}
+              </Button>
+              <Button type="button" variant="ghost" onClick={() => setActiveAction("none")} className="rounded-xl">Cancelar</Button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Arquivamento Form */}
+      {activeAction === "arquivamento" && (
+        <div className="bg-card rounded-xl p-5 border-2 border-gold/30 shadow-institutional">
+          <h3 className="font-display text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Archive className="h-4 w-4 text-gold-dark" /> Arquivamento da Denúncia
+          </h3>
+          <form onSubmit={(e) => { e.preventDefault(); arquivarDenuncia.mutate(); }} className="space-y-4">
+            <Textarea placeholder="Justificativa para o arquivamento..." value={arquivJust} onChange={(e) => setArquivJust(e.target.value)} required rows={5} className="rounded-xl" />
+            <div className="flex gap-2">
+              <Button type="submit" disabled={arquivarDenuncia.isPending} className="rounded-xl bg-gold hover:bg-gold/90 text-foreground">
+                {arquivarDenuncia.isPending ? "Processando..." : "Arquivar Denúncia"}
+              </Button>
+              <Button type="button" variant="ghost" onClick={() => setActiveAction("none")} className="rounded-xl">Cancelar</Button>
+            </div>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function EmptyState({ icon: Icon, text }: { icon: any; text: string }) {
   return (
     <div className="text-center py-12 text-muted-foreground">
