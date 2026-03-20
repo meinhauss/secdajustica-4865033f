@@ -340,7 +340,7 @@ export function generateCartorioPDF(params: {
   doc.setTextColor(50);
   doc.setFont("helvetica", "normal");
   for (const r of requerentes) {
-    doc.text(`• ${r.nome} (ID: ${r.id_personagem})`, MARGIN + 2, y);
+    doc.text(sanitize(`- ${r.nome} (ID: ${r.id_personagem})`), MARGIN + 2, y);
     y += 5;
   }
   if (!requerentes.length) {
