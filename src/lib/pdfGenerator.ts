@@ -410,10 +410,10 @@ export function generateCartorioPDF(params: {
   y += 5;
   doc.setFontSize(8);
   doc.setTextColor(80);
-  doc.text(registro.emitido_por_nome || "Oficial de Justiça / Cartorário", PAGE_W / 2, y, { align: "center" });
+  doc.text(sanitize(registro.emitido_por_nome || "Oficial de Justica / Cartorario"), PAGE_W / 2, y, { align: "center" });
   y += 4;
   doc.setFontSize(7);
-  doc.text("Cartório de Registro Civil — Comarca de Jaguaré RP", PAGE_W / 2, y, { align: "center" });
+  doc.text("Cartorio de Registro Civil - Comarca de Jaguare RP", PAGE_W / 2, y, { align: "center" });
 
   addFooter(doc, `Registro nº ${registro.numero_registro} — Cartórios do Estado de São Paulo — Sistema Judiciário vBETA`);
 
