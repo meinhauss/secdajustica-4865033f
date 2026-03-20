@@ -129,7 +129,7 @@ export default function LoginPage() {
             {activeTab === "servicos" && <TabServicos />}
             {activeTab === "credencial" && <TabCredencial />}
             {activeTab === "transparencia" && <TabTransparencia />}
-            {activeTab === "contato" && <TabContato />}
+            
             {activeTab === "login" &&
             <TabLogin
               isSignUp={isSignUp}
