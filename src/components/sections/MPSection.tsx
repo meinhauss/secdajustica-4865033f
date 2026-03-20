@@ -371,66 +371,24 @@ function MPDashboard({ isMP, onSelectIP, onSelectOuvidoria }: { isMP: boolean; o
                 const st = STATUS_MAP[d.status] || STATUS_MAP.recebida;
                 return (
                   <motion.div key={d.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
-                    className="bg-card rounded-xl p-5 border border-border shadow-institutional">
+                    onClick={() => onSelectOuvidoria(d.id)}
+                    className="bg-card rounded-xl p-5 border border-border shadow-institutional hover:border-institutional/30 transition-all cursor-pointer group">
                     <div className="flex items-center gap-2 flex-wrap mb-2">
                       <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${st.color}`}>{st.label}</span>
                       <span className="text-xs text-muted-foreground">{format(new Date(d.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</span>
                       <span className="text-xs font-medium text-foreground ml-auto">
                         {d.nome_denunciante || "Anônimo"}
-                        {d.contato_denunciante && <span className="text-muted-foreground ml-1">({d.contato_denunciante})</span>}
                       </span>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-institutional transition-colors flex-shrink-0" />
                     </div>
-                    <p className="text-sm text-foreground whitespace-pre-wrap mb-3">{d.descricao}</p>
+                    <p className="text-sm text-foreground line-clamp-2">{d.descricao}</p>
                     {envolvidos.length > 0 && (
-                      <div className="mb-3">
-                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">Envolvidos</p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {envolvidos.map((e: any, j: number) => (
-                            <span key={j} className="text-xs bg-secondary/80 px-2 py-1 rounded-md text-foreground">
-                              {e.nome}{e.funcao ? ` — ${e.funcao}` : ""}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {dLinks.length > 0 && (
-                      <div className="mb-3">
-                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">Links / Provas</p>
-                        <div className="space-y-1">
-                          {dLinks.map((l: string, j: number) => (
-                            <a key={j} href={l} target="_blank" rel="noopener noreferrer" className="text-xs text-gold hover:underline flex items-center gap-1">
-                              <Eye className="h-3 w-3" /> {l}
-                            </a>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {isMP && d.status === "recebida" && (
-                      <div className="flex gap-2 mt-2">
-                        <Button size="sm" variant="outline" className="rounded-lg text-xs"
-                          onClick={async () => {
-                            await supabase.from("denuncias_ouvidoria" as any).update({ status: "em_analise" }).eq("id", d.id);
-                            queryClient.invalidateQueries({ queryKey: ["mp-denuncias-ouvidoria"] });
-                            toast.success("Status atualizado para Em Análise.");
-                          }}>
-                          Em Análise
-                        </Button>
-                        <Button size="sm" variant="outline" className="rounded-lg text-xs"
-                          onClick={async () => {
-                            await supabase.from("denuncias_ouvidoria" as any).update({ status: "encaminhada" }).eq("id", d.id);
-                            queryClient.invalidateQueries({ queryKey: ["mp-denuncias-ouvidoria"] });
-                            toast.success("Denúncia encaminhada.");
-                          }}>
-                          Encaminhar
-                        </Button>
-                        <Button size="sm" variant="outline" className="rounded-lg text-xs"
-                          onClick={async () => {
-                            await supabase.from("denuncias_ouvidoria" as any).update({ status: "arquivada" }).eq("id", d.id);
-                            queryClient.invalidateQueries({ queryKey: ["mp-denuncias-ouvidoria"] });
-                            toast.success("Denúncia arquivada.");
-                          }}>
-                          Arquivar
-                        </Button>
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {envolvidos.map((e: any, j: number) => (
+                          <span key={j} className="text-[10px] bg-secondary/80 px-1.5 py-0.5 rounded text-muted-foreground">
+                            {e.nome}
+                          </span>
+                        ))}
                       </div>
                     )}
                   </motion.div>
