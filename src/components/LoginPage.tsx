@@ -7,13 +7,14 @@ import { Input } from "@/components/ui/input";
 import ConsultaPublicaSection from "@/components/sections/ConsultaPublicaSection";
 import {
   Scale, Shield, Gavel, BookOpen, Building2, Users, FileText,
-  Phone, MapPin, Clock, ChevronRight, ExternalLink, GraduationCap } from
+  Phone, MapPin, Clock, ChevronRight, ExternalLink, GraduationCap, Stamp, Heart, Home, ScrollText, FileSignature, Baby } from
 "lucide-react";
 import logoTjsp from "@/assets/logo-tjsp.png";
 import logoMpsp from "@/assets/logo-mpsp.png";
 import logoOabsp from "@/assets/logo-oabsp.png";
 import logoSjc from "@/assets/logo-sjc.jpg";
 import govLogo from "@/assets/gov-logo.png";
+import logoCartorio from "@/assets/logo-cartorio-sp.png";
 import { toast } from "sonner";
 
 type Tab = "inicio" | "institucional" | "servicos" | "transparencia" | "concursos" | "login" | "credencial";
