@@ -198,13 +198,13 @@ export function generateProcessoPDF(params: {
     y = drawSeparator(doc, y);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(30, 60, 90);
-    doc.text("AUDIÊNCIAS", MARGIN, y + 3);
+    doc.text("AUDIENCIAS", MARGIN, y + 3);
     y += 8;
     doc.setTextColor(50);
     for (const a of audiencias) {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8);
-      doc.text(`• ${a.tipo} — ${new Date(a.data_hora).toLocaleString("pt-BR")} — ${a.local || "—"} — ${a.status}`, MARGIN + 2, y);
+      doc.text(sanitize(`- ${a.tipo} - ${new Date(a.data_hora).toLocaleString("pt-BR")} - ${a.local || "-"} - ${a.status}`), MARGIN + 2, y);
       y += 5;
     }
   }
