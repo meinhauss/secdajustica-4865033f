@@ -16,7 +16,7 @@ import logoSjc from "@/assets/logo-sjc.jpg";
 import govLogo from "@/assets/gov-logo.png";
 import { toast } from "sonner";
 
-type Tab = "inicio" | "institucional" | "servicos" | "transparencia" | "concursos" | "contato" | "login" | "credencial";
+type Tab = "inicio" | "institucional" | "servicos" | "transparencia" | "concursos" | "login" | "credencial";
 
 export default function LoginPage() {
   const { signIn, signUp } = useAuth();
