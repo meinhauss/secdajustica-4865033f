@@ -75,7 +75,7 @@ export default function MPSection() {
 /* ═══════════════════════════════════════════ */
 /*  MP DASHBOARD                               */
 /* ═══════════════════════════════════════════ */
-function MPDashboard({ isMP, onSelectIP }: { isMP: boolean; onSelectIP: (id: string) => void }) {
+function MPDashboard({ isMP, onSelectIP, onSelectOuvidoria }: { isMP: boolean; onSelectIP: (id: string) => void; onSelectOuvidoria: (id: string) => void }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
