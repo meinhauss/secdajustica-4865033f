@@ -60,8 +60,7 @@ export default function LoginPage() {
   { id: "servicos", label: "Serviços" },
   { id: "credencial", label: "Consultar Credencial" },
   { id: "transparencia", label: "Transparência" },
-  { id: "concursos", label: "Concursos" },
-  { id: "contato", label: "Contato" }];
+  { id: "concursos", label: "Concursos" }];
 
 
   return (
