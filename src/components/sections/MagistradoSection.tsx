@@ -1103,7 +1103,13 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                     <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-institutional/10 text-institutional">{m.tipo?.replace(/_/g, " ")}</span>
                     <span className="text-[10px] text-muted-foreground ml-auto">{format(new Date(m.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
                   </div>
-                  <p className="text-sm text-foreground whitespace-pre-wrap">{m.descricao}</p>
+                  <p className="text-sm text-foreground whitespace-pre-wrap">
+                    {m.descricao.split(/(https?:\/\/[^\s]+)/g).map((part, i) =>
+                      /^https?:\/\//.test(part) ? (
+                        <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80 break-all">{part}</a>
+                      ) : part
+                    )}
+                  </p>
                   <div className="mt-2 pt-2 border-t border-border/50">
                     <p className="text-[10px] text-muted-foreground italic flex items-center gap-1">
                       <PenTool className="h-3 w-3" />
