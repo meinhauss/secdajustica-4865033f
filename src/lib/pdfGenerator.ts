@@ -215,7 +215,7 @@ export function generateProcessoPDF(params: {
     y = drawSeparator(doc, y);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(30, 60, 90);
-    doc.text("SENTENÇAS", MARGIN, y + 3);
+    doc.text("SENTENCAS", MARGIN, y + 3);
     y += 8;
     doc.setTextColor(50);
     for (const s of sentencas) {
