@@ -324,9 +324,9 @@ export function generateCartorioPDF(params: {
 
   for (const [label, value] of rows) {
     doc.setFont("helvetica", "bold");
-    doc.text(label, MARGIN, y);
+    doc.text(sanitize(label), MARGIN, y);
     doc.setFont("helvetica", "normal");
-    doc.text(String(value || "—"), MARGIN + 40, y);
+    doc.text(sanitize(String(value || "-")), MARGIN + 40, y);
     y += 5;
   }
 
