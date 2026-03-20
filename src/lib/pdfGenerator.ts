@@ -109,7 +109,7 @@ export function generateProcessoPDF(params: {
     infoRows.push(["Valor da Causa:", Number(processo.valor_causa).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })]);
   }
   if (processo.sigilo && processo.sigilo !== "publico") {
-    infoRows.push(["Sigilo:", processo.sigilo === "segredo_justica" ? "Segredo de Justiça" : "Sigilo Absoluto"]);
+    infoRows.push(["Sigilo:", processo.sigilo === "segredo_justica" ? "Segredo de Justica" : "Sigilo Absoluto"]);
   }
 
   for (const [label, value] of infoRows) {
