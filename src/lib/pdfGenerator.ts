@@ -162,7 +162,7 @@ export function generateProcessoPDF(params: {
     doc.setTextColor(50);
     for (const i of interessados) {
       doc.setFont("helvetica", "normal");
-      doc.text(`• ${i.orgao || ""} — ${i.nome || ""}`, MARGIN + 2, y);
+      doc.text(sanitize(`- ${i.orgao || ""} - ${i.nome || ""}`), MARGIN + 2, y);
       y += 5;
     }
   }
