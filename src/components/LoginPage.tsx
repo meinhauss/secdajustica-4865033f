@@ -183,7 +183,7 @@ function TabInicio({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
   { icon: Scale, title: "Ministério Público", desc: "Portal do Ministério Público para denúncias e pareceres.", action: "Acessar", tab: "login" as Tab },
   { icon: GraduationCap, title: "Concursos Públicos", desc: "Editais abertos, inscrições e resultados de concursos.", action: "Ver Editais", tab: "concursos" as Tab },
   { icon: Users, title: "Portal da OAB", desc: "Cadastro de advogados, carteira digital e honorários.", action: "Acessar", tab: "login" as Tab },
-  { icon: BookOpen, title: "Jurisprudência", desc: "Banco de decisões judiciais da Comarca de São Paulo.", action: "Pesquisar", tab: "login" as Tab }];
+  { icon: Shield, title: "Ouvidoria MP", desc: "Envie denúncias ao Ministério Público sem precisar de login.", action: "Denunciar", tab: "ouvidoria" as Tab }];
 
 
   return (
