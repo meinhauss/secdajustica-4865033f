@@ -60,6 +60,7 @@ export default function LoginPage() {
   { id: "institucional", label: "Institucional" },
   { id: "servicos", label: "Serviços" },
   { id: "credencial", label: "Consultar Credencial" },
+  { id: "ouvidoria", label: "Ouvidoria MP" },
   { id: "transparencia", label: "Transparência" },
   { id: "concursos", label: "Concursos" }];
 
