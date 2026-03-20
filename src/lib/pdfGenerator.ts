@@ -73,13 +73,13 @@ export function generateProcessoPDF(params: {
   doc.setFontSize(11);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(30, 60, 90);
-  doc.text("PODER JUDICIÁRIO", PAGE_W / 2, 14, { align: "center" });
+  doc.text("PODER JUDICIARIO", PAGE_W / 2, 14, { align: "center" });
   doc.setFontSize(9);
-  doc.text("TRIBUNAL DE JUSTIÇA DO ESTADO DE SÃO PAULO", PAGE_W / 2, 19, { align: "center" });
+  doc.text("TRIBUNAL DE JUSTICA DO ESTADO DE SAO PAULO", PAGE_W / 2, 19, { align: "center" });
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(100);
-  doc.text("Comarca de São Paulo — Jaguaré RP", PAGE_W / 2, 24, { align: "center" });
+  doc.text("Comarca de Sao Paulo - Jaguare RP", PAGE_W / 2, 24, { align: "center" });
 
   let y = 32;
   y = drawSeparator(doc, y);
