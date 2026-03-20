@@ -804,6 +804,27 @@ export default function CartorarioSection() {
                   );
                 })()}
 
+                {/* Download PDF button */}
+                {showDetalhes.status === "emitido" && (
+                  <div className="pt-2">
+                    <Button size="sm" variant="outline" className="w-full" onClick={async () => {
+                      const logo64 = await imageToBase64(logoCartorio);
+                      const requerentes = parseJsonArray<PersonEntry>(showDetalhes.requerente_nome);
+                      const envolvidos = parseJsonArray<PersonEntry>(showDetalhes.partes_envolvidas);
+                      const lnks = parseLinks(showDetalhes.documento_url);
+                      generateCartorioPDF({
+                        registro: showDetalhes,
+                        requerentes: requerentes.length ? requerentes : [{ nome: showDetalhes.requerente_nome, id_personagem: showDetalhes.id_personagem || "—" }],
+                        envolvidos,
+                        links: lnks,
+                        logoBase64: logo64,
+                      });
+                    }}>
+                      <Download className="h-3 w-3 mr-1" /> Baixar Documento (PDF)
+                    </Button>
+                  </div>
+                )}
+
                 {/* Ações do cartorário */}
                 {isCartorario && showDetalhes.status !== "emitido" && showDetalhes.status !== "recusado" && (
                   <div className="space-y-3 pt-2 border-t border-border">
