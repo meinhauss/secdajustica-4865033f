@@ -142,6 +142,19 @@ function MPDashboard({ isMP, onSelectIP }: { isMP: boolean; onSelectIP: (id: str
     },
   });
 
+  // Denúncias da Ouvidoria
+  const { data: denunciasOuvidoria } = useQuery({
+    queryKey: ["mp-denuncias-ouvidoria"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("denuncias_ouvidoria" as any)
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
   // Processos com atuação do MP (criminal)
   const { data: processos } = useQuery({
     queryKey: ["mp-processos"],
