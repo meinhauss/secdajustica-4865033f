@@ -50,7 +50,7 @@ function StatCard({ label, value, icon: Icon }: { label: string; value: number; 
 /* ═══════════════════════════════════════════ */
 export default function MPSection() {
   const { roles } = useAuth();
-  const [view, setView] = useState<"list" | "inquerito-detail" | "processo-detail">("list");
+  const [view, setView] = useState<"list" | "inquerito-detail" | "ouvidoria-detail">("list");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const isMP = roles.some((r) => ["admin", "ministerio_publico", "procurador_geral"].includes(r));
@@ -59,10 +59,15 @@ export default function MPSection() {
     return <InqueritoMPDetail ipId={selectedId} onBack={() => { setView("list"); setSelectedId(null); }} />;
   }
 
+  if (view === "ouvidoria-detail" && selectedId) {
+    return <OuvidoriaDetail denunciaId={selectedId} onBack={() => { setView("list"); setSelectedId(null); }} />;
+  }
+
   return (
     <MPDashboard
       isMP={isMP}
       onSelectIP={(id) => { setSelectedId(id); setView("inquerito-detail"); }}
+      onSelectOuvidoria={(id) => { setSelectedId(id); setView("ouvidoria-detail"); }}
     />
   );
 }
