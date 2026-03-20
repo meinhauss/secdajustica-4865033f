@@ -14,8 +14,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Label } from "@/components/ui/label";
 import {
   FileText, Plus, Search, CheckCircle, Clock, Eye, Stamp,
-  Heart, Home, Users, ScrollText, FileSignature, Baby, BarChart3, User, Link, X, Trash2, ExternalLink
+  Heart, Home, Users, ScrollText, FileSignature, Baby, BarChart3, User, Link, X, Trash2, ExternalLink, Download
 } from "lucide-react";
+import { generateCartorioPDF, imageToBase64 } from "@/lib/pdfGenerator";
+import logoCartorio from "@/assets/logo-cartorio-sp.png";
 
 /* ─── Types ─── */
 interface PersonEntry {
