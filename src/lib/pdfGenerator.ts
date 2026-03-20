@@ -293,17 +293,17 @@ export function generateCartorioPDF(params: {
 
   // Document type title
   const tipoLabels: Record<string, string> = {
-    certidao_nascimento: "CERTIDÃO DE NASCIMENTO",
-    certidao_casamento: "CERTIDÃO DE CASAMENTO",
-    certidao_obito: "CERTIDÃO DE ÓBITO",
-    divorcio: "CERTIDÃO DE DIVÓRCIO",
-    adocao: "TERMO DE ADOÇÃO",
-    antecedentes: "CERTIDÃO DE ANTECEDENTES",
+    certidao_nascimento: "CERTIDAO DE NASCIMENTO",
+    certidao_casamento: "CERTIDAO DE CASAMENTO",
+    certidao_obito: "CERTIDAO DE OBITO",
+    divorcio: "CERTIDAO DE DIVORCIO",
+    adocao: "TERMO DE ADOCAO",
+    antecedentes: "CERTIDAO DE ANTECEDENTES",
     contrato: "REGISTRO DE CONTRATO",
-    escritura: "ESCRITURA PÚBLICA",
-    procuracao: "PROCURAÇÃO PÚBLICA",
+    escritura: "ESCRITURA PUBLICA",
+    procuracao: "PROCURACAO PUBLICA",
     reconhecimento_firma: "RECONHECIMENTO DE FIRMA",
-    autenticacao: "AUTENTICAÇÃO DE DOCUMENTO",
+    autenticacao: "AUTENTICACAO DE DOCUMENTO",
   };
 
   doc.setFontSize(14);
