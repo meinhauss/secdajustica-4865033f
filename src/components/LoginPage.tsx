@@ -298,6 +298,12 @@ function TabInstitucional() {
     name: "Ordem dos Advogados (OAB)",
     desc: "Entidade responsável pela regulamentação da advocacia, defesa das prerrogativas profissionais e fiscalização ética.",
     competencias: ["Cadastrar advogados", "Emitir carteiras profissionais", "Fiscalizar a advocacia", "Definir tabela de honorários"]
+  },
+  {
+    logo: logoCartorio,
+    name: "Cartório de Registro Civil",
+    desc: "Serviço extrajudicial responsável pelo registro de atos da vida civil, emissão de certidões, escrituras públicas, procurações e autenticação de documentos.",
+    competencias: ["Certidões de Nascimento, Casamento e Óbito", "Escrituras Públicas e Contratos", "Procurações e Reconhecimento de Firma", "Registro de Adoção e Divórcio"]
   }];
 
 
