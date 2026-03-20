@@ -13,8 +13,10 @@ import {
   Plus, FileText, Search, Eye, User, ArrowLeft, Clock, Gavel,
   Upload, Calendar, AlertTriangle, CheckCircle, PenTool, History,
   File, Scale, Timer, ChevronRight, X, ExternalLink, ScrollText,
-  ShieldCheck, ShieldOff, UserCheck, Lock, Trash2
+  ShieldCheck, ShieldOff, UserCheck, Lock, Trash2, Download
 } from "lucide-react";
+import { generateProcessoPDF, imageToBase64 } from "@/lib/pdfGenerator";
+import logoTjsp from "@/assets/logo-tjsp.png";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
