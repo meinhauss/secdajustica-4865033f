@@ -88,7 +88,7 @@ export function generateProcessoPDF(params: {
   doc.setFontSize(13);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(30, 60, 90);
-  doc.text("ÍNTEGRA DO PROCESSO", PAGE_W / 2, y + 4, { align: "center" });
+  doc.text("INTEGRA DO PROCESSO", PAGE_W / 2, y + 4, { align: "center" });
   y += 12;
 
   // Process info
