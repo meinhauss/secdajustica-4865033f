@@ -369,7 +369,7 @@ export function generateCartorioPDF(params: {
   y = drawSeparator(doc, y);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(30, 30, 30);
-  doc.text("DESCRIÇÃO", MARGIN, y + 3);
+  doc.text("DESCRICAO", MARGIN, y + 3);
   y += 8;
   doc.setFont("helvetica", "normal");
   doc.setTextColor(50);
