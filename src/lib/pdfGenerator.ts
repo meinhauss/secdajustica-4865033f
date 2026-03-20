@@ -95,7 +95,7 @@ export function generateProcessoPDF(params: {
   doc.setFontSize(9);
   doc.setTextColor(50);
   const infoRows = [
-    ["Nº do Processo:", processo.numero],
+    ["No do Processo:", processo.numero],
     ["Classe:", processo.classe?.toUpperCase()],
     ["Assunto:", processo.assunto],
     ["Vara:", processo.vara || "-"],
