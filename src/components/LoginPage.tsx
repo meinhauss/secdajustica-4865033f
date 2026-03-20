@@ -17,7 +17,7 @@ import govLogo from "@/assets/gov-logo.png";
 import logoCartorio from "@/assets/logo-cartorio-sp.png";
 import { toast } from "sonner";
 
-type Tab = "inicio" | "institucional" | "servicos" | "transparencia" | "concursos" | "login" | "credencial";
+type Tab = "inicio" | "institucional" | "servicos" | "transparencia" | "concursos" | "login" | "credencial" | "ouvidoria";
 
 export default function LoginPage() {
   const { signIn, signUp } = useAuth();
