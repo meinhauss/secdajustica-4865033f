@@ -17,7 +17,7 @@ import govLogo from "@/assets/gov-logo.png";
 import logoCartorio from "@/assets/logo-cartorio-sp.png";
 import { toast } from "sonner";
 
-type Tab = "inicio" | "institucional" | "servicos" | "transparencia" | "concursos" | "login" | "credencial";
+type Tab = "inicio" | "institucional" | "servicos" | "transparencia" | "concursos" | "login" | "credencial" | "ouvidoria";
 
 export default function LoginPage() {
   const { signIn, signUp } = useAuth();
@@ -60,6 +60,7 @@ export default function LoginPage() {
   { id: "institucional", label: "Institucional" },
   { id: "servicos", label: "Serviços" },
   { id: "credencial", label: "Consultar Credencial" },
+  { id: "ouvidoria", label: "Ouvidoria MP" },
   { id: "transparencia", label: "Transparência" },
   { id: "concursos", label: "Concursos" }];
 
@@ -129,6 +130,7 @@ export default function LoginPage() {
             {activeTab === "institucional" && <TabInstitucional />}
             {activeTab === "servicos" && <TabServicos />}
             {activeTab === "credencial" && <TabCredencial />}
+            {activeTab === "ouvidoria" && <TabOuvidoria />}
             {activeTab === "transparencia" && <TabTransparencia />}
             
             {activeTab === "login" &&
@@ -181,7 +183,7 @@ function TabInicio({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
   { icon: Scale, title: "Ministério Público", desc: "Portal do Ministério Público para denúncias e pareceres.", action: "Acessar", tab: "login" as Tab },
   { icon: GraduationCap, title: "Concursos Públicos", desc: "Editais abertos, inscrições e resultados de concursos.", action: "Ver Editais", tab: "concursos" as Tab },
   { icon: Users, title: "Portal da OAB", desc: "Cadastro de advogados, carteira digital e honorários.", action: "Acessar", tab: "login" as Tab },
-  { icon: BookOpen, title: "Jurisprudência", desc: "Banco de decisões judiciais da Comarca de São Paulo.", action: "Pesquisar", tab: "login" as Tab }];
+  { icon: Shield, title: "Ouvidoria MP", desc: "Envie denúncias ao Ministério Público sem precisar de login.", action: "Denunciar", tab: "ouvidoria" as Tab }];
 
 
   return (
@@ -389,6 +391,233 @@ function TabCredencial() {
     <div className="max-w-7xl mx-auto px-4 py-12">
       <div className="max-w-4xl">
         <ConsultaPublicaSection />
+      </div>
+    </div>
+  );
+}
+
+function TabOuvidoria() {
+  const [nome, setNome] = useState("");
+  const [contato, setContato] = useState("");
+  const [descricao, setDescricao] = useState("");
+  const [envolvidos, setEnvolvidos] = useState<{ nome: string; funcao: string }[]>([]);
+  const [links, setLinks] = useState<string[]>([]);
+  const [novoEnvolvidoNome, setNovoEnvolvidoNome] = useState("");
+  const [novoEnvolvidoFuncao, setNovoEnvolvidoFuncao] = useState("");
+  const [novoLink, setNovoLink] = useState("");
+  const [enviando, setEnviando] = useState(false);
+  const [enviado, setEnviado] = useState(false);
+
+  const addEnvolvido = () => {
+    if (!novoEnvolvidoNome.trim()) return;
+    setEnvolvidos([...envolvidos, { nome: novoEnvolvidoNome.trim(), funcao: novoEnvolvidoFuncao.trim() }]);
+    setNovoEnvolvidoNome("");
+    setNovoEnvolvidoFuncao("");
+  };
+
+  const removeEnvolvido = (i: number) => setEnvolvidos(envolvidos.filter((_, idx) => idx !== i));
+
+  const addLink = () => {
+    if (!novoLink.trim()) return;
+    setLinks([...links, novoLink.trim()]);
+    setNovoLink("");
+  };
+
+  const removeLink = (i: number) => setLinks(links.filter((_, idx) => idx !== i));
+
+  const handleEnviar = async () => {
+    if (!descricao.trim()) {
+      toast.error("Descreva os fatos da denúncia.");
+      return;
+    }
+    setEnviando(true);
+    try {
+      const { error } = await supabase.from("denuncias_ouvidoria" as any).insert({
+        nome_denunciante: nome.trim() || "Anônimo",
+        contato_denunciante: contato.trim() || null,
+        descricao: descricao.trim(),
+        envolvidos: envolvidos.length > 0 ? envolvidos : [],
+        links: links.length > 0 ? links : [],
+      } as any);
+      if (error) throw error;
+      toast.success("Denúncia enviada com sucesso! O Ministério Público irá analisar.");
+      setEnviado(true);
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao enviar denúncia.");
+    } finally {
+      setEnviando(false);
+    }
+  };
+
+  if (enviado) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-16 text-center">
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
+          <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-4">
+            <Shield className="h-8 w-8 text-green-500" />
+          </div>
+          <h2 className="font-display text-2xl font-bold text-foreground mb-2">Denúncia Recebida</h2>
+          <p className="text-muted-foreground mb-6">
+            Sua denúncia foi registrada com sucesso e será analisada pelo Ministério Público. 
+            O sigilo da sua identidade será preservado conforme a legislação vigente.
+          </p>
+          <Button onClick={() => { setEnviado(false); setDescricao(""); setEnvolvidos([]); setLinks([]); setNome(""); setContato(""); }}
+            variant="outline" className="rounded-xl">
+            Enviar Nova Denúncia
+          </Button>
+        </motion.div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-12">
+      <div className="flex items-start gap-4 mb-8">
+        <div className="p-3 rounded-xl bg-secondary flex-shrink-0">
+          <img src={logoMpsp} alt="MP-SP" className="h-10 w-auto object-contain" />
+        </div>
+        <div>
+          <h2 className="font-display text-2xl font-bold text-foreground mb-1">Ouvidoria do Ministério Público</h2>
+          <p className="text-muted-foreground text-sm">
+            Canal de denúncias para a cidadania. Envie sua denúncia de forma anônima ou identificada. 
+            Não é necessário login.
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Form */}
+        <div className="lg:col-span-2 space-y-5">
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}
+            className="bg-card rounded-xl border border-border p-6 space-y-4">
+            <h3 className="font-display text-base font-semibold text-foreground">Dados do Denunciante (opcional)</h3>
+            <p className="text-xs text-muted-foreground">Você pode enviar anonimamente. Se desejar retorno, informe seus dados.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Nome</label>
+                <Input placeholder="Anônimo" value={nome} onChange={e => setNome(e.target.value)} />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Contato (e-mail ou telefone)</label>
+                <Input placeholder="Opcional" value={contato} onChange={e => setContato(e.target.value)} />
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+            className="bg-card rounded-xl border border-border p-6 space-y-4">
+            <h3 className="font-display text-base font-semibold text-foreground">Relato da Denúncia *</h3>
+            <textarea
+              value={descricao}
+              onChange={e => setDescricao(e.target.value)}
+              placeholder="Descreva detalhadamente os fatos, incluindo datas, locais e circunstâncias..."
+              rows={6}
+              className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            />
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+            className="bg-card rounded-xl border border-border p-6 space-y-4">
+            <h3 className="font-display text-base font-semibold text-foreground">Envolvidos</h3>
+            <p className="text-xs text-muted-foreground">Identifique as pessoas envolvidas nos fatos (nome e função/cargo se souber).</p>
+            <div className="flex gap-2">
+              <Input placeholder="Nome" value={novoEnvolvidoNome} onChange={e => setNovoEnvolvidoNome(e.target.value)} className="flex-1" />
+              <Input placeholder="Função/Cargo (opcional)" value={novoEnvolvidoFuncao} onChange={e => setNovoEnvolvidoFuncao(e.target.value)} className="flex-1" />
+              <Button onClick={addEnvolvido} size="sm" variant="outline" className="rounded-lg">Adicionar</Button>
+            </div>
+            {envolvidos.length > 0 && (
+              <div className="space-y-2">
+                {envolvidos.map((e, i) => (
+                  <div key={i} className="flex items-center gap-2 bg-secondary/50 rounded-lg px-3 py-2 text-sm">
+                    <Users className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                    <span className="font-medium text-foreground">{e.nome}</span>
+                    {e.funcao && <span className="text-muted-foreground">— {e.funcao}</span>}
+                    <button onClick={() => removeEnvolvido(i)} className="ml-auto text-destructive hover:text-destructive/80 text-xs font-medium">Remover</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+            className="bg-card rounded-xl border border-border p-6 space-y-4">
+            <h3 className="font-display text-base font-semibold text-foreground">Links de Provas e Anexos</h3>
+            <p className="text-xs text-muted-foreground">Adicione links para documentos, fotos, vídeos ou outros materiais que comprovem a denúncia.</p>
+            <div className="flex gap-2">
+              <Input placeholder="https://drive.google.com/..." value={novoLink} onChange={e => setNovoLink(e.target.value)} className="flex-1" />
+              <Button onClick={addLink} size="sm" variant="outline" className="rounded-lg">Adicionar</Button>
+            </div>
+            {links.length > 0 && (
+              <div className="space-y-2">
+                {links.map((l, i) => (
+                  <div key={i} className="flex items-center gap-2 bg-secondary/50 rounded-lg px-3 py-2 text-sm">
+                    <ExternalLink className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                    <a href={l} target="_blank" rel="noopener noreferrer" className="text-gold hover:underline truncate flex-1">{l}</a>
+                    <button onClick={() => removeLink(i)} className="text-destructive hover:text-destructive/80 text-xs font-medium">Remover</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+            <Button onClick={handleEnviar} disabled={enviando || !descricao.trim()} className="w-full h-12 rounded-xl bg-gold hover:bg-gold-light text-institutional-dark font-semibold text-base">
+              {enviando ? "Enviando..." : "Enviar Denúncia"}
+            </Button>
+          </motion.div>
+        </div>
+
+        {/* Sidebar - Tutorial */}
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+          className="space-y-4">
+          <div className="bg-card rounded-xl border border-border p-5 space-y-4">
+            <h3 className="font-display text-sm font-semibold text-foreground flex items-center gap-2">
+              <BookOpen className="h-4 w-4 text-gold" />
+              Como anexar provas
+            </h3>
+            <div className="space-y-3 text-xs text-muted-foreground">
+              <div className="space-y-1">
+                <p className="font-semibold text-foreground">1. Faça upload no Google Drive</p>
+                <p>Acesse <a href="https://drive.google.com" target="_blank" rel="noopener noreferrer" className="text-gold hover:underline">drive.google.com</a> e envie seus arquivos (fotos, vídeos, documentos).</p>
+              </div>
+              <div className="space-y-1">
+                <p className="font-semibold text-foreground">2. Gere o link de compartilhamento</p>
+                <p>Clique com o botão direito no arquivo → "Compartilhar" → "Qualquer pessoa com o link pode ver" → Copie o link.</p>
+              </div>
+              <div className="space-y-1">
+                <p className="font-semibold text-foreground">3. Cole o link no formulário</p>
+                <p>No campo "Links de Provas e Anexos", cole o link copiado e clique em "Adicionar".</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-card rounded-xl border border-border p-5 space-y-3">
+            <h3 className="font-display text-sm font-semibold text-foreground flex items-center gap-2">
+              <Shield className="h-4 w-4 text-gold" />
+              Sobre o Sigilo
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              A denúncia pode ser feita de forma anônima. Caso se identifique, seus dados serão 
+              tratados com sigilo absoluto, conforme previsto em lei. Somente membros do Ministério 
+              Público terão acesso às informações.
+            </p>
+          </div>
+
+          <div className="bg-card rounded-xl border border-border p-5 space-y-3">
+            <h3 className="font-display text-sm font-semibold text-foreground flex items-center gap-2">
+              <Scale className="h-4 w-4 text-gold" />
+              O que pode ser denunciado
+            </h3>
+            <ul className="text-xs text-muted-foreground space-y-1.5">
+              <li className="flex items-start gap-2"><div className="w-1 h-1 rounded-full bg-gold mt-1.5 flex-shrink-0" /> Crimes contra a administração pública</li>
+              <li className="flex items-start gap-2"><div className="w-1 h-1 rounded-full bg-gold mt-1.5 flex-shrink-0" /> Abuso de autoridade</li>
+              <li className="flex items-start gap-2"><div className="w-1 h-1 rounded-full bg-gold mt-1.5 flex-shrink-0" /> Irregularidades em serviços públicos</li>
+              <li className="flex items-start gap-2"><div className="w-1 h-1 rounded-full bg-gold mt-1.5 flex-shrink-0" /> Crimes ambientais</li>
+              <li className="flex items-start gap-2"><div className="w-1 h-1 rounded-full bg-gold mt-1.5 flex-shrink-0" /> Violações de direitos humanos</li>
+              <li className="flex items-start gap-2"><div className="w-1 h-1 rounded-full bg-gold mt-1.5 flex-shrink-0" /> Atos de improbidade administrativa</li>
+            </ul>
+          </div>
+        </motion.div>
       </div>
     </div>
   );
