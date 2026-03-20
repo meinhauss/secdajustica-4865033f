@@ -7,13 +7,14 @@ import { Input } from "@/components/ui/input";
 import ConsultaPublicaSection from "@/components/sections/ConsultaPublicaSection";
 import {
   Scale, Shield, Gavel, BookOpen, Building2, Users, FileText,
-  Phone, MapPin, Clock, ChevronRight, ExternalLink, GraduationCap } from
+  Phone, MapPin, Clock, ChevronRight, ExternalLink, GraduationCap, Stamp, Heart, Home, ScrollText, FileSignature, Baby } from
 "lucide-react";
 import logoTjsp from "@/assets/logo-tjsp.png";
 import logoMpsp from "@/assets/logo-mpsp.png";
 import logoOabsp from "@/assets/logo-oabsp.png";
 import logoSjc from "@/assets/logo-sjc.jpg";
 import govLogo from "@/assets/gov-logo.png";
+import logoCartorio from "@/assets/logo-cartorio-sp.png";
 import { toast } from "sonner";
 
 type Tab = "inicio" | "institucional" | "servicos" | "transparencia" | "concursos" | "login" | "credencial";
@@ -176,7 +177,7 @@ export default function LoginPage() {
 function TabInicio({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
   const cards = [
   { icon: FileText, title: "Consulta Processual", desc: "Acompanhe processos judiciais em andamento na Comarca.", action: "Consultar", tab: "login" as Tab },
-  
+  { icon: Stamp, title: "Cartório Civil", desc: "Certidões de nascimento, casamento, óbito, escrituras e mais.", action: "Saiba Mais", tab: "servicos" as Tab },
   { icon: Scale, title: "Ministério Público", desc: "Portal do Ministério Público para denúncias e pareceres.", action: "Acessar", tab: "login" as Tab },
   { icon: GraduationCap, title: "Concursos Públicos", desc: "Editais abertos, inscrições e resultados de concursos.", action: "Ver Editais", tab: "concursos" as Tab },
   { icon: Users, title: "Portal da OAB", desc: "Cadastro de advogados, carteira digital e honorários.", action: "Acessar", tab: "login" as Tab },
@@ -297,6 +298,12 @@ function TabInstitucional() {
     name: "Ordem dos Advogados (OAB)",
     desc: "Entidade responsável pela regulamentação da advocacia, defesa das prerrogativas profissionais e fiscalização ética.",
     competencias: ["Cadastrar advogados", "Emitir carteiras profissionais", "Fiscalizar a advocacia", "Definir tabela de honorários"]
+  },
+  {
+    logo: logoCartorio,
+    name: "Cartório de Registro Civil",
+    desc: "Serviço extrajudicial responsável pelo registro de atos da vida civil, emissão de certidões, escrituras públicas, procurações e autenticação de documentos.",
+    competencias: ["Certidões de Nascimento, Casamento e Óbito", "Escrituras Públicas e Contratos", "Procurações e Reconhecimento de Firma", "Registro de Adoção e Divórcio"]
   }];
 
 
@@ -341,11 +348,16 @@ function TabInstitucional() {
 function TabServicos() {
   const servicos = [
   { title: "Consulta Processual", desc: "Pesquise processos por número, nome das partes ou assunto.", icon: FileText },
-  
   { title: "Peticionamento Eletrônico", desc: "Protocole petições e documentos diretamente no sistema.", icon: BookOpen },
   { title: "Agendamento de Audiências", desc: "Consulte e agende audiências junto às varas competentes.", icon: Clock },
   { title: "Emissão de Certidões", desc: "Solicite certidões negativas e de antecedentes criminais.", icon: FileText },
-  { title: "Cadastro OAB", desc: "Advogados podem se cadastrar e obter carteira digital.", icon: Users }];
+  { title: "Cadastro OAB", desc: "Advogados podem se cadastrar e obter carteira digital.", icon: Users },
+  { title: "Certidão de Nascimento", desc: "Registro e emissão de certidões de nascimento via cartório.", icon: Baby },
+  { title: "Certidão de Casamento", desc: "Habilitação matrimonial e emissão de certidão de casamento.", icon: Heart },
+  { title: "Escrituras Públicas", desc: "Lavratura de escrituras de compra e venda de imóveis.", icon: Home },
+  { title: "Procuração Pública", desc: "Emissão de procurações com fé pública pelo cartório.", icon: ScrollText },
+  { title: "Reconhecimento de Firma", desc: "Autenticação de assinaturas em documentos oficiais.", icon: Stamp },
+  { title: "Registro de Contratos", desc: "Registro público de contratos e acordos civis.", icon: FileSignature }];
 
 
   return (

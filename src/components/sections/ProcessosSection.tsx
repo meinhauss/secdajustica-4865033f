@@ -13,8 +13,10 @@ import {
   Plus, FileText, Search, Eye, User, ArrowLeft, Clock, Gavel,
   Upload, Calendar, AlertTriangle, CheckCircle, PenTool, History,
   File, Scale, Timer, ChevronRight, X, ExternalLink, ScrollText,
-  ShieldCheck, ShieldOff, UserCheck, Lock, Trash2
+  ShieldCheck, ShieldOff, UserCheck, Lock, Trash2, Download
 } from "lucide-react";
+import { generateProcessoPDF, imageToBase64 } from "@/lib/pdfGenerator";
+import logoTjsp from "@/assets/logo-tjsp.png";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -791,6 +793,23 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                 <Trash2 className="h-3.5 w-3.5 mr-1" /> {deleteProcesso.isPending ? "Excluindo..." : "Excluir"}
               </Button>
             )}
+            <Button variant="outline" size="sm" className="rounded-xl text-xs"
+              onClick={async () => {
+                const logo64 = await imageToBase64(logoTjsp);
+                generateProcessoPDF({
+                  processo,
+                  juizNome: juizProfile?.nome_completo || "Não atribuído",
+                  movimentacoes: movimentacoes || [],
+                  atos: atos || [],
+                  audiencias: audiencias || [],
+                  sentencas: sentencasProc || [],
+                  procuracoes: procuracoes || [],
+                  interessados: interessadosData || [],
+                  logoBase64: logo64,
+                });
+              }}>
+              <Download className="h-3.5 w-3.5 mr-1" /> Baixar Íntegra
+            </Button>
           </div>
         </div>
 

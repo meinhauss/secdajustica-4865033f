@@ -14,8 +14,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Label } from "@/components/ui/label";
 import {
   FileText, Plus, Search, CheckCircle, Clock, Eye, Stamp,
-  Heart, Home, Users, ScrollText, FileSignature, Baby, BarChart3, User, Link, X, Trash2, ExternalLink
+  Heart, Home, Users, ScrollText, FileSignature, Baby, BarChart3, User, Link, X, Trash2, ExternalLink, Download
 } from "lucide-react";
+import { generateCartorioPDF, imageToBase64 } from "@/lib/pdfGenerator";
+import logoCartorio from "@/assets/logo-cartorio-sp.png";
 
 /* ─── Types ─── */
 interface PersonEntry {
@@ -801,6 +803,27 @@ export default function CartorarioSection() {
                     </div>
                   );
                 })()}
+
+                {/* Download PDF button */}
+                {showDetalhes.status === "emitido" && (
+                  <div className="pt-2">
+                    <Button size="sm" variant="outline" className="w-full" onClick={async () => {
+                      const logo64 = await imageToBase64(logoCartorio);
+                      const requerentes = parseJsonArray<PersonEntry>(showDetalhes.requerente_nome);
+                      const envolvidos = parseJsonArray<PersonEntry>(showDetalhes.partes_envolvidas);
+                      const lnks = parseLinks(showDetalhes.documento_url);
+                      generateCartorioPDF({
+                        registro: showDetalhes,
+                        requerentes: requerentes.length ? requerentes : [{ nome: showDetalhes.requerente_nome, id_personagem: showDetalhes.id_personagem || "—" }],
+                        envolvidos,
+                        links: lnks,
+                        logoBase64: logo64,
+                      });
+                    }}>
+                      <Download className="h-3 w-3 mr-1" /> Baixar Documento (PDF)
+                    </Button>
+                  </div>
+                )}
 
                 {/* Ações do cartorário */}
                 {isCartorario && showDetalhes.status !== "emitido" && showDetalhes.status !== "recusado" && (
