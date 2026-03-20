@@ -21,7 +21,7 @@ const PAGE_W = 210;
 const CONTENT_W = PAGE_W - MARGIN * 2;
 
 function addWrappedText(doc: jsPDF, text: string, x: number, y: number, maxWidth: number, lineHeight: number): number {
-  const lines = doc.splitTextToSize(text, maxWidth);
+  const lines = doc.splitTextToSize(sanitize(text), maxWidth);
   for (const line of lines) {
     if (y > 275) {
       doc.addPage();
