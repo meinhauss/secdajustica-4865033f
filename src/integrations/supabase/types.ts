@@ -572,6 +572,39 @@ export type Database = {
           },
         ]
       }
+      denuncias_ouvidoria: {
+        Row: {
+          contato_denunciante: string | null
+          created_at: string
+          descricao: string
+          envolvidos: Json | null
+          id: string
+          links: Json | null
+          nome_denunciante: string | null
+          status: string
+        }
+        Insert: {
+          contato_denunciante?: string | null
+          created_at?: string
+          descricao: string
+          envolvidos?: Json | null
+          id?: string
+          links?: Json | null
+          nome_denunciante?: string | null
+          status?: string
+        }
+        Update: {
+          contato_denunciante?: string | null
+          created_at?: string
+          descricao?: string
+          envolvidos?: Json | null
+          id?: string
+          links?: Json | null
+          nome_denunciante?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       diligencias: {
         Row: {
           created_at: string
