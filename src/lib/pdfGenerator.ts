@@ -2,6 +2,20 @@ import jsPDF from "jspdf";
 
 /* ─── Shared PDF helpers ─── */
 
+/** Sanitize text for jsPDF standard fonts (Latin1 only) */
+function sanitize(text: string): string {
+  return String(text || "")
+    .replace(/\u2713/g, "(OK)")
+    .replace(/\u2022/g, "-")
+    .replace(/\u2014/g, "-")
+    .replace(/\u2013/g, "-")
+    .replace(/\u2018/g, "'")
+    .replace(/\u2019/g, "'")
+    .replace(/\u201C/g, '"')
+    .replace(/\u201D/g, '"')
+    .replace(/\u2026/g, "...");
+}
+
 const MARGIN = 20;
 const PAGE_W = 210;
 const CONTENT_W = PAGE_W - MARGIN * 2;
