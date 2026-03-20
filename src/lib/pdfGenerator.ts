@@ -259,7 +259,7 @@ export function generateProcessoPDF(params: {
     }
   }
 
-  addFooter(doc, `Processo nº ${processo.numero} — Tribunal de Justiça do Estado de São Paulo — Sistema Judiciário vBETA`);
+  addFooter(doc, `Processo no ${processo.numero} - Tribunal de Justica do Estado de Sao Paulo - Sistema Judiciario vBETA`);
 
   doc.save(`Processo_${processo.numero.replace(/\W/g, "_")}.pdf`);
 }
