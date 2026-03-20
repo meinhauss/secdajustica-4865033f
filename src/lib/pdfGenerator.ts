@@ -316,9 +316,9 @@ export function generateCartorioPDF(params: {
   doc.setFontSize(9);
   doc.setTextColor(50);
   const rows = [
-    ["Nº Registro:", registro.numero_registro],
+    ["No Registro:", registro.numero_registro],
     ["Status:", registro.status?.toUpperCase()],
-    ["Data da Solicitação:", new Date(registro.created_at).toLocaleString("pt-BR")],
+    ["Data da Solicitacao:", new Date(registro.created_at).toLocaleString("pt-BR")],
   ];
   if (registro.emitido_por_nome) rows.push(["Emitido por:", registro.emitido_por_nome]);
 
