@@ -348,11 +348,16 @@ function TabInstitucional() {
 function TabServicos() {
   const servicos = [
   { title: "Consulta Processual", desc: "Pesquise processos por número, nome das partes ou assunto.", icon: FileText },
-  
   { title: "Peticionamento Eletrônico", desc: "Protocole petições e documentos diretamente no sistema.", icon: BookOpen },
   { title: "Agendamento de Audiências", desc: "Consulte e agende audiências junto às varas competentes.", icon: Clock },
   { title: "Emissão de Certidões", desc: "Solicite certidões negativas e de antecedentes criminais.", icon: FileText },
-  { title: "Cadastro OAB", desc: "Advogados podem se cadastrar e obter carteira digital.", icon: Users }];
+  { title: "Cadastro OAB", desc: "Advogados podem se cadastrar e obter carteira digital.", icon: Users },
+  { title: "Certidão de Nascimento", desc: "Registro e emissão de certidões de nascimento via cartório.", icon: Baby },
+  { title: "Certidão de Casamento", desc: "Habilitação matrimonial e emissão de certidão de casamento.", icon: Heart },
+  { title: "Escrituras Públicas", desc: "Lavratura de escrituras de compra e venda de imóveis.", icon: Home },
+  { title: "Procuração Pública", desc: "Emissão de procurações com fé pública pelo cartório.", icon: ScrollText },
+  { title: "Reconhecimento de Firma", desc: "Autenticação de assinaturas em documentos oficiais.", icon: Stamp },
+  { title: "Registro de Contratos", desc: "Registro público de contratos e acordos civis.", icon: FileSignature }];
 
 
   return (
