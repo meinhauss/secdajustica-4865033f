@@ -521,6 +521,19 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     },
   });
 
+  const deleteProcesso = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("processos").delete().eq("id", processoId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["processos"] });
+      toast.success("Processo excluído com sucesso!");
+      onBack();
+    },
+    onError: (err: any) => toast.error("Erro ao excluir: " + err.message),
+  });
+
   const createAto = useMutation({
     mutationFn: async (ato: { tipo: string; titulo: string; conteudo: string }) => {
       const { error } = await supabase.from("atos_judiciais").insert({
