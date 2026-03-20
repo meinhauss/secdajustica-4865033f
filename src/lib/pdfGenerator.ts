@@ -359,7 +359,7 @@ export function generateCartorioPDF(params: {
     doc.setTextColor(50);
     doc.setFont("helvetica", "normal");
     for (const e of envolvidos) {
-      doc.text(`• ${e.nome} (ID: ${e.id_personagem})`, MARGIN + 2, y);
+      doc.text(sanitize(`- ${e.nome} (ID: ${e.id_personagem})`), MARGIN + 2, y);
       y += 5;
     }
   }
