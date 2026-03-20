@@ -309,7 +309,7 @@ export function generateCartorioPDF(params: {
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(30, 30, 30);
-  doc.text(tipoLabels[registro.tipo] || registro.tipo.toUpperCase(), PAGE_W / 2, y + 6, { align: "center" });
+  doc.text(sanitize(tipoLabels[registro.tipo] || registro.tipo.toUpperCase()), PAGE_W / 2, y + 6, { align: "center" });
   y += 14;
 
   // Registry info
