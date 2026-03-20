@@ -13,7 +13,7 @@ import {
   Plus, FileText, Search, Eye, User, ArrowLeft, Clock, Gavel,
   Upload, Calendar, AlertTriangle, CheckCircle, PenTool, History,
   File, Scale, Timer, ChevronRight, X, ExternalLink, ScrollText,
-  ShieldCheck, ShieldOff, UserCheck, Lock
+  ShieldCheck, ShieldOff, UserCheck, Lock, Trash2
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -521,6 +521,19 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     },
   });
 
+  const deleteProcesso = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("processos").delete().eq("id", processoId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["processos"] });
+      toast.success("Processo excluído com sucesso!");
+      onBack();
+    },
+    onError: (err: any) => toast.error("Erro ao excluir: " + err.message),
+  });
+
   const createAto = useMutation({
     mutationFn: async (ato: { tipo: string; titulo: string; conteudo: string }) => {
       const { error } = await supabase.from("atos_judiciais").insert({
@@ -770,6 +783,13 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                   {Object.entries(STATUS_CONFIG).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}
                 </SelectContent>
               </Select>
+            )}
+            {isAdmin && (
+              <Button variant="destructive" size="sm" className="rounded-xl text-xs"
+                onClick={() => { if (window.confirm("Tem certeza que deseja excluir este processo? Esta ação é irreversível.")) deleteProcesso.mutate(); }}
+                disabled={deleteProcesso.isPending}>
+                <Trash2 className="h-3.5 w-3.5 mr-1" /> {deleteProcesso.isPending ? "Excluindo..." : "Excluir"}
+              </Button>
             )}
           </div>
         </div>
