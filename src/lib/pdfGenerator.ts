@@ -103,7 +103,7 @@ export function generateProcessoPDF(params: {
     ["Status:", processo.status?.replace(/_/g, " ").toUpperCase()],
     ["Data de Autuacao:", new Date(processo.created_at).toLocaleString("pt-BR")],
     ["Autor:", processo.autor_nome],
-    ["Réu:", processo.reu_nome],
+    ["Reu:", processo.reu_nome],
   ];
   if (processo.valor_causa) {
     infoRows.push(["Valor da Causa:", Number(processo.valor_causa).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })]);
