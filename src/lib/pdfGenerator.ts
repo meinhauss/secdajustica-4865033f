@@ -123,7 +123,7 @@ export function generateProcessoPDF(params: {
   if (processo.descricao) {
     y += 3;
     doc.setFont("helvetica", "bold");
-    doc.text("Síntese dos Fatos:", MARGIN, y);
+    doc.text("Sintese dos Fatos:", MARGIN, y);
     y += 5;
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
