@@ -99,7 +99,7 @@ export function generateProcessoPDF(params: {
     ["Classe:", processo.classe?.toUpperCase()],
     ["Assunto:", processo.assunto],
     ["Vara:", processo.vara || "-"],
-    ["Juiz(a):", juizNome || "Não atribuído"],
+    ["Juiz(a):", juizNome || "Nao atribuido"],
     ["Status:", processo.status?.replace(/_/g, " ").toUpperCase()],
     ["Data de Autuação:", new Date(processo.created_at).toLocaleString("pt-BR")],
     ["Autor:", processo.autor_nome],
