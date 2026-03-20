@@ -1862,6 +1862,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_involved_cartorio: {
+        Args: {
+          _partes_envolvidas: string
+          _requerente_id: string
+          _requerente_nome: string
+          _user_id: string
+        }
+        Returns: boolean
+      }
       sortear_magistrado: { Args: never; Returns: string }
     }
     Enums: {
