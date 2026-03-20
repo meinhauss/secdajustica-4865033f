@@ -793,7 +793,23 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                 <Trash2 className="h-3.5 w-3.5 mr-1" /> {deleteProcesso.isPending ? "Excluindo..." : "Excluir"}
               </Button>
             )}
-          </div>
+            <Button variant="outline" size="sm" className="rounded-xl text-xs"
+              onClick={async () => {
+                const logo64 = await imageToBase64(logoTjsp);
+                generateProcessoPDF({
+                  processo,
+                  juizNome: juizProfile?.nome_completo || "Não atribuído",
+                  movimentacoes: movimentacoes || [],
+                  atos: atos || [],
+                  audiencias: audiencias || [],
+                  sentencas: sentencasProc || [],
+                  procuracoes: procuracoes || [],
+                  interessados: interessadosData || [],
+                  logoBase64: logo64,
+                });
+              }}>
+              <Download className="h-3.5 w-3.5 mr-1" /> Baixar Íntegra
+            </Button>
         </div>
 
         <div className="p-5 space-y-5">
