@@ -811,6 +811,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               <Download className="h-3.5 w-3.5 mr-1" /> Baixar Íntegra
             </Button>
           </div>
+        </div>
 
         <div className="p-5 space-y-5">
           {/* Dados do processo */}
