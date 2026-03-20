@@ -554,28 +554,6 @@ function TabTransparencia() {
   );
 }
 
-function TabContato() {
-  return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
-      <h2 className="font-display text-2xl font-bold text-foreground mb-2">Contato</h2>
-      <p className="text-muted-foreground mb-8">Entre em contato com o Poder Judiciário da Comarca.</p>
-
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {[
-        { icon: MapPin, title: "Endereço", info: "Fórum Central — Praça da Justiça, s/n — Centro, São Paulo - RP" },
-        { icon: Phone, title: "Telefone", info: "(11) 0000-0000 — Atendimento de 8h às 18h" },
-        { icon: Clock, title: "Horário", info: "Segunda a Sexta — 08:00 às 18:00\nPlantão Judiciário 24h" }].
-        map((c) =>
-        <div key={c.title} className="bg-card rounded-xl p-6 border border-border shadow-institutional">
-            <c.icon className="h-6 w-6 text-gold mb-3" />
-            <h4 className="font-display text-sm font-semibold text-foreground mb-2">{c.title}</h4>
-            <p className="text-xs text-muted-foreground whitespace-pre-line">{c.info}</p>
-          </div>
-        )}
-      </div>
-    </div>);
-
-}
 
 /* ─── Login Tab ─── */
 
