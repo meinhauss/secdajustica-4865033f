@@ -344,7 +344,7 @@ export function generateCartorioPDF(params: {
     y += 5;
   }
   if (!requerentes.length) {
-    doc.text(registro.requerente_nome || "—", MARGIN + 2, y);
+    doc.text(sanitize(registro.requerente_nome || "-"), MARGIN + 2, y);
     y += 5;
   }
 
