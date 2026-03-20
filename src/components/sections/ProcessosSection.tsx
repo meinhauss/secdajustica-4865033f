@@ -784,6 +784,13 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                 </SelectContent>
               </Select>
             )}
+            {isAdmin && (
+              <Button variant="destructive" size="sm" className="rounded-xl text-xs"
+                onClick={() => { if (window.confirm("Tem certeza que deseja excluir este processo? Esta ação é irreversível.")) deleteProcesso.mutate(); }}
+                disabled={deleteProcesso.isPending}>
+                <Trash2 className="h-3.5 w-3.5 mr-1" /> {deleteProcesso.isPending ? "Excluindo..." : "Excluir"}
+              </Button>
+            )}
           </div>
         </div>
 
