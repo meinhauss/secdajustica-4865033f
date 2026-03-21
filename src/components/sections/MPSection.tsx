@@ -605,6 +605,8 @@ function InqueritoMPDetail({ ipId, onBack }: { ipId: string; onBack: () => void 
       // Create processo
       const investigados = envolvidos?.filter((e) => e.tipo === "investigado") || [];
       const reuNome = investigados.map((e) => e.nome).join(", ") || "Réu desconhecido";
+      const { data: juizData } = await supabase.rpc("sortear_magistrado");
+      const juizId = juizData || null;
       const { data: processo, error: procErr } = await supabase.from("processos").insert({
         numero: "",
         classe: "criminal" as const,
@@ -612,6 +614,8 @@ function InqueritoMPDetail({ ipId, onBack }: { ipId: string; onBack: () => void 
         autor_nome: "Ministério Público",
         reu_nome: reuNome,
         descricao: denunciaForm.resumo,
+        sigilo: "segredo_justica",
+        juiz_id: juizId,
       }).select("id, numero").single();
       if (procErr) throw procErr;
 
@@ -995,6 +999,8 @@ function OuvidoriaDetail({ denunciaId, onBack }: { denunciaId: string; onBack: (
       if (!denForm.resumo || !denForm.fundamentacao) throw new Error("Preencha resumo e fundamentação.");
       const envolvidos = Array.isArray(denuncia?.envolvidos) ? denuncia.envolvidos : [];
       const reuNome = envolvidos.map((e: any) => e.nome).join(", ") || "Réu a identificar";
+      const { data: juizData } = await supabase.rpc("sortear_magistrado");
+      const juizId = juizData || null;
       const { data: processo, error: procErr } = await supabase.from("processos").insert({
         numero: "",
         classe: "criminal" as const,
@@ -1002,6 +1008,8 @@ function OuvidoriaDetail({ denunciaId, onBack }: { denunciaId: string; onBack: (
         autor_nome: "Ministério Público",
         reu_nome: reuNome,
         descricao: denForm.resumo,
+        sigilo: "segredo_justica",
+        juiz_id: juizId,
       }).select("id, numero").single();
       if (procErr) throw procErr;
       const { error: denErr } = await supabase.from("denuncias_mp").insert({
