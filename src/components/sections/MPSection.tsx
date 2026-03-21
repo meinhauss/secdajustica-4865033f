@@ -605,6 +605,8 @@ function InqueritoMPDetail({ ipId, onBack }: { ipId: string; onBack: () => void 
       // Create processo
       const investigados = envolvidos?.filter((e) => e.tipo === "investigado") || [];
       const reuNome = investigados.map((e) => e.nome).join(", ") || "Réu desconhecido";
+      const { data: juizData } = await supabase.rpc("sortear_magistrado");
+      const juizId = juizData || null;
       const { data: processo, error: procErr } = await supabase.from("processos").insert({
         numero: "",
         classe: "criminal" as const,
@@ -612,6 +614,8 @@ function InqueritoMPDetail({ ipId, onBack }: { ipId: string; onBack: () => void 
         autor_nome: "Ministério Público",
         reu_nome: reuNome,
         descricao: denunciaForm.resumo,
+        sigilo: "segredo_justica",
+        juiz_id: juizId,
       }).select("id, numero").single();
       if (procErr) throw procErr;
 
