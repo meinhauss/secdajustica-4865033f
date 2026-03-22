@@ -905,10 +905,14 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
           <div className="border-t border-border pt-4">
             <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Partes e Representantes</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Autor */}
+              {/* Autor(es) */}
               <div className="bg-secondary/30 rounded-lg p-3">
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-1">Autor</p>
-                <p className="text-sm font-medium text-foreground">{processo.autor_nome}</p>
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-1">Autor(es)</p>
+                {parsePartesFromString(processo.autor_nome).map((p, idx) => (
+                  <p key={idx} className="text-sm font-medium text-foreground">
+                    {p.nome}{p.id_personagem ? <span className="text-xs text-muted-foreground ml-1">(ID: {p.id_personagem})</span> : ""}
+                  </p>
+                ))}
                 {advAutor.length > 0 && (
                   <div className="mt-2 space-y-1">
                     {advAutor.map((a: any) => (
@@ -919,10 +923,14 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                   </div>
                 )}
               </div>
-              {/* Réu */}
+              {/* Réu(s) */}
               <div className="bg-secondary/30 rounded-lg p-3">
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-1">Réu</p>
-                <p className="text-sm font-medium text-foreground">{processo.reu_nome}</p>
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-1">Réu(s)</p>
+                {parsePartesFromString(processo.reu_nome).map((p, idx) => (
+                  <p key={idx} className="text-sm font-medium text-foreground">
+                    {p.nome}{p.id_personagem ? <span className="text-xs text-muted-foreground ml-1">(ID: {p.id_personagem})</span> : ""}
+                  </p>
+                ))}
                 {advReu.length > 0 && (
                   <div className="mt-2 space-y-1">
                     {advReu.map((a: any) => (
