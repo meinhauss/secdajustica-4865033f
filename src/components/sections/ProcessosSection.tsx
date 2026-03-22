@@ -199,8 +199,8 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
-  const autorLookup = useProfileLookup();
-  const reuLookup = useProfileLookup();
+
+
 
   const [autores, setAutores] = useState<ParteEntry[]>([]);
   const [reus, setReus] = useState<ParteEntry[]>([]);
