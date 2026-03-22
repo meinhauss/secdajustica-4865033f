@@ -375,7 +375,7 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
                     </div>
                     <p className="text-sm font-medium text-foreground mt-1 truncate">{p.assunto}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      {p.autor_nome} × {p.reu_nome} — {p.vara}
+                      {formatPartesShort(p.autor_nome)} × {formatPartesShort(p.reu_nome)} — {p.vara}
                       {p.valor_causa ? ` • ${Number(p.valor_causa).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}` : ""}
                     </p>
                   </div>
