@@ -1,5 +1,17 @@
 import jsPDF from "jspdf";
 
+/** Parse JSON array partes or plain text for PDF display */
+function formatPartesForPdf(value: string): string {
+  if (!value) return "-";
+  try {
+    const parsed = JSON.parse(value);
+    if (Array.isArray(parsed)) {
+      return parsed.map((p: any) => p.id_personagem ? `${p.nome} (ID: ${p.id_personagem})` : p.nome).join(", ");
+    }
+  } catch { /* not JSON */ }
+  return value;
+}
+
 /* ─── Shared PDF helpers ─── */
 
 /** Sanitize text for jsPDF standard fonts (Latin1 only) */
