@@ -262,10 +262,12 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
   });
 
   const filtered = processos?.filter((p) => {
+    const autorDisplay = formatPartesShort(p.autor_nome);
+    const reuDisplay = formatPartesShort(p.reu_nome);
     const matchSearch = !search || p.numero?.toLowerCase().includes(search.toLowerCase()) ||
       p.assunto?.toLowerCase().includes(search.toLowerCase()) ||
-      p.autor_nome?.toLowerCase().includes(search.toLowerCase()) ||
-      p.reu_nome?.toLowerCase().includes(search.toLowerCase());
+      autorDisplay.toLowerCase().includes(search.toLowerCase()) ||
+      reuDisplay.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === "all" || p.status === statusFilter;
     return matchSearch && matchStatus;
   });
