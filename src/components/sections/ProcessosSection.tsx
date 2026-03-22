@@ -202,9 +202,11 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
   const autorLookup = useProfileLookup();
   const reuLookup = useProfileLookup();
 
+  const [autores, setAutores] = useState<ParteEntry[]>([]);
+  const [reus, setReus] = useState<ParteEntry[]>([]);
+
   const [form, setForm] = useState({
-    classe: "civil", assunto: "", descricao: "", autor_nome: "", autor_id: "",
-    reu_nome: "", reu_id: "", vara: "1ª Vara Cível", valor_causa: "",
+    classe: "civil", assunto: "", descricao: "", vara: "1ª Vara Cível", valor_causa: "",
   });
 
   const { data: processos, isLoading } = useQuery({
@@ -216,33 +218,22 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
     },
   });
 
-  const handleAutorIdChange = async (id: string) => {
-    setForm((f) => ({ ...f, autor_id: id }));
-    const data = await autorLookup.lookup(id);
-    if (data) setForm((f) => ({ ...f, autor_nome: data.nome_completo }));
-  };
-
-  const handleReuIdChange = async (id: string) => {
-    setForm((f) => ({ ...f, reu_id: id }));
-    const data = await reuLookup.lookup(id);
-    if (data) setForm((f) => ({ ...f, reu_nome: data.nome_completo }));
-  };
-
   const createProcesso = useMutation({
     mutationFn: async () => {
-      // 1. Sortear magistrado via função do banco (prioriza quem tem menos processos ativos)
+      if (autores.length === 0) throw new Error("Adicione pelo menos um autor");
+      if (reus.length === 0) throw new Error("Adicione pelo menos um réu");
+
       const { data: sorteioData } = await supabase.rpc("sortear_magistrado");
       const juizId = sorteioData || null;
 
-      // 2. Get judge name for display
       let juizNome = "";
       if (juizId) {
         const { data: juizProfile } = await supabase.from("profiles").select("nome_completo").eq("user_id", juizId).maybeSingle();
         juizNome = juizProfile?.nome_completo || "";
       }
 
-      const autorDisplay = form.autor_id ? `${form.autor_nome} (ID: ${form.autor_id})` : form.autor_nome;
-      const reuDisplay = form.reu_id ? `${form.reu_nome} (ID: ${form.reu_id})` : form.reu_nome;
+      const autorDisplay = JSON.stringify(autores);
+      const reuDisplay = JSON.stringify(reus);
       const { data: processo, error } = await supabase.from("processos").insert({
         numero: "", classe: form.classe as any, assunto: form.assunto, descricao: form.descricao,
         autor_nome: autorDisplay, reu_nome: reuDisplay, vara: form.vara,
@@ -251,7 +242,6 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
       }).select().single();
       if (error) throw error;
 
-      // 3. Register lottery movement
       if (juizId && processo) {
         await supabase.from("movimentacoes").insert({
           processo_id: processo.id,
@@ -259,14 +249,13 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
           descricao: `Processo distribuído por sorteio ao(à) Juiz(a) de Direito ${juizNome || "designado(a)"}`,
           autor_id: user?.id,
         });
-
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["processos"] });
       setOpen(false);
-      setForm({ classe: "civil", assunto: "", descricao: "", autor_nome: "", autor_id: "", reu_nome: "", reu_id: "", vara: "1ª Vara Cível", valor_causa: "" });
-      autorLookup.clear(); reuLookup.clear();
+      setForm({ classe: "civil", assunto: "", descricao: "", vara: "1ª Vara Cível", valor_causa: "" });
+      setAutores([]); setReus([]);
       toast.success("Processo cadastrado e distribuído por sorteio!");
     },
     onError: (err: any) => toast.error(err.message),
