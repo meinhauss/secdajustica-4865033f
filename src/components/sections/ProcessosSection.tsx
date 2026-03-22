@@ -46,6 +46,98 @@ function useProfileLookup() {
   return { result, lookup, clear: () => setResult(null) };
 }
 
+/* ─── Parse autor/réu display helpers ─── */
+type ParteEntry = { nome: string; id_personagem?: string };
+
+function parsePartesFromString(value: string): ParteEntry[] {
+  if (!value) return [];
+  try {
+    const parsed = JSON.parse(value);
+    if (Array.isArray(parsed)) return parsed;
+  } catch { /* not JSON */ }
+  return [{ nome: value }];
+}
+
+function formatPartesDisplay(partes: ParteEntry[]): string {
+  return partes.map(p => p.id_personagem ? `${p.nome} (ID: ${p.id_personagem})` : p.nome).join(", ");
+}
+
+function formatPartesShort(value: string): string {
+  const partes = parsePartesFromString(value);
+  if (partes.length === 0) return "";
+  if (partes.length === 1) return partes[0].nome;
+  return `${partes[0].nome} e outros (${partes.length})`;
+}
+
+/* ─── Multi-party input component ─── */
+function MultiPartyInput({ label, entries, onChange }: { label: string; entries: ParteEntry[]; onChange: (e: ParteEntry[]) => void }) {
+  const [currentId, setCurrentId] = useState("");
+  const [currentNome, setCurrentNome] = useState("");
+  const [lookupResult, setLookupResult] = useState<{ nome_completo: string; id_personagem: string } | null>(null);
+
+  const handleIdLookup = async (id: string) => {
+    setCurrentId(id);
+    setLookupResult(null);
+    setCurrentNome("");
+    if (!id) return;
+    const { data } = await supabase.from("profiles").select("nome_completo, id_personagem").eq("id_personagem", id).maybeSingle();
+    if (data) {
+      setLookupResult({ nome_completo: data.nome_completo, id_personagem: data.id_personagem || "" });
+      setCurrentNome(data.nome_completo);
+    }
+  };
+
+  const addEntry = () => {
+    const nome = currentNome.trim();
+    if (!nome) return;
+    const entry: ParteEntry = { nome };
+    if (currentId.trim()) entry.id_personagem = currentId.trim();
+    onChange([...entries, entry]);
+    setCurrentId("");
+    setCurrentNome("");
+    setLookupResult(null);
+  };
+
+  const removeEntry = (idx: number) => {
+    onChange(entries.filter((_, i) => i !== idx));
+  };
+
+  return (
+    <div className="space-y-2 border border-border rounded-xl p-3">
+      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{label}</p>
+      {entries.length > 0 && (
+        <div className="space-y-1">
+          {entries.map((entry, idx) => (
+            <div key={idx} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary/50 text-xs">
+              <User className="h-3 w-3 text-institutional" />
+              <span className="font-medium flex-1">{entry.nome}{entry.id_personagem ? ` (ID: ${entry.id_personagem})` : ""}</span>
+              <button type="button" onClick={() => removeEntry(idx)} className="text-destructive hover:text-destructive/80"><X className="h-3 w-3" /></button>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="flex gap-2">
+        <div className="flex-1 space-y-1.5">
+          <div className="relative">
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder={`ID do Personagem (${label})`} value={currentId} onChange={(e) => handleIdLookup(e.target.value)} className="rounded-xl pl-10" />
+          </div>
+          {lookupResult && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 text-xs">
+              <User className="h-3 w-3 text-green-600" />
+              <span className="text-green-800 dark:text-green-300 font-medium">{lookupResult.nome_completo}</span>
+            </div>
+          )}
+          <Input placeholder={`Nome do ${label}`} value={currentNome} onChange={(e) => setCurrentNome(e.target.value)} className="rounded-xl" readOnly={!!lookupResult} />
+        </div>
+        <Button type="button" variant="outline" size="icon" className="rounded-xl self-end" onClick={addEntry} disabled={!currentNome.trim()}>
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Status Config ─── */
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: any }> = {
   novo: { label: "Novo", color: "bg-institutional/10 text-institutional", icon: FileText },
