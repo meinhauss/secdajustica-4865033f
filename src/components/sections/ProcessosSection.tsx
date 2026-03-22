@@ -46,6 +46,98 @@ function useProfileLookup() {
   return { result, lookup, clear: () => setResult(null) };
 }
 
+/* ─── Parse autor/réu display helpers ─── */
+type ParteEntry = { nome: string; id_personagem?: string };
+
+function parsePartesFromString(value: string): ParteEntry[] {
+  if (!value) return [];
+  try {
+    const parsed = JSON.parse(value);
+    if (Array.isArray(parsed)) return parsed;
+  } catch { /* not JSON */ }
+  return [{ nome: value }];
+}
+
+function formatPartesDisplay(partes: ParteEntry[]): string {
+  return partes.map(p => p.id_personagem ? `${p.nome} (ID: ${p.id_personagem})` : p.nome).join(", ");
+}
+
+function formatPartesShort(value: string): string {
+  const partes = parsePartesFromString(value);
+  if (partes.length === 0) return "";
+  if (partes.length === 1) return partes[0].nome;
+  return `${partes[0].nome} e outros (${partes.length})`;
+}
+
+/* ─── Multi-party input component ─── */
+function MultiPartyInput({ label, entries, onChange }: { label: string; entries: ParteEntry[]; onChange: (e: ParteEntry[]) => void }) {
+  const [currentId, setCurrentId] = useState("");
+  const [currentNome, setCurrentNome] = useState("");
+  const [lookupResult, setLookupResult] = useState<{ nome_completo: string; id_personagem: string } | null>(null);
+
+  const handleIdLookup = async (id: string) => {
+    setCurrentId(id);
+    setLookupResult(null);
+    setCurrentNome("");
+    if (!id) return;
+    const { data } = await supabase.from("profiles").select("nome_completo, id_personagem").eq("id_personagem", id).maybeSingle();
+    if (data) {
+      setLookupResult({ nome_completo: data.nome_completo, id_personagem: data.id_personagem || "" });
+      setCurrentNome(data.nome_completo);
+    }
+  };
+
+  const addEntry = () => {
+    const nome = currentNome.trim();
+    if (!nome) return;
+    const entry: ParteEntry = { nome };
+    if (currentId.trim()) entry.id_personagem = currentId.trim();
+    onChange([...entries, entry]);
+    setCurrentId("");
+    setCurrentNome("");
+    setLookupResult(null);
+  };
+
+  const removeEntry = (idx: number) => {
+    onChange(entries.filter((_, i) => i !== idx));
+  };
+
+  return (
+    <div className="space-y-2 border border-border rounded-xl p-3">
+      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{label}</p>
+      {entries.length > 0 && (
+        <div className="space-y-1">
+          {entries.map((entry, idx) => (
+            <div key={idx} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary/50 text-xs">
+              <User className="h-3 w-3 text-institutional" />
+              <span className="font-medium flex-1">{entry.nome}{entry.id_personagem ? ` (ID: ${entry.id_personagem})` : ""}</span>
+              <button type="button" onClick={() => removeEntry(idx)} className="text-destructive hover:text-destructive/80"><X className="h-3 w-3" /></button>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="flex gap-2">
+        <div className="flex-1 space-y-1.5">
+          <div className="relative">
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder={`ID do Personagem (${label})`} value={currentId} onChange={(e) => handleIdLookup(e.target.value)} className="rounded-xl pl-10" />
+          </div>
+          {lookupResult && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 text-xs">
+              <User className="h-3 w-3 text-green-600" />
+              <span className="text-green-800 dark:text-green-300 font-medium">{lookupResult.nome_completo}</span>
+            </div>
+          )}
+          <Input placeholder={`Nome do ${label}`} value={currentNome} onChange={(e) => setCurrentNome(e.target.value)} className="rounded-xl" readOnly={!!lookupResult} />
+        </div>
+        <Button type="button" variant="outline" size="icon" className="rounded-xl self-end" onClick={addEntry} disabled={!currentNome.trim()}>
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Status Config ─── */
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: any }> = {
   novo: { label: "Novo", color: "bg-institutional/10 text-institutional", icon: FileText },
@@ -107,12 +199,14 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
-  const autorLookup = useProfileLookup();
-  const reuLookup = useProfileLookup();
+
+
+
+  const [autores, setAutores] = useState<ParteEntry[]>([]);
+  const [reus, setReus] = useState<ParteEntry[]>([]);
 
   const [form, setForm] = useState({
-    classe: "civil", assunto: "", descricao: "", autor_nome: "", autor_id: "",
-    reu_nome: "", reu_id: "", vara: "1ª Vara Cível", valor_causa: "",
+    classe: "civil", assunto: "", descricao: "", vara: "1ª Vara Cível", valor_causa: "",
   });
 
   const { data: processos, isLoading } = useQuery({
@@ -124,33 +218,22 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
     },
   });
 
-  const handleAutorIdChange = async (id: string) => {
-    setForm((f) => ({ ...f, autor_id: id }));
-    const data = await autorLookup.lookup(id);
-    if (data) setForm((f) => ({ ...f, autor_nome: data.nome_completo }));
-  };
-
-  const handleReuIdChange = async (id: string) => {
-    setForm((f) => ({ ...f, reu_id: id }));
-    const data = await reuLookup.lookup(id);
-    if (data) setForm((f) => ({ ...f, reu_nome: data.nome_completo }));
-  };
-
   const createProcesso = useMutation({
     mutationFn: async () => {
-      // 1. Sortear magistrado via função do banco (prioriza quem tem menos processos ativos)
+      if (autores.length === 0) throw new Error("Adicione pelo menos um autor");
+      if (reus.length === 0) throw new Error("Adicione pelo menos um réu");
+
       const { data: sorteioData } = await supabase.rpc("sortear_magistrado");
       const juizId = sorteioData || null;
 
-      // 2. Get judge name for display
       let juizNome = "";
       if (juizId) {
         const { data: juizProfile } = await supabase.from("profiles").select("nome_completo").eq("user_id", juizId).maybeSingle();
         juizNome = juizProfile?.nome_completo || "";
       }
 
-      const autorDisplay = form.autor_id ? `${form.autor_nome} (ID: ${form.autor_id})` : form.autor_nome;
-      const reuDisplay = form.reu_id ? `${form.reu_nome} (ID: ${form.reu_id})` : form.reu_nome;
+      const autorDisplay = JSON.stringify(autores);
+      const reuDisplay = JSON.stringify(reus);
       const { data: processo, error } = await supabase.from("processos").insert({
         numero: "", classe: form.classe as any, assunto: form.assunto, descricao: form.descricao,
         autor_nome: autorDisplay, reu_nome: reuDisplay, vara: form.vara,
@@ -159,7 +242,6 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
       }).select().single();
       if (error) throw error;
 
-      // 3. Register lottery movement
       if (juizId && processo) {
         await supabase.from("movimentacoes").insert({
           processo_id: processo.id,
@@ -167,24 +249,25 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
           descricao: `Processo distribuído por sorteio ao(à) Juiz(a) de Direito ${juizNome || "designado(a)"}`,
           autor_id: user?.id,
         });
-
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["processos"] });
       setOpen(false);
-      setForm({ classe: "civil", assunto: "", descricao: "", autor_nome: "", autor_id: "", reu_nome: "", reu_id: "", vara: "1ª Vara Cível", valor_causa: "" });
-      autorLookup.clear(); reuLookup.clear();
+      setForm({ classe: "civil", assunto: "", descricao: "", vara: "1ª Vara Cível", valor_causa: "" });
+      setAutores([]); setReus([]);
       toast.success("Processo cadastrado e distribuído por sorteio!");
     },
     onError: (err: any) => toast.error(err.message),
   });
 
   const filtered = processos?.filter((p) => {
+    const autorDisplay = formatPartesShort(p.autor_nome);
+    const reuDisplay = formatPartesShort(p.reu_nome);
     const matchSearch = !search || p.numero?.toLowerCase().includes(search.toLowerCase()) ||
       p.assunto?.toLowerCase().includes(search.toLowerCase()) ||
-      p.autor_nome?.toLowerCase().includes(search.toLowerCase()) ||
-      p.reu_nome?.toLowerCase().includes(search.toLowerCase());
+      autorDisplay.toLowerCase().includes(search.toLowerCase()) ||
+      reuDisplay.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === "all" || p.status === statusFilter;
     return matchSearch && matchStatus;
   });
@@ -218,32 +301,8 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
                 </SelectContent>
               </Select>
               <Input placeholder="Assunto" value={form.assunto} onChange={(e) => setForm({ ...form, assunto: e.target.value })} required className="rounded-xl" />
-              <div className="space-y-1.5">
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="ID do Personagem (Autor)" value={form.autor_id} onChange={(e) => handleAutorIdChange(e.target.value)} className="rounded-xl pl-10" />
-                </div>
-                {autorLookup.result && (
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 text-xs">
-                    <User className="h-3 w-3 text-green-600" />
-                    <span className="text-green-800 dark:text-green-300 font-medium">{autorLookup.result.nome_completo}</span>
-                  </div>
-                )}
-                <Input placeholder="Nome do Autor" value={form.autor_nome} onChange={(e) => setForm({ ...form, autor_nome: e.target.value })} required className="rounded-xl" readOnly={!!autorLookup.result} />
-              </div>
-              <div className="space-y-1.5">
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="ID do Personagem (Réu)" value={form.reu_id} onChange={(e) => handleReuIdChange(e.target.value)} className="rounded-xl pl-10" />
-                </div>
-                {reuLookup.result && (
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 text-xs">
-                    <User className="h-3 w-3 text-green-600" />
-                    <span className="text-green-800 dark:text-green-300 font-medium">{reuLookup.result.nome_completo}</span>
-                  </div>
-                )}
-                <Input placeholder="Nome do Réu" value={form.reu_nome} onChange={(e) => setForm({ ...form, reu_nome: e.target.value })} required className="rounded-xl" readOnly={!!reuLookup.result} />
-              </div>
+              <MultiPartyInput label="Autor" entries={autores} onChange={setAutores} />
+              <MultiPartyInput label="Réu" entries={reus} onChange={setReus} />
               <Input placeholder="Vara" value={form.vara} onChange={(e) => setForm({ ...form, vara: e.target.value })} className="rounded-xl" />
               <Input placeholder="Valor da Causa (R$)" value={form.valor_causa} onChange={(e) => { const raw = e.target.value.replace(/\D/g, ""); setForm({ ...form, valor_causa: raw ? formatCurrency(raw) : "" }); }} className="rounded-xl" />
               <Textarea placeholder="Síntese (resumo) dos fatos" value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} className="rounded-xl" />
@@ -316,7 +375,7 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
                     </div>
                     <p className="text-sm font-medium text-foreground mt-1 truncate">{p.assunto}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      {p.autor_nome} × {p.reu_nome} — {p.vara}
+                      {formatPartesShort(p.autor_nome)} × {formatPartesShort(p.reu_nome)} — {p.vara}
                       {p.valor_causa ? ` • ${Number(p.valor_causa).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}` : ""}
                     </p>
                   </div>
@@ -846,10 +905,14 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
           <div className="border-t border-border pt-4">
             <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Partes e Representantes</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Autor */}
+              {/* Autor(es) */}
               <div className="bg-secondary/30 rounded-lg p-3">
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-1">Autor</p>
-                <p className="text-sm font-medium text-foreground">{processo.autor_nome}</p>
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-1">Autor(es)</p>
+                {parsePartesFromString(processo.autor_nome).map((p, idx) => (
+                  <p key={idx} className="text-sm font-medium text-foreground">
+                    {p.nome}{p.id_personagem ? <span className="text-xs text-muted-foreground ml-1">(ID: {p.id_personagem})</span> : ""}
+                  </p>
+                ))}
                 {advAutor.length > 0 && (
                   <div className="mt-2 space-y-1">
                     {advAutor.map((a: any) => (
@@ -860,10 +923,14 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                   </div>
                 )}
               </div>
-              {/* Réu */}
+              {/* Réu(s) */}
               <div className="bg-secondary/30 rounded-lg p-3">
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-1">Réu</p>
-                <p className="text-sm font-medium text-foreground">{processo.reu_nome}</p>
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-1">Réu(s)</p>
+                {parsePartesFromString(processo.reu_nome).map((p, idx) => (
+                  <p key={idx} className="text-sm font-medium text-foreground">
+                    {p.nome}{p.id_personagem ? <span className="text-xs text-muted-foreground ml-1">(ID: {p.id_personagem})</span> : ""}
+                  </p>
+                ))}
                 {advReu.length > 0 && (
                   <div className="mt-2 space-y-1">
                     {advReu.map((a: any) => (

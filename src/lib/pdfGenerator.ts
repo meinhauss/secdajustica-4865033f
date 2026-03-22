@@ -1,5 +1,17 @@
 import jsPDF from "jspdf";
 
+/** Parse JSON array partes or plain text for PDF display */
+function formatPartesForPdf(value: string): string {
+  if (!value) return "-";
+  try {
+    const parsed = JSON.parse(value);
+    if (Array.isArray(parsed)) {
+      return parsed.map((p: any) => p.id_personagem ? `${p.nome} (ID: ${p.id_personagem})` : p.nome).join(", ");
+    }
+  } catch { /* not JSON */ }
+  return value;
+}
+
 /* ─── Shared PDF helpers ─── */
 
 /** Sanitize text for jsPDF standard fonts (Latin1 only) */
@@ -102,8 +114,8 @@ export function generateProcessoPDF(params: {
     ["Juiz(a):", juizNome || "Nao atribuido"],
     ["Status:", processo.status?.replace(/_/g, " ").toUpperCase()],
     ["Data de Autuacao:", new Date(processo.created_at).toLocaleString("pt-BR")],
-    ["Autor:", processo.autor_nome],
-    ["Reu:", processo.reu_nome],
+    ["Autor(es):", formatPartesForPdf(processo.autor_nome)],
+    ["Reu(s):", formatPartesForPdf(processo.reu_nome)],
   ];
   if (processo.valor_causa) {
     infoRows.push(["Valor da Causa:", Number(processo.valor_causa).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })]);
