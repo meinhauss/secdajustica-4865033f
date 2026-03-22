@@ -102,8 +102,8 @@ export function generateProcessoPDF(params: {
     ["Juiz(a):", juizNome || "Nao atribuido"],
     ["Status:", processo.status?.replace(/_/g, " ").toUpperCase()],
     ["Data de Autuacao:", new Date(processo.created_at).toLocaleString("pt-BR")],
-    ["Autor:", processo.autor_nome],
-    ["Reu:", processo.reu_nome],
+    ["Autor(es):", formatPartesForPdf(processo.autor_nome)],
+    ["Reu(s):", formatPartesForPdf(processo.reu_nome)],
   ];
   if (processo.valor_causa) {
     infoRows.push(["Valor da Causa:", Number(processo.valor_causa).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })]);
