@@ -401,7 +401,7 @@ function MPDashboard({ isMP, onSelectIP, onSelectOuvidoria }: { isMP: boolean; o
 
         {/* COMUNICAÇÕES EXTERNAS TAB */}
         <TabsContent value="comunicacoes-externas" className="mt-4">
-          <ComunicacoesExternasTab isMP={isMP} />
+          <ComunicacoesExternasTab isMP={isMP} onSelectIP={onSelectIP} />
         </TabsContent>
 
         <TabsContent value="estatisticas" className="mt-4">
@@ -581,6 +581,20 @@ function InqueritoMPDetail({ ipId, onBack }: { ipId: string; onBack: () => void 
     },
   });
 
+  // Comunicações externas vinculadas ao inquérito
+  const { data: comunicacoesExternas } = useQuery({
+    queryKey: ["mp-ip-comunicacoes", ipId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("comunicacoes_externas" as any)
+        .select("*, api_keys_externas!api_key_id(orgao, nome_sistema)")
+        .eq("inquerito_id", ipId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
   // Boletim de Ocorrência vinculado
   const { data: bo } = useQuery({
     queryKey: ["mp-ip-bo", ip?.bo_id],
@@ -738,6 +752,7 @@ function InqueritoMPDetail({ ipId, onBack }: { ipId: string; onBack: () => void 
           <TabsTrigger value="envolvidos" className="rounded-lg text-xs"><AlertTriangle className="h-3 w-3 mr-1" /> Envolvidos ({envolvidos?.length || 0})</TabsTrigger>
           <TabsTrigger value="diligencias" className="rounded-lg text-xs"><Search className="h-3 w-3 mr-1" /> Diligências ({diligencias?.length || 0})</TabsTrigger>
           <TabsTrigger value="oitivas" className="rounded-lg text-xs"><BookOpen className="h-3 w-3 mr-1" /> Oitivas ({oitivas?.length || 0})</TabsTrigger>
+          {comunicacoesExternas && comunicacoesExternas.length > 0 && <TabsTrigger value="comunicacoes" className="rounded-lg text-xs"><MessageSquare className="h-3 w-3 mr-1" /> Comunicações ({comunicacoesExternas.length})</TabsTrigger>}
           {bo && <TabsTrigger value="bo" className="rounded-lg text-xs"><Shield className="h-3 w-3 mr-1" /> Boletim de Ocorrência</TabsTrigger>}
         </TabsList>
 
@@ -836,6 +851,51 @@ function InqueritoMPDetail({ ipId, onBack }: { ipId: string; onBack: () => void 
             ))
           )}
         </TabsContent>
+
+        {/* COMUNICAÇÕES EXTERNAS VINCULADAS */}
+        {comunicacoesExternas && comunicacoesExternas.length > 0 && (
+          <TabsContent value="comunicacoes" className="mt-4 space-y-3">
+            {comunicacoesExternas.map((c: any, i: number) => {
+              const orgaoLabels: Record<string, string> = {
+                policia_civil: "Polícia Civil", policia_federal: "Polícia Federal",
+                receita: "Receita Federal", ministerio_publico: "Ministério Público",
+              };
+              return (
+                <motion.div key={c.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
+                  className="bg-card rounded-xl p-4 border border-border shadow-institutional">
+                  <div className="flex items-center gap-2 flex-wrap mb-2">
+                    <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${c.direcao === 'entrada' ? 'bg-gold/10 text-gold-dark' : 'bg-institutional/10 text-institutional'}`}>
+                      {c.direcao === 'entrada' ? '⬇ Entrada' : '⬆ Saída'}
+                    </span>
+                    <span className="text-xs font-semibold text-foreground">{orgaoLabels[c.orgao_origem] || c.orgao_origem}</span>
+                    <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{c.tipo}</span>
+                  </div>
+                  <p className="text-sm font-semibold text-foreground">{c.titulo}</p>
+                  <p className="text-xs text-foreground mt-1 whitespace-pre-wrap">{c.conteudo}</p>
+                  {c.envolvidos && Array.isArray(c.envolvidos) && c.envolvidos.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase">Envolvidos:</p>
+                      {c.envolvidos.map((e: any, idx: number) => (
+                        <p key={idx} className="text-xs text-foreground">{e.nome || e} {e.id_personagem && `(ID: ${e.id_personagem})`}</p>
+                      ))}
+                    </div>
+                  )}
+                  {c.links && Array.isArray(c.links) && c.links.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase">Links:</p>
+                      {c.links.map((l: any, idx: number) => (
+                        <a key={idx} href={typeof l === "string" ? l : l.url} target="_blank" rel="noreferrer" className="text-xs text-institutional underline block">
+                          {typeof l === "string" ? l : l.descricao || l.url}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                  <p className="text-[10px] text-muted-foreground mt-2">{format(new Date(c.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
+                </motion.div>
+              );
+            })}
+          </TabsContent>
+        )}
 
         {/* BOLETIM DE OCORRÊNCIA */}
         {bo && (
@@ -1265,7 +1325,7 @@ function EnvolvidoCard({ title, items, icon: Icon, color }: { title: string; ite
 /* ═══════════════════════════════════════════ */
 /*  COMUNICAÇÕES EXTERNAS TAB                  */
 /* ═══════════════════════════════════════════ */
-function ComunicacoesExternasTab({ isMP }: { isMP: boolean }) {
+function ComunicacoesExternasTab({ isMP, onSelectIP }: { isMP: boolean; onSelectIP?: (id: string) => void }) {
   const { user, roles } = useAuth();
   const queryClient = useQueryClient();
   const [subTab, setSubTab] = useState<"inbox" | "api-keys" | "docs">("inbox");
@@ -1299,6 +1359,19 @@ function ComunicacoesExternasTab({ isMP }: { isMP: boolean }) {
       return data as any[];
     },
     enabled: isAdmin,
+  });
+
+  // Fetch linked inqueritos for display
+  const inqueritoIds = [...new Set((comunicacoes || []).map((c: any) => c.inquerito_id).filter(Boolean))];
+  const { data: linkedInqueritos } = useQuery({
+    queryKey: ["linked-inqueritos", inqueritoIds],
+    queryFn: async () => {
+      if (inqueritoIds.length === 0) return [];
+      const { data, error } = await supabase.from("inqueritos").select("id, numero, status").in("id", inqueritoIds);
+      if (error) throw error;
+      return data;
+    },
+    enabled: inqueritoIds.length > 0,
   });
 
   const createKey = useMutation({
@@ -1340,10 +1413,10 @@ function ComunicacoesExternasTab({ isMP }: { isMP: boolean }) {
         titulo: respostaForm.titulo,
         conteudo: respostaForm.conteudo,
         resposta_a: respostaForm.comunicacao_id,
+        inquerito_id: original.inquerito_id || null,
         status: "pendente",
       });
       if (error) throw error;
-      // Mark original as respondido
       await supabase.from("comunicacoes_externas" as any).update({ status: "respondido" }).eq("id", respostaForm.comunicacao_id);
     },
     onSuccess: () => {
@@ -1384,6 +1457,11 @@ function ComunicacoesExternasTab({ isMP }: { isMP: boolean }) {
 
   const entradas = comunicacoes?.filter((c: any) => c.direcao === "entrada") || [];
 
+  const getLinkedInquerito = (inqueritoId: string | null) => {
+    if (!inqueritoId || !linkedInqueritos) return null;
+    return linkedInqueritos.find((ip) => ip.id === inqueritoId);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex gap-2">
@@ -1406,50 +1484,76 @@ function ComunicacoesExternasTab({ isMP }: { isMP: boolean }) {
           {!entradas.length ? (
             <EmptyState icon={MessageSquare} text="Nenhuma comunicação externa recebida." />
           ) : (
-            entradas.map((c: any, i: number) => (
-              <motion.div key={c.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
-                className="bg-card rounded-xl p-4 border border-border shadow-institutional">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs font-semibold text-institutional">{orgaoLabels[c.orgao_origem] || c.orgao_origem}</span>
-                      <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${statusColors[c.status] || ""}`}>{c.status}</span>
-                      <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{tipoLabels[c.tipo] || c.tipo}</span>
+            entradas.map((c: any, i: number) => {
+              const linkedIP = getLinkedInquerito(c.inquerito_id);
+              const ipCfg = linkedIP ? (IP_STATUS[linkedIP.status] || IP_STATUS.remetido_mp) : null;
+              return (
+                <motion.div key={c.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
+                  className="bg-card rounded-xl p-4 border border-border shadow-institutional">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-semibold text-institutional">{orgaoLabels[c.orgao_origem] || c.orgao_origem}</span>
+                        <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${statusColors[c.status] || ""}`}>{c.status}</span>
+                        <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{tipoLabels[c.tipo] || c.tipo}</span>
+                      </div>
+                      <p className="text-sm font-semibold text-foreground mt-1">{c.titulo}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{c.conteudo}</p>
+                      {c.numero_referencia && <p className="text-xs text-muted-foreground mt-0.5">Ref: {c.numero_referencia}</p>}
+
+                      {/* Linked Inquérito */}
+                      {linkedIP && (
+                        <div
+                          className="mt-2 flex items-center gap-2 bg-institutional/5 border border-institutional/20 rounded-lg px-3 py-2 cursor-pointer hover:bg-institutional/10 transition-colors"
+                          onClick={() => onSelectIP?.(linkedIP.id)}
+                        >
+                          <Shield className="h-4 w-4 text-institutional flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-institutional">{linkedIP.numero}</p>
+                            <p className="text-[10px] text-muted-foreground">Inquérito vinculado — clique para ver detalhes e tomar decisões</p>
+                          </div>
+                          {ipCfg && <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${ipCfg.color}`}>{ipCfg.label}</span>}
+                          <ChevronRight className="h-4 w-4 text-institutional flex-shrink-0" />
+                        </div>
+                      )}
+
+                      {c.envolvidos && Array.isArray(c.envolvidos) && c.envolvidos.length > 0 && (
+                        <div className="mt-1">
+                          <p className="text-[10px] font-semibold text-muted-foreground uppercase">Envolvidos:</p>
+                          {c.envolvidos.map((e: any, idx: number) => (
+                            <p key={idx} className="text-xs text-foreground">{e.nome || e} {e.id_personagem && `(ID: ${e.id_personagem})`}</p>
+                          ))}
+                        </div>
+                      )}
+                      {c.links && Array.isArray(c.links) && c.links.length > 0 && (
+                        <div className="mt-1">
+                          <p className="text-[10px] font-semibold text-muted-foreground uppercase">Links:</p>
+                          {c.links.map((l: any, idx: number) => (
+                            <a key={idx} href={typeof l === "string" ? l : l.url} target="_blank" rel="noreferrer" className="text-xs text-institutional underline block">{typeof l === "string" ? l : l.descricao || l.url}</a>
+                          ))}
+                        </div>
+                      )}
+                      <p className="text-[10px] text-muted-foreground mt-1">{format(new Date(c.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
                     </div>
-                    <p className="text-sm font-semibold text-foreground mt-1">{c.titulo}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{c.conteudo}</p>
-                    {c.numero_referencia && <p className="text-xs text-muted-foreground mt-0.5">Ref: {c.numero_referencia}</p>}
-                    {c.envolvidos && Array.isArray(c.envolvidos) && c.envolvidos.length > 0 && (
-                      <div className="mt-1">
-                        <p className="text-[10px] font-semibold text-muted-foreground uppercase">Envolvidos:</p>
-                        {c.envolvidos.map((e: any, idx: number) => (
-                          <p key={idx} className="text-xs text-foreground">{e.nome || e} {e.id_personagem && `(ID: ${e.id_personagem})`}</p>
-                        ))}
-                      </div>
-                    )}
-                    {c.links && Array.isArray(c.links) && c.links.length > 0 && (
-                      <div className="mt-1">
-                        <p className="text-[10px] font-semibold text-muted-foreground uppercase">Links:</p>
-                        {c.links.map((l: any, idx: number) => (
-                          <a key={idx} href={typeof l === "string" ? l : l.url} target="_blank" rel="noreferrer" className="text-xs text-institutional underline block">{typeof l === "string" ? l : l.descricao || l.url}</a>
-                        ))}
-                      </div>
-                    )}
-                    <p className="text-[10px] text-muted-foreground mt-1">{format(new Date(c.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    {c.status === "pendente" && (
-                      <Button size="sm" variant="outline" onClick={() => marcarLido(c.id)} className="text-xs">
-                        <Eye className="h-3 w-3 mr-1" /> Lido
+                    <div className="flex flex-col gap-1">
+                      {c.status === "pendente" && (
+                        <Button size="sm" variant="outline" onClick={() => marcarLido(c.id)} className="text-xs">
+                          <Eye className="h-3 w-3 mr-1" /> Lido
+                        </Button>
+                      )}
+                      {linkedIP && onSelectIP && (
+                        <Button size="sm" variant="outline" onClick={() => onSelectIP(linkedIP.id)} className="text-xs bg-institutional/10 text-institutional border-institutional/30 hover:bg-institutional/20">
+                          <Shield className="h-3 w-3 mr-1" /> Ver Inquérito
+                        </Button>
+                      )}
+                      <Button size="sm" variant="outline" onClick={() => { setRespostaForm({ titulo: `RE: ${c.titulo}`, conteudo: "", comunicacao_id: c.id }); setOpenResponder(true); }} className="text-xs">
+                        <Send className="h-3 w-3 mr-1" /> Responder
                       </Button>
-                    )}
-                    <Button size="sm" variant="outline" onClick={() => { setRespostaForm({ titulo: `RE: ${c.titulo}`, conteudo: "", comunicacao_id: c.id }); setOpenResponder(true); }} className="text-xs">
-                      <Send className="h-3 w-3 mr-1" /> Responder
-                    </Button>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            ))
+                </motion.div>
+              );
+            })
           )}
         </div>
       )}
@@ -1505,16 +1609,26 @@ function ComunicacoesExternasTab({ isMP }: { isMP: boolean }) {
       {/* DOCUMENTAÇÃO */}
       {subTab === "docs" && (
         <div className="bg-card rounded-xl p-6 border border-border shadow-institutional space-y-4">
-          <h3 className="text-lg font-bold text-foreground">📡 Documentação da API do MP</h3>
+          <h3 className="text-lg font-bold text-foreground">📡 Documentação da API do MP — v2.0</h3>
           <p className="text-sm text-muted-foreground">
             Esta API permite que sistemas externos (Delegacia Virtual, Polícia Federal, Receita Federal) enviem inquéritos,
-            denúncias e comunicações diretamente ao Ministério Público, e recebam respostas.
+            denúncias e comunicações diretamente ao Ministério Público. Inquéritos e denúncias enviados são automaticamente
+            registrados no sistema do MP, permitindo ao Promotor oferecer denúncia criminal, arquivar ou requisitar diligências.
           </p>
+
+          <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-lg p-4">
+            <h4 className="text-sm font-bold text-green-800 dark:text-green-400 mb-1">✨ Novidade v2.0 — Inquéritos integrados</h4>
+            <p className="text-xs text-green-700 dark:text-green-500">
+              Ao enviar um inquérito ou denúncia, o sistema cria automaticamente um registro de inquérito no MP.
+              Use os novos endpoints <code className="bg-green-200 dark:bg-green-900 px-1 rounded">GET /meus-inqueritos</code> e <code className="bg-green-200 dark:bg-green-900 px-1 rounded">GET /inquerito/:id</code> para
+              acompanhar o andamento completo, incluindo diligências, requisições, denúncias oferecidas e arquivamentos.
+            </p>
+          </div>
 
           <div className="space-y-4">
             <div>
               <h4 className="text-sm font-bold text-foreground">🔑 Autenticação</h4>
-              <p className="text-xs text-muted-foreground mb-1">Todas as requisições devem incluir o header <code className="bg-secondary px-1 rounded">X-API-Key</code> com a chave fornecida pelo administrador.</p>
+              <p className="text-xs text-muted-foreground mb-1">Todas as requisições devem incluir o header <code className="bg-secondary px-1 rounded">X-API-Key</code>.</p>
               <pre className="bg-secondary/50 p-3 rounded-lg text-xs font-mono overflow-x-auto">
 {`Headers:
   X-API-Key: sua-api-key-aqui
@@ -1529,9 +1643,10 @@ function ComunicacoesExternasTab({ isMP }: { isMP: boolean }) {
 
             <div>
               <h4 className="text-sm font-bold text-foreground">📨 POST /enviar-inquerito</h4>
-              <p className="text-xs text-muted-foreground mb-1">Envia um inquérito policial para análise do MP.</p>
+              <p className="text-xs text-muted-foreground mb-1">Envia um inquérito policial. Cria automaticamente um inquérito no sistema do MP com envolvidos.</p>
               <pre className="bg-secondary/50 p-3 rounded-lg text-xs font-mono overflow-x-auto">
-{`{
+{`Request:
+{
   "titulo": "Inquérito sobre furto qualificado",
   "conteudo": "Descrição detalhada dos fatos...",
   "envolvidos": [
@@ -1542,34 +1657,49 @@ function ComunicacoesExternasTab({ isMP }: { isMP: boolean }) {
     { "url": "https://drive.google.com/...", "descricao": "Relatório de perícia" }
   ],
   "numero_referencia": "IP-000123/2026"
+}
+
+Response:
+{
+  "sucesso": true,
+  "mensagem": "Inquérito enviado ao MP com sucesso e registrado no sistema",
+  "id": "uuid-comunicacao",
+  "inquerito_id": "uuid-inquerito",
+  "inquerito_numero": "IP-000001/2026",
+  "criado_em": "2026-03-24T..."
 }`}
               </pre>
             </div>
 
             <div>
               <h4 className="text-sm font-bold text-foreground">📨 POST /enviar-denuncia</h4>
-              <p className="text-xs text-muted-foreground mb-1">Envia uma denúncia para o MP. Mesma estrutura do inquérito.</p>
+              <p className="text-xs text-muted-foreground mb-1">Envia uma denúncia. Mesma estrutura do inquérito. Também cria inquérito vinculado.</p>
             </div>
 
             <div>
               <h4 className="text-sm font-bold text-foreground">📨 POST /enviar-comunicacao</h4>
-              <p className="text-xs text-muted-foreground mb-1">Envia uma comunicação genérica. Aceita campo adicional <code className="bg-secondary px-1 rounded">resposta_a</code> (UUID) para responder a uma comunicação do MP.</p>
+              <p className="text-xs text-muted-foreground mb-1">Comunicação genérica. Aceita <code className="bg-secondary px-1 rounded">resposta_a</code> (UUID) e <code className="bg-secondary px-1 rounded">inquerito_id</code> (UUID) para vincular a um inquérito.</p>
             </div>
 
             <div>
-              <h4 className="text-sm font-bold text-foreground">📥 GET /comunicacoes</h4>
-              <p className="text-xs text-muted-foreground mb-1">Lista comunicações enviadas pelo MP para o seu órgão.</p>
+              <h4 className="text-sm font-bold text-foreground">📋 GET /meus-inqueritos <span className="text-green-600 text-[10px] ml-1">NOVO</span></h4>
+              <p className="text-xs text-muted-foreground mb-1">Lista todos os inquéritos enviados pelo seu órgão, com status atualizado.</p>
               <pre className="bg-secondary/50 p-3 rounded-lg text-xs font-mono overflow-x-auto">
-{`Parâmetros (query string):
-  ?status=pendente     (opcional)
-  ?desde=2026-01-01    (opcional, ISO date)
-  ?limite=50           (opcional, default 50)
-  ?pagina=1            (opcional, default 1)
+{`Parâmetros: ?limite=50&pagina=1
 
-Resposta:
+Response:
 {
-  "comunicacoes": [...],
-  "total": 42,
+  "inqueritos": [
+    {
+      "id": "uuid",
+      "numero": "IP-000001/2026",
+      "status": "remetido_mp",
+      "descricao": "...",
+      "data_instauracao": "2026-03-24T...",
+      ...
+    }
+  ],
+  "total": 5,
   "pagina": 1,
   "limite": 50
 }`}
@@ -1577,39 +1707,69 @@ Resposta:
             </div>
 
             <div>
-              <h4 className="text-sm font-bold text-foreground">📥 GET /comunicacoes/:id</h4>
-              <p className="text-xs text-muted-foreground mb-1">Busca uma comunicação específica pelo ID.</p>
-            </div>
-
-            <div>
-              <h4 className="text-sm font-bold text-foreground">✅ PUT /marcar-lido/:id</h4>
-              <p className="text-xs text-muted-foreground mb-1">Marca uma comunicação do MP como lida pelo sistema externo.</p>
-            </div>
-
-            <div>
-              <h4 className="text-sm font-bold text-foreground">🟢 GET /status</h4>
-              <p className="text-xs text-muted-foreground mb-1">Verifica o status da API e identifica o órgão autenticado.</p>
+              <h4 className="text-sm font-bold text-foreground">🔍 GET /inquerito/:id <span className="text-green-600 text-[10px] ml-1">NOVO</span></h4>
+              <p className="text-xs text-muted-foreground mb-1">Acompanha o andamento completo de um inquérito: envolvidos, diligências, requisições do MP, denúncias oferecidas e arquivamentos.</p>
               <pre className="bg-secondary/50 p-3 rounded-lg text-xs font-mono overflow-x-auto">
-{`Resposta:
+{`Response:
 {
-  "status": "online",
-  "orgao": "policia_civil",
-  "sistema": "Delegacia Virtual SP",
-  "versao_api": "1.0.0"
+  "inquerito": { "id": "...", "numero": "IP-...", "status": "remetido_mp", ... },
+  "envolvidos": [{ "nome": "João", "tipo": "investigado", ... }],
+  "diligencias": [{ "tipo": "investigacao", "status": "concluida", ... }],
+  "requisicoes_mp": [{ "descricao": "...", "prazo_dias": 10, "status": "pendente" }],
+  "comunicacoes": [{ "titulo": "...", "direcao": "entrada", ... }],
+  "denuncias": [{ "numero_protocolo": "DN-...", "status": "oferecida", ... }],
+  "arquivamentos": []
 }`}
               </pre>
             </div>
 
             <div>
-              <h4 className="text-sm font-bold text-foreground">💡 Exemplo com cURL</h4>
+              <h4 className="text-sm font-bold text-foreground">📥 GET /comunicacoes</h4>
+              <p className="text-xs text-muted-foreground mb-1">Lista comunicações do MP para o seu órgão. Agora inclui <code className="bg-secondary px-1 rounded">inquerito_id</code> em cada comunicação.</p>
               <pre className="bg-secondary/50 p-3 rounded-lg text-xs font-mono overflow-x-auto">
-{`curl -X POST "${baseUrl}/enviar-inquerito" \\
+{`Parâmetros: ?status=pendente&desde=2026-01-01&limite=50&pagina=1`}
+              </pre>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-bold text-foreground">✅ PUT /marcar-lido/:id</h4>
+              <p className="text-xs text-muted-foreground mb-1">Marca uma comunicação do MP como lida.</p>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-bold text-foreground">🟢 GET /status</h4>
+              <p className="text-xs text-muted-foreground mb-1">Verifica o status da API e identifica o órgão autenticado.</p>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-bold text-foreground">💡 Exemplo completo com cURL</h4>
+              <pre className="bg-secondary/50 p-3 rounded-lg text-xs font-mono overflow-x-auto">
+{`# 1. Enviar inquérito
+curl -X POST "${baseUrl}/enviar-inquerito" \\
   -H "X-API-Key: sua-api-key" \\
   -H "Content-Type: application/json" \\
   -d '{
     "titulo": "Inquérito furto qualificado",
     "conteudo": "Descrição dos fatos...",
     "envolvidos": [{"nome": "João", "tipo": "investigado"}]
+  }'
+
+# 2. Acompanhar inquérito
+curl "${baseUrl}/inquerito/UUID_DO_INQUERITO" \\
+  -H "X-API-Key: sua-api-key"
+
+# 3. Listar todos os inquéritos
+curl "${baseUrl}/meus-inqueritos" \\
+  -H "X-API-Key: sua-api-key"
+
+# 4. Enviar comunicação vinculada ao inquérito
+curl -X POST "${baseUrl}/enviar-comunicacao" \\
+  -H "X-API-Key: sua-api-key" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "titulo": "Complemento de informações",
+    "conteudo": "Segue relatório adicional...",
+    "inquerito_id": "UUID_DO_INQUERITO"
   }'`}
               </pre>
             </div>
