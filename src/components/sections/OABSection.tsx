@@ -95,6 +95,11 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
   const [newStatus, setNewStatus] = useState("");
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; carteira: any }>({ open: false, carteira: null });
   const [complementacaoTexto, setComplementacaoTexto] = useState("");
+  const [openPAD, setOpenPAD] = useState(false);
+  const [padForm, setPadForm] = useState({ advogado_user_id: "", tipo: "denuncia", descricao: "" });
+  const [selectedDisciplinar, setSelectedDisciplinar] = useState<any>(null);
+  const [padAction, setPadAction] = useState<{ open: boolean; disc: any; action: string }>({ open: false, disc: null, action: "" });
+  const [padActionTexto, setPadActionTexto] = useState("");
 
   // Data
   const { data: inscricoes } = useQuery({
@@ -270,6 +275,47 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
       setDeleteDialog({ open: false, carteira: null });
       setSelectedCarteira(null);
       toast.success("Cadastro de advogado excluído e cargo revogado!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  // ── INSTAURAR PAD ──
+  const instaurarPAD = useMutation({
+    mutationFn: async () => {
+      if (!padForm.advogado_user_id || !padForm.descricao.trim()) throw new Error("Selecione o advogado e descreva os fatos.");
+      const { error } = await supabase.from("procedimentos_disciplinares").insert({
+        advogado_user_id: padForm.advogado_user_id,
+        denunciante_id: user!.id,
+        tipo: padForm.tipo,
+        descricao: padForm.descricao,
+        status: "aberto",
+      } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["oab-disciplinares"] });
+      setOpenPAD(false);
+      setPadForm({ advogado_user_id: "", tipo: "denuncia", descricao: "" });
+      toast.success("Processo Administrativo Disciplinar instaurado!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  // ── ATUALIZAR PAD (parecer, sanção, status) ──
+  const atualizarPAD = useMutation({
+    mutationFn: async ({ id, status, parecer, sancao }: { id: string; status: string; parecer?: string; sancao?: string }) => {
+      const updates: any = { status };
+      if (parecer) updates.parecer = parecer;
+      if (sancao) updates.sancao = sancao;
+      const { error } = await supabase.from("procedimentos_disciplinares").update(updates).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["oab-disciplinares"] });
+      setPadAction({ open: false, disc: null, action: "" });
+      setPadActionTexto("");
+      setSelectedDisciplinar(null);
+      toast.success("Procedimento disciplinar atualizado!");
     },
     onError: (err: any) => toast.error(err.message),
   });
@@ -636,26 +682,128 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
         {/* DISCIPLINAR */}
         {isAdmin && (
           <TabsContent value="disciplinar" className="mt-4">
-            {!disciplinares?.length ? <EmptyState icon={AlertTriangle} text="Nenhum procedimento disciplinar." /> : (
-              <div className="space-y-2">
-                {disciplinares.map((d: any, i: number) => {
-                  const cfg = DISC_STATUS[d.status] || DISC_STATUS.aberto;
-                  return (
-                    <motion.div key={d.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
-                      className="bg-card rounded-xl p-4 border border-border shadow-institutional">
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <AlertTriangle className="h-4 w-4 text-destructive" />
-                        <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${cfg.color}`}>{cfg.label}</span>
-                        <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{d.tipo}</span>
+            <div className="space-y-4">
+              {/* Button to create new PAD */}
+              <div className="flex justify-end">
+                <Dialog open={openPAD} onOpenChange={setOpenPAD}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="rounded-xl bg-destructive hover:bg-destructive/90 text-destructive-foreground">
+                      <Plus className="h-4 w-4 mr-1" /> Instaurar PAD
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader><DialogTitle className="font-display">Instaurar Processo Administrativo Disciplinar</DialogTitle></DialogHeader>
+                    <form onSubmit={(e) => { e.preventDefault(); instaurarPAD.mutate(); }} className="space-y-4 mt-4">
+                      <div>
+                        <label className="text-xs text-muted-foreground">Advogado Investigado</label>
+                        <Select value={padForm.advogado_user_id} onValueChange={(v) => setPadForm({ ...padForm, advogado_user_id: v })}>
+                          <SelectTrigger className="rounded-xl"><SelectValue placeholder="Selecione o advogado" /></SelectTrigger>
+                          <SelectContent>
+                            {carteiras?.filter((c: any) => c.status === "ativo").map((c: any) => (
+                              <SelectItem key={c.user_id} value={c.user_id}>{c.nome_completo} — {c.numero_oab}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
-                      <p className="text-sm text-foreground line-clamp-2">{d.descricao}</p>
-                      {d.sancao && <p className="text-xs text-destructive mt-1">Sanção: {d.sancao}</p>}
-                      <p className="text-xs text-muted-foreground mt-1">{format(new Date(d.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
-                    </motion.div>
-                  );
-                })}
+                      <div>
+                        <label className="text-xs text-muted-foreground">Tipo</label>
+                        <Select value={padForm.tipo} onValueChange={(v) => setPadForm({ ...padForm, tipo: v })}>
+                          <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="denuncia">Denúncia</SelectItem>
+                            <SelectItem value="representacao">Representação</SelectItem>
+                            <SelectItem value="ex_officio">Ex Officio</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground">Descrição dos Fatos</label>
+                        <Textarea placeholder="Descreva detalhadamente os fatos que motivam a instauração do PAD..." value={padForm.descricao} onChange={(e) => setPadForm({ ...padForm, descricao: e.target.value })} rows={5} className="rounded-xl" required />
+                      </div>
+                      <Button type="submit" disabled={instaurarPAD.isPending} className="w-full rounded-xl bg-destructive hover:bg-destructive/90 text-destructive-foreground">
+                        {instaurarPAD.isPending ? "Instaurando..." : "Instaurar PAD"}
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
               </div>
-            )}
+
+              {/* PAD List */}
+              {!disciplinares?.length ? <EmptyState icon={AlertTriangle} text="Nenhum procedimento disciplinar." /> : (
+                <div className="space-y-2">
+                  {disciplinares.map((d: any, i: number) => {
+                    const cfg = DISC_STATUS[d.status] || DISC_STATUS.aberto;
+                    const advogado = carteiras?.find((c: any) => c.user_id === d.advogado_user_id);
+                    const isExpanded = selectedDisciplinar?.id === d.id;
+                    return (
+                      <motion.div key={d.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
+                        onClick={() => setSelectedDisciplinar(isExpanded ? null : d)}
+                        className={`bg-card rounded-xl p-4 border shadow-institutional cursor-pointer transition-all ${isExpanded ? 'border-destructive/40 ring-2 ring-destructive/10' : 'border-border hover:border-destructive/20'}`}>
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <AlertTriangle className="h-4 w-4 text-destructive" />
+                          <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${cfg.color}`}>{cfg.label}</span>
+                          <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{d.tipo}</span>
+                          <span className="text-xs text-muted-foreground ml-auto">{format(new Date(d.created_at), "dd/MM/yyyy", { locale: ptBR })}</span>
+                        </div>
+                        {advogado && (
+                          <p className="text-sm font-semibold text-foreground">{advogado.nome_completo} <span className="text-xs font-mono text-institutional">{advogado.numero_oab}</span></p>
+                        )}
+                        <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{d.descricao}</p>
+                        {d.sancao && <p className="text-xs text-destructive mt-1">Sanção: {d.sancao}</p>}
+
+                        {/* Expanded detail */}
+                        {isExpanded && (
+                          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="mt-4 pt-4 border-t border-border space-y-3" onClick={(e) => e.stopPropagation()}>
+                            <div className="bg-secondary/30 rounded-lg p-3">
+                              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Descrição Completa</p>
+                              <p className="text-sm text-foreground whitespace-pre-wrap">{d.descricao}</p>
+                            </div>
+                            {d.parecer && (
+                              <div className="bg-institutional/5 rounded-lg p-3 border border-institutional/20">
+                                <p className="text-[10px] text-institutional uppercase tracking-wider font-semibold mb-1">Parecer</p>
+                                <p className="text-sm text-foreground whitespace-pre-wrap">{d.parecer}</p>
+                              </div>
+                            )}
+                            {d.sancao && (
+                              <div className="bg-destructive/5 rounded-lg p-3 border border-destructive/20">
+                                <p className="text-[10px] text-destructive uppercase tracking-wider font-semibold mb-1">Sanção Aplicada</p>
+                                <p className="text-sm text-foreground">{d.sancao}</p>
+                              </div>
+                            )}
+
+                            {/* Action buttons */}
+                            {d.status !== "arquivado" && (
+                              <div className="flex gap-2 flex-wrap pt-2">
+                                <Button size="sm" variant="outline" className="rounded-lg h-8 text-xs"
+                                  onClick={() => { setPadActionTexto(""); setPadAction({ open: true, disc: d, action: "parecer" }); }}>
+                                  <FileText className="h-3 w-3 mr-1" /> Emitir Parecer
+                                </Button>
+                                <Button size="sm" variant="outline" className="rounded-lg h-8 text-xs"
+                                  onClick={() => { setPadActionTexto(""); setPadAction({ open: true, disc: d, action: "em_analise" }); }}>
+                                  <Scale className="h-3 w-3 mr-1" /> Em Análise
+                                </Button>
+                                <Button size="sm" variant="outline" className="rounded-lg h-8 text-xs text-accent-foreground border-accent/30"
+                                  onClick={() => { setPadActionTexto(""); setPadAction({ open: true, disc: d, action: "advertencia" }); }}>
+                                  <AlertTriangle className="h-3 w-3 mr-1" /> Advertência
+                                </Button>
+                                <Button size="sm" variant="outline" className="rounded-lg h-8 text-xs text-destructive border-destructive/30"
+                                  onClick={() => { setPadActionTexto(""); setPadAction({ open: true, disc: d, action: "suspensao" }); }}>
+                                  <XCircle className="h-3 w-3 mr-1" /> Suspensão
+                                </Button>
+                                <Button size="sm" variant="outline" className="rounded-lg h-8 text-xs"
+                                  onClick={() => atualizarPAD.mutate({ id: d.id, status: "arquivado" })}>
+                                  Arquivar
+                                </Button>
+                              </div>
+                            )}
+                          </motion.div>
+                        )}
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </TabsContent>
         )}
 
@@ -835,6 +983,55 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
                 disabled={excluirAdvogado.isPending}
                 onClick={() => deleteDialog.carteira && excluirAdvogado.mutate(deleteDialog.carteira)}>
                 {excluirAdvogado.isPending ? "Excluindo..." : "Confirmar Exclusão"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── DIALOG: Ação no PAD (parecer, advertência, suspensão) ── */}
+      <Dialog open={padAction.open} onOpenChange={(open) => setPadAction({ ...padAction, open })}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display">
+              {padAction.action === "parecer" ? "Emitir Parecer" :
+               padAction.action === "advertencia" ? "Aplicar Advertência" :
+               padAction.action === "suspensao" ? "Aplicar Suspensão" :
+               "Atualizar Procedimento"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <Textarea
+              placeholder={
+                padAction.action === "parecer" ? "Escreva o parecer sobre o procedimento disciplinar..." :
+                padAction.action === "advertencia" ? "Descreva a advertência e seus fundamentos..." :
+                padAction.action === "suspensao" ? "Descreva a suspensão, prazo e fundamentos..." :
+                "Observações..."
+              }
+              value={padActionTexto}
+              onChange={(e) => setPadActionTexto(e.target.value)}
+              rows={5}
+              className="rounded-xl"
+            />
+            <div className="flex gap-2">
+              <Button variant="outline" className="rounded-xl flex-1" onClick={() => setPadAction({ open: false, disc: null, action: "" })}>
+                Cancelar
+              </Button>
+              <Button
+                className={`rounded-xl flex-1 ${["advertencia", "suspensao"].includes(padAction.action) ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground" : "bg-institutional hover:bg-institutional-light text-gold-light"}`}
+                disabled={!padActionTexto.trim() || atualizarPAD.isPending}
+                onClick={() => {
+                  if (!padAction.disc) return;
+                  const isSancao = ["advertencia", "suspensao"].includes(padAction.action);
+                  atualizarPAD.mutate({
+                    id: padAction.disc.id,
+                    status: padAction.action === "parecer" ? "em_analise" : padAction.action,
+                    parecer: padAction.action === "parecer" ? padActionTexto.trim() : undefined,
+                    sancao: isSancao ? padActionTexto.trim() : undefined,
+                  });
+                }}
+              >
+                {atualizarPAD.isPending ? "Salvando..." : "Confirmar"}
               </Button>
             </div>
           </div>
