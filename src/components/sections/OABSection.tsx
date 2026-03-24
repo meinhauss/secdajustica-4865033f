@@ -279,6 +279,47 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
     onError: (err: any) => toast.error(err.message),
   });
 
+  // ── INSTAURAR PAD ──
+  const instaurarPAD = useMutation({
+    mutationFn: async () => {
+      if (!padForm.advogado_user_id || !padForm.descricao.trim()) throw new Error("Selecione o advogado e descreva os fatos.");
+      const { error } = await supabase.from("procedimentos_disciplinares").insert({
+        advogado_user_id: padForm.advogado_user_id,
+        denunciante_id: user!.id,
+        tipo: padForm.tipo,
+        descricao: padForm.descricao,
+        status: "aberto",
+      } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["oab-disciplinares"] });
+      setOpenPAD(false);
+      setPadForm({ advogado_user_id: "", tipo: "denuncia", descricao: "" });
+      toast.success("Processo Administrativo Disciplinar instaurado!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  // ── ATUALIZAR PAD (parecer, sanção, status) ──
+  const atualizarPAD = useMutation({
+    mutationFn: async ({ id, status, parecer, sancao }: { id: string; status: string; parecer?: string; sancao?: string }) => {
+      const updates: any = { status };
+      if (parecer) updates.parecer = parecer;
+      if (sancao) updates.sancao = sancao;
+      const { error } = await supabase.from("procedimentos_disciplinares").update(updates).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["oab-disciplinares"] });
+      setPadAction({ open: false, disc: null, action: "" });
+      setPadActionTexto("");
+      setSelectedDisciplinar(null);
+      toast.success("Procedimento disciplinar atualizado!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
   // ── COMUNICADO ──
   const [comForm, setComForm] = useState({ titulo: "", conteudo: "", tipo: "aviso" });
   const criarComunicado = useMutation({
