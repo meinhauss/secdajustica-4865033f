@@ -92,6 +92,36 @@ export type Database = {
           },
         ]
       }
+      api_keys_externas: {
+        Row: {
+          api_key: string
+          ativo: boolean
+          created_at: string
+          id: string
+          nome_sistema: string
+          orgao: string
+          updated_at: string
+        }
+        Insert: {
+          api_key?: string
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          nome_sistema: string
+          orgao: string
+          updated_at?: string
+        }
+        Update: {
+          api_key?: string
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          nome_sistema?: string
+          orgao?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       arquivamentos_mp: {
         Row: {
           created_at: string
@@ -386,6 +416,98 @@ export type Database = {
             columns: ["processo_id"]
             isOneToOne: false
             referencedRelation: "processos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comunicacoes_externas: {
+        Row: {
+          api_key_id: string
+          conteudo: string
+          created_at: string
+          denuncia_ouvidoria_id: string | null
+          direcao: string
+          envolvidos: Json | null
+          id: string
+          inquerito_id: string | null
+          lido_em: string | null
+          lido_por: string | null
+          links: Json | null
+          numero_referencia: string | null
+          orgao_origem: string
+          resposta_a: string | null
+          status: string
+          tipo: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          api_key_id: string
+          conteudo: string
+          created_at?: string
+          denuncia_ouvidoria_id?: string | null
+          direcao?: string
+          envolvidos?: Json | null
+          id?: string
+          inquerito_id?: string | null
+          lido_em?: string | null
+          lido_por?: string | null
+          links?: Json | null
+          numero_referencia?: string | null
+          orgao_origem: string
+          resposta_a?: string | null
+          status?: string
+          tipo?: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          api_key_id?: string
+          conteudo?: string
+          created_at?: string
+          denuncia_ouvidoria_id?: string | null
+          direcao?: string
+          envolvidos?: Json | null
+          id?: string
+          inquerito_id?: string | null
+          lido_em?: string | null
+          lido_por?: string | null
+          links?: Json | null
+          numero_referencia?: string | null
+          orgao_origem?: string
+          resposta_a?: string | null
+          status?: string
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comunicacoes_externas_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "api_keys_externas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comunicacoes_externas_denuncia_ouvidoria_id_fkey"
+            columns: ["denuncia_ouvidoria_id"]
+            isOneToOne: false
+            referencedRelation: "denuncias_ouvidoria"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comunicacoes_externas_inquerito_id_fkey"
+            columns: ["inquerito_id"]
+            isOneToOne: false
+            referencedRelation: "inqueritos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comunicacoes_externas_resposta_a_fkey"
+            columns: ["resposta_a"]
+            isOneToOne: false
+            referencedRelation: "comunicacoes_externas"
             referencedColumns: ["id"]
           },
         ]
