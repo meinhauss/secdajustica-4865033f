@@ -752,6 +752,7 @@ function InqueritoMPDetail({ ipId, onBack }: { ipId: string; onBack: () => void 
           <TabsTrigger value="envolvidos" className="rounded-lg text-xs"><AlertTriangle className="h-3 w-3 mr-1" /> Envolvidos ({envolvidos?.length || 0})</TabsTrigger>
           <TabsTrigger value="diligencias" className="rounded-lg text-xs"><Search className="h-3 w-3 mr-1" /> Diligências ({diligencias?.length || 0})</TabsTrigger>
           <TabsTrigger value="oitivas" className="rounded-lg text-xs"><BookOpen className="h-3 w-3 mr-1" /> Oitivas ({oitivas?.length || 0})</TabsTrigger>
+          {comunicacoesExternas && comunicacoesExternas.length > 0 && <TabsTrigger value="comunicacoes" className="rounded-lg text-xs"><MessageSquare className="h-3 w-3 mr-1" /> Comunicações ({comunicacoesExternas.length})</TabsTrigger>}
           {bo && <TabsTrigger value="bo" className="rounded-lg text-xs"><Shield className="h-3 w-3 mr-1" /> Boletim de Ocorrência</TabsTrigger>}
         </TabsList>
 
