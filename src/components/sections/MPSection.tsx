@@ -581,6 +581,20 @@ function InqueritoMPDetail({ ipId, onBack }: { ipId: string; onBack: () => void 
     },
   });
 
+  // Comunicações externas vinculadas ao inquérito
+  const { data: comunicacoesExternas } = useQuery({
+    queryKey: ["mp-ip-comunicacoes", ipId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("comunicacoes_externas" as any)
+        .select("*, api_keys_externas!api_key_id(orgao, nome_sistema)")
+        .eq("inquerito_id", ipId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
   // Boletim de Ocorrência vinculado
   const { data: bo } = useQuery({
     queryKey: ["mp-ip-bo", ip?.bo_id],
