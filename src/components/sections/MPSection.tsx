@@ -401,7 +401,7 @@ function MPDashboard({ isMP, onSelectIP, onSelectOuvidoria }: { isMP: boolean; o
 
         {/* COMUNICAÇÕES EXTERNAS TAB */}
         <TabsContent value="comunicacoes-externas" className="mt-4">
-          <ComunicacoesExternasTab isMP={isMP} />
+          <ComunicacoesExternasTab isMP={isMP} onSelectIP={onSelectIP} />
         </TabsContent>
 
         <TabsContent value="estatisticas" className="mt-4">
