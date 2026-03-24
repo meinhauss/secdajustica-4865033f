@@ -95,6 +95,11 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
   const [newStatus, setNewStatus] = useState("");
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; carteira: any }>({ open: false, carteira: null });
   const [complementacaoTexto, setComplementacaoTexto] = useState("");
+  const [openPAD, setOpenPAD] = useState(false);
+  const [padForm, setPadForm] = useState({ advogado_user_id: "", tipo: "denuncia", descricao: "" });
+  const [selectedDisciplinar, setSelectedDisciplinar] = useState<any>(null);
+  const [padAction, setPadAction] = useState<{ open: boolean; disc: any; action: string }>({ open: false, disc: null, action: "" });
+  const [padActionTexto, setPadActionTexto] = useState("");
 
   // Data
   const { data: inscricoes } = useQuery({
