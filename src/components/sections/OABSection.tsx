@@ -988,6 +988,55 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* ── DIALOG: Ação no PAD (parecer, advertência, suspensão) ── */}
+      <Dialog open={padAction.open} onOpenChange={(open) => setPadAction({ ...padAction, open })}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display">
+              {padAction.action === "parecer" ? "Emitir Parecer" :
+               padAction.action === "advertencia" ? "Aplicar Advertência" :
+               padAction.action === "suspensao" ? "Aplicar Suspensão" :
+               "Atualizar Procedimento"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <Textarea
+              placeholder={
+                padAction.action === "parecer" ? "Escreva o parecer sobre o procedimento disciplinar..." :
+                padAction.action === "advertencia" ? "Descreva a advertência e seus fundamentos..." :
+                padAction.action === "suspensao" ? "Descreva a suspensão, prazo e fundamentos..." :
+                "Observações..."
+              }
+              value={padActionTexto}
+              onChange={(e) => setPadActionTexto(e.target.value)}
+              rows={5}
+              className="rounded-xl"
+            />
+            <div className="flex gap-2">
+              <Button variant="outline" className="rounded-xl flex-1" onClick={() => setPadAction({ open: false, disc: null, action: "" })}>
+                Cancelar
+              </Button>
+              <Button
+                className={`rounded-xl flex-1 ${["advertencia", "suspensao"].includes(padAction.action) ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground" : "bg-institutional hover:bg-institutional-light text-gold-light"}`}
+                disabled={!padActionTexto.trim() || atualizarPAD.isPending}
+                onClick={() => {
+                  if (!padAction.disc) return;
+                  const isSancao = ["advertencia", "suspensao"].includes(padAction.action);
+                  atualizarPAD.mutate({
+                    id: padAction.disc.id,
+                    status: padAction.action === "parecer" ? "em_analise" : padAction.action,
+                    parecer: padAction.action === "parecer" ? padActionTexto.trim() : undefined,
+                    sancao: isSancao ? padActionTexto.trim() : undefined,
+                  });
+                }}
+              >
+                {atualizarPAD.isPending ? "Salvando..." : "Confirmar"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
