@@ -399,6 +399,11 @@ function MPDashboard({ isMP, onSelectIP, onSelectOuvidoria }: { isMP: boolean; o
           )}
         </TabsContent>
 
+        {/* COMUNICAÇÕES EXTERNAS TAB */}
+        <TabsContent value="comunicacoes-externas" className="mt-4">
+          <ComunicacoesExternasTab isMP={isMP} />
+        </TabsContent>
+
         <TabsContent value="estatisticas" className="mt-4">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             <div className="bg-card rounded-xl p-5 border border-border shadow-institutional text-center">
