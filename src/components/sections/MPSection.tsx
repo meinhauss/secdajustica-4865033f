@@ -224,6 +224,7 @@ function MPDashboard({ isMP, onSelectIP, onSelectOuvidoria }: { isMP: boolean; o
           <TabsTrigger value="processos" className="rounded-lg text-xs"><FileText className="h-3 w-3 mr-1" /> Processos ({stats.processos})</TabsTrigger>
           <TabsTrigger value="estatisticas" className="rounded-lg text-xs"><BarChart3 className="h-3 w-3 mr-1" /> Estatísticas</TabsTrigger>
           <TabsTrigger value="ouvidoria" className="rounded-lg text-xs"><AlertTriangle className="h-3 w-3 mr-1" /> Ouvidoria ({denunciasOuvidoria?.length || 0})</TabsTrigger>
+          <TabsTrigger value="comunicacoes-externas" className="rounded-lg text-xs"><MessageSquare className="h-3 w-3 mr-1" /> Comunicações Externas</TabsTrigger>
         </TabsList>
 
         {/* INQUÉRITOS TAB */}
@@ -396,6 +397,11 @@ function MPDashboard({ isMP, onSelectIP, onSelectOuvidoria }: { isMP: boolean; o
               })}
             </div>
           )}
+        </TabsContent>
+
+        {/* COMUNICAÇÕES EXTERNAS TAB */}
+        <TabsContent value="comunicacoes-externas" className="mt-4">
+          <ComunicacoesExternasTab isMP={isMP} />
         </TabsContent>
 
         <TabsContent value="estatisticas" className="mt-4">
@@ -1252,6 +1258,378 @@ function EnvolvidoCard({ title, items, icon: Icon, color }: { title: string; ite
       ) : (
         <p className="text-xs text-muted-foreground">Nenhum registro.</p>
       )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════ */
+/*  COMUNICAÇÕES EXTERNAS TAB                  */
+/* ═══════════════════════════════════════════ */
+function ComunicacoesExternasTab({ isMP }: { isMP: boolean }) {
+  const { user, roles } = useAuth();
+  const queryClient = useQueryClient();
+  const [subTab, setSubTab] = useState<"inbox" | "api-keys" | "docs">("inbox");
+  const [openKey, setOpenKey] = useState(false);
+  const [keyForm, setKeyForm] = useState({ orgao: "policia_civil", nome_sistema: "" });
+  const [openResponder, setOpenResponder] = useState(false);
+  const [respostaForm, setRespostaForm] = useState({ titulo: "", conteudo: "", comunicacao_id: "" });
+
+  const isAdmin = roles.includes("admin");
+  const baseUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/api-mp`;
+
+  // Comunicações recebidas (entrada)
+  const { data: comunicacoes } = useQuery({
+    queryKey: ["comunicacoes-externas"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("comunicacoes_externas" as any)
+        .select("*, api_keys_externas!api_key_id(orgao, nome_sistema)")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
+  // API Keys
+  const { data: apiKeys } = useQuery({
+    queryKey: ["api-keys-externas"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("api_keys_externas" as any).select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: isAdmin,
+  });
+
+  const createKey = useMutation({
+    mutationFn: async () => {
+      if (!keyForm.nome_sistema) throw new Error("Preencha o nome do sistema.");
+      const { error } = await supabase.from("api_keys_externas" as any).insert(keyForm);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("API Key criada com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ["api-keys-externas"] });
+      setOpenKey(false);
+      setKeyForm({ orgao: "policia_civil", nome_sistema: "" });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const toggleKey = useMutation({
+    mutationFn: async ({ id, ativo }: { id: string; ativo: boolean }) => {
+      const { error } = await supabase.from("api_keys_externas" as any).update({ ativo: !ativo }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Status atualizado!");
+      queryClient.invalidateQueries({ queryKey: ["api-keys-externas"] });
+    },
+  });
+
+  const responderComunicacao = useMutation({
+    mutationFn: async () => {
+      if (!respostaForm.titulo || !respostaForm.conteudo) throw new Error("Preencha todos os campos.");
+      const original = comunicacoes?.find((c: any) => c.id === respostaForm.comunicacao_id);
+      if (!original) throw new Error("Comunicação original não encontrada.");
+      const { error } = await supabase.from("comunicacoes_externas" as any).insert({
+        api_key_id: original.api_key_id,
+        orgao_origem: "ministerio_publico",
+        tipo: "resposta_mp",
+        direcao: "saida",
+        titulo: respostaForm.titulo,
+        conteudo: respostaForm.conteudo,
+        resposta_a: respostaForm.comunicacao_id,
+        status: "pendente",
+      });
+      if (error) throw error;
+      // Mark original as respondido
+      await supabase.from("comunicacoes_externas" as any).update({ status: "respondido" }).eq("id", respostaForm.comunicacao_id);
+    },
+    onSuccess: () => {
+      toast.success("Resposta enviada!");
+      queryClient.invalidateQueries({ queryKey: ["comunicacoes-externas"] });
+      setOpenResponder(false);
+      setRespostaForm({ titulo: "", conteudo: "", comunicacao_id: "" });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const marcarLido = async (id: string) => {
+    await supabase.from("comunicacoes_externas" as any).update({ status: "lido", lido_em: new Date().toISOString(), lido_por: user?.id }).eq("id", id);
+    queryClient.invalidateQueries({ queryKey: ["comunicacoes-externas"] });
+    toast.success("Marcado como lido.");
+  };
+
+  const orgaoLabels: Record<string, string> = {
+    policia_civil: "Polícia Civil",
+    policia_federal: "Polícia Federal",
+    receita: "Receita Federal",
+    ministerio_publico: "Ministério Público",
+  };
+
+  const tipoLabels: Record<string, string> = {
+    inquerito: "Inquérito",
+    denuncia: "Denúncia",
+    comunicacao: "Comunicação",
+    resposta_mp: "Resposta MP",
+  };
+
+  const statusColors: Record<string, string> = {
+    pendente: "bg-gold/10 text-gold-dark",
+    recebido: "bg-accent/20 text-accent-foreground",
+    lido: "bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400",
+    respondido: "bg-institutional/10 text-institutional",
+  };
+
+  const entradas = comunicacoes?.filter((c: any) => c.direcao === "entrada") || [];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2">
+        <Button size="sm" variant={subTab === "inbox" ? "default" : "outline"} onClick={() => setSubTab("inbox")}>
+          <MessageSquare className="h-3 w-3 mr-1" /> Caixa de Entrada ({entradas.length})
+        </Button>
+        {isAdmin && (
+          <Button size="sm" variant={subTab === "api-keys" ? "default" : "outline"} onClick={() => setSubTab("api-keys")}>
+            <Shield className="h-3 w-3 mr-1" /> API Keys
+          </Button>
+        )}
+        <Button size="sm" variant={subTab === "docs" ? "default" : "outline"} onClick={() => setSubTab("docs")}>
+          <BookOpen className="h-3 w-3 mr-1" /> Documentação da API
+        </Button>
+      </div>
+
+      {/* INBOX */}
+      {subTab === "inbox" && (
+        <div className="space-y-2">
+          {!entradas.length ? (
+            <EmptyState icon={MessageSquare} text="Nenhuma comunicação externa recebida." />
+          ) : (
+            entradas.map((c: any, i: number) => (
+              <motion.div key={c.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
+                className="bg-card rounded-xl p-4 border border-border shadow-institutional">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-semibold text-institutional">{orgaoLabels[c.orgao_origem] || c.orgao_origem}</span>
+                      <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${statusColors[c.status] || ""}`}>{c.status}</span>
+                      <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{tipoLabels[c.tipo] || c.tipo}</span>
+                    </div>
+                    <p className="text-sm font-semibold text-foreground mt-1">{c.titulo}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{c.conteudo}</p>
+                    {c.numero_referencia && <p className="text-xs text-muted-foreground mt-0.5">Ref: {c.numero_referencia}</p>}
+                    {c.envolvidos && Array.isArray(c.envolvidos) && c.envolvidos.length > 0 && (
+                      <div className="mt-1">
+                        <p className="text-[10px] font-semibold text-muted-foreground uppercase">Envolvidos:</p>
+                        {c.envolvidos.map((e: any, idx: number) => (
+                          <p key={idx} className="text-xs text-foreground">{e.nome || e} {e.id_personagem && `(ID: ${e.id_personagem})`}</p>
+                        ))}
+                      </div>
+                    )}
+                    {c.links && Array.isArray(c.links) && c.links.length > 0 && (
+                      <div className="mt-1">
+                        <p className="text-[10px] font-semibold text-muted-foreground uppercase">Links:</p>
+                        {c.links.map((l: any, idx: number) => (
+                          <a key={idx} href={typeof l === "string" ? l : l.url} target="_blank" rel="noreferrer" className="text-xs text-institutional underline block">{typeof l === "string" ? l : l.descricao || l.url}</a>
+                        ))}
+                      </div>
+                    )}
+                    <p className="text-[10px] text-muted-foreground mt-1">{format(new Date(c.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    {c.status === "pendente" && (
+                      <Button size="sm" variant="outline" onClick={() => marcarLido(c.id)} className="text-xs">
+                        <Eye className="h-3 w-3 mr-1" /> Lido
+                      </Button>
+                    )}
+                    <Button size="sm" variant="outline" onClick={() => { setRespostaForm({ titulo: `RE: ${c.titulo}`, conteudo: "", comunicacao_id: c.id }); setOpenResponder(true); }} className="text-xs">
+                      <Send className="h-3 w-3 mr-1" /> Responder
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* API KEYS */}
+      {subTab === "api-keys" && isAdmin && (
+        <div className="space-y-3">
+          <Dialog open={openKey} onOpenChange={setOpenKey}>
+            <DialogTrigger asChild>
+              <Button size="sm"><Plus className="h-3 w-3 mr-1" /> Nova API Key</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader><DialogTitle>Gerar API Key para Sistema Externo</DialogTitle></DialogHeader>
+              <div className="space-y-3">
+                <Select value={keyForm.orgao} onValueChange={(v) => setKeyForm({ ...keyForm, orgao: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="policia_civil">Polícia Civil</SelectItem>
+                    <SelectItem value="policia_federal">Polícia Federal</SelectItem>
+                    <SelectItem value="receita">Receita Federal</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Input placeholder="Nome do sistema (ex: Delegacia Virtual SP)" value={keyForm.nome_sistema} onChange={(e) => setKeyForm({ ...keyForm, nome_sistema: e.target.value })} />
+                <Button onClick={() => createKey.mutate()} disabled={createKey.isPending} className="w-full">
+                  {createKey.isPending ? "Criando..." : "Gerar API Key"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {apiKeys?.map((k: any) => (
+            <div key={k.id} className="bg-card rounded-xl p-4 border border-border shadow-institutional">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{k.nome_sistema}</p>
+                  <p className="text-xs text-muted-foreground">{orgaoLabels[k.orgao] || k.orgao}</p>
+                  <code className="text-[10px] font-mono bg-secondary px-2 py-0.5 rounded mt-1 inline-block break-all">{k.api_key}</code>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${k.ativo ? "bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400" : "bg-destructive/10 text-destructive"}`}>
+                    {k.ativo ? "Ativa" : "Inativa"}
+                  </span>
+                  <Button size="sm" variant="outline" onClick={() => toggleKey.mutate({ id: k.id, ativo: k.ativo })}>
+                    {k.ativo ? "Desativar" : "Ativar"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* DOCUMENTAÇÃO */}
+      {subTab === "docs" && (
+        <div className="bg-card rounded-xl p-6 border border-border shadow-institutional space-y-4">
+          <h3 className="text-lg font-bold text-foreground">📡 Documentação da API do MP</h3>
+          <p className="text-sm text-muted-foreground">
+            Esta API permite que sistemas externos (Delegacia Virtual, Polícia Federal, Receita Federal) enviem inquéritos,
+            denúncias e comunicações diretamente ao Ministério Público, e recebam respostas.
+          </p>
+
+          <div className="space-y-4">
+            <div>
+              <h4 className="text-sm font-bold text-foreground">🔑 Autenticação</h4>
+              <p className="text-xs text-muted-foreground mb-1">Todas as requisições devem incluir o header <code className="bg-secondary px-1 rounded">X-API-Key</code> com a chave fornecida pelo administrador.</p>
+              <pre className="bg-secondary/50 p-3 rounded-lg text-xs font-mono overflow-x-auto">
+{`Headers:
+  X-API-Key: sua-api-key-aqui
+  Content-Type: application/json`}
+              </pre>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-bold text-foreground">🔗 URL Base</h4>
+              <pre className="bg-secondary/50 p-3 rounded-lg text-xs font-mono overflow-x-auto break-all">{baseUrl}</pre>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-bold text-foreground">📨 POST /enviar-inquerito</h4>
+              <p className="text-xs text-muted-foreground mb-1">Envia um inquérito policial para análise do MP.</p>
+              <pre className="bg-secondary/50 p-3 rounded-lg text-xs font-mono overflow-x-auto">
+{`{
+  "titulo": "Inquérito sobre furto qualificado",
+  "conteudo": "Descrição detalhada dos fatos...",
+  "envolvidos": [
+    { "nome": "João Silva", "id_personagem": "12345", "tipo": "investigado" },
+    { "nome": "Maria Souza", "tipo": "vitima" }
+  ],
+  "links": [
+    { "url": "https://drive.google.com/...", "descricao": "Relatório de perícia" }
+  ],
+  "numero_referencia": "IP-000123/2026"
+}`}
+              </pre>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-bold text-foreground">📨 POST /enviar-denuncia</h4>
+              <p className="text-xs text-muted-foreground mb-1">Envia uma denúncia para o MP. Mesma estrutura do inquérito.</p>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-bold text-foreground">📨 POST /enviar-comunicacao</h4>
+              <p className="text-xs text-muted-foreground mb-1">Envia uma comunicação genérica. Aceita campo adicional <code className="bg-secondary px-1 rounded">resposta_a</code> (UUID) para responder a uma comunicação do MP.</p>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-bold text-foreground">📥 GET /comunicacoes</h4>
+              <p className="text-xs text-muted-foreground mb-1">Lista comunicações enviadas pelo MP para o seu órgão.</p>
+              <pre className="bg-secondary/50 p-3 rounded-lg text-xs font-mono overflow-x-auto">
+{`Parâmetros (query string):
+  ?status=pendente     (opcional)
+  ?desde=2026-01-01    (opcional, ISO date)
+  ?limite=50           (opcional, default 50)
+  ?pagina=1            (opcional, default 1)
+
+Resposta:
+{
+  "comunicacoes": [...],
+  "total": 42,
+  "pagina": 1,
+  "limite": 50
+}`}
+              </pre>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-bold text-foreground">📥 GET /comunicacoes/:id</h4>
+              <p className="text-xs text-muted-foreground mb-1">Busca uma comunicação específica pelo ID.</p>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-bold text-foreground">✅ PUT /marcar-lido/:id</h4>
+              <p className="text-xs text-muted-foreground mb-1">Marca uma comunicação do MP como lida pelo sistema externo.</p>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-bold text-foreground">🟢 GET /status</h4>
+              <p className="text-xs text-muted-foreground mb-1">Verifica o status da API e identifica o órgão autenticado.</p>
+              <pre className="bg-secondary/50 p-3 rounded-lg text-xs font-mono overflow-x-auto">
+{`Resposta:
+{
+  "status": "online",
+  "orgao": "policia_civil",
+  "sistema": "Delegacia Virtual SP",
+  "versao_api": "1.0.0"
+}`}
+              </pre>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-bold text-foreground">💡 Exemplo com cURL</h4>
+              <pre className="bg-secondary/50 p-3 rounded-lg text-xs font-mono overflow-x-auto">
+{`curl -X POST "${baseUrl}/enviar-inquerito" \\
+  -H "X-API-Key: sua-api-key" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "titulo": "Inquérito furto qualificado",
+    "conteudo": "Descrição dos fatos...",
+    "envolvidos": [{"nome": "João", "tipo": "investigado"}]
+  }'`}
+              </pre>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Dialog responder */}
+      <Dialog open={openResponder} onOpenChange={setOpenResponder}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Responder Comunicação</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <Input placeholder="Título da resposta" value={respostaForm.titulo} onChange={(e) => setRespostaForm({ ...respostaForm, titulo: e.target.value })} />
+            <Textarea placeholder="Conteúdo da resposta..." value={respostaForm.conteudo} onChange={(e) => setRespostaForm({ ...respostaForm, conteudo: e.target.value })} rows={5} />
+            <Button onClick={() => responderComunicacao.mutate()} disabled={responderComunicacao.isPending} className="w-full">
+              {responderComunicacao.isPending ? "Enviando..." : "Enviar Resposta"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
