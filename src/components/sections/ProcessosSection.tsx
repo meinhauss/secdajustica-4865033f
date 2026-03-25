@@ -13,7 +13,7 @@ import {
   Plus, FileText, Search, Eye, User, ArrowLeft, Clock, Gavel,
   Upload, Calendar, AlertTriangle, CheckCircle, PenTool, History,
   File, Scale, Timer, ChevronRight, X, ExternalLink, ScrollText,
-  ShieldCheck, ShieldOff, UserCheck, Lock, Trash2, Download
+  ShieldCheck, ShieldOff, UserCheck, Lock, Trash2, Download, Edit
 } from "lucide-react";
 import { generateProcessoPDF, imageToBase64 } from "@/lib/pdfGenerator";
 import logoTjsp from "@/assets/logo-tjsp.png";
