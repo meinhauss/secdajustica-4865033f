@@ -206,7 +206,7 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
   const [reus, setReus] = useState<ParteEntry[]>([]);
 
   const [form, setForm] = useState({
-    classe: "civil", assunto: "", descricao: "", vara: "1ª Vara Cível", valor_causa: "",
+    classe: "civil", assunto: "", descricao: "", vara: "1ª Vara Cível", valor_causa: "", sigilo: "publico",
   });
 
   const { data: processos, isLoading } = useQuery({
