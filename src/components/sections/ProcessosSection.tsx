@@ -400,8 +400,121 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
 }
 
 /* ═══════════════════════════════════════════ */
-/*  PROCESSO DETAIL                            */
+/*  EDITABLE PARTES SECTION                    */
 /* ═══════════════════════════════════════════ */
+function EditablePartesSection({ processo, processoId, advAutor, advReu, canEdit, userId, profileName }: {
+  processo: any; processoId: string; advAutor: any[]; advReu: any[]; canEdit: boolean; userId?: string; profileName?: string;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [editAutores, setEditAutores] = useState<ParteEntry[]>([]);
+  const [editReus, setEditReus] = useState<ParteEntry[]>([]);
+  const queryClient = useQueryClient();
+
+  const startEditing = () => {
+    setEditAutores(parsePartesFromString(processo.autor_nome));
+    setEditReus(parsePartesFromString(processo.reu_nome));
+    setEditing(true);
+  };
+
+  const savePartes = useMutation({
+    mutationFn: async () => {
+      const oldAutores = formatPartesDisplay(parsePartesFromString(processo.autor_nome));
+      const oldReus = formatPartesDisplay(parsePartesFromString(processo.reu_nome));
+      const newAutores = formatPartesDisplay(editAutores);
+      const newReus = formatPartesDisplay(editReus);
+
+      const changes: string[] = [];
+      if (oldAutores !== newAutores) changes.push(`Autor(es): de "${oldAutores}" para "${newAutores}"`);
+      if (oldReus !== newReus) changes.push(`Réu(s): de "${oldReus}" para "${newReus}"`);
+      if (changes.length === 0) { setEditing(false); return; }
+
+      const { error } = await supabase.from("processos").update({
+        autor_nome: JSON.stringify(editAutores),
+        reu_nome: JSON.stringify(editReus),
+      }).eq("id", processoId);
+      if (error) throw error;
+
+      await supabase.from("movimentacoes").insert({
+        processo_id: processoId,
+        tipo: "retificacao_partes",
+        descricao: `Retificação de partes pelo(a) magistrado(a) ${profileName || ""}:\n${changes.join("\n")}`,
+        autor_id: userId,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["processo", processoId] });
+      queryClient.invalidateQueries({ queryKey: ["movimentacoes", processoId] });
+      setEditing(false);
+      toast.success("Partes retificadas com sucesso!");
+    },
+    onError: () => toast.error("Erro ao retificar partes"),
+  });
+
+  return (
+    <div className="border-t border-border pt-4">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Partes e Representantes</h3>
+        {canEdit && !editing && (
+          <Button variant="ghost" size="sm" onClick={startEditing} className="h-7 text-xs gap-1">
+            <Edit className="h-3 w-3" /> Retificar Partes
+          </Button>
+        )}
+      </div>
+
+      {editing ? (
+        <div className="space-y-4">
+          <MultiPartyInput label="Autor" entries={editAutores} onChange={setEditAutores} />
+          <MultiPartyInput label="Réu" entries={editReus} onChange={setEditReus} />
+          <div className="flex gap-2">
+            <Button size="sm" onClick={() => savePartes.mutate()} disabled={savePartes.isPending} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
+              {savePartes.isPending ? "Salvando..." : "Salvar Alterações"}
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setEditing(false)} className="rounded-xl">Cancelar</Button>
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="bg-secondary/30 rounded-lg p-3">
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-1">Autor(es)</p>
+            {parsePartesFromString(processo.autor_nome).map((p, idx) => (
+              <p key={idx} className="text-sm font-medium text-foreground">
+                {p.nome}{p.id_personagem ? <span className="text-xs text-muted-foreground ml-1">(ID: {p.id_personagem})</span> : ""}
+              </p>
+            ))}
+            {advAutor.length > 0 && (
+              <div className="mt-2 space-y-1">
+                {advAutor.map((a: any) => (
+                  <p key={a.id} className="text-xs text-muted-foreground flex items-center gap-1">
+                    <ShieldCheck className="h-3 w-3 text-institutional" /> Adv. {a.advogado_nome}
+                  </p>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="bg-secondary/30 rounded-lg p-3">
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-1">Réu(s)</p>
+            {parsePartesFromString(processo.reu_nome).map((p, idx) => (
+              <p key={idx} className="text-sm font-medium text-foreground">
+                {p.nome}{p.id_personagem ? <span className="text-xs text-muted-foreground ml-1">(ID: {p.id_personagem})</span> : ""}
+              </p>
+            ))}
+            {advReu.length > 0 && (
+              <div className="mt-2 space-y-1">
+                {advReu.map((a: any) => (
+                  <p key={a.id} className="text-xs text-muted-foreground flex items-center gap-1">
+                    <ShieldCheck className="h-3 w-3 text-institutional" /> Adv. {a.advogado_nome}
+                  </p>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: () => void }) {
   const { user, profile, roles } = useAuth();
   const queryClient = useQueryClient();
