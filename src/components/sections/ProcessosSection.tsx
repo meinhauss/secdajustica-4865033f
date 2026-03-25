@@ -911,47 +911,15 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
           </div>
 
           {/* Partes e Representantes */}
-          <div className="border-t border-border pt-4">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Partes e Representantes</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Autor(es) */}
-              <div className="bg-secondary/30 rounded-lg p-3">
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-1">Autor(es)</p>
-                {parsePartesFromString(processo.autor_nome).map((p, idx) => (
-                  <p key={idx} className="text-sm font-medium text-foreground">
-                    {p.nome}{p.id_personagem ? <span className="text-xs text-muted-foreground ml-1">(ID: {p.id_personagem})</span> : ""}
-                  </p>
-                ))}
-                {advAutor.length > 0 && (
-                  <div className="mt-2 space-y-1">
-                    {advAutor.map((a: any) => (
-                      <p key={a.id} className="text-xs text-muted-foreground flex items-center gap-1">
-                        <ShieldCheck className="h-3 w-3 text-institutional" /> Adv. {a.advogado_nome}
-                      </p>
-                    ))}
-                  </div>
-                )}
-              </div>
-              {/* Réu(s) */}
-              <div className="bg-secondary/30 rounded-lg p-3">
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-1">Réu(s)</p>
-                {parsePartesFromString(processo.reu_nome).map((p, idx) => (
-                  <p key={idx} className="text-sm font-medium text-foreground">
-                    {p.nome}{p.id_personagem ? <span className="text-xs text-muted-foreground ml-1">(ID: {p.id_personagem})</span> : ""}
-                  </p>
-                ))}
-                {advReu.length > 0 && (
-                  <div className="mt-2 space-y-1">
-                    {advReu.map((a: any) => (
-                      <p key={a.id} className="text-xs text-muted-foreground flex items-center gap-1">
-                        <ShieldCheck className="h-3 w-3 text-institutional" /> Adv. {a.advogado_nome}
-                      </p>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+          <EditablePartesSection
+            processo={processo}
+            processoId={processoId}
+            advAutor={advAutor}
+            advReu={advReu}
+            canEdit={isJudicial || isAssignedJudge}
+            userId={user?.id}
+            profileName={profile?.nome_completo}
+          />
 
           {/* Interessados */}
           <div className="border-t border-border pt-4">
