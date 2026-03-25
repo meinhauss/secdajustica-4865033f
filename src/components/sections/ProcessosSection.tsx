@@ -206,7 +206,7 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
   const [reus, setReus] = useState<ParteEntry[]>([]);
 
   const [form, setForm] = useState({
-    classe: "civil", assunto: "", descricao: "", vara: "1ª Vara Cível", valor_causa: "",
+    classe: "civil", assunto: "", descricao: "", vara: "1ª Vara Cível", valor_causa: "", sigilo: "publico",
   });
 
   const { data: processos, isLoading } = useQuery({
@@ -239,6 +239,7 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
         autor_nome: autorDisplay, reu_nome: reuDisplay, vara: form.vara,
         valor_causa: parseCurrencyToNumber(form.valor_causa),
         juiz_id: juizId,
+        sigilo: form.sigilo,
       }).select().single();
       if (error) throw error;
 
@@ -254,7 +255,7 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["processos"] });
       setOpen(false);
-      setForm({ classe: "civil", assunto: "", descricao: "", vara: "1ª Vara Cível", valor_causa: "" });
+      setForm({ classe: "civil", assunto: "", descricao: "", vara: "1ª Vara Cível", valor_causa: "", sigilo: "publico" });
       setAutores([]); setReus([]);
       toast.success("Processo cadastrado e distribuído por sorteio!");
     },
@@ -305,7 +306,15 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
               <MultiPartyInput label="Réu" entries={reus} onChange={setReus} />
               <Input placeholder="Vara" value={form.vara} onChange={(e) => setForm({ ...form, vara: e.target.value })} className="rounded-xl" />
               <Input placeholder="Valor da Causa (R$)" value={form.valor_causa} onChange={(e) => { const raw = e.target.value.replace(/\D/g, ""); setForm({ ...form, valor_causa: raw ? formatCurrency(raw) : "" }); }} className="rounded-xl" />
-              <Textarea placeholder="Síntese (resumo) dos fatos" value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} className="rounded-xl" />
+               <Textarea placeholder="Síntese (resumo) dos fatos" value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} className="rounded-xl" />
+
+              <Select value={form.sigilo} onValueChange={(v) => setForm({ ...form, sigilo: v })}>
+                <SelectTrigger className="rounded-xl"><SelectValue placeholder="Nível de Sigilo" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="publico">Público</SelectItem>
+                  <SelectItem value="segredo_justica">Segredo de Justiça</SelectItem>
+                </SelectContent>
+              </Select>
 
               <Button type="submit" disabled={createProcesso.isPending} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
                 {createProcesso.isPending ? "Cadastrando..." : "Cadastrar Processo"}
