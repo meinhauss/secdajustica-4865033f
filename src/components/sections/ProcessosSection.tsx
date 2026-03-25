@@ -239,6 +239,7 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
         autor_nome: autorDisplay, reu_nome: reuDisplay, vara: form.vara,
         valor_causa: parseCurrencyToNumber(form.valor_causa),
         juiz_id: juizId,
+        sigilo: form.sigilo,
       }).select().single();
       if (error) throw error;
 
