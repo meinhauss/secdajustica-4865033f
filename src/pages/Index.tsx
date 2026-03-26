@@ -4,6 +4,7 @@ import LoginPage from "@/components/LoginPage";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardHome from "@/components/sections/DashboardHome";
 import ProcessosSection from "@/components/sections/ProcessosSection";
+import MeusProcessosSection from "@/components/sections/MeusProcessosSection";
 
 import ConsultaPublicaSection from "@/components/sections/ConsultaPublicaSection";
 import MagistradoSection from "@/components/sections/MagistradoSection";
