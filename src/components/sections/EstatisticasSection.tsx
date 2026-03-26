@@ -4,23 +4,17 @@ import { BarChart3 } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function EstatisticasSection() {
-  const { data: processos } = useQuery({
+  const { data: stats } = useQuery({
     queryKey: ["stats-processos"],
     queryFn: async () => {
-      const { data } = await supabase.from("processos").select("classe, status");
-      return data || [];
+      const { data } = await supabase.rpc("get_processo_stats");
+      return data as { por_classe: Record<string, number>; por_status: Record<string, number>; total: number } | null;
     },
   });
 
-  const classeCount = processos?.reduce((acc: Record<string, number>, p) => {
-    acc[p.classe] = (acc[p.classe] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>) ?? {};
-
-  const statusCount = processos?.reduce((acc: Record<string, number>, p) => {
-    acc[p.status] = (acc[p.status] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>) ?? {};
+  const classeCount = stats?.por_classe ?? {};
+  const statusCount = stats?.por_status ?? {};
+  const total = stats?.total ?? Object.values(classeCount).reduce((a, b) => a + b, 0);
 
   return (
     <div className="space-y-6">
@@ -42,7 +36,7 @@ export default function EstatisticasSection() {
                   <div className="flex-1 h-6 bg-secondary rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full gradient-gold"
-                      style={{ width: `${Math.min(((count as number) / (processos?.length || 1)) * 100, 100)}%` }}
+style={{ width: `${Math.min(((count as number) / (total || 1)) * 100, 100)}%` }}
                     />
                   </div>
                   <span className="text-sm font-semibold text-foreground w-8 text-right">{count as number}</span>
@@ -64,7 +58,7 @@ export default function EstatisticasSection() {
                   <div className="flex-1 h-6 bg-secondary rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full bg-institutional"
-                      style={{ width: `${Math.min(((count as number) / (processos?.length || 1)) * 100, 100)}%` }}
+                      style={{ width: `${Math.min(((count as number) / (total || 1)) * 100, 100)}%` }}
                     />
                   </div>
                   <span className="text-sm font-semibold text-foreground w-8 text-right">{count as number}</span>
