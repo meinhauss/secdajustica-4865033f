@@ -981,6 +981,9 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             <Button onClick={() => setActiveAction("suspeicao")} variant="outline" className="rounded-xl border-destructive/50 text-destructive hover:bg-destructive/10">
               <ShieldAlert className="h-4 w-4 mr-2" /> Declarar Suspeição
             </Button>
+            <Button onClick={() => setActiveAction("intimar_cargo")} variant="outline" className="rounded-xl">
+              <Megaphone className="h-4 w-4 mr-2" /> Intimar Cargo
+            </Button>
           </div>
         </div>
       )}
