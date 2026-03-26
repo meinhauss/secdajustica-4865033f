@@ -150,7 +150,7 @@ function TribunalDashboard({ onSelect }: { onSelect: (id: string) => void }) {
                       <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{a.apelante_tipo}</span>
                     </div>
                     <p className="text-sm text-foreground mt-1">
-                      Processo: {a.processos?.numero} — {a.processos?.autor_nome} vs {a.processos?.reu_nome}
+                      Processo: {a.processos?.numero} — {formatPartesShort(a.processos?.autor_nome || "")} vs {formatPartesShort(a.processos?.reu_nome || "")}
                     </p>
                     <p className="text-xs text-muted-foreground">Apelante: {a.apelante_nome}</p>
                   </div>

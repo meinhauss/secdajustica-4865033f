@@ -372,7 +372,7 @@ function ProcessoList({ processos, onSelect, emptyText }: { processos: any[]; on
                   <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{p.classe}</span>
                   {p.prioridade && <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">Urgente</span>}
                 </div>
-                <p className="text-sm text-foreground mt-1">{p.autor_nome} vs {p.reu_nome}</p>
+                <p className="text-sm text-foreground mt-1">{formatPartesShort(p.autor_nome)} vs {formatPartesShort(p.reu_nome)}</p>
                 <p className="text-xs text-muted-foreground">{p.assunto}</p>
               </div>
               <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-institutional transition-colors flex-shrink-0" />
