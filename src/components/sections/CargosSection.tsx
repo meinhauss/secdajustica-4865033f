@@ -292,7 +292,7 @@ export default function CargosSection() {
 
   const removeRoleMutation = useMutation({
     mutationFn: async ({ roleId, userId, role }: { roleId: string; userId: string; role: string }) => {
-      const { error } = await supabase.from("user_roles").delete().eq("id", roleId);
+      const { error } = await supabase.rpc("admin_remove_role", { p_role_id: roleId });
       if (error) throw error;
 
       // Record exoneration in history
