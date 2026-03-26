@@ -138,12 +138,12 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
     },
   });
 
-  const { data: processos } = useQuery({
-    queryKey: ["oab-processos"],
+  const { data: rankingData } = useQuery({
+    queryKey: ["oab-ranking"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("processos").select("advogado_autor_id, advogado_reu_id, status").limit(500);
+      const { data, error } = await supabase.rpc("get_advogado_ranking");
       if (error) throw error;
-      return data;
+      return (data as any[]) || [];
     },
   });
 
@@ -342,12 +342,8 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
     onError: (err: any) => toast.error(err.message),
   });
 
-  // Ranking computation
-  const ranking = carteiras?.map((c: any) => {
-    const count = processos?.filter((p) => p.advogado_autor_id === c.user_id || p.advogado_reu_id === c.user_id).length || 0;
-    const vitorias = processos?.filter((p) => (p.advogado_autor_id === c.user_id || p.advogado_reu_id === c.user_id) && p.status === "sentenciado").length || 0;
-    return { ...c, processos_count: count, vitorias, score: count * 10 + vitorias * 25 };
-  })?.sort((a: any, b: any) => b.score - a.score) || [];
+  // Ranking from RPC (SECURITY DEFINER, bypasses RLS)
+  const ranking = rankingData || [];
 
   const pendentes = inscricoes?.filter((i: any) => i.status === "pendente") || [];
   const filteredCarteiras = carteiras?.filter((c: any) =>
