@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { formatPartesShort } from "@/lib/formatPartes";
+import { formatPartesShort, parsePartesFromString } from "@/lib/formatPartes";
 import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -806,7 +806,11 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="bg-secondary/30 rounded-lg p-3">
                 <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-1">Autor</p>
-                <p className="text-sm font-medium text-foreground">{processo.autor_nome}</p>
+                {parsePartesFromString(processo.autor_nome).map((p, idx) => (
+                  <p key={idx} className="text-sm font-medium text-foreground">
+                    {p.nome}{p.id_personagem ? <span className="text-xs text-muted-foreground ml-1">(ID: {p.id_personagem})</span> : ""}
+                  </p>
+                ))}
                 {advAutor.length > 0 && (
                   <div className="mt-2 space-y-1">
                     {advAutor.map((a: any) => (
@@ -819,7 +823,11 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               </div>
               <div className="bg-secondary/30 rounded-lg p-3">
                 <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-1">Réu</p>
-                <p className="text-sm font-medium text-foreground">{processo.reu_nome}</p>
+                {parsePartesFromString(processo.reu_nome).map((p, idx) => (
+                  <p key={idx} className="text-sm font-medium text-foreground">
+                    {p.nome}{p.id_personagem ? <span className="text-xs text-muted-foreground ml-1">(ID: {p.id_personagem})</span> : ""}
+                  </p>
+                ))}
                 {advReu.length > 0 && (
                   <div className="mt-2 space-y-1">
                     {advReu.map((a: any) => (
