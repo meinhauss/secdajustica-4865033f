@@ -1059,7 +1059,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                   <Scale className="h-3.5 w-3.5" /> Ministério Público (parte)
                 </span>
               )}
-              {interessadosData && interessadosData.length > 0 && interessadosData.map((int: any) => (
+              {interessadosData && interessadosData.length > 0 ? interessadosData.map((int: any) => (
                 <span key={int.id} className="text-xs px-3 py-1.5 rounded-lg bg-institutional/10 text-institutional font-medium flex items-center gap-1.5">
                   <Scale className="h-3.5 w-3.5" /> {int.orgao} — {int.nome} ({int.qualificacao})
                 </span>
