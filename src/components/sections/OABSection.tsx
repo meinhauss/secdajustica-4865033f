@@ -138,12 +138,12 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
     },
   });
 
-  const { data: processos } = useQuery({
-    queryKey: ["oab-processos"],
+  const { data: rankingData } = useQuery({
+    queryKey: ["oab-ranking"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("processos").select("advogado_autor_id, advogado_reu_id, status").limit(500);
+      const { data, error } = await supabase.rpc("get_advogado_ranking");
       if (error) throw error;
-      return data;
+      return (data as any[]) || [];
     },
   });
 
