@@ -677,6 +677,57 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     onError: (err: any) => toast.error(err.message),
   });
 
+  // ── CONCEDER ACESSO SIGILO ──
+  const [acessoIdPersonagem, setAcessoIdPersonagem] = useState("");
+  const acessoLookup = useProfileLookup();
+  const concederAcesso = useMutation({
+    mutationFn: async () => {
+      if (!acessoLookup.result) throw new Error("Busque um usuário pelo ID do Personagem primeiro.");
+      // Find user_id from id_personagem
+      const { data: profileData } = await supabase.from("profiles").select("user_id, nome_completo").eq("id_personagem", acessoIdPersonagem).maybeSingle();
+      if (!profileData) throw new Error("Usuário não encontrado com esse ID.");
+      // Check if already has access
+      const { data: existing } = await supabase.from("interessados_processo").select("id").eq("processo_id", processoId).eq("user_id", profileData.user_id).maybeSingle();
+      if (existing) throw new Error("Este usuário já possui acesso a este processo.");
+      const { error } = await supabase.from("interessados_processo").insert({
+        processo_id: processoId,
+        user_id: profileData.user_id,
+        orgao: profileData.nome_completo,
+        qualificacao: "acesso_autorizado",
+      });
+      if (error) throw error;
+      await supabase.from("movimentacoes").insert({
+        processo_id: processoId,
+        tipo: "acesso_concedido",
+        descricao: `Acesso ao processo sigiloso concedido a ${profileData.nome_completo} (ID: ${acessoIdPersonagem}).`,
+        autor_id: user!.id,
+      });
+    },
+    onSuccess: () => {
+      invalidateAll();
+      setAcessoIdPersonagem("");
+      acessoLookup.clear();
+      toast.success("Acesso concedido com sucesso!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+  const revogarAcesso = useMutation({
+    mutationFn: async (interessadoId: string) => {
+      const { data: int } = await supabase.from("interessados_processo").select("*").eq("id", interessadoId).single();
+      await supabase.from("interessados_processo").delete().eq("id", interessadoId);
+      if (int) {
+        await supabase.from("movimentacoes").insert({
+          processo_id: processoId,
+          tipo: "acesso_revogado",
+          descricao: `Acesso ao processo sigiloso revogado de ${int.orgao}.`,
+          autor_id: user!.id,
+        });
+      }
+    },
+    onSuccess: () => { invalidateAll(); toast.success("Acesso revogado."); },
+    onError: (err: any) => toast.error(err.message),
+  });
+
   // ── SENTENÇA ──
   const [sentencaForm, setSentencaForm] = useState({ tipo: "sentenca", ementa: "", fundamentacao: "", dispositivo: "" });
   const proferirSentenca = useMutation({
