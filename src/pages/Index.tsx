@@ -23,6 +23,7 @@ import MeuPerfilSection from "@/components/sections/MeuPerfilSection";
 const Index = () => {
   const { user, loading } = useAuth();
   const [activeSection, setActiveSection] = useState("dashboard");
+  const [openProcessoId, setOpenProcessoId] = useState<string | null>(null);
 
   if (loading) {
     return (
