@@ -42,7 +42,7 @@ const Index = () => {
       case "dashboard": return <DashboardHome onNavigate={setActiveSection} />;
       case "meu-perfil": return <MeuPerfilSection />;
       case "processos": return <ProcessosSection />;
-      
+      case "meus-processos": return <MeusProcessosSection onOpenProcesso={(id) => setActiveSection("processos")} />;
       case "consulta": return <ConsultaPublicaSection />;
       case "magistrado": return <MagistradoSection />;
       case "tribunal": return <TribunalSection />;
