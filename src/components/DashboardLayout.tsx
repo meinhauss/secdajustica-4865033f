@@ -8,12 +8,14 @@ import {
 import logoSjc from "@/assets/logo-sjc.jpg";
 import logoMpsp from "@/assets/logo-mpsp.png";
 import logoOabsp from "@/assets/logo-oabsp.png";
+import NotificationBell from "@/components/NotificationBell";
 
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
   activeSection: string;
   onSectionChange: (section: string) => void;
+  onNavigateToProcesso?: (processoId: string) => void;
 }
 
 const menuItems = [
@@ -36,7 +38,7 @@ const menuItems = [
   { id: "estatisticas", label: "Estatísticas", icon: BarChart3, roles: ["admin", "magistrado", "presidente_tribunal"] },
 ];
 
-export default function DashboardLayout({ children, activeSection, onSectionChange }: DashboardLayoutProps) {
+export default function DashboardLayout({ children, activeSection, onSectionChange, onNavigateToProcesso }: DashboardLayoutProps) {
   const { signOut, profile, roles } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -156,7 +158,12 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
             {filteredItems.find((i) => i.id === activeSection)?.label || "Painel"}
           </h1>
           <div className="ml-auto flex items-center gap-2">
-            
+            <NotificationBell onNavigate={(section, processoId) => {
+              if (processoId && section === "processos") {
+                onNavigateToProcesso?.(processoId);
+              }
+              onSectionChange(section);
+            }} />
             <span className="text-xs text-muted-foreground hidden sm:block">
               Sistema Judiciário vBETA
             </span>

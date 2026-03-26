@@ -61,7 +61,7 @@ const Index = () => {
   };
 
   return (
-    <DashboardLayout activeSection={activeSection} onSectionChange={(s) => { if (s !== "processos") setOpenProcessoId(null); setActiveSection(s); }}>
+    <DashboardLayout activeSection={activeSection} onSectionChange={(s) => { if (s !== "processos") setOpenProcessoId(null); setActiveSection(s); }} onNavigateToProcesso={(id) => { setOpenProcessoId(id); setActiveSection("processos"); }}>
       {renderSection()}
     </DashboardLayout>
   );
