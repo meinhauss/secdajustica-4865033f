@@ -1,9 +1,119 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, GitCommit, ChevronDown, ChevronUp } from "lucide-react";
 import { motion } from "framer-motion";
+import { useAuth } from "@/hooks/useAuth";
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+
+const CURRENT_VERSION = "2.8.0";
+
+const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
+  {
+    version: "2.8.0",
+    date: "26/03/2026",
+    changes: [
+      "Sistema de concessão de acesso a processos sigilosos pelo juiz via ID do Personagem",
+      "Intimação por cargo com notificação para todos os usuários do cargo",
+      "Sistema de notificações automáticas para movimentações, intimações e cartório",
+      "Notificações respeitam sigilo e níveis de acesso",
+      "Sino de notificações com contagem de não lidas e realtime",
+      "Estatísticas agora exibem todos os processos (incluindo criminais sigilosos)",
+      "Changelog do sistema visível para administradores",
+    ],
+  },
+  {
+    version: "2.7.0",
+    date: "26/03/2026",
+    changes: [
+      "Correção de partes e representantes pelo juiz com registro na timeline",
+      "Aba 'Meus Processos' para advogados e magistrados",
+      "Abertura direta do processo a partir de 'Meus Processos'",
+      "Correção de exibição de nomes nos portais do MP e Magistrado",
+    ],
+  },
+  {
+    version: "2.6.0",
+    date: "26/03/2026",
+    changes: [
+      "Possibilidade de definir segredo de justiça na abertura do processo",
+      "Inquéritos recebidos pela API seguem padrão do sistema (denúncia, arquivamento, requerimentos)",
+      "Comunicações externas atreladas ao respectivo inquérito",
+    ],
+  },
+  {
+    version: "2.5.0",
+    date: "25/03/2026",
+    changes: [
+      "API de comunicação externa para Polícia Civil, Federal e Receita com o MP",
+      "Envio e recebimento de inquéritos e denúncias via API externa",
+      "Acompanhamento de andamento de inquéritos pelo órgão externo",
+    ],
+  },
+  {
+    version: "2.4.0",
+    date: "25/03/2026",
+    changes: [
+      "Presidente da OAB pode instaurar Processo Administrativo Disciplinar",
+      "Gestão completa de PAD (instrução, parecer, sanção)",
+    ],
+  },
+  {
+    version: "2.3.0",
+    date: "25/03/2026",
+    changes: [
+      "Suporte a múltiplos autores e réus na abertura de processos",
+      "Campos dinâmicos para adicionar/remover partes",
+    ],
+  },
+  {
+    version: "2.2.0",
+    date: "25/03/2026",
+    changes: [
+      "Correção na distribuição de processos via denúncia direta do MP",
+      "Processos abertos pelo MP agora iniciam em segredo de justiça",
+      "Exibição de links da denúncia da ouvidoria no portal do promotor",
+    ],
+  },
+  {
+    version: "2.1.0",
+    date: "25/03/2026",
+    changes: [
+      "Tratamento de denúncias da ouvidoria similar a inquéritos",
+      "Ações de abrir inquérito, emitir parecer e fazer requisições a partir de denúncias",
+      "Correção do fluxo de denúncias chegando ao portal do MP",
+    ],
+  },
+  {
+    version: "2.0.0",
+    date: "25/03/2026",
+    changes: [
+      "Portal da Ouvidoria do MP na página inicial (sem login)",
+      "Formulário de denúncia com envolvidos, links e tutorial de anexos",
+      "Correção de caracteres especiais na impressão da íntegra do processo",
+    ],
+  },
+  {
+    version: "1.0.0",
+    date: "24/03/2026",
+    changes: [
+      "Lançamento inicial do sistema judicial",
+      "Portal do Magistrado, Ministério Público, OAB e Cartório",
+      "Gestão de processos, audiências, intimações e mandados",
+      "Sistema de autenticação e controle de acesso por cargos",
+      "Consulta pública e portal da transparência",
+      "Gestão de concursos públicos",
+      "Delegacia Virtual com boletins de ocorrência e inquéritos",
+      "Sistema de jurisprudência e apelações",
+    ],
+  },
+];
 
 export default function EstatisticasSection() {
+  const { roles } = useAuth();
+  const isAdmin = roles.includes("admin");
+  const [expandedVersions, setExpandedVersions] = useState<Set<string>>(new Set([CURRENT_VERSION]));
+
   const { data: stats } = useQuery({
     queryKey: ["stats-processos"],
     queryFn: async () => {
@@ -15,6 +125,15 @@ export default function EstatisticasSection() {
   const classeCount = stats?.por_classe ?? {};
   const statusCount = stats?.por_status ?? {};
   const total = stats?.total ?? Object.values(classeCount).reduce((a, b) => a + b, 0);
+
+  const toggleVersion = (version: string) => {
+    setExpandedVersions((prev) => {
+      const next = new Set(prev);
+      if (next.has(version)) next.delete(version);
+      else next.add(version);
+      return next;
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -36,7 +155,7 @@ export default function EstatisticasSection() {
                   <div className="flex-1 h-6 bg-secondary rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full gradient-gold"
-style={{ width: `${Math.min(((count as number) / (total || 1)) * 100, 100)}%` }}
+                      style={{ width: `${Math.min(((count as number) / (total || 1)) * 100, 100)}%` }}
                     />
                   </div>
                   <span className="text-sm font-semibold text-foreground w-8 text-right">{count as number}</span>
@@ -68,6 +187,56 @@ style={{ width: `${Math.min(((count as number) / (total || 1)) * 100, 100)}%` }}
           )}
         </motion.div>
       </div>
+
+      {isAdmin && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-card rounded-xl p-6 border border-border shadow-institutional">
+          <div className="flex items-center gap-3 mb-6">
+            <GitCommit className="h-5 w-5 text-institutional" />
+            <h3 className="font-display text-lg font-semibold">Changelog do Sistema</h3>
+            <Badge variant="outline" className="ml-auto text-xs font-mono border-institutional text-institutional">
+              v{CURRENT_VERSION}
+            </Badge>
+          </div>
+
+          <div className="space-y-2">
+            {CHANGELOG.map((entry) => {
+              const isExpanded = expandedVersions.has(entry.version);
+              const isCurrent = entry.version === CURRENT_VERSION;
+              return (
+                <div key={entry.version} className={`rounded-lg border ${isCurrent ? "border-institutional/30 bg-institutional/5" : "border-border"}`}>
+                  <button
+                    onClick={() => toggleVersion(entry.version)}
+                    className="w-full flex items-center gap-3 p-3 text-left hover:bg-muted/50 rounded-lg transition-colors"
+                  >
+                    <Badge variant={isCurrent ? "default" : "secondary"} className={`font-mono text-xs ${isCurrent ? "bg-institutional" : ""}`}>
+                      v{entry.version}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">{entry.date}</span>
+                    {isCurrent && (
+                      <Badge variant="outline" className="text-[10px] border-green-500/50 text-green-600">ATUAL</Badge>
+                    )}
+                    <span className="ml-auto text-muted-foreground">
+                      {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </span>
+                  </button>
+                  {isExpanded && (
+                    <div className="px-3 pb-3">
+                      <ul className="space-y-1.5 ml-2">
+                        {entry.changes.map((change, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                            <span className="text-institutional mt-1.5 shrink-0 h-1.5 w-1.5 rounded-full bg-institutional" />
+                            {change}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 }
