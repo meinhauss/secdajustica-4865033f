@@ -1999,6 +1999,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_remove_role: { Args: { p_role_id: string }; Returns: undefined }
       can_view_processo: {
         Args: {
           _advogado_autor_id: string
