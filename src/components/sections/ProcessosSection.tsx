@@ -180,8 +180,12 @@ const CLASSE_VARA_MAP: Record<string, string> = {
 /* ═══════════════════════════════════════════ */
 /*  MAIN COMPONENT                             */
 /* ═══════════════════════════════════════════ */
-export default function ProcessosSection() {
-  const [selectedProcessoId, setSelectedProcessoId] = useState<string | null>(null);
+interface ProcessosSectionProps {
+  initialProcessoId?: string | null;
+}
+
+export default function ProcessosSection({ initialProcessoId }: ProcessosSectionProps) {
+  const [selectedProcessoId, setSelectedProcessoId] = useState<string | null>(initialProcessoId || null);
 
   if (selectedProcessoId) {
     return <ProcessoDetail processoId={selectedProcessoId} onBack={() => setSelectedProcessoId(null)} />;

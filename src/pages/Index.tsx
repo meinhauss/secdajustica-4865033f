@@ -23,6 +23,7 @@ import MeuPerfilSection from "@/components/sections/MeuPerfilSection";
 const Index = () => {
   const { user, loading } = useAuth();
   const [activeSection, setActiveSection] = useState("dashboard");
+  const [openProcessoId, setOpenProcessoId] = useState<string | null>(null);
 
   if (loading) {
     return (
@@ -41,8 +42,8 @@ const Index = () => {
     switch (activeSection) {
       case "dashboard": return <DashboardHome onNavigate={setActiveSection} />;
       case "meu-perfil": return <MeuPerfilSection />;
-      case "processos": return <ProcessosSection />;
-      case "meus-processos": return <MeusProcessosSection onOpenProcesso={(id) => setActiveSection("processos")} />;
+      case "processos": return <ProcessosSection initialProcessoId={openProcessoId} />;
+      case "meus-processos": return <MeusProcessosSection onOpenProcesso={(id) => { setOpenProcessoId(id); setActiveSection("processos"); }} />;
       case "consulta": return <ConsultaPublicaSection />;
       case "magistrado": return <MagistradoSection />;
       case "tribunal": return <TribunalSection />;
@@ -60,7 +61,7 @@ const Index = () => {
   };
 
   return (
-    <DashboardLayout activeSection={activeSection} onSectionChange={setActiveSection}>
+    <DashboardLayout activeSection={activeSection} onSectionChange={(s) => { if (s !== "processos") setOpenProcessoId(null); setActiveSection(s); }}>
       {renderSection()}
     </DashboardLayout>
   );
