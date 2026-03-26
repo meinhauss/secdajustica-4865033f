@@ -38,7 +38,7 @@ const menuItems = [
   { id: "estatisticas", label: "Estatísticas", icon: BarChart3, roles: ["admin", "magistrado", "presidente_tribunal"] },
 ];
 
-export default function DashboardLayout({ children, activeSection, onSectionChange }: DashboardLayoutProps) {
+export default function DashboardLayout({ children, activeSection, onSectionChange, onNavigateToProcesso }: DashboardLayoutProps) {
   const { signOut, profile, roles } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
