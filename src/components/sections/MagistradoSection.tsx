@@ -823,7 +823,11 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               </div>
               <div className="bg-secondary/30 rounded-lg p-3">
                 <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-1">Réu</p>
-                <p className="text-sm font-medium text-foreground">{processo.reu_nome}</p>
+                {parsePartesFromString(processo.reu_nome).map((p, idx) => (
+                  <p key={idx} className="text-sm font-medium text-foreground">
+                    {p.nome}{p.id_personagem ? <span className="text-xs text-muted-foreground ml-1">(ID: {p.id_personagem})</span> : ""}
+                  </p>
+                ))}
                 {advReu.length > 0 && (
                   <div className="mt-2 space-y-1">
                     {advReu.map((a: any) => (
