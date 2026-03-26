@@ -342,12 +342,8 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
     onError: (err: any) => toast.error(err.message),
   });
 
-  // Ranking computation
-  const ranking = carteiras?.map((c: any) => {
-    const count = processos?.filter((p) => p.advogado_autor_id === c.user_id || p.advogado_reu_id === c.user_id).length || 0;
-    const vitorias = processos?.filter((p) => (p.advogado_autor_id === c.user_id || p.advogado_reu_id === c.user_id) && p.status === "sentenciado").length || 0;
-    return { ...c, processos_count: count, vitorias, score: count * 10 + vitorias * 25 };
-  })?.sort((a: any, b: any) => b.score - a.score) || [];
+  // Ranking from RPC (SECURITY DEFINER, bypasses RLS)
+  const ranking = rankingData || [];
 
   const pendentes = inscricoes?.filter((i: any) => i.status === "pendente") || [];
   const filteredCarteiras = carteiras?.filter((c: any) =>
