@@ -663,7 +663,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
       // Notify all users with that role
       await supabase.rpc("notify_cargo_intimacao", {
         _processo_id: processoId,
-        _cargo: cargoIntForm.cargo,
+        _cargo: cargoIntForm.cargo as any,
         _conteudo: cargoIntForm.conteudo,
         _autor_id: user!.id,
       });
