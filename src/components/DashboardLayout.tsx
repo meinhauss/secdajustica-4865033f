@@ -8,12 +8,14 @@ import {
 import logoSjc from "@/assets/logo-sjc.jpg";
 import logoMpsp from "@/assets/logo-mpsp.png";
 import logoOabsp from "@/assets/logo-oabsp.png";
+import NotificationBell from "@/components/NotificationBell";
 
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
   activeSection: string;
   onSectionChange: (section: string) => void;
+  onNavigateToProcesso?: (processoId: string) => void;
 }
 
 const menuItems = [
