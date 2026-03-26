@@ -14,7 +14,7 @@ import {
   Gavel, FileText, Clock, Search, ArrowLeft, ChevronRight,
   Calendar, Shield, Send, BookOpen, BarChart3, Eye,
   CheckCircle, AlertTriangle, Scale, Plus, Stamp, Scroll,
-  PenTool, Users, MapPin, ShieldAlert, Lock, User
+  PenTool, Users, MapPin, ShieldAlert, Lock, User, Megaphone
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -626,6 +626,57 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     onError: (err: any) => toast.error(err.message),
   });
 
+  // ── INTIMAR CARGO ──
+  const CARGOS_INTIMAVEIS: { value: string; label: string }[] = [
+    { value: "ministerio_publico", label: "Promotor(a) de Justiça" },
+    { value: "advogado", label: "Advogado(a)" },
+    { value: "oficial_justica", label: "Oficial de Justiça" },
+    { value: "policia_civil", label: "Polícia Civil" },
+    { value: "policia_militar", label: "Polícia Militar" },
+    { value: "policia_federal", label: "Polícia Federal" },
+    { value: "hospital", label: "Hospital" },
+    { value: "presidente_oab", label: "Presidente da OAB" },
+    { value: "procurador_geral", label: "Procurador(a)-Geral" },
+    { value: "desembargador", label: "Desembargador(a)" },
+    { value: "presidente_tribunal", label: "Presidente do Tribunal" },
+  ];
+  const [cargoIntForm, setCargoIntForm] = useState({ cargo: "ministerio_publico", conteudo: "", prazo: "24" });
+  const intimarCargo = useMutation({
+    mutationFn: async () => {
+      if (!cargoIntForm.conteudo) throw new Error("Preencha o conteúdo da intimação.");
+      const cargoLabel = CARGOS_INTIMAVEIS.find(c => c.value === cargoIntForm.cargo)?.label || cargoIntForm.cargo;
+      // Insert intimação record
+      await supabase.from("intimacoes").insert({
+        processo_id: processoId,
+        destinatario_nome: `Cargo: ${cargoLabel}`,
+        conteudo: cargoIntForm.conteudo,
+        tipo: "intimacao",
+        prazo_dias: parseInt(cargoIntForm.prazo) || 24,
+      });
+      // Register movimentação
+      await supabase.from("movimentacoes").insert({
+        processo_id: processoId,
+        tipo: "intimacao",
+        descricao: `INTIMAÇÃO AO CARGO: ${cargoLabel}\n\nPrazo: ${cargoIntForm.prazo} horas\n\n${cargoIntForm.conteudo}`,
+        autor_id: user!.id,
+      });
+      // Notify all users with that role
+      await supabase.rpc("notify_cargo_intimacao", {
+        _processo_id: processoId,
+        _cargo: cargoIntForm.cargo as any,
+        _conteudo: cargoIntForm.conteudo,
+        _autor_id: user!.id,
+      });
+    },
+    onSuccess: () => {
+      invalidateAll();
+      setActiveAction("none");
+      setCargoIntForm({ cargo: "ministerio_publico", conteudo: "", prazo: "24" });
+      toast.success("Intimação ao cargo expedida! Todos os servidores com esse cargo foram notificados.");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
   // ── SENTENÇA ──
   const [sentencaForm, setSentencaForm] = useState({ tipo: "sentenca", ementa: "", fundamentacao: "", dispositivo: "" });
   const proferirSentenca = useMutation({
@@ -930,6 +981,9 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             <Button onClick={() => setActiveAction("suspeicao")} variant="outline" className="rounded-xl border-destructive/50 text-destructive hover:bg-destructive/10">
               <ShieldAlert className="h-4 w-4 mr-2" /> Declarar Suspeição
             </Button>
+            <Button onClick={() => setActiveAction("intimar_cargo")} variant="outline" className="rounded-xl">
+              <Megaphone className="h-4 w-4 mr-2" /> Intimar Cargo
+            </Button>
           </div>
         </div>
       )}
@@ -1012,6 +1066,46 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             <Textarea placeholder="Descrição e determinações do mandado..." value={mandadoForm.descricao} onChange={(e) => setMandadoForm({ ...mandadoForm, descricao: e.target.value })} rows={4} className="rounded-xl" required />
             <Button type="submit" disabled={expedirMandado.isPending} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
               {expedirMandado.isPending ? "Processando..." : "Expedir Mandado"}
+            </Button>
+          </form>
+        </ActionCard>
+      )}
+
+      {/* INTIMAR CARGO FORM */}
+      {activeAction === "intimar_cargo" && (
+        <ActionCard title="Intimar Cargo" icon={Megaphone} onCancel={() => setActiveAction("none")}>
+          <div className="bg-accent/30 rounded-lg p-3 mb-4 border border-accent/50">
+            <p className="text-xs text-muted-foreground">
+              <Megaphone className="h-3 w-3 inline mr-1" />
+              Todos os servidores com o cargo selecionado receberão uma notificação sobre esta intimação.
+            </p>
+          </div>
+          <form onSubmit={(e) => { e.preventDefault(); intimarCargo.mutate(); }} className="space-y-4">
+            <Select value={cargoIntForm.cargo} onValueChange={(v) => setCargoIntForm({ ...cargoIntForm, cargo: v })}>
+              <SelectTrigger className="rounded-xl"><SelectValue placeholder="Selecione o cargo" /></SelectTrigger>
+              <SelectContent>
+                {CARGOS_INTIMAVEIS.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Textarea
+              placeholder="Conteúdo da intimação..."
+              value={cargoIntForm.conteudo}
+              onChange={(e) => setCargoIntForm({ ...cargoIntForm, conteudo: e.target.value })}
+              rows={5}
+              className="rounded-xl"
+              required
+            />
+            <Input
+              type="number"
+              placeholder="Prazo (horas)"
+              value={cargoIntForm.prazo}
+              onChange={(e) => setCargoIntForm({ ...cargoIntForm, prazo: e.target.value })}
+              min="1"
+              className="rounded-xl"
+              required
+            />
+            <Button type="submit" disabled={intimarCargo.isPending} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
+              {intimarCargo.isPending ? "Processando..." : "Expedir Intimação ao Cargo"}
             </Button>
           </form>
         </ActionCard>

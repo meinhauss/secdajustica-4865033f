@@ -2026,6 +2026,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      notify_cargo_intimacao: {
+        Args: {
+          _autor_id: string
+          _cargo: Database["public"]["Enums"]["user_role"]
+          _conteudo: string
+          _processo_id: string
+        }
+        Returns: undefined
+      }
       sortear_magistrado: { Args: never; Returns: string }
     }
     Enums: {
