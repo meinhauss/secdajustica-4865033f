@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { formatPartesShort } from "@/lib/formatPartes";
 import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -150,7 +151,7 @@ function TribunalDashboard({ onSelect }: { onSelect: (id: string) => void }) {
                       <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{a.apelante_tipo}</span>
                     </div>
                     <p className="text-sm text-foreground mt-1">
-                      Processo: {a.processos?.numero} — {a.processos?.autor_nome} vs {a.processos?.reu_nome}
+                      Processo: {a.processos?.numero} — {formatPartesShort(a.processos?.autor_nome || "")} vs {formatPartesShort(a.processos?.reu_nome || "")}
                     </p>
                     <p className="text-xs text-muted-foreground">Apelante: {a.apelante_nome}</p>
                   </div>
@@ -291,7 +292,7 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
           <div>
             <p className="text-muted-foreground text-xs uppercase tracking-wider">Processo Originário</p>
             <p className="font-mono text-foreground">{apelacao.processos?.numero}</p>
-            <p className="text-muted-foreground text-xs">{apelacao.processos?.autor_nome} vs {apelacao.processos?.reu_nome}</p>
+            <p className="text-muted-foreground text-xs">{formatPartesShort(apelacao.processos?.autor_nome || "")} vs {formatPartesShort(apelacao.processos?.reu_nome || "")}</p>
           </div>
           <div>
             <p className="text-muted-foreground text-xs uppercase tracking-wider">Apelante</p>

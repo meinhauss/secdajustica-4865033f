@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { formatPartesShort } from "@/lib/formatPartes";
 import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -346,7 +347,7 @@ function MPDashboard({ isMP, onSelectIP, onSelectOuvidoria }: { isMP: boolean; o
                     <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-institutional/10 text-institutional">{p.status?.replace("_", " ")}</span>
                     <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{p.classe}</span>
                   </div>
-                  <p className="text-sm text-foreground">{p.autor_nome} vs {p.reu_nome}</p>
+                  <p className="text-sm text-foreground">{formatPartesShort(p.autor_nome)} vs {formatPartesShort(p.reu_nome)}</p>
                   <p className="text-xs text-muted-foreground">{p.assunto}</p>
                 </motion.div>
               ))}
