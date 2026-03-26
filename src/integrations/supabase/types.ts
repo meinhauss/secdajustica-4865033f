@@ -2010,6 +2010,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      get_processo_stats: { Args: never; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["user_role"]
