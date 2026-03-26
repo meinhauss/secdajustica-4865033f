@@ -4,23 +4,17 @@ import { BarChart3 } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function EstatisticasSection() {
-  const { data: processos } = useQuery({
+  const { data: stats } = useQuery({
     queryKey: ["stats-processos"],
     queryFn: async () => {
-      const { data } = await supabase.from("processos").select("classe, status");
-      return data || [];
+      const { data } = await supabase.rpc("get_processo_stats");
+      return data as { por_classe: Record<string, number>; por_status: Record<string, number>; total: number } | null;
     },
   });
 
-  const classeCount = processos?.reduce((acc: Record<string, number>, p) => {
-    acc[p.classe] = (acc[p.classe] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>) ?? {};
-
-  const statusCount = processos?.reduce((acc: Record<string, number>, p) => {
-    acc[p.status] = (acc[p.status] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>) ?? {};
+  const classeCount = stats?.por_classe ?? {};
+  const statusCount = stats?.por_status ?? {};
+  const total = stats?.total ?? Object.values(classeCount).reduce((a, b) => a + b, 0);
 
   return (
     <div className="space-y-6">
