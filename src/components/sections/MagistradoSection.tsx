@@ -626,6 +626,57 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     onError: (err: any) => toast.error(err.message),
   });
 
+  // ── INTIMAR CARGO ──
+  const CARGOS_INTIMAVEIS: { value: string; label: string }[] = [
+    { value: "ministerio_publico", label: "Promotor(a) de Justiça" },
+    { value: "advogado", label: "Advogado(a)" },
+    { value: "oficial_justica", label: "Oficial de Justiça" },
+    { value: "policia_civil", label: "Polícia Civil" },
+    { value: "policia_militar", label: "Polícia Militar" },
+    { value: "policia_federal", label: "Polícia Federal" },
+    { value: "hospital", label: "Hospital" },
+    { value: "presidente_oab", label: "Presidente da OAB" },
+    { value: "procurador_geral", label: "Procurador(a)-Geral" },
+    { value: "desembargador", label: "Desembargador(a)" },
+    { value: "presidente_tribunal", label: "Presidente do Tribunal" },
+  ];
+  const [cargoIntForm, setCargoIntForm] = useState({ cargo: "ministerio_publico", conteudo: "", prazo: "24" });
+  const intimarCargo = useMutation({
+    mutationFn: async () => {
+      if (!cargoIntForm.conteudo) throw new Error("Preencha o conteúdo da intimação.");
+      const cargoLabel = CARGOS_INTIMAVEIS.find(c => c.value === cargoIntForm.cargo)?.label || cargoIntForm.cargo;
+      // Insert intimação record
+      await supabase.from("intimacoes").insert({
+        processo_id: processoId,
+        destinatario_nome: `Cargo: ${cargoLabel}`,
+        conteudo: cargoIntForm.conteudo,
+        tipo: "intimacao",
+        prazo_dias: parseInt(cargoIntForm.prazo) || 24,
+      });
+      // Register movimentação
+      await supabase.from("movimentacoes").insert({
+        processo_id: processoId,
+        tipo: "intimacao",
+        descricao: `INTIMAÇÃO AO CARGO: ${cargoLabel}\n\nPrazo: ${cargoIntForm.prazo} horas\n\n${cargoIntForm.conteudo}`,
+        autor_id: user!.id,
+      });
+      // Notify all users with that role
+      await supabase.rpc("notify_cargo_intimacao", {
+        _processo_id: processoId,
+        _cargo: cargoIntForm.cargo,
+        _conteudo: cargoIntForm.conteudo,
+        _autor_id: user!.id,
+      });
+    },
+    onSuccess: () => {
+      invalidateAll();
+      setActiveAction("none");
+      setCargoIntForm({ cargo: "ministerio_publico", conteudo: "", prazo: "24" });
+      toast.success("Intimação ao cargo expedida! Todos os servidores com esse cargo foram notificados.");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
   // ── SENTENÇA ──
   const [sentencaForm, setSentencaForm] = useState({ tipo: "sentenca", ementa: "", fundamentacao: "", dispositivo: "" });
   const proferirSentenca = useMutation({
