@@ -18,8 +18,8 @@ import logoSjc from "@/assets/logo-sjc.jpg";
 
 const ROLE_LABELS: Record<string, string> = {
   admin: "Administrador",
-  magistrado: "Magistrado(a)",
-  ministerio_publico: "Ministério Público",
+  magistrado: "Juiz(a) de Direito",
+  ministerio_publico: "Promotor(a) de Justiça",
   oficial_justica: "Oficial de Justiça",
   advogado: "Advogado(a)",
   cidadao: "Cidadão",
