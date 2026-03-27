@@ -648,26 +648,13 @@ function TabTransparencia() {
 
   useState(() => {
     const load = async () => {
-      const [processosRes, audienciasRes, rolesRes] = await Promise.all([
-        supabase.from("processos").select("status, classe", { count: "exact" }),
-        supabase.from("audiencias").select("status", { count: "exact" }),
+      const [rpcRes, rolesRes] = await Promise.all([
+        supabase.rpc("get_processo_stats"),
         supabase.from("user_roles").select("user_id, role").neq("role", "cidadao"),
       ]);
 
-      const processos = processosRes.data || [];
-      const statusCounts: Record<string, number> = {};
-      const classeCounts: Record<string, number> = {};
-      processos.forEach((p: any) => {
-        statusCounts[p.status] = (statusCounts[p.status] || 0) + 1;
-        classeCounts[p.classe] = (classeCounts[p.classe] || 0) + 1;
-      });
-
-      setStats({
-        totalProcessos: processos.length,
-        totalAudiencias: audienciasRes.data?.length || 0,
-        statusCounts,
-        classeCounts,
-      });
+      const rpcData = rpcRes.data as any;
+      setStats(rpcData);
 
       const rolesData = rolesRes.data || [];
       const userRolesMap: Record<string, string[]> = {};
@@ -707,62 +694,48 @@ function TabTransparencia() {
     );
   }
 
+  const porClasse = stats?.por_classe ?? {};
+  const porStatus = stats?.por_status ?? {};
+  const total = stats?.total ?? 0;
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
       <h2 className="font-display text-2xl font-bold text-foreground mb-2">Portal da Transparência</h2>
       <p className="text-muted-foreground mb-8">Dados públicos e prestação de contas do Poder Judiciário.</p>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-        <div className="bg-card rounded-xl p-5 border border-border shadow-institutional text-center">
-          <p className="text-2xl font-bold text-foreground">{stats?.totalProcessos || 0}</p>
-          <p className="text-xs text-muted-foreground mt-1">Total de Processos</p>
-        </div>
-        <div className="bg-card rounded-xl p-5 border border-border shadow-institutional text-center">
-          <p className="text-2xl font-bold text-foreground">{stats?.totalAudiencias || 0}</p>
-          <p className="text-xs text-muted-foreground mt-1">Audiências Registradas</p>
-        </div>
-        <div className="bg-card rounded-xl p-5 border border-border shadow-institutional text-center">
-          <p className="text-2xl font-bold text-foreground">{stats?.statusCounts?.["sentenciado"] || 0}</p>
-          <p className="text-xs text-muted-foreground mt-1">Processos Sentenciados</p>
-        </div>
-        <div className="bg-card rounded-xl p-5 border border-border shadow-institutional text-center">
-          <p className="text-2xl font-bold text-foreground">{servidores.length}</p>
-          <p className="text-xs text-muted-foreground mt-1">Servidores Cadastrados</p>
-        </div>
+      {/* Indicadores Gerais */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+        {[
+          { label: "Processos", value: stats?.total ?? 0 },
+          { label: "Audiências", value: stats?.audiencias_total ?? 0, sub: `${stats?.audiencias_agendadas ?? 0} agendadas · ${stats?.audiencias_realizadas ?? 0} realizadas` },
+          { label: "Intimações", value: stats?.intimacoes_total ?? 0, sub: `${stats?.intimacoes_pendentes ?? 0} pendentes · ${stats?.intimacoes_lidas ?? 0} lidas` },
+          { label: "Mandados", value: stats?.mandados_total ?? 0, sub: `${stats?.mandados_pendentes ?? 0} pendentes · ${stats?.mandados_cumpridos ?? 0} cumpridos` },
+          { label: "Sentenças", value: stats?.sentencas_total ?? 0 },
+          { label: "Apelações", value: stats?.apelacoes_total ?? 0 },
+          { label: "Inquéritos", value: stats?.inqueritos_total ?? 0, sub: `${stats?.inqueritos_abertos ?? 0} em andamento` },
+          { label: "Boletins de Ocorrência", value: stats?.boletins_total ?? 0 },
+          { label: "Denúncias (MP)", value: stats?.denuncias_mp_total ?? 0 },
+          { label: "Jurisprudências", value: stats?.jurisprudencias_total ?? 0 },
+        ].map((item) => (
+          <div key={item.label} className="bg-card rounded-xl p-5 border border-border shadow-institutional text-center space-y-1">
+            <p className="text-2xl font-bold text-foreground">{item.value}</p>
+            <p className="text-xs text-muted-foreground font-medium">{item.label}</p>
+            {item.sub && <p className="text-[10px] text-muted-foreground">{item.sub}</p>}
+          </div>
+        ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Processos por Status */}
-        <div className="bg-card rounded-xl p-6 border border-border shadow-institutional">
-          <h3 className="font-display text-base font-semibold text-foreground mb-4">Processos por Status</h3>
-          {stats?.statusCounts && Object.keys(stats.statusCounts).length > 0 ? (
-            <div className="space-y-3">
-              {Object.entries(stats.statusCounts).map(([status, count]) => (
-                <div key={status} className="flex items-center gap-3">
-                  <span className="text-xs uppercase tracking-wider text-muted-foreground w-28">{(status as string).replace(/_/g, " ")}</span>
-                  <div className="flex-1 h-5 bg-secondary rounded-full overflow-hidden">
-                    <div className="h-full rounded-full bg-institutional" style={{ width: `${Math.min(((count as number) / (stats.totalProcessos || 1)) * 100, 100)}%` }} />
-                  </div>
-                  <span className="text-sm font-semibold text-foreground w-8 text-right">{count as number}</span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">Sem dados disponíveis.</p>
-          )}
-        </div>
-
         {/* Processos por Classe */}
         <div className="bg-card rounded-xl p-6 border border-border shadow-institutional">
           <h3 className="font-display text-base font-semibold text-foreground mb-4">Processos por Classe</h3>
-          {stats?.classeCounts && Object.keys(stats.classeCounts).length > 0 ? (
+          {Object.keys(porClasse).length > 0 ? (
             <div className="space-y-3">
-              {Object.entries(stats.classeCounts).map(([classe, count]) => (
+              {Object.entries(porClasse).map(([classe, count]) => (
                 <div key={classe} className="flex items-center gap-3">
                   <span className="text-xs uppercase tracking-wider text-muted-foreground w-28">{classe}</span>
                   <div className="flex-1 h-5 bg-secondary rounded-full overflow-hidden">
-                    <div className="h-full rounded-full gradient-gold" style={{ width: `${Math.min(((count as number) / (stats.totalProcessos || 1)) * 100, 100)}%` }} />
+                    <div className="h-full rounded-full gradient-gold" style={{ width: `${Math.min(((count as number) / (total || 1)) * 100, 100)}%` }} />
                   </div>
                   <span className="text-sm font-semibold text-foreground w-8 text-right">{count as number}</span>
                 </div>
@@ -773,7 +746,27 @@ function TabTransparencia() {
           )}
         </div>
 
-        {/* Composição */}
+        {/* Processos por Status */}
+        <div className="bg-card rounded-xl p-6 border border-border shadow-institutional">
+          <h3 className="font-display text-base font-semibold text-foreground mb-4">Processos por Status</h3>
+          {Object.keys(porStatus).length > 0 ? (
+            <div className="space-y-3">
+              {Object.entries(porStatus).map(([status, count]) => (
+                <div key={status} className="flex items-center gap-3">
+                  <span className="text-xs uppercase tracking-wider text-muted-foreground w-28">{(status as string).replace(/_/g, " ")}</span>
+                  <div className="flex-1 h-5 bg-secondary rounded-full overflow-hidden">
+                    <div className="h-full rounded-full bg-institutional" style={{ width: `${Math.min(((count as number) / (total || 1)) * 100, 100)}%` }} />
+                  </div>
+                  <span className="text-sm font-semibold text-foreground w-8 text-right">{count as number}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">Sem dados disponíveis.</p>
+          )}
+        </div>
+
+        {/* Servidores */}
         {servidores.length > 0 && (
           <div className="bg-card rounded-xl p-6 border border-border shadow-institutional lg:col-span-2">
             <h3 className="font-display text-base font-semibold text-foreground mb-4">Servidores da Comarca</h3>
