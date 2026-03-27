@@ -883,6 +883,14 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     },
   });
 
+  // Check if appeal deadline (3 days after latest sentença) has passed
+  const prazoApelacaoExpirado = (() => {
+    if (!isSentenciado || !sentencasProc?.length) return false;
+    const latest = sentencasProc.reduce((a: any, b: any) => new Date(a.created_at) > new Date(b.created_at) ? a : b);
+    const deadline = new Date(new Date(latest.created_at).getTime() + 3 * 24 * 60 * 60 * 1000);
+    return new Date() > deadline;
+  })();
+
   // Interpor apelação
   const [showApelacao, setShowApelacao] = useState(false);
   const [apelacaoForm, setApelacaoForm] = useState({ sentenca_id: "", apelante_tipo: "defesa", fundamentacao: "", pedido: "" });
