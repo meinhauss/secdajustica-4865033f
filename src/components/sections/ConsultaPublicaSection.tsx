@@ -81,13 +81,18 @@ function getDisplayCargo(cargo: string | null, roles: string[]): string | null {
 
 export default function ConsultaPublicaSection() {
   const [search, setSearch] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [photoDialog, setPhotoDialog] = useState<{ url: string; name: string } | null>(null);
 
+  const handleSearch = () => {
+    setSearchTerm(search.trim());
+  };
+
   const { data: resultados } = useQuery({
-    queryKey: ["consulta-credenciais", search],
+    queryKey: ["consulta-credenciais", searchTerm],
     queryFn: async () => {
-      if (!search.trim()) return [];
-      const term = search.trim();
+      if (!searchTerm) return [];
+      const term = searchTerm;
 
       const { data: profilesById, error: e1 } = await supabase
         .from("profiles")
