@@ -138,7 +138,7 @@ export default function ConsultaPublicaSection() {
       const userIds = Object.keys(userMap);
       if (!userIds.length) return [];
 
-      const missingProfiles = userIds.filter((uid) => !profilesById?.some((p) => p.user_id === uid));
+      const missingProfiles = userIds.filter((uid) => !profilesById.some((p) => p.user_id === uid));
       if (missingProfiles.length) {
         const { data: extraProfiles } = await supabase
           .from("profiles")
