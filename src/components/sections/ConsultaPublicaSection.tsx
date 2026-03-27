@@ -187,14 +187,21 @@ export default function ConsultaPublicaSection() {
         </p>
       </div>
 
-      <div className="relative max-w-xl">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Número OAB ou ID do servidor..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-10 rounded-xl h-12 text-base"
-        />
+      <div className="flex gap-2 max-w-xl">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Nome, Número OAB ou ID do servidor..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+            className="pl-10 rounded-xl h-12 text-base"
+          />
+        </div>
+        <Button onClick={handleSearch} className="h-12 px-6 rounded-xl" disabled={!search.trim()}>
+          <Search className="h-4 w-4 mr-2" />
+          Buscar
+        </Button>
       </div>
 
       {!resultados?.length ? (
