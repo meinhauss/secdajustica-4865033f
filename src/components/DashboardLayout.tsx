@@ -9,6 +9,7 @@ import logoSjc from "@/assets/logo-sjc.jpg";
 import logoMpsp from "@/assets/logo-mpsp.png";
 import logoOabsp from "@/assets/logo-oabsp.png";
 import NotificationBell from "@/components/NotificationBell";
+import { CURRENT_VERSION } from "@/lib/version";
 
 
 interface DashboardLayoutProps {
@@ -165,7 +166,7 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
               onSectionChange(section);
             }} />
             <span className="text-xs text-muted-foreground hidden sm:block">
-              Sistema Judiciário v2.8.0
+              Sistema Judiciário v{CURRENT_VERSION}
             </span>
           </div>
         </header>
