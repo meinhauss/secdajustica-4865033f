@@ -118,7 +118,27 @@ export default function EstatisticasSection() {
     queryKey: ["stats-processos"],
     queryFn: async () => {
       const { data } = await supabase.rpc("get_processo_stats");
-      return data as { por_classe: Record<string, number>; por_status: Record<string, number>; total: number } | null;
+      return data as {
+        por_classe: Record<string, number>;
+        por_status: Record<string, number>;
+        total: number;
+        audiencias_total: number;
+        audiencias_agendadas: number;
+        audiencias_realizadas: number;
+        intimacoes_total: number;
+        intimacoes_pendentes: number;
+        intimacoes_lidas: number;
+        mandados_total: number;
+        mandados_pendentes: number;
+        mandados_cumpridos: number;
+        sentencas_total: number;
+        apelacoes_total: number;
+        inqueritos_total: number;
+        inqueritos_abertos: number;
+        boletins_total: number;
+        denuncias_mp_total: number;
+        jurisprudencias_total: number;
+      } | null;
     },
   });
 
