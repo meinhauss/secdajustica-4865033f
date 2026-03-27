@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { BarChart3, GitCommit, ChevronDown, ChevronUp } from "lucide-react";
+import { BarChart3, GitCommit, ChevronDown, ChevronUp, Gavel, FileText, Bell, Shield, Scale, BookOpen, AlertTriangle, Users } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
