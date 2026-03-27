@@ -115,7 +115,7 @@ export default function ConsultaPublicaSection() {
 
       const userMap: Record<string, any> = {};
 
-      profilesById?.forEach((p) => {
+      profilesById.forEach((p) => {
         userMap[p.user_id] = { ...p, oab_info: null };
       });
 
