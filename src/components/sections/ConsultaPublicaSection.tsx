@@ -211,7 +211,7 @@ export default function ConsultaPublicaSection() {
       {!resultados?.length ? (
         <div className="text-center py-16 text-muted-foreground">
           <IdCard className="h-16 w-16 mx-auto mb-4 opacity-20" />
-          <p>{search ? "Nenhum servidor ou profissional encontrado." : "Digite o número da OAB ou ID do servidor para pesquisar."}</p>
+          <p>{searchTerm ? "Nenhum servidor ou profissional encontrado." : "Digite o nome, número da OAB ou ID do servidor e clique em Buscar."}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
