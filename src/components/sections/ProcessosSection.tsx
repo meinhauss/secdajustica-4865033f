@@ -831,7 +831,15 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const institucionalInteressado = isInstitucional && jaInteressado;
   // After sentencing, no new movimentações — only appeals are allowed
   const isSentenciado = processo?.status === "sentenciado";
-  const canAddMovimentacao = !isSentenciado && (isJudicial || isOficialJustica || (isAdvogado && advogadoTemProcuracao) || institucionalInteressado);
+  const isArquivado = processo?.status === "arquivado";
+  // Check if appeal deadline (3 days after latest sentença) has passed
+  const prazoApelacaoExpirado = (() => {
+    if (!isSentenciado || !sentencasProc?.length) return false;
+    const latest = sentencasProc.reduce((a: any, b: any) => new Date(a.created_at) > new Date(b.created_at) ? a : b);
+    const deadline = new Date(new Date(latest.created_at).getTime() + 3 * 24 * 60 * 60 * 1000);
+    return new Date() > deadline;
+  })();
+  const canAddMovimentacao = !isSentenciado && !isArquivado && (isJudicial || isOficialJustica || (isAdvogado && advogadoTemProcuracao) || institucionalInteressado);
 
   const manifestarInteresse = useMutation({
     mutationFn: async () => {
