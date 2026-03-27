@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 
-const CURRENT_VERSION = "2.9.0";
+import { CURRENT_VERSION } from "@/lib/version";
 
 const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
   {

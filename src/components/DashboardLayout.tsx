@@ -166,7 +166,7 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
               onSectionChange(section);
             }} />
             <span className="text-xs text-muted-foreground hidden sm:block">
-              Sistema Judiciário v2.8.0
+              Sistema Judiciário v{CURRENT_VERSION}
             </span>
           </div>
         </header>
