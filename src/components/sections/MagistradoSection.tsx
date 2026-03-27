@@ -652,7 +652,8 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         conteudo: cargoIntForm.conteudo,
         tipo: "intimacao",
         prazo_dias: parseInt(cargoIntForm.prazo) || 24,
-      });
+        cargo_intimado: cargoIntForm.cargo,
+      } as any);
       // Register movimentação
       await supabase.from("movimentacoes").insert({
         processo_id: processoId,
