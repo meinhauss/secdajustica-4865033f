@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { BarChart3, GitCommit, ChevronDown, ChevronUp } from "lucide-react";
+import { BarChart3, GitCommit, ChevronDown, ChevronUp, Gavel, FileText, Bell, Shield, Scale, BookOpen, AlertTriangle, Users } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
@@ -118,7 +118,27 @@ export default function EstatisticasSection() {
     queryKey: ["stats-processos"],
     queryFn: async () => {
       const { data } = await supabase.rpc("get_processo_stats");
-      return data as { por_classe: Record<string, number>; por_status: Record<string, number>; total: number } | null;
+      return data as {
+        por_classe: Record<string, number>;
+        por_status: Record<string, number>;
+        total: number;
+        audiencias_total: number;
+        audiencias_agendadas: number;
+        audiencias_realizadas: number;
+        intimacoes_total: number;
+        intimacoes_pendentes: number;
+        intimacoes_lidas: number;
+        mandados_total: number;
+        mandados_pendentes: number;
+        mandados_cumpridos: number;
+        sentencas_total: number;
+        apelacoes_total: number;
+        inqueritos_total: number;
+        inqueritos_abertos: number;
+        boletins_total: number;
+        denuncias_mp_total: number;
+        jurisprudencias_total: number;
+      } | null;
     },
   });
 
@@ -187,6 +207,32 @@ export default function EstatisticasSection() {
           )}
         </motion.div>
       </div>
+
+      {/* Indicadores gerais */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="bg-card rounded-xl p-6 border border-border shadow-institutional">
+        <h3 className="font-display text-lg font-semibold mb-4">Indicadores Gerais da Comarca</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {[
+            { label: "Processos", value: stats?.total ?? 0, icon: FileText },
+            { label: "Audiências", value: stats?.audiencias_total ?? 0, icon: Users, sub: `${stats?.audiencias_agendadas ?? 0} agendadas · ${stats?.audiencias_realizadas ?? 0} realizadas` },
+            { label: "Intimações", value: stats?.intimacoes_total ?? 0, icon: Bell, sub: `${stats?.intimacoes_pendentes ?? 0} pendentes · ${stats?.intimacoes_lidas ?? 0} lidas` },
+            { label: "Mandados", value: stats?.mandados_total ?? 0, icon: Shield, sub: `${stats?.mandados_pendentes ?? 0} pendentes · ${stats?.mandados_cumpridos ?? 0} cumpridos` },
+            { label: "Sentenças", value: stats?.sentencas_total ?? 0, icon: Gavel },
+            { label: "Apelações", value: stats?.apelacoes_total ?? 0, icon: Scale },
+            { label: "Inquéritos", value: stats?.inqueritos_total ?? 0, icon: AlertTriangle, sub: `${stats?.inqueritos_abertos ?? 0} em andamento` },
+            { label: "Boletins de Ocorrência", value: stats?.boletins_total ?? 0, icon: FileText },
+            { label: "Denúncias (MP)", value: stats?.denuncias_mp_total ?? 0, icon: AlertTriangle },
+            { label: "Jurisprudências", value: stats?.jurisprudencias_total ?? 0, icon: BookOpen },
+          ].map((item) => (
+            <div key={item.label} className="bg-secondary/50 rounded-lg p-4 text-center space-y-1">
+              <item.icon className="h-5 w-5 mx-auto text-institutional mb-1" />
+              <p className="text-2xl font-bold text-foreground">{item.value}</p>
+              <p className="text-xs text-muted-foreground font-medium">{item.label}</p>
+              {item.sub && <p className="text-[10px] text-muted-foreground">{item.sub}</p>}
+            </div>
+          ))}
+        </div>
+      </motion.div>
 
       {isAdmin && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-card rounded-xl p-6 border border-border shadow-institutional">
