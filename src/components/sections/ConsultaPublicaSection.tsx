@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Search, IdCard, Phone } from "lucide-react";
 import { motion } from "framer-motion";
 import {
@@ -81,31 +82,40 @@ function getDisplayCargo(cargo: string | null, roles: string[]): string | null {
 
 export default function ConsultaPublicaSection() {
   const [search, setSearch] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [photoDialog, setPhotoDialog] = useState<{ url: string; name: string } | null>(null);
 
+  const handleSearch = () => {
+    setSearchTerm(search.trim());
+  };
+
   const { data: resultados } = useQuery({
-    queryKey: ["consulta-credenciais", search],
+    queryKey: ["consulta-credenciais", searchTerm],
     queryFn: async () => {
-      if (!search.trim()) return [];
-      const term = search.trim();
+      if (!searchTerm) return [];
+      const term = searchTerm;
 
-      const { data: profilesById, error: e1 } = await supabase
-        .from("profiles")
-        .select("user_id, nome_completo, id_personagem, cargo, oab_numero, avatar_url, telefone_ingame")
-        .eq("id_personagem", term)
-        .limit(50);
-      if (e1) throw e1;
+      const [profilesByIdRes, profilesByNameRes, carteirasRes] = await Promise.all([
+        supabase.from("profiles")
+          .select("user_id, nome_completo, id_personagem, cargo, oab_numero, avatar_url, telefone_ingame")
+          .eq("id_personagem", term)
+          .limit(50),
+        supabase.from("profiles")
+          .select("user_id, nome_completo, id_personagem, cargo, oab_numero, avatar_url, telefone_ingame")
+          .ilike("nome_completo", `%${term}%`)
+          .limit(50),
+        supabase.from("carteiras_oab")
+          .select("user_id, numero_oab, nome_completo, id_personagem, especialidade, status")
+          .ilike("numero_oab", `%${term}%`)
+          .limit(50),
+      ]);
 
-      const { data: carteiras, error: e2 } = await supabase
-        .from("carteiras_oab")
-        .select("user_id, numero_oab, nome_completo, id_personagem, especialidade, status")
-        .ilike("numero_oab", `%${term}%`)
-        .limit(50);
-      if (e2) throw e2;
+      const profilesById = [...(profilesByIdRes.data || []), ...(profilesByNameRes.data || [])];
+      const carteiras = carteirasRes.data || [];
 
       const userMap: Record<string, any> = {};
 
-      profilesById?.forEach((p) => {
+      profilesById.forEach((p) => {
         userMap[p.user_id] = { ...p, oab_info: null };
       });
 
@@ -128,7 +138,7 @@ export default function ConsultaPublicaSection() {
       const userIds = Object.keys(userMap);
       if (!userIds.length) return [];
 
-      const missingProfiles = userIds.filter((uid) => !profilesById?.some((p) => p.user_id === uid));
+      const missingProfiles = userIds.filter((uid) => !profilesById.some((p) => p.user_id === uid));
       if (missingProfiles.length) {
         const { data: extraProfiles } = await supabase
           .from("profiles")
@@ -181,20 +191,27 @@ export default function ConsultaPublicaSection() {
         </p>
       </div>
 
-      <div className="relative max-w-xl">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Número OAB ou ID do servidor..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-10 rounded-xl h-12 text-base"
-        />
+      <div className="flex gap-2 max-w-xl">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Nome, Número OAB ou ID do servidor..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+            className="pl-10 rounded-xl h-12 text-base"
+          />
+        </div>
+        <Button onClick={handleSearch} className="h-12 px-6 rounded-xl" disabled={!search.trim()}>
+          <Search className="h-4 w-4 mr-2" />
+          Buscar
+        </Button>
       </div>
 
       {!resultados?.length ? (
         <div className="text-center py-16 text-muted-foreground">
           <IdCard className="h-16 w-16 mx-auto mb-4 opacity-20" />
-          <p>{search ? "Nenhum servidor ou profissional encontrado." : "Digite o número da OAB ou ID do servidor para pesquisar."}</p>
+          <p>{searchTerm ? "Nenhum servidor ou profissional encontrado." : "Digite o nome, número da OAB ou ID do servidor e clique em Buscar."}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
