@@ -95,19 +95,23 @@ export default function ConsultaPublicaSection() {
       if (!searchTerm) return [];
       const term = searchTerm;
 
-      const { data: profilesById, error: e1 } = await supabase
-        .from("profiles")
-        .select("user_id, nome_completo, id_personagem, cargo, oab_numero, avatar_url, telefone_ingame")
-        .eq("id_personagem", term)
-        .limit(50);
-      if (e1) throw e1;
+      const [profilesByIdRes, profilesByNameRes, carteirasRes] = await Promise.all([
+        supabase.from("profiles")
+          .select("user_id, nome_completo, id_personagem, cargo, oab_numero, avatar_url, telefone_ingame")
+          .eq("id_personagem", term)
+          .limit(50),
+        supabase.from("profiles")
+          .select("user_id, nome_completo, id_personagem, cargo, oab_numero, avatar_url, telefone_ingame")
+          .ilike("nome_completo", `%${term}%`)
+          .limit(50),
+        supabase.from("carteiras_oab")
+          .select("user_id, numero_oab, nome_completo, id_personagem, especialidade, status")
+          .ilike("numero_oab", `%${term}%`)
+          .limit(50),
+      ]);
 
-      const { data: carteiras, error: e2 } = await supabase
-        .from("carteiras_oab")
-        .select("user_id, numero_oab, nome_completo, id_personagem, especialidade, status")
-        .ilike("numero_oab", `%${term}%`)
-        .limit(50);
-      if (e2) throw e2;
+      const profilesById = [...(profilesByIdRes.data || []), ...(profilesByNameRes.data || [])];
+      const carteiras = carteirasRes.data || [];
 
       const userMap: Record<string, any> = {};
 
