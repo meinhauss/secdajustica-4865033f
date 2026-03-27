@@ -703,27 +703,6 @@ function TabTransparencia() {
       <h2 className="font-display text-2xl font-bold text-foreground mb-2">Portal da Transparência</h2>
       <p className="text-muted-foreground mb-8">Dados públicos e prestação de contas do Poder Judiciário.</p>
 
-      {/* Indicadores Gerais */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-        {[
-          { label: "Processos", value: stats?.total ?? 0 },
-          { label: "Audiências", value: stats?.audiencias_total ?? 0, sub: `${stats?.audiencias_agendadas ?? 0} agendadas · ${stats?.audiencias_realizadas ?? 0} realizadas` },
-          { label: "Intimações", value: stats?.intimacoes_total ?? 0, sub: `${stats?.intimacoes_pendentes ?? 0} pendentes · ${stats?.intimacoes_lidas ?? 0} lidas` },
-          { label: "Mandados", value: stats?.mandados_total ?? 0, sub: `${stats?.mandados_pendentes ?? 0} pendentes · ${stats?.mandados_cumpridos ?? 0} cumpridos` },
-          { label: "Sentenças", value: stats?.sentencas_total ?? 0 },
-          { label: "Apelações", value: stats?.apelacoes_total ?? 0 },
-          { label: "Inquéritos", value: stats?.inqueritos_total ?? 0, sub: `${stats?.inqueritos_abertos ?? 0} em andamento` },
-          { label: "Boletins de Ocorrência", value: stats?.boletins_total ?? 0 },
-          { label: "Denúncias (MP)", value: stats?.denuncias_mp_total ?? 0 },
-          { label: "Jurisprudências", value: stats?.jurisprudencias_total ?? 0 },
-        ].map((item) => (
-          <div key={item.label} className="bg-card rounded-xl p-5 border border-border shadow-institutional text-center space-y-1">
-            <p className="text-2xl font-bold text-foreground">{item.value}</p>
-            <p className="text-xs text-muted-foreground font-medium">{item.label}</p>
-            {item.sub && <p className="text-[10px] text-muted-foreground">{item.sub}</p>}
-          </div>
-        ))}
-      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Processos por Classe */}
