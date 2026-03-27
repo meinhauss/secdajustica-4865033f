@@ -831,7 +831,8 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const institucionalInteressado = isInstitucional && jaInteressado;
   // After sentencing, no new movimentações — only appeals are allowed
   const isSentenciado = processo?.status === "sentenciado";
-  const canAddMovimentacao = !isSentenciado && (isJudicial || isOficialJustica || (isAdvogado && advogadoTemProcuracao) || institucionalInteressado);
+  const isArquivado = processo?.status === "arquivado";
+  const canAddMovimentacao = !isSentenciado && !isArquivado && (isJudicial || isOficialJustica || (isAdvogado && advogadoTemProcuracao) || institucionalInteressado);
 
   const manifestarInteresse = useMutation({
     mutationFn: async () => {
@@ -881,6 +882,14 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
       return data as any[];
     },
   });
+
+  // Check if appeal deadline (3 days after latest sentença) has passed
+  const prazoApelacaoExpirado = (() => {
+    if (!isSentenciado || !sentencasProc?.length) return false;
+    const latest = sentencasProc.reduce((a: any, b: any) => new Date(a.created_at) > new Date(b.created_at) ? a : b);
+    const deadline = new Date(new Date(latest.created_at).getTime() + 3 * 24 * 60 * 60 * 1000);
+    return new Date() > deadline;
+  })();
 
   // Interpor apelação
   const [showApelacao, setShowApelacao] = useState(false);
@@ -1239,16 +1248,28 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
           <TabsTrigger value="prazos" className="rounded-lg text-xs"><Timer className="h-3 w-3 mr-1" /> Prazos</TabsTrigger>
           <TabsTrigger value="audiencias" className="rounded-lg text-xs"><Calendar className="h-3 w-3 mr-1" /> Audiências</TabsTrigger>
           {(isOficialJustica || isJudicialReadOnly) && <TabsTrigger value="certidoes" className="rounded-lg text-xs"><ScrollText className="h-3 w-3 mr-1" /> Certidões</TabsTrigger>}
-          {processo.status === "sentenciado" && <TabsTrigger value="apelacoes" className="rounded-lg text-xs"><Scale className="h-3 w-3 mr-1" /> Apelações</TabsTrigger>}
+          {(isSentenciado || isArquivado) && <TabsTrigger value="apelacoes" className="rounded-lg text-xs"><Scale className="h-3 w-3 mr-1" /> Apelações</TabsTrigger>}
         </TabsList>
 
         {/* TIMELINE — unified view */}
         <TabsContent value="timeline" className="mt-4 space-y-4">
           {canAddMovimentacao && <AddMovimentacao roles={roles} onAdd={(tipo, desc) => addMovimentacao.mutate({ tipo, descricao: desc })} />}
-          {isSentenciado && (
+          {isSentenciado && !prazoApelacaoExpirado && (
             <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-xl p-4 text-sm text-green-800 dark:text-green-300 flex items-center gap-2">
               <CheckCircle className="h-4 w-4" />
-              Processo sentenciado. Novas movimentações não são permitidas — apenas recursos de apelação podem ser interpostos na aba "Apelações".
+              Processo sentenciado. Novas movimentações não são permitidas — recursos de apelação podem ser interpostos em até 3 dias na aba "Apelações".
+            </div>
+          )}
+          {isSentenciado && prazoApelacaoExpirado && (
+            <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" />
+              Prazo para recurso expirado (3 dias). O processo será arquivado automaticamente.
+            </div>
+          )}
+          {isArquivado && (
+            <div className="bg-muted border border-border rounded-xl p-4 text-sm text-muted-foreground flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" />
+              Processo arquivado. Não é possível realizar novas movimentações.
             </div>
           )}
           {!isSentenciado && isInstitucional && !jaInteressado && (
@@ -1533,10 +1554,15 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         )}
 
         {/* APELAÇÕES */}
-        {processo.status === "sentenciado" && (
+        {(isSentenciado || isArquivado) && (
           <TabsContent value="apelacoes" className="mt-4 space-y-4">
             {/* Botão para interpor apelação */}
-            {(isAdvogado || isMP) && sentencasProc?.length && !apelacoesProc?.length ? (
+            {prazoApelacaoExpirado || isArquivado ? (
+              <div className="bg-muted border border-border rounded-xl p-4 text-sm text-muted-foreground flex items-center gap-2">
+                <Scale className="h-4 w-4" />
+                O prazo de 3 dias para interposição de recurso expirou. Não é mais possível apelar.
+              </div>
+            ) : (isAdvogado || isMP) && sentencasProc?.length && !apelacoesProc?.length ? (
               <Dialog open={showApelacao} onOpenChange={setShowApelacao}>
                 <DialogTrigger asChild>
                   <Button className="gap-2"><Scale className="h-4 w-4" /> Interpor Apelação</Button>

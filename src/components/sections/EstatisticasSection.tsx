@@ -6,9 +6,19 @@ import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 
-const CURRENT_VERSION = "2.8.0";
+const CURRENT_VERSION = "2.9.0";
 
 const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
+  {
+    version: "2.9.0",
+    date: "27/03/2026",
+    changes: [
+      "Arquivamento automático de processos 3 dias após sentença",
+      "Prazo de 3 dias para interposição de recurso de apelação",
+      "Bloqueio de apelações após expiração do prazo",
+      "Processos arquivados exibem aba de apelações para consulta",
+    ],
+  },
   {
     version: "2.8.0",
     date: "26/03/2026",
