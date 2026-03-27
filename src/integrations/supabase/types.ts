@@ -1121,6 +1121,7 @@ export type Database = {
       }
       intimacoes: {
         Row: {
+          cargo_intimado: string | null
           conteudo: string
           created_at: string
           data_envio: string
@@ -1135,6 +1136,7 @@ export type Database = {
           tipo: string
         }
         Insert: {
+          cargo_intimado?: string | null
           conteudo: string
           created_at?: string
           data_envio?: string
@@ -1149,6 +1151,7 @@ export type Database = {
           tipo?: string
         }
         Update: {
+          cargo_intimado?: string | null
           conteudo?: string
           created_at?: string
           data_envio?: string
