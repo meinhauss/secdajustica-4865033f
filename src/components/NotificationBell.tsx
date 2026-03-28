@@ -110,57 +110,59 @@ export default function NotificationBell({ onNavigate }: NotificationBellProps) 
           )}
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-96 p-0 max-h-[80vh] overflow-hidden" align="end" side="bottom" avoidCollisions={true} collisionPadding={16}>
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-          <h3 className="font-semibold text-sm text-foreground">Notificações</h3>
-          {unreadCount > 0 && (
-            <button
-              onClick={markAllAsRead}
-              className="text-xs text-primary hover:underline"
-            >
-              Marcar todas como lidas
-            </button>
-          )}
-        </div>
-        <ScrollArea className="max-h-[400px]">
-          {notificacoes.length === 0 ? (
-            <div className="p-6 text-center text-sm text-muted-foreground">
-              Nenhuma notificação
-            </div>
-          ) : (
-            <div className="divide-y divide-border">
-              {notificacoes.map((notif) => (
-                <button
-                  key={notif.id}
-                  onClick={() => handleClick(notif)}
-                  className={`w-full text-left px-4 py-3 hover:bg-accent/30 transition-colors ${
-                    !notif.lida ? "bg-primary/5" : ""
-                  }`}
-                >
-                  <div className="flex gap-2">
-                    <span className="text-base mt-0.5">{getTypeIcon(notif.tipo)}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className={`text-sm truncate ${!notif.lida ? "font-semibold text-foreground" : "text-foreground/80"}`}>
-                          {notif.titulo}
+      <PopoverContent className="w-96 max-w-[calc(100vw-2rem)] p-0" align="end" side="bottom" avoidCollisions={true} collisionPadding={16}>
+        <div className="flex h-[min(80vh,28rem)] flex-col overflow-hidden">
+          <div className="flex items-center justify-between border-b border-border px-4 py-3 shrink-0">
+            <h3 className="font-semibold text-sm text-foreground">Notificações</h3>
+            {unreadCount > 0 && (
+              <button
+                onClick={markAllAsRead}
+                className="text-xs text-primary hover:underline"
+              >
+                Marcar todas como lidas
+              </button>
+            )}
+          </div>
+          <ScrollArea className="flex-1">
+            {notificacoes.length === 0 ? (
+              <div className="p-6 text-center text-sm text-muted-foreground">
+                Nenhuma notificação
+              </div>
+            ) : (
+              <div className="divide-y divide-border">
+                {notificacoes.map((notif) => (
+                  <button
+                    key={notif.id}
+                    onClick={() => handleClick(notif)}
+                    className={`w-full text-left px-4 py-3 hover:bg-accent/30 transition-colors ${
+                      !notif.lida ? "bg-primary/5" : ""
+                    }`}
+                  >
+                    <div className="flex gap-2">
+                      <span className="text-base mt-0.5">{getTypeIcon(notif.tipo)}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className={`text-sm truncate ${!notif.lida ? "font-semibold text-foreground" : "text-foreground/80"}`}>
+                            {notif.titulo}
+                          </p>
+                          {!notif.lida && (
+                            <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
+                          {notif.mensagem}
                         </p>
-                        {!notif.lida && (
-                          <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
-                        )}
+                        <p className="text-[10px] text-muted-foreground/60 mt-1">
+                          {format(new Date(notif.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                        </p>
                       </div>
-                      <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
-                        {notif.mensagem}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground/60 mt-1">
-                        {format(new Date(notif.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                      </p>
                     </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-        </ScrollArea>
+                  </button>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </div>
       </PopoverContent>
     </Popover>
   );
