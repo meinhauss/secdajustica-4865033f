@@ -693,8 +693,125 @@ function ComunicacoesChat({ ipId, comunicacoes }: { ipId: string; comunicacoes: 
   );
 }
 
+/* ═══════════════════════════════════════════ */
+/*  DESCRIÇÃO DOS FATOS (parsed & clickable)   */
+/* ═══════════════════════════════════════════ */
+function LinkifyText({ text, className }: { text: string; className?: string }) {
+  const urlRegex = /(https?:\/\/[^\s,)]+)/g;
+  const parts = text.split(urlRegex);
+  return (
+    <span className={className}>
+      {parts.map((part, i) =>
+        urlRegex.test(part) ? (
+          <a key={i} href={part} target="_blank" rel="noreferrer" className="text-institutional underline hover:text-institutional-light break-all">{part}</a>
+        ) : (
+          <React.Fragment key={i}>{part}</React.Fragment>
+        )
+      )}
+    </span>
+  );
+}
 
-function InqueritoMPDetail({ ipId, onBack }: { ipId: string; onBack: () => void }) {
+function DescricaoFatos({ descricao }: { descricao: string }) {
+  // Parse structured description: sections separated by headers like 📎, 👥, [DENÚNCIA], [INQUÉRITO]
+  const sections: { title: string; content: string; type: "text" | "envolvidos" | "links" }[] = [];
+
+  // Split by known markers
+  const envolvidosMatch = descricao.match(/\n\n👥\s*Envolvidos:\n([\s\S]*?)(?=\n\n📎|$)/);
+  const linksMatch = descricao.match(/\n\n📎\s*Links\/Anexos:\n([\s\S]*?)$/);
+
+  // Main text is everything before 👥 or 📎
+  let mainText = descricao;
+  const firstMarkerIdx = Math.min(
+    descricao.indexOf("\n\n👥") >= 0 ? descricao.indexOf("\n\n👥") : Infinity,
+    descricao.indexOf("\n\n📎") >= 0 ? descricao.indexOf("\n\n📎") : Infinity
+  );
+  if (firstMarkerIdx !== Infinity) {
+    mainText = descricao.substring(0, firstMarkerIdx);
+  }
+
+  // Extract title prefix like [DENÚNCIA - POLÍCIA CIVIL] or [INQUÉRITO - ...]
+  const titleMatch = mainText.match(/^\[([^\]]+)\]\s*/);
+  const headerLabel = titleMatch ? titleMatch[1] : null;
+  const bodyText = titleMatch ? mainText.substring(titleMatch[0].length) : mainText;
+
+  const envolvidosList = envolvidosMatch
+    ? envolvidosMatch[1].split("\n").filter((l) => l.trim()).map((l) => l.replace(/^[-•]\s*/, "").trim())
+    : [];
+
+  const linksList = linksMatch
+    ? linksMatch[1].split("\n").filter((l) => l.trim()).map((l) => l.replace(/^[-•]\s*/, "").trim())
+    : [];
+
+  return (
+    <div className="bg-card rounded-xl border border-border shadow-institutional overflow-hidden">
+      {/* Header */}
+      <div className="px-5 py-3 border-b border-border bg-secondary/30">
+        <h3 className="font-display text-sm font-semibold text-foreground flex items-center gap-2">
+          <FileText className="h-4 w-4 text-institutional" />
+          Descrição dos Fatos
+          {headerLabel && (
+            <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-institutional/10 text-institutional ml-2">
+              {headerLabel}
+            </span>
+          )}
+        </h3>
+      </div>
+
+      {/* Body text */}
+      <div className="px-5 py-4 space-y-4">
+        <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+          <LinkifyText text={bodyText} />
+        </div>
+
+        {/* Envolvidos */}
+        {envolvidosList.length > 0 && (
+          <div className="border-t border-border pt-3">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <AlertTriangle className="h-3.5 w-3.5" /> Envolvidos
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+              {envolvidosList.map((e, i) => (
+                <div key={i} className="flex items-center gap-2 text-sm bg-secondary/40 rounded-lg px-3 py-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-institutional flex-shrink-0" />
+                  <LinkifyText text={e} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Links */}
+        {linksList.length > 0 && (
+          <div className="border-t border-border pt-3">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              📎 Links / Anexos
+            </p>
+            <div className="space-y-1.5">
+              {linksList.map((l, i) => {
+                const urlMatch = l.match(/(https?:\/\/[^\s,)]+)/);
+                return (
+                  <div key={i} className="flex items-start gap-2 text-sm">
+                    <span className="text-institutional mt-0.5">→</span>
+                    {urlMatch ? (
+                      <a href={urlMatch[1]} target="_blank" rel="noreferrer" className="text-institutional underline hover:text-institutional-light break-all">
+                        {l}
+                      </a>
+                    ) : (
+                      <LinkifyText text={l} />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [activeAction, setActiveAction] = useState<"none" | "denuncia" | "arquivamento" | "requisicao">("none");
