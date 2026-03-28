@@ -810,8 +810,7 @@ function DescricaoFatos({ descricao }: { descricao: string }) {
     </div>
   );
 }
-
-
+function InqueritoMPDetail({ ipId, onBack }: { ipId: string; onBack: () => void }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [activeAction, setActiveAction] = useState<"none" | "denuncia" | "arquivamento" | "requisicao">("none");
