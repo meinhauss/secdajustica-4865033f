@@ -441,6 +441,77 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ============================================
+    // PUT /atualizar-diligencia/:id
+    // Atualiza status/resultado de uma requisição de diligência
+    // ============================================
+    if (req.method === "PUT" && path.startsWith("atualizar-diligencia/")) {
+      const id = path.replace("atualizar-diligencia/", "");
+      const body = await req.json();
+      const { status: newStatus, resposta, resultado } = body;
+
+      if (!newStatus && !resposta && !resultado) {
+        return jsonResponse({ error: "Informe ao menos status, resposta ou resultado" }, 400);
+      }
+
+      // Verify this requisição belongs to an inquerito linked to this API key
+      const { data: req_data, error: req_err } = await supabase
+        .from("requisicoes_diligencia_mp")
+        .select("id, inquerito_id")
+        .eq("id", id)
+        .single();
+
+      if (req_err || !req_data) {
+        return jsonResponse({ error: "Requisição de diligência não encontrada" }, 404);
+      }
+
+      // Verify inquerito belongs to this API key
+      const { data: linkCheck } = await supabase
+        .from("comunicacoes_externas")
+        .select("id")
+        .eq("api_key_id", keyData.id)
+        .eq("inquerito_id", req_data.inquerito_id)
+        .limit(1);
+
+      if (!linkCheck || linkCheck.length === 0) {
+        return jsonResponse({ error: "Requisição não pertence a um inquérito deste órgão" }, 403);
+      }
+
+      // Update requisição
+      const updateData: any = { updated_at: new Date().toISOString() };
+      if (newStatus) updateData.status = newStatus;
+      if (resposta) updateData.resposta = resposta;
+
+      const { error: updateErr } = await supabase
+        .from("requisicoes_diligencia_mp")
+        .update(updateData)
+        .eq("id", id);
+
+      if (updateErr) throw updateErr;
+
+      // Also update linked diligência if resultado provided
+      if (resultado) {
+        const { data: diligencia } = await supabase
+          .from("diligencias")
+          .select("id")
+          .eq("inquerito_id", req_data.inquerito_id)
+          .order("created_at", { ascending: false })
+          .limit(1);
+
+        if (diligencia && diligencia.length > 0) {
+          await supabase
+            .from("diligencias")
+            .update({ resultado, status: newStatus || "concluida" })
+            .eq("id", diligencia[0].id);
+        }
+      }
+
+      return jsonResponse({
+        sucesso: true,
+        mensagem: "Diligência atualizada com sucesso",
+      });
+    }
+
     return jsonResponse({
       error: "Rota não encontrada.",
       rotas_disponiveis: [
@@ -452,6 +523,7 @@ Deno.serve(async (req) => {
         "GET /meus-inqueritos — Lista inquéritos enviados por este órgão",
         "GET /inquerito/:id — Acompanha andamento completo de um inquérito",
         "PUT /marcar-lido/:id — Marca comunicação como lida",
+        "PUT /atualizar-diligencia/:id — Atualiza status/resultado de diligência requisitada",
         "GET /status — Status da API",
       ],
     }, 404);
