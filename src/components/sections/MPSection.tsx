@@ -916,10 +916,9 @@ function InqueritoMPDetail({ ipId, onBack }: { ipId: string; onBack: () => void 
 
         {/* RESUMO */}
         <TabsContent value="resumo" className="mt-4 space-y-4">
-          <div className="bg-card rounded-xl p-5 border border-border shadow-institutional">
-            <h3 className="font-display text-sm font-semibold text-foreground mb-2">Descrição dos Fatos</h3>
-            <p className="text-sm text-foreground whitespace-pre-wrap">{ip.descricao}</p>
-            <div className="flex gap-4 mt-3 text-xs text-muted-foreground flex-wrap">
+          <DescricaoFatos descricao={ip.descricao} />
+          <div className="bg-card rounded-xl p-4 border border-border shadow-institutional">
+            <div className="flex gap-4 text-xs text-muted-foreground flex-wrap">
               <span>Tipo: <strong className="text-foreground">{ip.tipo}</strong></span>
               <span>Instaurado: {format(new Date(ip.data_instauracao), "dd/MM/yyyy", { locale: ptBR })}</span>
               {ip.data_conclusao && <span>Concluso: {format(new Date(ip.data_conclusao), "dd/MM/yyyy", { locale: ptBR })}</span>}
