@@ -8,7 +8,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -110,9 +109,9 @@ export default function NotificationBell({ onNavigate }: NotificationBellProps) 
           )}
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-96 max-w-[calc(100vw-2rem)] p-0" align="end" side="bottom" avoidCollisions={true} collisionPadding={16}>
-        <div className="flex h-[min(80vh,28rem)] flex-col overflow-hidden">
-          <div className="flex items-center justify-between border-b border-border px-4 py-3 shrink-0">
+      <PopoverContent className="w-96 max-w-[calc(100vw-2rem)] p-0" align="end" side="bottom" avoidCollisions collisionPadding={16}>
+        <div className="flex flex-col overflow-hidden rounded-md">
+          <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <h3 className="font-semibold text-sm text-foreground">Notificações</h3>
             {unreadCount > 0 && (
               <button
@@ -123,7 +122,7 @@ export default function NotificationBell({ onNavigate }: NotificationBellProps) 
               </button>
             )}
           </div>
-          <ScrollArea className="flex-1">
+          <div className="overflow-y-auto max-h-[min(60vh,24rem)]">
             {notificacoes.length === 0 ? (
               <div className="p-6 text-center text-sm text-muted-foreground">
                 Nenhuma notificação
@@ -161,7 +160,7 @@ export default function NotificationBell({ onNavigate }: NotificationBellProps) 
                 ))}
               </div>
             )}
-          </ScrollArea>
+          </div>
         </div>
       </PopoverContent>
     </Popover>
