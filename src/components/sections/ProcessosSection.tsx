@@ -1792,6 +1792,11 @@ function AddMovimentacao({ roles, onAdd }: { roles: string[]; onAdd: (tipo: stri
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Warn if attachment fields have content but weren't added
+    if ((novoAnexoNome.trim() || novoAnexoUrl.trim()) && anexos.every(a => a.nome !== novoAnexoNome.trim() || a.url !== novoAnexoUrl.trim())) {
+      toast.error("Você preencheu os campos de anexo mas não clicou em adicionar. Clique no botão '+' para anexar ou limpe os campos antes de enviar.");
+      return;
+    }
     let descFinal = desc;
     if (anexos.length > 0) {
       descFinal += "\n\n📎 DOCUMENTOS ANEXOS:\n" + anexos.map((a, i) => `${i + 1}. ${a.nome}: ${a.url}`).join("\n");
