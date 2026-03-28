@@ -1,4 +1,4 @@
-# 📋 API do Ministério Público — Documentação v2.0
+# 📋 API do Ministério Público — Documentação v2.1
 
 ## Visão Geral
 
@@ -345,7 +345,31 @@ Marca uma comunicação de saída (enviada pelo MP) como lida.
 
 ---
 
-### 9. `GET /status`
+### 9. `PUT /atualizar-diligencia/:id`
+Atualiza o status e/ou resultado de uma requisição de diligência feita pelo MP ao órgão externo.
+
+**Body (JSON):**
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| `status` | string | Não* | Novo status (`pendente`, `em_andamento`, `cumprida`, `nao_cumprida`) |
+| `resposta` | string | Não* | Resposta/relatório da diligência |
+| `resultado` | string | Não | Resultado detalhado (atualiza também a diligência vinculada) |
+
+> *Ao menos um dos campos deve ser informado.
+
+**Resposta (200):**
+```json
+{ "sucesso": true, "mensagem": "Diligência atualizada com sucesso" }
+```
+
+**Resposta (403):**
+```json
+{ "error": "Requisição não pertence a um inquérito deste órgão" }
+```
+
+---
+
+### 10. `GET /status`
 Verifica o status da API e informações do órgão autenticado.
 
 **Resposta (200):**
@@ -354,7 +378,7 @@ Verifica o status da API e informações do órgão autenticado.
   "status": "online",
   "orgao": "policia_civil",
   "sistema": "Delegacia Virtual",
-  "versao_api": "2.0.0"
+  "versao_api": "2.1.0"
 }
 ```
 
@@ -382,8 +406,9 @@ Verifica o status da API e informações do órgão autenticado.
 4. MP envia requisições ──► (visível em GET /comunicacoes)
 5. Órgão lê comunicação ──► PUT /marcar-lido/:id
 6. Órgão responde ──────────► POST /enviar-comunicacao (com resposta_a)
-7. MP oferece denúncia ────► (visível em GET /inquerito/:id → denuncias)
-8. MP arquiva ─────────────► (visível em GET /inquerito/:id → arquivamentos)
+7. Órgão atualiza diligência ► PUT /atualizar-diligencia/:id
+8. MP oferece denúncia ────► (visível em GET /inquerito/:id → denuncias)
+9. MP arquiva ─────────────► (visível em GET /inquerito/:id → arquivamentos)
 ```
 
 ---
@@ -425,10 +450,21 @@ curl -X GET \
 curl -X PUT \
   "https://xmijvtkexbdduvwgwpsk.supabase.co/functions/v1/api-mp/marcar-lido/UUID_DA_COMUNICACAO" \
   -H "X-API-Key: sua-chave-aqui"
+
+# 6. Atualizar status de diligência requisitada
+curl -X PUT \
+  "https://xmijvtkexbdduvwgwpsk.supabase.co/functions/v1/api-mp/atualizar-diligencia/UUID_DA_REQUISICAO" \
+  -H "X-API-Key: sua-chave-aqui" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "status": "cumprida",
+    "resposta": "Diligência realizada com sucesso. Evidências coletadas.",
+    "resultado": "Foram encontrados vestígios no local indicado."
+  }'
 ```
 
 ---
 
 ## 🏷️ Versão
 
-**API v2.0.0** — Sistema Judiciário v2.8.0
+**API v2.1.0** — Sistema Judiciário v2.8.0
