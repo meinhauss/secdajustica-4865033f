@@ -345,7 +345,31 @@ Marca uma comunicação de saída (enviada pelo MP) como lida.
 
 ---
 
-### 9. `GET /status`
+### 9. `PUT /atualizar-diligencia/:id`
+Atualiza o status e/ou resultado de uma requisição de diligência feita pelo MP ao órgão externo.
+
+**Body (JSON):**
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| `status` | string | Não* | Novo status (`pendente`, `em_andamento`, `cumprida`, `nao_cumprida`) |
+| `resposta` | string | Não* | Resposta/relatório da diligência |
+| `resultado` | string | Não | Resultado detalhado (atualiza também a diligência vinculada) |
+
+> *Ao menos um dos campos deve ser informado.
+
+**Resposta (200):**
+```json
+{ "sucesso": true, "mensagem": "Diligência atualizada com sucesso" }
+```
+
+**Resposta (403):**
+```json
+{ "error": "Requisição não pertence a um inquérito deste órgão" }
+```
+
+---
+
+### 10. `GET /status`
 Verifica o status da API e informações do órgão autenticado.
 
 **Resposta (200):**
@@ -354,7 +378,7 @@ Verifica o status da API e informações do órgão autenticado.
   "status": "online",
   "orgao": "policia_civil",
   "sistema": "Delegacia Virtual",
-  "versao_api": "2.0.0"
+  "versao_api": "2.1.0"
 }
 ```
 
