@@ -710,8 +710,8 @@ function InqueritoMPDetail({ ipId, onBack }: { ipId: string; onBack: () => void 
         prazo_dias: parseInt(reqForm.prazo_dias) || 10,
       } as any);
       if (error) throw error;
-      // Update inquerito back to em_andamento
-      await supabase.from("inqueritos").update({ status: "em_andamento", remetido_mp: false }).eq("id", ipId);
+      // Update inquerito status to diligências (keep remetido_mp true so it stays visible)
+      await supabase.from("inqueritos").update({ status: "diligencias" }).eq("id", ipId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["mp-ip", ipId] });
