@@ -426,10 +426,21 @@ curl -X GET \
 curl -X PUT \
   "https://xmijvtkexbdduvwgwpsk.supabase.co/functions/v1/api-mp/marcar-lido/UUID_DA_COMUNICACAO" \
   -H "X-API-Key: sua-chave-aqui"
+
+# 6. Atualizar status de diligência requisitada
+curl -X PUT \
+  "https://xmijvtkexbdduvwgwpsk.supabase.co/functions/v1/api-mp/atualizar-diligencia/UUID_DA_REQUISICAO" \
+  -H "X-API-Key: sua-chave-aqui" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "status": "cumprida",
+    "resposta": "Diligência realizada com sucesso. Evidências coletadas.",
+    "resultado": "Foram encontrados vestígios no local indicado."
+  }'
 ```
 
 ---
 
 ## 🏷️ Versão
 
-**API v2.0.0** — Sistema Judiciário v2.8.0
+**API v2.1.0** — Sistema Judiciário v2.8.0
