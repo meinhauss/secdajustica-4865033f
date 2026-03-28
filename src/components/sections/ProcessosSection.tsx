@@ -1280,15 +1280,30 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
           )}
           {(() => {
             // Build unified timeline from all sources
-            type TimelineItem = { id: string; date: string; tipo: string; titulo: string; descricao: string; autor?: string; link?: string; badge_color?: string };
+            type TimelineItem = { id: string; date: string; tipo: string; titulo: string; descricao: string; autor?: string; link?: string; badge_color?: string; attachments?: { nome: string; url: string }[] };
             const items: TimelineItem[] = [];
 
-            // Movimentações
-            movimentacoes?.forEach(m => items.push({
-              id: `mov-${m.id}`, date: m.created_at, tipo: m.tipo.replace(/_/g, " "),
-              titulo: "", descricao: m.descricao, autor: (m as any).autor_nome || "Sistema",
-              badge_color: "bg-secondary text-secondary-foreground",
-            }));
+            // Match documents to movimentações by close timestamp & same author
+            const usedDocIds = new Set<string>();
+
+            // Movimentações — attach related documents
+            movimentacoes?.forEach(m => {
+              const mTime = new Date(m.created_at).getTime();
+              const relatedDocs = (documentos || []).filter((d: any) => {
+                if (usedDocIds.has(d.id)) return false;
+                const dTime = new Date(d.created_at).getTime();
+                const sameAuthor = d.autor_id && m.autor_id && d.autor_id === m.autor_id;
+                return sameAuthor && Math.abs(dTime - mTime) < 60000; // within 1 minute
+              });
+              relatedDocs.forEach((d: any) => usedDocIds.add(d.id));
+
+              items.push({
+                id: `mov-${m.id}`, date: m.created_at, tipo: m.tipo.replace(/_/g, " "),
+                titulo: "", descricao: m.descricao, autor: (m as any).autor_nome || "Sistema",
+                badge_color: "bg-secondary text-secondary-foreground",
+                attachments: relatedDocs.map((d: any) => ({ nome: d.nome, url: d.arquivo_url })).filter((a: any) => a.url),
+              });
+            });
 
             // Atos Judiciais
             atos?.forEach((a: any) => items.push({
@@ -1298,13 +1313,16 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               badge_color: "bg-institutional/10 text-institutional",
             }));
 
-            // Documentos (com links)
-            documentos?.forEach((d: any) => items.push({
-              id: `doc-${d.id}`, date: d.created_at, tipo: `documento — ${d.tipo}`,
-              titulo: d.nome, descricao: d.descricao || "",
-              link: d.arquivo_url || undefined,
-              badge_color: "bg-blue-100 text-blue-800 dark:bg-blue-950/30 dark:text-blue-400",
-            }));
+            // Documentos (com links) — skip docs already attached to movimentações
+            documentos?.forEach((d: any) => {
+              if (usedDocIds.has(d.id)) return;
+              items.push({
+                id: `doc-${d.id}`, date: d.created_at, tipo: `documento — ${d.tipo}`,
+                titulo: d.nome, descricao: d.descricao || "",
+                link: d.arquivo_url || undefined,
+                badge_color: "bg-blue-100 text-blue-800 dark:bg-blue-950/30 dark:text-blue-400",
+              });
+            });
 
             // Audiências
             audiencias?.forEach((a: any) => items.push({
@@ -1417,6 +1435,16 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                         <a href={item.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-2 text-xs text-primary hover:underline">
                           <ExternalLink className="h-3 w-3" /> Abrir documento
                         </a>
+                      )}
+                      {item.attachments && item.attachments.length > 0 && (
+                        <div className="mt-2 pt-2 border-t border-border/50 space-y-1">
+                          <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Anexos:</p>
+                          {item.attachments.map((att, idx) => (
+                            <a key={idx} href={att.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline mr-3">
+                              <ExternalLink className="h-3 w-3" /> {att.nome}
+                            </a>
+                          ))}
+                        </div>
                       )}
                       {item.autor && (
                         <div className="mt-2 pt-2 border-t border-border/50">
