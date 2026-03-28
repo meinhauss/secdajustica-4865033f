@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { formatPartesShort } from "@/lib/formatPartes";
 import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -535,8 +535,165 @@ function ParecerTab({ pareceres, processos }: { pareceres: any[]; processos: any
 }
 
 /* ═══════════════════════════════════════════ */
-/*  INQUÉRITO DETAIL (MP VIEW)                 */
+/*  COMUNICAÇÕES CHAT                          */
 /* ═══════════════════════════════════════════ */
+function ComunicacoesChat({ ipId, comunicacoes }: { ipId: string; comunicacoes: any[] }) {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [msgText, setMsgText] = useState("");
+  const [msgTitulo, setMsgTitulo] = useState("");
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+
+  // Sort chronologically (oldest first for chat)
+  const sorted = [...comunicacoes].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+
+  // Get the api_key_id from the first incoming message to reply to
+  const firstIncoming = comunicacoes.find((c) => c.direcao === "entrada");
+
+  React.useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [comunicacoes]);
+
+  const sendMessage = useMutation({
+    mutationFn: async () => {
+      if (!msgText.trim()) throw new Error("Mensagem obrigatória.");
+      if (!firstIncoming) throw new Error("Nenhum remetente encontrado para responder.");
+
+      const { error } = await supabase.from("comunicacoes_externas" as any).insert({
+        api_key_id: firstIncoming.api_key_id,
+        orgao_origem: "ministerio_publico",
+        tipo: "comunicacao",
+        direcao: "saida",
+        titulo: msgTitulo.trim() || "Mensagem do MP",
+        conteudo: msgText.trim(),
+        inquerito_id: ipId,
+        status: "pendente",
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["mp-ip-comunicacoes", ipId] });
+      setMsgText("");
+      setMsgTitulo("");
+      toast.success("Mensagem enviada!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  const orgaoLabels: Record<string, string> = {
+    policia_civil: "Polícia Civil", policia_federal: "Polícia Federal",
+    receita: "Receita Federal", ministerio_publico: "Ministério Público",
+    hospital: "Hospital", policia_militar: "Polícia Militar",
+  };
+
+  return (
+    <div className="bg-card rounded-xl border border-border shadow-institutional flex flex-col" style={{ height: "500px" }}>
+      {/* Chat header */}
+      <div className="px-4 py-3 border-b border-border bg-secondary/30 rounded-t-xl flex items-center gap-2">
+        <MessageSquare className="h-4 w-4 text-institutional" />
+        <span className="text-sm font-semibold text-foreground">
+          Chat — {firstIncoming ? (orgaoLabels[firstIncoming.orgao_origem] || firstIncoming.orgao_origem) : "Comunicações"}
+        </span>
+        {firstIncoming?.api_keys_externas && (
+          <span className="text-[10px] text-muted-foreground ml-auto">
+            Sistema: {(firstIncoming.api_keys_externas as any).nome_sistema}
+          </span>
+        )}
+      </div>
+
+      {/* Messages */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3">
+        {sorted.length === 0 ? (
+          <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+            <MessageSquare className="h-5 w-5 mr-2 opacity-50" /> Nenhuma comunicação ainda. Envie a primeira mensagem.
+          </div>
+        ) : (
+          sorted.map((c: any) => {
+            const isMP = c.direcao === "saida" || c.orgao_origem === "ministerio_publico";
+            return (
+              <div key={c.id} className={`flex ${isMP ? "justify-end" : "justify-start"}`}>
+                <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${isMP
+                  ? "bg-institutional text-white rounded-br-md"
+                  : "bg-secondary text-foreground rounded-bl-md"
+                }`}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-[10px] font-bold uppercase tracking-wider ${isMP ? "text-white/70" : "text-muted-foreground"}`}>
+                      {isMP ? "Ministério Público" : (orgaoLabels[c.orgao_origem] || c.orgao_origem)}
+                    </span>
+                  </div>
+                  {c.titulo && c.titulo !== "Mensagem do MP" && (
+                    <p className={`text-xs font-semibold mb-1 ${isMP ? "text-white/90" : "text-foreground"}`}>{c.titulo}</p>
+                  )}
+                  <p className={`text-sm whitespace-pre-wrap ${isMP ? "text-white" : "text-foreground"}`}>{c.conteudo}</p>
+                  {c.envolvidos && Array.isArray(c.envolvidos) && c.envolvidos.length > 0 && (
+                    <div className={`mt-1.5 pt-1.5 border-t ${isMP ? "border-white/20" : "border-border"}`}>
+                      <p className={`text-[10px] font-semibold uppercase ${isMP ? "text-white/60" : "text-muted-foreground"}`}>Envolvidos:</p>
+                      {c.envolvidos.map((e: any, idx: number) => (
+                        <p key={idx} className={`text-[11px] ${isMP ? "text-white/80" : "text-foreground"}`}>
+                          {e.nome || e} {e.id_personagem && `(ID: ${e.id_personagem})`}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+                  {c.links && Array.isArray(c.links) && c.links.length > 0 && (
+                    <div className={`mt-1.5 pt-1.5 border-t ${isMP ? "border-white/20" : "border-border"}`}>
+                      <p className={`text-[10px] font-semibold uppercase ${isMP ? "text-white/60" : "text-muted-foreground"}`}>Links:</p>
+                      {c.links.map((l: any, idx: number) => (
+                        <a key={idx} href={typeof l === "string" ? l : l.url} target="_blank" rel="noreferrer"
+                          className={`text-[11px] underline block ${isMP ? "text-white/90" : "text-institutional"}`}>
+                          {typeof l === "string" ? l : l.descricao || l.url}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                  <p className={`text-[9px] mt-1.5 ${isMP ? "text-white/50" : "text-muted-foreground"}`}>
+                    {format(new Date(c.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                  </p>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Input area */}
+      <div className="p-3 border-t border-border bg-secondary/20 rounded-b-xl space-y-2">
+        <Input
+          placeholder="Assunto (opcional)"
+          value={msgTitulo}
+          onChange={(e) => setMsgTitulo(e.target.value)}
+          className="h-8 text-xs bg-card"
+        />
+        <div className="flex gap-2">
+          <Textarea
+            placeholder="Digite sua mensagem..."
+            value={msgText}
+            onChange={(e) => setMsgText(e.target.value)}
+            className="min-h-[40px] max-h-[80px] text-sm bg-card resize-none flex-1"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                if (msgText.trim()) sendMessage.mutate();
+              }
+            }}
+          />
+          <Button
+            size="sm"
+            onClick={() => sendMessage.mutate()}
+            disabled={!msgText.trim() || sendMessage.isPending || !firstIncoming}
+            className="h-auto bg-institutional hover:bg-institutional/90 self-end"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 function InqueritoMPDetail({ ipId, onBack }: { ipId: string; onBack: () => void }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -753,7 +910,7 @@ function InqueritoMPDetail({ ipId, onBack }: { ipId: string; onBack: () => void 
           <TabsTrigger value="envolvidos" className="rounded-lg text-xs"><AlertTriangle className="h-3 w-3 mr-1" /> Envolvidos ({envolvidos?.length || 0})</TabsTrigger>
           <TabsTrigger value="diligencias" className="rounded-lg text-xs"><Search className="h-3 w-3 mr-1" /> Diligências ({diligencias?.length || 0})</TabsTrigger>
           <TabsTrigger value="oitivas" className="rounded-lg text-xs"><BookOpen className="h-3 w-3 mr-1" /> Oitivas ({oitivas?.length || 0})</TabsTrigger>
-          {comunicacoesExternas && comunicacoesExternas.length > 0 && <TabsTrigger value="comunicacoes" className="rounded-lg text-xs"><MessageSquare className="h-3 w-3 mr-1" /> Comunicações ({comunicacoesExternas.length})</TabsTrigger>}
+          <TabsTrigger value="comunicacoes" className="rounded-lg text-xs"><MessageSquare className="h-3 w-3 mr-1" /> Comunicações ({comunicacoesExternas?.length || 0})</TabsTrigger>
           {bo && <TabsTrigger value="bo" className="rounded-lg text-xs"><Shield className="h-3 w-3 mr-1" /> Boletim de Ocorrência</TabsTrigger>}
         </TabsList>
 
@@ -853,50 +1010,10 @@ function InqueritoMPDetail({ ipId, onBack }: { ipId: string; onBack: () => void 
           )}
         </TabsContent>
 
-        {/* COMUNICAÇÕES EXTERNAS VINCULADAS */}
-        {comunicacoesExternas && comunicacoesExternas.length > 0 && (
-          <TabsContent value="comunicacoes" className="mt-4 space-y-3">
-            {comunicacoesExternas.map((c: any, i: number) => {
-              const orgaoLabels: Record<string, string> = {
-                policia_civil: "Polícia Civil", policia_federal: "Polícia Federal",
-                receita: "Receita Federal", ministerio_publico: "Ministério Público",
-              };
-              return (
-                <motion.div key={c.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
-                  className="bg-card rounded-xl p-4 border border-border shadow-institutional">
-                  <div className="flex items-center gap-2 flex-wrap mb-2">
-                    <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${c.direcao === 'entrada' ? 'bg-gold/10 text-gold-dark' : 'bg-institutional/10 text-institutional'}`}>
-                      {c.direcao === 'entrada' ? '⬇ Entrada' : '⬆ Saída'}
-                    </span>
-                    <span className="text-xs font-semibold text-foreground">{orgaoLabels[c.orgao_origem] || c.orgao_origem}</span>
-                    <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{c.tipo}</span>
-                  </div>
-                  <p className="text-sm font-semibold text-foreground">{c.titulo}</p>
-                  <p className="text-xs text-foreground mt-1 whitespace-pre-wrap">{c.conteudo}</p>
-                  {c.envolvidos && Array.isArray(c.envolvidos) && c.envolvidos.length > 0 && (
-                    <div className="mt-2">
-                      <p className="text-[10px] font-semibold text-muted-foreground uppercase">Envolvidos:</p>
-                      {c.envolvidos.map((e: any, idx: number) => (
-                        <p key={idx} className="text-xs text-foreground">{e.nome || e} {e.id_personagem && `(ID: ${e.id_personagem})`}</p>
-                      ))}
-                    </div>
-                  )}
-                  {c.links && Array.isArray(c.links) && c.links.length > 0 && (
-                    <div className="mt-2">
-                      <p className="text-[10px] font-semibold text-muted-foreground uppercase">Links:</p>
-                      {c.links.map((l: any, idx: number) => (
-                        <a key={idx} href={typeof l === "string" ? l : l.url} target="_blank" rel="noreferrer" className="text-xs text-institutional underline block">
-                          {typeof l === "string" ? l : l.descricao || l.url}
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                  <p className="text-[10px] text-muted-foreground mt-2">{format(new Date(c.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
-                </motion.div>
-              );
-            })}
-          </TabsContent>
-        )}
+        {/* COMUNICAÇÕES — CHAT */}
+        <TabsContent value="comunicacoes" className="mt-4">
+          <ComunicacoesChat ipId={ipId} comunicacoes={comunicacoesExternas || []} />
+        </TabsContent>
 
         {/* BOLETIM DE OCORRÊNCIA */}
         {bo && (
