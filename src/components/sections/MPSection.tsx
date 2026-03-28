@@ -853,50 +853,10 @@ function InqueritoMPDetail({ ipId, onBack }: { ipId: string; onBack: () => void 
           )}
         </TabsContent>
 
-        {/* COMUNICAÇÕES EXTERNAS VINCULADAS */}
-        {comunicacoesExternas && comunicacoesExternas.length > 0 && (
-          <TabsContent value="comunicacoes" className="mt-4 space-y-3">
-            {comunicacoesExternas.map((c: any, i: number) => {
-              const orgaoLabels: Record<string, string> = {
-                policia_civil: "Polícia Civil", policia_federal: "Polícia Federal",
-                receita: "Receita Federal", ministerio_publico: "Ministério Público",
-              };
-              return (
-                <motion.div key={c.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
-                  className="bg-card rounded-xl p-4 border border-border shadow-institutional">
-                  <div className="flex items-center gap-2 flex-wrap mb-2">
-                    <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${c.direcao === 'entrada' ? 'bg-gold/10 text-gold-dark' : 'bg-institutional/10 text-institutional'}`}>
-                      {c.direcao === 'entrada' ? '⬇ Entrada' : '⬆ Saída'}
-                    </span>
-                    <span className="text-xs font-semibold text-foreground">{orgaoLabels[c.orgao_origem] || c.orgao_origem}</span>
-                    <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{c.tipo}</span>
-                  </div>
-                  <p className="text-sm font-semibold text-foreground">{c.titulo}</p>
-                  <p className="text-xs text-foreground mt-1 whitespace-pre-wrap">{c.conteudo}</p>
-                  {c.envolvidos && Array.isArray(c.envolvidos) && c.envolvidos.length > 0 && (
-                    <div className="mt-2">
-                      <p className="text-[10px] font-semibold text-muted-foreground uppercase">Envolvidos:</p>
-                      {c.envolvidos.map((e: any, idx: number) => (
-                        <p key={idx} className="text-xs text-foreground">{e.nome || e} {e.id_personagem && `(ID: ${e.id_personagem})`}</p>
-                      ))}
-                    </div>
-                  )}
-                  {c.links && Array.isArray(c.links) && c.links.length > 0 && (
-                    <div className="mt-2">
-                      <p className="text-[10px] font-semibold text-muted-foreground uppercase">Links:</p>
-                      {c.links.map((l: any, idx: number) => (
-                        <a key={idx} href={typeof l === "string" ? l : l.url} target="_blank" rel="noreferrer" className="text-xs text-institutional underline block">
-                          {typeof l === "string" ? l : l.descricao || l.url}
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                  <p className="text-[10px] text-muted-foreground mt-2">{format(new Date(c.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
-                </motion.div>
-              );
-            })}
-          </TabsContent>
-        )}
+        {/* COMUNICAÇÕES — CHAT */}
+        <TabsContent value="comunicacoes" className="mt-4">
+          <ComunicacoesChat ipId={ipId} comunicacoes={comunicacoesExternas || []} />
+        </TabsContent>
 
         {/* BOLETIM DE OCORRÊNCIA */}
         {bo && (
