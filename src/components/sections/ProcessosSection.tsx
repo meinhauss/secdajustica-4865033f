@@ -1280,15 +1280,30 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
           )}
           {(() => {
             // Build unified timeline from all sources
-            type TimelineItem = { id: string; date: string; tipo: string; titulo: string; descricao: string; autor?: string; link?: string; badge_color?: string };
+            type TimelineItem = { id: string; date: string; tipo: string; titulo: string; descricao: string; autor?: string; link?: string; badge_color?: string; attachments?: { nome: string; url: string }[] };
             const items: TimelineItem[] = [];
 
-            // Movimentações
-            movimentacoes?.forEach(m => items.push({
-              id: `mov-${m.id}`, date: m.created_at, tipo: m.tipo.replace(/_/g, " "),
-              titulo: "", descricao: m.descricao, autor: (m as any).autor_nome || "Sistema",
-              badge_color: "bg-secondary text-secondary-foreground",
-            }));
+            // Match documents to movimentações by close timestamp & same author
+            const usedDocIds = new Set<string>();
+
+            // Movimentações — attach related documents
+            movimentacoes?.forEach(m => {
+              const mTime = new Date(m.created_at).getTime();
+              const relatedDocs = (documentos || []).filter((d: any) => {
+                if (usedDocIds.has(d.id)) return false;
+                const dTime = new Date(d.created_at).getTime();
+                const sameAuthor = d.autor_id && m.autor_id && d.autor_id === m.autor_id;
+                return sameAuthor && Math.abs(dTime - mTime) < 60000; // within 1 minute
+              });
+              relatedDocs.forEach((d: any) => usedDocIds.add(d.id));
+
+              items.push({
+                id: `mov-${m.id}`, date: m.created_at, tipo: m.tipo.replace(/_/g, " "),
+                titulo: "", descricao: m.descricao, autor: (m as any).autor_nome || "Sistema",
+                badge_color: "bg-secondary text-secondary-foreground",
+                attachments: relatedDocs.map((d: any) => ({ nome: d.nome, url: d.arquivo_url })).filter((a: any) => a.url),
+              });
+            });
 
             // Atos Judiciais
             atos?.forEach((a: any) => items.push({
