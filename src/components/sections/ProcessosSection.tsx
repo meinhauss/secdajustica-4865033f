@@ -485,7 +485,11 @@ function EditablePartesSection({ processo, processoId, advAutor, advReu, canEdit
       const changes: string[] = [];
       if (oldAutores !== newAutores) changes.push(`Autor(es): de "${oldAutores}" para "${newAutores}"`);
       if (oldReus !== newReus) changes.push(`Réu(s): de "${oldReus}" para "${newReus}"`);
-      if (changes.length === 0) { setEditing(false); return; }
+      if (changes.length === 0) { setEditing(false); throw new Error("__no_changes__"); }
+
+      if (editAutores.length === 0 || editReus.length === 0) {
+        throw new Error("É necessário pelo menos um autor e um réu.");
+      }
 
       const { error } = await supabase.from("processos").update({
         autor_nome: JSON.stringify(editAutores),
@@ -503,10 +507,14 @@ function EditablePartesSection({ processo, processoId, advAutor, advReu, canEdit
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["processo", processoId] });
       queryClient.invalidateQueries({ queryKey: ["movimentacoes", processoId] });
+      queryClient.invalidateQueries({ queryKey: ["processos"] });
       setEditing(false);
       toast.success("Partes retificadas com sucesso!");
     },
-    onError: () => toast.error("Erro ao retificar partes"),
+    onError: (err: any) => {
+      if (err?.message === "__no_changes__") return;
+      toast.error(err?.message || "Erro ao retificar partes");
+    },
   });
 
   return (
