@@ -437,7 +437,7 @@ Deno.serve(async (req) => {
         status: "online",
         orgao: keyData.orgao,
         sistema: keyData.nome_sistema,
-        versao_api: "2.0.0",
+        versao_api: "2.1.0",
       });
     }
 
