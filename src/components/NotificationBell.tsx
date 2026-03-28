@@ -110,7 +110,7 @@ export default function NotificationBell({ onNavigate }: NotificationBellProps) 
           )}
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-96 p-0" align="end">
+      <PopoverContent className="w-96 p-0 max-h-[80vh] overflow-hidden" align="end" side="bottom" avoidCollisions={true} collisionPadding={16}>
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
           <h3 className="font-semibold text-sm text-foreground">Notificações</h3>
           {unreadCount > 0 && (
