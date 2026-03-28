@@ -382,8 +382,9 @@ Verifica o status da API e informações do órgão autenticado.
 4. MP envia requisições ──► (visível em GET /comunicacoes)
 5. Órgão lê comunicação ──► PUT /marcar-lido/:id
 6. Órgão responde ──────────► POST /enviar-comunicacao (com resposta_a)
-7. MP oferece denúncia ────► (visível em GET /inquerito/:id → denuncias)
-8. MP arquiva ─────────────► (visível em GET /inquerito/:id → arquivamentos)
+7. Órgão atualiza diligência ► PUT /atualizar-diligencia/:id
+8. MP oferece denúncia ────► (visível em GET /inquerito/:id → denuncias)
+9. MP arquiva ─────────────► (visível em GET /inquerito/:id → arquivamentos)
 ```
 
 ---
