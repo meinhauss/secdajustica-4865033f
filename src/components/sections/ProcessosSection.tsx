@@ -1313,13 +1313,16 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               badge_color: "bg-institutional/10 text-institutional",
             }));
 
-            // Documentos (com links)
-            documentos?.forEach((d: any) => items.push({
-              id: `doc-${d.id}`, date: d.created_at, tipo: `documento — ${d.tipo}`,
-              titulo: d.nome, descricao: d.descricao || "",
-              link: d.arquivo_url || undefined,
-              badge_color: "bg-blue-100 text-blue-800 dark:bg-blue-950/30 dark:text-blue-400",
-            }));
+            // Documentos (com links) — skip docs already attached to movimentações
+            documentos?.forEach((d: any) => {
+              if (usedDocIds.has(d.id)) return;
+              items.push({
+                id: `doc-${d.id}`, date: d.created_at, tipo: `documento — ${d.tipo}`,
+                titulo: d.nome, descricao: d.descricao || "",
+                link: d.arquivo_url || undefined,
+                badge_color: "bg-blue-100 text-blue-800 dark:bg-blue-950/30 dark:text-blue-400",
+              });
+            });
 
             // Audiências
             audiencias?.forEach((a: any) => items.push({
