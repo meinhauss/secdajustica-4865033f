@@ -880,14 +880,15 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
 
   const ORGAOS_INTERESSADOS = [
     { role: "ministerio_publico", label: "Ministério Público" },
+    { role: "procurador_geral", label: "Procuradoria-Geral" },
     { role: "policia_civil", label: "Polícia Civil" },
     { role: "policia_militar", label: "Polícia Militar" },
     { role: "policia_federal", label: "Polícia Federal" },
     { role: "hospital", label: "Hospital" },
   ];
 
-  const canManifestInteresse = roles.some(r => ["ministerio_publico", "policia_civil", "policia_militar", "policia_federal", "hospital"].includes(r));
-  const userOrgao = roles.includes("ministerio_publico") ? "Ministério Público" : roles.includes("policia_civil") ? "Polícia Civil" : roles.includes("policia_militar") ? "Polícia Militar" : roles.includes("policia_federal") ? "Polícia Federal" : roles.includes("hospital") ? "Hospital" : null;
+  const canManifestInteresse = roles.some(r => ["ministerio_publico", "procurador_geral", "policia_civil", "policia_militar", "policia_federal", "hospital"].includes(r));
+  const userOrgao = roles.includes("procurador_geral") ? "Procuradoria-Geral" : roles.includes("ministerio_publico") ? "Ministério Público" : roles.includes("policia_civil") ? "Polícia Civil" : roles.includes("policia_militar") ? "Polícia Militar" : roles.includes("policia_federal") ? "Polícia Federal" : roles.includes("hospital") ? "Hospital" : null;
   const jaInteressado = interessadosData?.some(i => i.user_id === user?.id);
 
   // Institutional roles (MP/PC/PM/PF/Hospital) can only move after qualifying as interested
