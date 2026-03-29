@@ -2,7 +2,7 @@
 
 ## Visão Geral
 
-API RESTful para integração de órgãos externos (Polícia Civil, Polícia Federal, Receita, etc.) com o sistema do Ministério Público. Permite envio de inquéritos, denúncias e comunicações, além de acompanhamento de andamento processual.
+API RESTful para integração de órgãos externos (Polícia Civil, Polícia Federal, Receita, etc.) com o sistema do Ministério Público. Permite envio de inquéritos, denúncias e comunicações, além de acompanhamento de andamento processual e atualização de diligências requisitadas.
 
 **Base URL:**
 ```
@@ -19,7 +19,6 @@ Todas as requisições devem incluir o header `X-API-Key` com uma chave válida 
 X-API-Key: sua-chave-api-aqui
 ```
 
-**Erros de autenticação:**
 | Código | Descrição |
 |--------|-----------|
 | `401` | Header `X-API-Key` ausente |
@@ -30,7 +29,7 @@ X-API-Key: sua-chave-api-aqui
 ## 📌 Endpoints
 
 ### 1. `POST /enviar-inquerito`
-Envia um inquérito policial ao MP. Cria automaticamente um registro de inquérito no sistema.
+Envia um inquérito policial ao MP. Cria automaticamente um registro de inquérito no sistema com envolvidos e links inclusos na descrição.
 
 **Body (JSON):**
 ```json
@@ -62,13 +61,13 @@ Envia um inquérito policial ao MP. Cria automaticamente um registro de inquéri
 | `titulo` | string | ✅ | Título do inquérito |
 | `conteudo` | string | ✅ | Descrição completa dos fatos |
 | `numero_referencia` | string | ❌ | Número de referência no sistema de origem |
-| `envolvidos` | array | ❌ | Lista de pessoas envolvidas |
+| `envolvidos` | array | ❌ | Lista de pessoas envolvidas (inseridas também na tabela de envolvidos do inquérito) |
 | `envolvidos[].nome` | string | ✅* | Nome do envolvido |
 | `envolvidos[].id_personagem` | string | ❌ | ID do personagem no sistema |
 | `envolvidos[].tipo` | string | ❌ | `investigado`, `vitima`, `testemunha` (padrão: `investigado`) |
 | `envolvidos[].qualificacao` | string | ❌ | Qualificação jurídica |
 | `envolvidos[].observacoes` | string | ❌ | Observações adicionais |
-| `links` | array | ❌ | URLs de documentos anexos |
+| `links` | array | ❌ | URLs de documentos anexos (inclusos na descrição do inquérito) |
 
 **Resposta de sucesso (200):**
 ```json
@@ -82,10 +81,12 @@ Envia um inquérito policial ao MP. Cria automaticamente um registro de inquéri
 }
 ```
 
+> **Comportamento:** O sistema cria um inquérito com status `remetido_mp`, insere todos os envolvidos na tabela `envolvidos_inquerito` e registra uma comunicação externa vinculada.
+
 ---
 
 ### 2. `POST /enviar-denuncia`
-Envia uma denúncia ao MP. Cria automaticamente um inquérito vinculado.
+Envia uma denúncia ao MP. Cria automaticamente um inquérito vinculado com prefixo `[DENÚNCIA]` na descrição.
 
 **Body (JSON):** Mesmo formato de `/enviar-inquerito`.
 
@@ -104,7 +105,7 @@ Envia uma denúncia ao MP. Cria automaticamente um inquérito vinculado.
 ---
 
 ### 3. `POST /enviar-comunicacao`
-Envia uma comunicação genérica ao MP. Pode ser vinculada a um inquérito existente ou ser uma resposta a outra comunicação.
+Envia uma comunicação genérica ao MP. Funciona como um **chat** — pode ser vinculada a um inquérito existente ou ser uma resposta a outra comunicação.
 
 **Body (JSON):**
 ```json
@@ -129,7 +130,7 @@ Envia uma comunicação genérica ao MP. Pode ser vinculada a um inquérito exis
 | `resposta_a` | string (UUID) | ❌ | ID de comunicação sendo respondida |
 | `inquerito_id` | string (UUID) | ❌ | ID do inquérito vinculado |
 
-> **Nota:** Se `resposta_a` for informado e `inquerito_id` não, o sistema tentará vincular automaticamente ao inquérito da comunicação original.
+> **Nota:** Se `resposta_a` for informado e `inquerito_id` não, o sistema tenta vincular automaticamente ao inquérito da comunicação original. As comunicações enviadas via este endpoint aparecem na aba de **comunicações/chat** do inquérito no sistema do MP.
 
 **Resposta de sucesso (200):**
 ```json
@@ -145,7 +146,7 @@ Envia uma comunicação genérica ao MP. Pode ser vinculada a um inquérito exis
 ---
 
 ### 4. `GET /comunicacoes`
-Lista comunicações enviadas pelo MP para o seu órgão (direção: saída).
+Lista comunicações enviadas pelo MP para o seu órgão (direção: `saida`).
 
 **Query Parameters:**
 | Parâmetro | Tipo | Padrão | Descrição |
@@ -189,9 +190,9 @@ GET /comunicacoes?status=pendente&limite=10&pagina=1
 ---
 
 ### 5. `GET /comunicacoes/:id`
-Busca uma comunicação específica pelo ID.
+Busca uma comunicação específica pelo ID (somente comunicações pertencentes ao seu órgão).
 
-**Resposta (200):** Objeto completo da comunicação.
+**Resposta (200):** Objeto completo da comunicação com todos os campos.
 
 **Resposta (404):**
 ```json
@@ -245,7 +246,7 @@ Lista inquéritos enviados pelo seu órgão (via inquérito ou denúncia).
 ---
 
 ### 7. `GET /inquerito/:id`
-Acompanha o andamento completo de um inquérito específico. Retorna todas as informações relacionadas.
+Acompanha o andamento completo de um inquérito específico. Retorna todas as informações relacionadas: envolvidos, diligências, requisições do MP, comunicações (chat), denúncias e arquivamentos.
 
 **Resposta (200):**
 ```json
@@ -254,12 +255,12 @@ Acompanha o andamento completo de um inquérito específico. Retorna todas as in
     "id": "uuid",
     "numero": "IP-0001/2026",
     "tipo": "criminal",
-    "descricao": "...",
+    "descricao": "[POLICIA_CIVIL] Inquérito sobre furto...",
     "status": "em_andamento",
     "remetido_mp": true,
     "data_instauracao": "2026-03-26T10:00:00.000Z",
     "data_conclusao": null,
-    "relatorio_final": "...",
+    "relatorio_final": "Descrição dos fatos...",
     "created_at": "...",
     "updated_at": "..."
   },
@@ -331,7 +332,7 @@ Acompanha o andamento completo de um inquérito específico. Retorna todas as in
 ---
 
 ### 8. `PUT /marcar-lido/:id`
-Marca uma comunicação de saída (enviada pelo MP) como lida.
+Marca uma comunicação de saída (enviada pelo MP) como lida. Atualiza o status para `lido` e registra o horário da leitura.
 
 **Resposta (200):**
 ```json
@@ -346,16 +347,16 @@ Marca uma comunicação de saída (enviada pelo MP) como lida.
 ---
 
 ### 9. `PUT /atualizar-diligencia/:id`
-Atualiza o status e/ou resultado de uma requisição de diligência feita pelo MP ao órgão externo.
+Atualiza o status e/ou resultado de uma requisição de diligência feita pelo MP ao órgão externo. Se `resultado` for informado, atualiza também a diligência vinculada mais recente.
 
 **Body (JSON):**
 | Campo | Tipo | Obrigatório | Descrição |
 |-------|------|-------------|-----------|
 | `status` | string | Não* | Novo status (`pendente`, `em_andamento`, `cumprida`, `nao_cumprida`) |
 | `resposta` | string | Não* | Resposta/relatório da diligência |
-| `resultado` | string | Não | Resultado detalhado (atualiza também a diligência vinculada) |
+| `resultado` | string | Não | Resultado detalhado (atualiza também a diligência vinculada mais recente) |
 
-> *Ao menos um dos campos deve ser informado.
+> *Ao menos um dos campos (`status`, `resposta` ou `resultado`) deve ser informado.
 
 **Resposta (200):**
 ```json
@@ -365,6 +366,11 @@ Atualiza o status e/ou resultado de uma requisição de diligência feita pelo M
 **Resposta (403):**
 ```json
 { "error": "Requisição não pertence a um inquérito deste órgão" }
+```
+
+**Resposta (404):**
+```json
+{ "error": "Requisição de diligência não encontrada" }
 ```
 
 ---
@@ -389,26 +395,30 @@ Verifica o status da API e informações do órgão autenticado.
 | Código | Corpo | Causa |
 |--------|-------|-------|
 | `400` | `{ "error": "titulo e conteudo são obrigatórios" }` | Campos obrigatórios ausentes |
+| `400` | `{ "error": "Informe ao menos status, resposta ou resultado" }` | Nenhum campo informado na atualização de diligência |
 | `401` | `{ "error": "Header X-API-Key é obrigatório" }` | Header de autenticação ausente |
 | `403` | `{ "error": "API Key inválida ou inativa" }` | Chave inválida ou desativada |
-| `404` | `{ "error": "Rota não encontrada." }` | Endpoint inexistente |
+| `403` | `{ "error": "Requisição não pertence a um inquérito deste órgão" }` | Tentativa de atualizar diligência de outro órgão |
+| `404` | `{ "error": "Rota não encontrada." }` | Endpoint inexistente (retorna lista de rotas disponíveis) |
 | `404` | `{ "error": "Comunicação não encontrada" }` | ID não encontrado ou não pertence ao órgão |
-| `500` | `{ "error": "Erro interno do servidor" }` | Erro inesperado (verificar `detalhes`) |
+| `404` | `{ "error": "Inquérito não encontrado ou não pertence a este órgão" }` | Inquérito inexistente ou de outro órgão |
+| `404` | `{ "error": "Requisição de diligência não encontrada" }` | ID de requisição inexistente |
+| `500` | `{ "error": "Erro interno do servidor", "detalhes": "..." }` | Erro inesperado |
 
 ---
 
 ## 🔄 Fluxo Típico de Integração
 
 ```
-1. Órgão envia inquérito ──► POST /enviar-inquerito
-2. Órgão acompanha status ──► GET /meus-inqueritos
-3. Órgão consulta detalhes ──► GET /inquerito/:id
-4. MP envia requisições ──► (visível em GET /comunicacoes)
-5. Órgão lê comunicação ──► PUT /marcar-lido/:id
-6. Órgão responde ──────────► POST /enviar-comunicacao (com resposta_a)
-7. Órgão atualiza diligência ► PUT /atualizar-diligencia/:id
-8. MP oferece denúncia ────► (visível em GET /inquerito/:id → denuncias)
-9. MP arquiva ─────────────► (visível em GET /inquerito/:id → arquivamentos)
+1. Órgão envia inquérito ──────► POST /enviar-inquerito
+2. Órgão acompanha status ─────► GET /meus-inqueritos
+3. Órgão consulta detalhes ─────► GET /inquerito/:id
+4. MP envia requisições ────────► (visível em GET /comunicacoes e GET /inquerito/:id)
+5. Órgão lê comunicação ───────► PUT /marcar-lido/:id
+6. Órgão responde (chat) ──────► POST /enviar-comunicacao (com resposta_a e/ou inquerito_id)
+7. Órgão atualiza diligência ──► PUT /atualizar-diligencia/:id
+8. MP oferece denúncia ─────────► (visível em GET /inquerito/:id → denuncias)
+9. MP arquiva ──────────────────► (visível em GET /inquerito/:id → arquivamentos)
 ```
 
 ---
@@ -421,7 +431,7 @@ curl -X GET \
   "https://xmijvtkexbdduvwgwpsk.supabase.co/functions/v1/api-mp/status" \
   -H "X-API-Key: sua-chave-aqui"
 
-# 2. Enviar inquérito
+# 2. Enviar inquérito com envolvidos e links
 curl -X POST \
   "https://xmijvtkexbdduvwgwpsk.supabase.co/functions/v1/api-mp/enviar-inquerito" \
   -H "X-API-Key: sua-chave-aqui" \
@@ -431,17 +441,21 @@ curl -X POST \
     "conteudo": "No dia 25/03/2026, às 14h, na Rua Principal...",
     "numero_referencia": "IP-2026/001234",
     "envolvidos": [
-      { "nome": "João da Silva", "id_personagem": "12345", "tipo": "investigado" },
+      { "nome": "João da Silva", "id_personagem": "12345", "tipo": "investigado", "qualificacao": "Suspeito principal" },
       { "nome": "Maria Santos", "tipo": "vitima" }
+    ],
+    "links": [
+      "https://exemplo.com/boletim.pdf",
+      "https://exemplo.com/laudo-pericial.pdf"
     ]
   }'
 
-# 3. Listar comunicações do MP
+# 3. Listar comunicações do MP (chat)
 curl -X GET \
   "https://xmijvtkexbdduvwgwpsk.supabase.co/functions/v1/api-mp/comunicacoes?status=pendente" \
   -H "X-API-Key: sua-chave-aqui"
 
-# 4. Acompanhar inquérito
+# 4. Acompanhar inquérito (com envolvidos, diligências, comunicações, denúncias e arquivamentos)
 curl -X GET \
   "https://xmijvtkexbdduvwgwpsk.supabase.co/functions/v1/api-mp/inquerito/UUID_DO_INQUERITO" \
   -H "X-API-Key: sua-chave-aqui"
@@ -451,7 +465,20 @@ curl -X PUT \
   "https://xmijvtkexbdduvwgwpsk.supabase.co/functions/v1/api-mp/marcar-lido/UUID_DA_COMUNICACAO" \
   -H "X-API-Key: sua-chave-aqui"
 
-# 6. Atualizar status de diligência requisitada
+# 6. Responder comunicação (chat bidirecional)
+curl -X POST \
+  "https://xmijvtkexbdduvwgwpsk.supabase.co/functions/v1/api-mp/enviar-comunicacao" \
+  -H "X-API-Key: sua-chave-aqui" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "titulo": "Resposta à requisição",
+    "conteudo": "Segue o relatório solicitado...",
+    "resposta_a": "UUID_DA_COMUNICACAO_ORIGINAL",
+    "inquerito_id": "UUID_DO_INQUERITO",
+    "links": ["https://exemplo.com/relatorio.pdf"]
+  }'
+
+# 7. Atualizar status de diligência requisitada pelo MP
 curl -X PUT \
   "https://xmijvtkexbdduvwgwpsk.supabase.co/functions/v1/api-mp/atualizar-diligencia/UUID_DA_REQUISICAO" \
   -H "X-API-Key: sua-chave-aqui" \
