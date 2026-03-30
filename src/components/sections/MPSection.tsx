@@ -434,6 +434,11 @@ function MPDashboard({ isMP, onSelectIP, onSelectOuvidoria }: { isMP: boolean; o
             </div>
           </div>
         </TabsContent>
+
+        {/* RANKING */}
+        <TabsContent value="ranking" className="mt-4">
+          <PromotorRanking />
+        </TabsContent>
       </Tabs>
     </div>
   );
