@@ -96,44 +96,8 @@ function MPDashboard({ isMP, onSelectIP, onSelectOuvidoria }: { isMP: boolean; o
     },
   });
 
-  // Denúncias
-  const { data: denuncias } = useQuery({
-    queryKey: ["mp-denuncias"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("denuncias_mp")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data as any[];
-    },
-  });
 
-  // Arquivamentos
-  const { data: arquivamentos } = useQuery({
-    queryKey: ["mp-arquivamentos"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("arquivamentos_mp")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data as any[];
-    },
-  });
 
-  // Pareceres
-  const { data: pareceres } = useQuery({
-    queryKey: ["mp-pareceres"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("pareceres_mp")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data as any[];
-    },
-  });
 
   // Requisições de diligência
   const { data: requisicoes } = useQuery({
