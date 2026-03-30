@@ -226,6 +226,7 @@ function MPDashboard({ isMP, onSelectIP, onSelectOuvidoria }: { isMP: boolean; o
           <TabsTrigger value="estatisticas" className="rounded-lg text-xs"><BarChart3 className="h-3 w-3 mr-1" /> Estatísticas</TabsTrigger>
           <TabsTrigger value="ouvidoria" className="rounded-lg text-xs"><AlertTriangle className="h-3 w-3 mr-1" /> Ouvidoria ({denunciasOuvidoria?.length || 0})</TabsTrigger>
           <TabsTrigger value="comunicacoes-externas" className="rounded-lg text-xs"><MessageSquare className="h-3 w-3 mr-1" /> Comunicações Externas</TabsTrigger>
+          <TabsTrigger value="ranking" className="rounded-lg text-xs"><Scale className="h-3 w-3 mr-1" /> Ranking</TabsTrigger>
         </TabsList>
 
         {/* INQUÉRITOS TAB */}
@@ -433,7 +434,93 @@ function MPDashboard({ isMP, onSelectIP, onSelectOuvidoria }: { isMP: boolean; o
             </div>
           </div>
         </TabsContent>
+
+        {/* RANKING */}
+        <TabsContent value="ranking" className="mt-4">
+          <PromotorRanking />
+        </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════ */
+/*  PROMOTOR RANKING                           */
+/* ═══════════════════════════════════════════ */
+function PromotorRanking() {
+  const { data: ranking, isLoading } = useQuery({
+    queryKey: ["promotor-ranking"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_promotor_ranking");
+      if (error) throw error;
+      return (data as any[]) || [];
+    },
+  });
+
+  const CARGO_LABELS: Record<string, string> = {
+    ministerio_publico: "Promotor(a) de Justiça",
+    procurador_geral: "Procurador(a)-Geral",
+  };
+
+  if (isLoading) return <div className="text-center py-8 text-muted-foreground">Carregando ranking...</div>;
+  if (!ranking?.length) return <EmptyState icon={Scale} text="Nenhum promotor com atividade registrada." />;
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-card rounded-xl p-4 border border-border shadow-institutional">
+        <h3 className="font-display text-lg font-bold text-foreground mb-2">Sistema de Pontuação</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs text-muted-foreground">
+          <span>📋 Denúncia oferecida: <strong className="text-foreground">10 pts</strong></span>
+          <span>📝 Parecer emitido: <strong className="text-foreground">15 pts</strong></span>
+          <span>🔍 Requisição de diligência: <strong className="text-foreground">20 pts</strong></span>
+          <span>⚖️ Trânsito em julgado: <strong className="text-foreground">50 pts</strong></span>
+          <span>⚡ Denúncia rápida (&lt;24h): <strong className="text-foreground">+25 pts</strong></span>
+          <span>📁 Arquivamento promovido: <strong className="text-foreground">10 pts</strong></span>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        {ranking.map((p: any, i: number) => (
+          <motion.div key={p.user_id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
+            className={`bg-card rounded-xl p-4 border shadow-institutional ${i === 0 ? 'border-gold ring-1 ring-gold/20' : i === 1 ? 'border-gray-400 dark:border-gray-500' : i === 2 ? 'border-amber-600 dark:border-amber-700' : 'border-border'}`}>
+            <div className="flex items-center gap-3">
+              <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${i === 0 ? 'bg-gold/20 text-gold-dark' : i === 1 ? 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300' : i === 2 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : 'bg-secondary text-muted-foreground'}`}>
+                {i + 1}º
+              </div>
+              {p.avatar_url ? (
+                <img src={p.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover border border-border" />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-institutional/10 flex items-center justify-center">
+                  <Scale className="h-5 w-5 text-institutional" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-semibold text-foreground text-sm">{p.nome_completo}</span>
+                  <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-institutional/10 text-institutional font-semibold">
+                    {CARGO_LABELS[p.cargo] || p.cargo}
+                  </span>
+                </div>
+                {p.id_personagem && <span className="text-[10px] text-muted-foreground">ID: {p.id_personagem}</span>}
+                <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-[11px] text-muted-foreground">
+                  <span>{p.denuncias} {Number(p.denuncias) === 1 ? 'denúncia' : 'denúncias'}</span>
+                  <span>•</span>
+                  <span>{p.pareceres} {Number(p.pareceres) === 1 ? 'parecer' : 'pareceres'}</span>
+                  <span>•</span>
+                  <span>{p.transito_julgado} trânsito(s) em julgado</span>
+                  {Number(p.denuncias_rapidas) > 0 && <><span>•</span><span className="text-green-600 dark:text-green-400">⚡ {p.denuncias_rapidas} rápida(s)</span></>}
+                  {Number(p.requisicoes) > 0 && <><span>•</span><span>{p.requisicoes} requisição(ões)</span></>}
+                  {Number(p.arquivamentos) > 0 && <><span>•</span><span>{p.arquivamentos} arquivamento(s)</span></>}
+                </div>
+              </div>
+              <div className="text-right flex-shrink-0">
+                <span className="text-xl font-bold text-institutional">{Number(p.score)}</span>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">pontos</p>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
     </div>
   );
 }
