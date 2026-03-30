@@ -1426,7 +1426,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
           {isSentenciado && !prazoApelacaoExpirado && (
             <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-xl p-4 text-sm text-green-800 dark:text-green-300 flex items-center gap-2">
               <CheckCircle className="h-4 w-4" />
-              Processo sentenciado. Novas movimentações não são permitidas — recursos de apelação podem ser interpostos em até 3 dias na aba "Apelações".
+              Processo sentenciado. Novas movimentações não são permitidas — recursos de apelação podem ser interpostos em até 72 horas na aba "Apelações".
             </div>
           )}
           {isSentenciado && prazoApelacaoExpirado && (
