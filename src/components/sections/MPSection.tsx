@@ -351,34 +351,6 @@ function MPDashboard({ isMP, onSelectIP, onSelectOuvidoria }: { isMP: boolean; o
           <ComunicacoesExternasTab isMP={isMP} onSelectIP={onSelectIP} />
         </TabsContent>
 
-        <TabsContent value="estatisticas" className="mt-4">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            <div className="bg-card rounded-xl p-5 border border-border shadow-institutional text-center">
-              <p className="text-3xl font-bold text-institutional">{stats.inqueritos}</p>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider mt-1">Inquéritos Recebidos</p>
-            </div>
-            <div className="bg-card rounded-xl p-5 border border-border shadow-institutional text-center">
-              <p className="text-3xl font-bold text-foreground">{stats.denuncias}</p>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider mt-1">Denúncias Oferecidas</p>
-            </div>
-            <div className="bg-card rounded-xl p-5 border border-border shadow-institutional text-center">
-              <p className="text-3xl font-bold text-foreground">{stats.arquivamentos}</p>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider mt-1">Arquivamentos</p>
-            </div>
-            <div className="bg-card rounded-xl p-5 border border-border shadow-institutional text-center">
-              <p className="text-3xl font-bold text-foreground">{stats.requisicoes}</p>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider mt-1">Diligências Requisitadas</p>
-            </div>
-            <div className="bg-card rounded-xl p-5 border border-border shadow-institutional text-center">
-              <p className="text-3xl font-bold text-foreground">{pareceres?.length || 0}</p>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider mt-1">Pareceres Emitidos</p>
-            </div>
-            <div className="bg-card rounded-xl p-5 border border-border shadow-institutional text-center">
-              <p className="text-3xl font-bold text-foreground">{stats.processos}</p>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider mt-1">Processos Acompanhados</p>
-            </div>
-          </div>
-        </TabsContent>
 
         {/* RANKING */}
         <TabsContent value="ranking" className="mt-4">
