@@ -1296,18 +1296,62 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
 
       {/* Modal Juntar Procuração */}
       <Dialog open={showProcuracao} onOpenChange={setShowProcuracao}>
-        <DialogContent className="rounded-2xl">
+        <DialogContent className="rounded-2xl max-w-md">
           <DialogHeader><DialogTitle>Juntar Procuração</DialogTitle></DialogHeader>
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div>
-              <label className="text-xs font-medium text-foreground">Parte representada</label>
-              <Select value={procForm.parte} onValueChange={(v) => setProcForm({ ...procForm, parte: v })}>
-                <SelectTrigger className="rounded-xl mt-1"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="autor">Autor</SelectItem>
-                  <SelectItem value="reu">Réu</SelectItem>
-                </SelectContent>
-              </Select>
+              <label className="text-xs font-medium text-foreground mb-2 block">Selecione a(s) parte(s) que irá representar</label>
+              {partesAutor.length > 0 && (
+                <div className="mb-2">
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Autores</p>
+                  <div className="space-y-1">
+                    {partesAutor.map((p, i) => {
+                      const key = `autor:${p.nome}`;
+                      const jaRepresentada = partesJaRepresentadas.includes(key);
+                      return (
+                        <label key={i} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-colors ${procForm.selectedPartes.includes(key) ? 'border-primary bg-primary/5' : 'border-border bg-secondary/20'} ${jaRepresentada ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                          <input
+                            type="checkbox"
+                            className="rounded"
+                            checked={procForm.selectedPartes.includes(key)}
+                            disabled={jaRepresentada}
+                            onChange={() => !jaRepresentada && toggleParteSelection(key)}
+                          />
+                          <span className="text-xs text-foreground">{p.nome}{p.id_personagem ? ` (ID: ${p.id_personagem})` : ''}</span>
+                          {jaRepresentada && <span className="text-[10px] text-muted-foreground ml-auto">Já representado(a)</span>}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              {partesReu.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Réus</p>
+                  <div className="space-y-1">
+                    {partesReu.map((p, i) => {
+                      const key = `reu:${p.nome}`;
+                      const jaRepresentada = partesJaRepresentadas.includes(key);
+                      return (
+                        <label key={i} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-colors ${procForm.selectedPartes.includes(key) ? 'border-primary bg-primary/5' : 'border-border bg-secondary/20'} ${jaRepresentada ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                          <input
+                            type="checkbox"
+                            className="rounded"
+                            checked={procForm.selectedPartes.includes(key)}
+                            disabled={jaRepresentada}
+                            onChange={() => !jaRepresentada && toggleParteSelection(key)}
+                          />
+                          <span className="text-xs text-foreground">{p.nome}{p.id_personagem ? ` (ID: ${p.id_personagem})` : ''}</span>
+                          {jaRepresentada && <span className="text-[10px] text-muted-foreground ml-auto">Já representado(a)</span>}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              {partesAutor.length === 0 && partesReu.length === 0 && (
+                <p className="text-xs text-muted-foreground">Nenhuma parte identificada no processo.</p>
+              )}
             </div>
             <div>
               <label className="text-xs font-medium text-foreground">Link da procuração (documento)</label>
@@ -1318,8 +1362,8 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                 onChange={(e) => setProcForm({ ...procForm, documento_url: e.target.value })}
               />
             </div>
-            <Button className="w-full rounded-xl" onClick={() => juntarProcuracao.mutate()} disabled={juntarProcuracao.isPending}>
-              {juntarProcuracao.isPending ? "Juntando..." : "Juntar Procuração"}
+            <Button className="w-full rounded-xl" onClick={() => juntarProcuracao.mutate()} disabled={juntarProcuracao.isPending || procForm.selectedPartes.length === 0}>
+              {juntarProcuracao.isPending ? "Juntando..." : `Juntar Procuração${procForm.selectedPartes.length > 1 ? ` (${procForm.selectedPartes.length} partes)` : ''}`}
             </Button>
           </div>
         </DialogContent>
@@ -1330,7 +1374,25 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         <DialogContent className="rounded-2xl">
           <DialogHeader><DialogTitle>Renunciar ao Mandato</DialogTitle></DialogHeader>
           <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">Ao renunciar, você não poderá mais realizar movimentações neste processo como advogado constituído.</p>
+            <p className="text-sm text-muted-foreground">Selecione a procuração que deseja renunciar, ou renuncie a todas.</p>
+            {minhasProcuracoes.length > 1 && (
+              <div className="space-y-1">
+                <label className="flex items-center gap-2 p-2 rounded-lg border border-destructive/30 bg-destructive/5 cursor-pointer">
+                  <input type="radio" name="renuncia" checked={renunciaSelectedId === null} onChange={() => setRenunciaSelectedId(null)} />
+                  <span className="text-xs text-foreground font-medium">Renunciar a todas as procurações</span>
+                </label>
+                {minhasProcuracoes.map((p: any) => {
+                  const [lado, ...rest] = (p.parte || "").split(":");
+                  const nome = rest.join(":") || (lado === "autor" ? "Autor" : "Réu");
+                  return (
+                    <label key={p.id} className="flex items-center gap-2 p-2 rounded-lg border border-border bg-secondary/20 cursor-pointer">
+                      <input type="radio" name="renuncia" checked={renunciaSelectedId === p.id} onChange={() => setRenunciaSelectedId(p.id)} />
+                      <span className="text-xs text-foreground">{lado === "autor" ? "AUTOR" : "RÉU"} — {nome}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
             <div>
               <label className="text-xs font-medium text-foreground">Motivo (opcional)</label>
               <Textarea
