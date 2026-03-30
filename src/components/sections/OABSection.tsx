@@ -648,12 +648,22 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
 
         {/* RANKING */}
         <TabsContent value="ranking" className="mt-4">
+          {/* Tabela de pontuação */}
+          <div className="bg-card rounded-xl border border-border p-4 mb-4">
+            <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2"><Award className="h-4 w-4 text-institutional" /> Sistema de Pontuação</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+              <div className="bg-secondary/50 rounded-lg p-2 text-center"><p className="font-bold text-foreground">10 pts</p><p className="text-muted-foreground">Processo vinculado</p></div>
+              <div className="bg-secondary/50 rounded-lg p-2 text-center"><p className="font-bold text-foreground">25 pts</p><p className="text-muted-foreground">Sentença / Arquivamento</p></div>
+              <div className="bg-secondary/50 rounded-lg p-2 text-center"><p className="font-bold text-foreground">50 pts</p><p className="text-muted-foreground">Apelação Deferida - TJ</p></div>
+              <div className="bg-secondary/50 rounded-lg p-2 text-center"><p className="font-bold text-foreground">20 pts</p><p className="text-muted-foreground">Atuação rápida (&lt;24h)</p></div>
+            </div>
+          </div>
           {!ranking.length ? <EmptyState icon={Award} text="Nenhum advogado no ranking." /> : (
             <div className="space-y-2">
               {ranking.map((adv: any, i: number) => {
                 const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : null;
                 return (
-                  <motion.div key={adv.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
+                  <motion.div key={adv.user_id || i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
                     className={`bg-card rounded-xl p-4 border shadow-institutional ${i < 3 ? 'border-gold/30' : 'border-border'}`}>
                     <div className="flex items-center gap-4">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold flex-shrink-0 ${i < 3 ? 'bg-gold/10' : 'bg-secondary'}`}>
@@ -665,7 +675,12 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
                       </div>
                       <div className="text-right flex-shrink-0">
                         <p className="text-lg font-bold text-foreground">{adv.score} <span className="text-[10px] font-normal text-muted-foreground">pts</span></p>
-                        <p className="text-[10px] text-muted-foreground">{adv.processos_count} {adv.processos_count === 1 ? 'processo' : 'processos'} • {adv.sentencas} {adv.sentencas === 1 ? 'sentença' : 'sentenças'} • {adv.pareceres_favoraveis || 0} {(adv.pareceres_favoraveis || 0) === 1 ? 'apelação deferida - TJ' : 'apelações deferidas - TJ'}</p>
+                        <div className="flex flex-wrap justify-end gap-x-2 text-[10px] text-muted-foreground">
+                          <span>{adv.processos_count} {adv.processos_count === 1 ? 'processo' : 'processos'}</span>
+                          <span>• {adv.sentencas} {adv.sentencas === 1 ? 'sentença' : 'sentenças'}</span>
+                          <span>• {adv.pareceres_favoraveis || 0} apel. deferida(s)</span>
+                          <span>• {adv.atuacoes_rapidas || 0} rápida(s)</span>
+                        </div>
                       </div>
                     </div>
                   </motion.div>
