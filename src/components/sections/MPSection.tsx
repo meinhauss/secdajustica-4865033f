@@ -252,53 +252,6 @@ function MPDashboard({ isMP, onSelectIP, onSelectOuvidoria }: { isMP: boolean; o
           )}
         </TabsContent>
 
-        {/* DENÚNCIAS TAB */}
-        <TabsContent value="denuncias" className="mt-4">
-          {!denuncias?.length ? (
-            <EmptyState icon={Gavel} text="Nenhuma denúncia oferecida." />
-          ) : (
-            <div className="space-y-2">
-              {denuncias.map((d: any, i: number) => (
-                <motion.div key={d.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
-                  className="bg-card rounded-xl p-4 border border-border shadow-institutional">
-                  <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <span className="font-mono text-sm font-semibold text-institutional">{d.numero_protocolo}</span>
-                    <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400">{d.status}</span>
-                    {d.tipificacao && <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{d.tipificacao}</span>}
-                  </div>
-                  <p className="text-sm text-foreground line-clamp-2">{d.resumo}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{format(new Date(d.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        {/* ARQUIVAMENTOS TAB */}
-        <TabsContent value="arquivamentos" className="mt-4">
-          {!arquivamentos?.length ? (
-            <EmptyState icon={Archive} text="Nenhum arquivamento promovido." />
-          ) : (
-            <div className="space-y-2">
-              {arquivamentos.map((a: any, i: number) => (
-                <motion.div key={a.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
-                  className="bg-card rounded-xl p-4 border border-border shadow-institutional">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Archive className="h-4 w-4 text-muted-foreground" />
-                    <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${a.status === 'promovido' ? 'bg-gold/10 text-gold-dark' : 'bg-green-100 text-green-800'}`}>{a.status}</span>
-                  </div>
-                  <p className="text-sm text-foreground line-clamp-2">{a.justificativa}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{format(new Date(a.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        {/* PARECERES TAB */}
-        <TabsContent value="pareceres" className="mt-4">
-          <ParecerTab pareceres={pareceres || []} processos={processos || []} />
-        </TabsContent>
 
         {/* REQUISIÇÕES TAB */}
         <TabsContent value="requisicoes" className="mt-4">
