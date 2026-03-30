@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Scale, FileText, Shield, Search, ArrowLeft, Clock, Eye,
   ChevronRight, Send, BookOpen, Gavel, Archive, MessageSquare,
-  BarChart3, AlertTriangle, CheckCircle, XCircle, Plus
+  AlertTriangle, CheckCircle, XCircle, Plus
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
