@@ -655,7 +655,7 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
               <div className="bg-secondary/50 rounded-lg p-2 text-center"><p className="font-bold text-foreground">10 pts</p><p className="text-muted-foreground">Processo vinculado</p></div>
               <div className="bg-secondary/50 rounded-lg p-2 text-center"><p className="font-bold text-foreground">25 pts</p><p className="text-muted-foreground">Sentença / Arquivamento</p></div>
               <div className="bg-secondary/50 rounded-lg p-2 text-center"><p className="font-bold text-foreground">50 pts</p><p className="text-muted-foreground">Apelação Deferida - TJ</p></div>
-              <div className="bg-secondary/50 rounded-lg p-2 text-center"><p className="font-bold text-foreground">20 pts</p><p className="text-muted-foreground">Atuação rápida (&lt;24h)</p></div>
+              <div className="bg-secondary/50 rounded-lg p-2 text-center"><p className="font-bold text-foreground">20 pts</p><p className="text-muted-foreground">Resposta rápida a intimação (&lt;24h)</p></div>
             </div>
           </div>
           {!ranking.length ? <EmptyState icon={Award} text="Nenhum advogado no ranking." /> : (
