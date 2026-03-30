@@ -348,7 +348,94 @@ function MagistradoDashboard({ onSelectProcesso }: { onSelectProcesso: (id: stri
             ))}
           </div>
         </TabsContent>
+
+        {/* RANKING */}
+        <TabsContent value="ranking" className="mt-4">
+          <MagistradoRanking />
+        </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════ */
+/*  MAGISTRADO RANKING                         */
+/* ═══════════════════════════════════════════ */
+function MagistradoRanking() {
+  const { data: ranking, isLoading } = useQuery({
+    queryKey: ["magistrado-ranking"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_magistrado_ranking");
+      if (error) throw error;
+      return (data as any[]) || [];
+    },
+  });
+
+  const CARGO_LABELS: Record<string, string> = {
+    magistrado: "Juiz(a) de Direito",
+    desembargador: "Desembargador(a)",
+    presidente_tribunal: "Presidente do Tribunal",
+  };
+
+  if (isLoading) return <div className="text-center py-8 text-muted-foreground">Carregando ranking...</div>;
+  if (!ranking?.length) return <EmptyState icon={Scale} text="Nenhum magistrado com atividade registrada." />;
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-card rounded-xl p-4 border border-border shadow-institutional">
+        <h3 className="font-display text-lg font-bold text-foreground mb-2">Sistema de Pontuação</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs text-muted-foreground">
+          <span>📋 Processo atribuído: <strong className="text-foreground">10 pts</strong></span>
+          <span>📜 Sentença proferida: <strong className="text-foreground">25 pts</strong></span>
+          <span>⚖️ Trânsito em julgado: <strong className="text-foreground">50 pts</strong></span>
+          <span>🎙️ Audiência realizada: <strong className="text-foreground">15 pts</strong></span>
+          <span>⚡ Sentença rápida (&lt;24h): <strong className="text-foreground">+20 pts</strong></span>
+          <span>📑 Acórdão proferido: <strong className="text-foreground">30 pts</strong></span>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        {ranking.map((m: any, i: number) => (
+          <motion.div key={m.user_id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
+            className={`bg-card rounded-xl p-4 border shadow-institutional ${i === 0 ? 'border-gold ring-1 ring-gold/20' : i === 1 ? 'border-gray-400 dark:border-gray-500' : i === 2 ? 'border-amber-600 dark:border-amber-700' : 'border-border'}`}>
+            <div className="flex items-center gap-3">
+              <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${i === 0 ? 'bg-gold/20 text-gold-dark' : i === 1 ? 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300' : i === 2 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : 'bg-secondary text-muted-foreground'}`}>
+                {i + 1}º
+              </div>
+              {m.avatar_url ? (
+                <img src={m.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover border border-border" />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-institutional/10 flex items-center justify-center">
+                  <Gavel className="h-5 w-5 text-institutional" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-semibold text-foreground text-sm">{m.nome_completo}</span>
+                  <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-institutional/10 text-institutional font-semibold">
+                    {CARGO_LABELS[m.cargo] || m.cargo}
+                  </span>
+                </div>
+                {m.id_personagem && <span className="text-[10px] text-muted-foreground">ID: {m.id_personagem}</span>}
+                <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-[11px] text-muted-foreground">
+                  <span>{m.processos_count} {Number(m.processos_count) === 1 ? 'processo' : 'processos'}</span>
+                  <span>•</span>
+                  <span>{m.sentencas} {Number(m.sentencas) === 1 ? 'sentença' : 'sentenças'}</span>
+                  <span>•</span>
+                  <span>{m.transito_julgado} trânsito(s) em julgado</span>
+                  {Number(m.sentencas_rapidas) > 0 && <><span>•</span><span className="text-green-600 dark:text-green-400">⚡ {m.sentencas_rapidas} rápida(s)</span></>}
+                  {Number(m.audiencias_realizadas) > 0 && <><span>•</span><span>{m.audiencias_realizadas} audiência(s)</span></>}
+                  {Number(m.acordaos) > 0 && <><span>•</span><span>{m.acordaos} acórdão(s)</span></>}
+                </div>
+              </div>
+              <div className="text-right flex-shrink-0">
+                <span className="text-xl font-bold text-institutional">{Number(m.score)}</span>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">pontos</p>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
     </div>
   );
 }
