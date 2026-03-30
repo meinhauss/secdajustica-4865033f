@@ -1426,13 +1426,13 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
           {isSentenciado && !prazoApelacaoExpirado && (
             <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-xl p-4 text-sm text-green-800 dark:text-green-300 flex items-center gap-2">
               <CheckCircle className="h-4 w-4" />
-              Processo sentenciado. Novas movimentações não são permitidas — recursos de apelação podem ser interpostos em até 3 dias na aba "Apelações".
+              Processo sentenciado. Novas movimentações não são permitidas — recursos de apelação podem ser interpostos em até 72 horas na aba "Apelações".
             </div>
           )}
           {isSentenciado && prazoApelacaoExpirado && (
             <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 flex items-center gap-2">
               <CheckCircle className="h-4 w-4" />
-              Prazo para recurso expirado (3 dias). O processo será arquivado automaticamente.
+              Prazo para recurso expirado (72 horas). O processo será arquivado automaticamente.
             </div>
           )}
           {isArquivado && (
@@ -1757,7 +1757,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             {prazoApelacaoExpirado || isArquivado ? (
               <div className="bg-muted border border-border rounded-xl p-4 text-sm text-muted-foreground flex items-center gap-2">
                 <Scale className="h-4 w-4" />
-                O prazo de 3 dias para interposição de recurso expirou. Não é mais possível apelar.
+                O prazo de 72 horas para interposição de recurso expirou. Não é mais possível apelar.
               </div>
             ) : (isAdvogado || isMP) && sentencasProc?.length && !apelacoesProc?.length ? (
               <Dialog open={showApelacao} onOpenChange={setShowApelacao}>

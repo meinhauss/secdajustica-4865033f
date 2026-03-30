@@ -13,8 +13,8 @@ const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
     version: "2.9.0",
     date: "27/03/2026",
     changes: [
-      "Arquivamento automático de processos 3 dias após sentença",
-      "Prazo de 3 dias para interposição de recurso de apelação",
+      "Arquivamento automático de processos 72 horas após sentença",
+      "Prazo de 72 horas para interposição de recurso de apelação",
       "Bloqueio de apelações após expiração do prazo",
       "Processos arquivados exibem aba de apelações para consulta",
     ],
