@@ -197,11 +197,9 @@ function MPDashboard({ isMP, onSelectIP, onSelectOuvidoria }: { isMP: boolean; o
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <StatCard label="Inquéritos" value={stats.inqueritos} icon={Shield} />
         <StatCard label="Pendentes" value={stats.pendentes} icon={Clock} />
-        <StatCard label="Denúncias" value={stats.denuncias} icon={Gavel} />
-        <StatCard label="Arquivamentos" value={stats.arquivamentos} icon={Archive} />
         <StatCard label="Processos" value={stats.processos} icon={FileText} />
         <StatCard label="Requisições" value={stats.requisicoes} icon={Send} />
       </div>
