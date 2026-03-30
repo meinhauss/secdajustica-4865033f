@@ -233,6 +233,7 @@ function MagistradoDashboard({ onSelectProcesso }: { onSelectProcesso: (id: stri
           <TabsTrigger value="mandados" className="rounded-lg text-xs"><Stamp className="h-3 w-3 mr-1" /> Mandados ({stats.mandados})</TabsTrigger>
           <TabsTrigger value="sentencas" className="rounded-lg text-xs"><Scroll className="h-3 w-3 mr-1" /> Sentenças ({stats.sentencas})</TabsTrigger>
           <TabsTrigger value="estatisticas" className="rounded-lg text-xs"><BarChart3 className="h-3 w-3 mr-1" /> Estatísticas</TabsTrigger>
+          <TabsTrigger value="ranking" className="rounded-lg text-xs"><Scale className="h-3 w-3 mr-1" /> Ranking</TabsTrigger>
         </TabsList>
 
         {/* CONCLUSOS */}
