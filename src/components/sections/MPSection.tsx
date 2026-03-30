@@ -214,12 +214,8 @@ function MPDashboard({ isMP, onSelectIP, onSelectOuvidoria }: { isMP: boolean; o
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="w-full justify-start rounded-xl bg-secondary/50 p-1 h-auto gap-1 flex-wrap">
           <TabsTrigger value="inqueritos" className="rounded-lg text-xs"><Shield className="h-3 w-3 mr-1" /> Inquéritos ({stats.inqueritos})</TabsTrigger>
-          <TabsTrigger value="denuncias" className="rounded-lg text-xs"><Gavel className="h-3 w-3 mr-1" /> Denúncias ({stats.denuncias})</TabsTrigger>
-          <TabsTrigger value="arquivamentos" className="rounded-lg text-xs"><Archive className="h-3 w-3 mr-1" /> Arquivamentos ({stats.arquivamentos})</TabsTrigger>
-          <TabsTrigger value="pareceres" className="rounded-lg text-xs"><MessageSquare className="h-3 w-3 mr-1" /> Pareceres ({pareceres?.length || 0})</TabsTrigger>
           <TabsTrigger value="requisicoes" className="rounded-lg text-xs"><Send className="h-3 w-3 mr-1" /> Requisições ({stats.requisicoes})</TabsTrigger>
           <TabsTrigger value="processos" className="rounded-lg text-xs"><FileText className="h-3 w-3 mr-1" /> Processos ({stats.processos})</TabsTrigger>
-          <TabsTrigger value="estatisticas" className="rounded-lg text-xs"><BarChart3 className="h-3 w-3 mr-1" /> Estatísticas</TabsTrigger>
           <TabsTrigger value="ouvidoria" className="rounded-lg text-xs"><AlertTriangle className="h-3 w-3 mr-1" /> Ouvidoria ({denunciasOuvidoria?.length || 0})</TabsTrigger>
           <TabsTrigger value="comunicacoes-externas" className="rounded-lg text-xs"><MessageSquare className="h-3 w-3 mr-1" /> Comunicações Externas</TabsTrigger>
           <TabsTrigger value="ranking" className="rounded-lg text-xs"><Scale className="h-3 w-3 mr-1" /> Ranking</TabsTrigger>
