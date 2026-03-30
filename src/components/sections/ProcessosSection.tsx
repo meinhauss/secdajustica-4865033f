@@ -1232,7 +1232,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><UserCheck className="h-4 w-4 text-institutional" /> Advogados Constituídos</h3>
           <div className="flex gap-2">
-            {isAdvogado && !advogadoTemProcuracao && (
+            {isAdvogado && (
               <Button size="sm" variant="outline" className="rounded-lg text-xs" onClick={() => setShowProcuracao(true)}>
                 <ShieldCheck className="h-3 w-3 mr-1" /> Juntar Procuração
               </Button>
