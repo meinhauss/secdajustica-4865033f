@@ -636,32 +636,60 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     (p: any) => p.advogado_id === user?.id && p.status === "ativa"
   );
 
+  // Parse individual parties from processo for procuração selection
+  const partesAutor = processo ? parsePartesFromString(processo.autor_nome) : [];
+  const partesReu = processo ? parsePartesFromString(processo.reu_nome) : [];
+
   // canAddMovimentacao is computed after jaInteressado below
 
   const [showProcuracao, setShowProcuracao] = useState(false);
-  const [procForm, setProcForm] = useState({ parte: "autor", documento_url: "" });
+  const [procForm, setProcForm] = useState<{ selectedPartes: string[]; documento_url: string }>({ selectedPartes: [], documento_url: "" });
+
+  const toggleParteSelection = (parteKey: string) => {
+    setProcForm(prev => ({
+      ...prev,
+      selectedPartes: prev.selectedPartes.includes(parteKey)
+        ? prev.selectedPartes.filter(k => k !== parteKey)
+        : [...prev.selectedPartes, parteKey],
+    }));
+  };
+
+  // Get parties this lawyer already represents actively
+  const minhasProcuracoes = procuracoes?.filter((p: any) => p.advogado_id === user?.id && p.status === "ativa") || [];
+  const partesJaRepresentadas = minhasProcuracoes.map((p: any) => p.parte);
 
   const juntarProcuracao = useMutation({
     mutationFn: async () => {
       if (!procForm.documento_url) throw new Error("Informe o link da procuração.");
-      const { error } = await supabase.from("procuracoes").insert({
+      if (procForm.selectedPartes.length === 0) throw new Error("Selecione ao menos uma parte para representar.");
+
+      // Insert one procuracao per selected party
+      const inserts = procForm.selectedPartes.map(parteKey => ({
         processo_id: processoId,
         advogado_id: user?.id,
         advogado_nome: profile?.nome_completo || "Advogado",
-        parte: procForm.parte,
+        parte: parteKey,
         documento_url: procForm.documento_url,
         status: "ativa",
-      });
+      }));
+      const { error } = await supabase.from("procuracoes").insert(inserts);
       if (error) throw error;
+
+      const partesDesc = procForm.selectedPartes.map(k => {
+        const [lado, ...rest] = k.split(":");
+        const nome = rest.join(":");
+        return `${lado === "autor" ? "AUTOR" : "RÉU"} ${nome}`;
+      }).join(", ");
+
       await addMovimentacao.mutateAsync({
         tipo: "procuracao",
-        descricao: `PROCURAÇÃO juntada por ${profile?.nome_completo || "Advogado"} — qualificando-se como advogado(a) do(a) ${procForm.parte === "autor" ? "AUTOR" : "RÉU"}.\nDocumento: ${procForm.documento_url}`,
+        descricao: `PROCURAÇÃO juntada por ${profile?.nome_completo || "Advogado"} — qualificando-se como advogado(a) de: ${partesDesc}.\nDocumento: ${procForm.documento_url}`,
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["procuracoes", processoId] });
       setShowProcuracao(false);
-      setProcForm({ parte: "autor", documento_url: "" });
+      setProcForm({ selectedPartes: [], documento_url: "" });
       toast.success("Procuração juntada com sucesso!");
     },
     onError: (err: any) => toast.error(err.message),
