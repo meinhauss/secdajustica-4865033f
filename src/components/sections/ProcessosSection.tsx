@@ -1255,7 +1255,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                 <ShieldCheck className="h-4 w-4 text-green-600 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-foreground">{p.advogado_nome}</p>
-                  <p className="text-[10px] text-muted-foreground">Advogado(a) do(a) {p.parte === "autor" ? "AUTOR" : "RÉU"} — desde {format(new Date(p.created_at), "dd/MM/yyyy", { locale: ptBR })}</p>
+                  <p className="text-[10px] text-muted-foreground">Advogado(a) do(a) {(() => { const [lado, ...rest] = (p.parte || "").split(":"); const nome = rest.join(":"); return nome ? `${lado === "autor" ? "AUTOR" : "RÉU"} ${nome}` : (lado === "autor" ? "AUTOR" : "RÉU"); })()} — desde {format(new Date(p.created_at), "dd/MM/yyyy", { locale: ptBR })}</p>
                 </div>
                 {p.documento_url && (
                   <a href={p.documento_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1">
