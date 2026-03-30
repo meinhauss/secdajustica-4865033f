@@ -697,20 +697,34 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
 
   const [showRenuncia, setShowRenuncia] = useState(false);
   const [motivoRenuncia, setMotivoRenuncia] = useState("");
+  const [renunciaSelectedId, setRenunciaSelectedId] = useState<string | null>(null);
 
   const renunciarProcuracao = useMutation({
     mutationFn: async () => {
-      const minhaProcuracao = procuracoes?.find((p: any) => p.advogado_id === user?.id && p.status === "ativa");
-      if (!minhaProcuracao) throw new Error("Nenhuma procuração ativa encontrada.");
-      const { error } = await supabase.from("procuracoes").update({
-        status: "renunciada",
-        renunciada_em: new Date().toISOString(),
-        motivo_renuncia: motivoRenuncia || null,
-      }).eq("id", minhaProcuracao.id);
-      if (error) throw error;
+      // If specific procuracao selected, renounce that; otherwise renounce all
+      const targetProcuracoes = renunciaSelectedId
+        ? minhasProcuracoes.filter((p: any) => p.id === renunciaSelectedId)
+        : minhasProcuracoes;
+      if (targetProcuracoes.length === 0) throw new Error("Nenhuma procuração ativa encontrada.");
+      
+      for (const proc of targetProcuracoes) {
+        const { error } = await supabase.from("procuracoes").update({
+          status: "renunciada",
+          renunciada_em: new Date().toISOString(),
+          motivo_renuncia: motivoRenuncia || null,
+        }).eq("id", proc.id);
+        if (error) throw error;
+      }
+
+      const partesDesc = targetProcuracoes.map((p: any) => {
+        const [lado, ...rest] = (p.parte || "").split(":");
+        const nome = rest.join(":") || (lado === "autor" ? "AUTOR" : "RÉU");
+        return `${lado === "autor" ? "AUTOR" : "RÉU"} ${nome}`;
+      }).join(", ");
+      
       await addMovimentacao.mutateAsync({
         tipo: "renuncia",
-        descricao: `RENÚNCIA DE MANDATO por ${profile?.nome_completo || "Advogado"} — parte: ${minhaProcuracao.parte === "autor" ? "AUTOR" : "RÉU"}.${motivoRenuncia ? `\nMotivo: ${motivoRenuncia}` : ""}`,
+        descricao: `RENÚNCIA DE MANDATO por ${profile?.nome_completo || "Advogado"} — partes: ${partesDesc}.${motivoRenuncia ? `\nMotivo: ${motivoRenuncia}` : ""}`,
       });
     },
     onSuccess: () => {
