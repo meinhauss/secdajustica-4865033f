@@ -1757,7 +1757,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             {prazoApelacaoExpirado || isArquivado ? (
               <div className="bg-muted border border-border rounded-xl p-4 text-sm text-muted-foreground flex items-center gap-2">
                 <Scale className="h-4 w-4" />
-                O prazo de 3 dias para interposição de recurso expirou. Não é mais possível apelar.
+                O prazo de 72 horas para interposição de recurso expirou. Não é mais possível apelar.
               </div>
             ) : (isAdvogado || isMP) && sentencasProc?.length && !apelacoesProc?.length ? (
               <Dialog open={showApelacao} onOpenChange={setShowApelacao}>
