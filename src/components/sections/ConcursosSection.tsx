@@ -1255,16 +1255,49 @@ function ProvaAnterior({ concursoId, onBack }: { concursoId: string; onBack: () 
         <Button variant="ghost" size="sm" onClick={onBack} className="rounded-lg"><ArrowLeft className="h-4 w-4 mr-1" /> Voltar</Button>
         <div>
           <h2 className="font-display text-xl font-bold text-foreground">{concurso.titulo}</h2>
-          <p className="text-sm text-muted-foreground">{concurso.cargo} — Prova e Gabarito</p>
+          <p className="text-sm text-muted-foreground">{concurso.cargo} — Edital, Prova e Gabarito</p>
         </div>
       </div>
 
+      {/* Informações do Edital */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <InfoCard label="Cargo" value={concurso.cargo} />
         <InfoCard label="Vagas" value={String(concurso.vagas)} />
-        <InfoCard label="Data Prova" value={concurso.data_prova ? format(new Date(concurso.data_prova), "dd/MM/yyyy", { locale: ptBR }) : "—"} />
-        <InfoCard label="Questões" value={String(questoes?.length || 0)} />
+        <InfoCard label="Abertura" value={concurso.data_abertura ? format(new Date(concurso.data_abertura), "dd/MM/yyyy", { locale: ptBR }) : "—"} />
+        <InfoCard label="Data Prova" value={concurso.data_prova ? format(new Date(concurso.data_prova), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "—"} />
       </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <InfoCard label="Tempo de Prova" value={`${concurso.tempo_prova_minutos || 60} minutos`} />
+        <InfoCard label="Questões" value={String(questoes?.length || 0)} />
+        {concurso.data_encerramento_inscricoes && <InfoCard label="Enc. Inscrições" value={format(new Date(concurso.data_encerramento_inscricoes), "dd/MM/yyyy HH:mm", { locale: ptBR })} />}
+        {concurso.data_resultado && <InfoCard label="Resultado" value={format(new Date(concurso.data_resultado), "dd/MM/yyyy", { locale: ptBR })} />}
+      </div>
+
+      {concurso.requisitos && (
+        <div className="bg-card rounded-xl p-5 border border-border shadow-institutional">
+          <h3 className="font-display text-sm font-semibold text-foreground mb-2">Requisitos</h3>
+          <p className="text-sm text-foreground whitespace-pre-wrap">{concurso.requisitos}</p>
+        </div>
+      )}
+      {concurso.conteudo_programatico && (
+        <div className="bg-card rounded-xl p-5 border border-border shadow-institutional">
+          <h3 className="font-display text-sm font-semibold text-foreground mb-2">Conteúdo Programático</h3>
+          <p className="text-sm text-foreground whitespace-pre-wrap">{concurso.conteudo_programatico}</p>
+        </div>
+      )}
+      {concurso.regras_classificacao && (
+        <div className="bg-card rounded-xl p-5 border border-border shadow-institutional">
+          <h3 className="font-display text-sm font-semibold text-foreground mb-2">Regras de Classificação</h3>
+          <p className="text-sm text-foreground whitespace-pre-wrap">{concurso.regras_classificacao}</p>
+        </div>
+      )}
+      {concurso.edital_url && (
+        <div className="bg-card rounded-xl p-4 border border-border shadow-institutional">
+          <a href={concurso.edital_url} target="_blank" rel="noopener noreferrer" className="text-sm text-institutional hover:underline flex items-center gap-2">
+            <FileText className="h-4 w-4" /> Baixar Edital Completo
+          </a>
+        </div>
+      )}
 
       {!questoes?.length ? <EmptyState icon={ClipboardList} text="Nenhuma questão cadastrada neste concurso." /> : (
         <div className="space-y-4">
