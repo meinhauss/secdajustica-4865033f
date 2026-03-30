@@ -665,7 +665,7 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
                       </div>
                       <div className="text-right flex-shrink-0">
                         <p className="text-lg font-bold text-foreground">{adv.score} <span className="text-[10px] font-normal text-muted-foreground">pts</span></p>
-                        <p className="text-[10px] text-muted-foreground">{adv.processos_count} {adv.processos_count === 1 ? 'processo' : 'processos'} • {adv.sentencas} {adv.sentencas === 1 ? 'sentença' : 'sentenças'} • {adv.pareceres_favoraveis || 0} {(adv.pareceres_favoraveis || 0) === 1 ? 'parecer favorável' : 'pareceres favoráveis'}</p>
+                        <p className="text-[10px] text-muted-foreground">{adv.processos_count} {adv.processos_count === 1 ? 'processo' : 'processos'} • {adv.sentencas} {adv.sentencas === 1 ? 'sentença' : 'sentenças'} • {adv.pareceres_favoraveis || 0} {(adv.pareceres_favoraveis || 0) === 1 ? 'apelação deferida - TJ' : 'apelações deferidas - TJ'}</p>
                       </div>
                     </div>
                   </motion.div>
