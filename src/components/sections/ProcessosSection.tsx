@@ -1432,7 +1432,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
           {isSentenciado && prazoApelacaoExpirado && (
             <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 flex items-center gap-2">
               <CheckCircle className="h-4 w-4" />
-              Prazo para recurso expirado (3 dias). O processo será arquivado automaticamente.
+              Prazo para recurso expirado (72 horas). O processo será arquivado automaticamente.
             </div>
           )}
           {isArquivado && (
