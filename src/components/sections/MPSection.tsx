@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Scale, FileText, Shield, Search, ArrowLeft, Clock, Eye,
   ChevronRight, Send, BookOpen, Gavel, Archive, MessageSquare,
-  BarChart3, AlertTriangle, CheckCircle, XCircle, Plus
+  AlertTriangle, CheckCircle, XCircle, Plus
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -96,44 +96,8 @@ function MPDashboard({ isMP, onSelectIP, onSelectOuvidoria }: { isMP: boolean; o
     },
   });
 
-  // Denúncias
-  const { data: denuncias } = useQuery({
-    queryKey: ["mp-denuncias"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("denuncias_mp")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data as any[];
-    },
-  });
 
-  // Arquivamentos
-  const { data: arquivamentos } = useQuery({
-    queryKey: ["mp-arquivamentos"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("arquivamentos_mp")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data as any[];
-    },
-  });
 
-  // Pareceres
-  const { data: pareceres } = useQuery({
-    queryKey: ["mp-pareceres"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("pareceres_mp")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data as any[];
-    },
-  });
 
   // Requisições de diligência
   const { data: requisicoes } = useQuery({
@@ -184,8 +148,6 @@ function MPDashboard({ isMP, onSelectIP, onSelectOuvidoria }: { isMP: boolean; o
   const stats = {
     inqueritos: inqueritos?.length || 0,
     pendentes: pendentes.length,
-    denuncias: denuncias?.length || 0,
-    arquivamentos: arquivamentos?.length || 0,
     processos: processos?.length || 0,
     requisicoes: requisicoes?.length || 0,
   };
@@ -199,11 +161,9 @@ function MPDashboard({ isMP, onSelectIP, onSelectOuvidoria }: { isMP: boolean; o
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <StatCard label="Inquéritos" value={stats.inqueritos} icon={Shield} />
         <StatCard label="Pendentes" value={stats.pendentes} icon={Clock} />
-        <StatCard label="Denúncias" value={stats.denuncias} icon={Gavel} />
-        <StatCard label="Arquivamentos" value={stats.arquivamentos} icon={Archive} />
         <StatCard label="Processos" value={stats.processos} icon={FileText} />
         <StatCard label="Requisições" value={stats.requisicoes} icon={Send} />
       </div>
@@ -218,12 +178,8 @@ function MPDashboard({ isMP, onSelectIP, onSelectOuvidoria }: { isMP: boolean; o
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="w-full justify-start rounded-xl bg-secondary/50 p-1 h-auto gap-1 flex-wrap">
           <TabsTrigger value="inqueritos" className="rounded-lg text-xs"><Shield className="h-3 w-3 mr-1" /> Inquéritos ({stats.inqueritos})</TabsTrigger>
-          <TabsTrigger value="denuncias" className="rounded-lg text-xs"><Gavel className="h-3 w-3 mr-1" /> Denúncias ({stats.denuncias})</TabsTrigger>
-          <TabsTrigger value="arquivamentos" className="rounded-lg text-xs"><Archive className="h-3 w-3 mr-1" /> Arquivamentos ({stats.arquivamentos})</TabsTrigger>
-          <TabsTrigger value="pareceres" className="rounded-lg text-xs"><MessageSquare className="h-3 w-3 mr-1" /> Pareceres ({pareceres?.length || 0})</TabsTrigger>
           <TabsTrigger value="requisicoes" className="rounded-lg text-xs"><Send className="h-3 w-3 mr-1" /> Requisições ({stats.requisicoes})</TabsTrigger>
           <TabsTrigger value="processos" className="rounded-lg text-xs"><FileText className="h-3 w-3 mr-1" /> Processos ({stats.processos})</TabsTrigger>
-          <TabsTrigger value="estatisticas" className="rounded-lg text-xs"><BarChart3 className="h-3 w-3 mr-1" /> Estatísticas</TabsTrigger>
           <TabsTrigger value="ouvidoria" className="rounded-lg text-xs"><AlertTriangle className="h-3 w-3 mr-1" /> Ouvidoria ({denunciasOuvidoria?.length || 0})</TabsTrigger>
           <TabsTrigger value="comunicacoes-externas" className="rounded-lg text-xs"><MessageSquare className="h-3 w-3 mr-1" /> Comunicações Externas</TabsTrigger>
           <TabsTrigger value="ranking" className="rounded-lg text-xs"><Scale className="h-3 w-3 mr-1" /> Ranking</TabsTrigger>
@@ -260,53 +216,6 @@ function MPDashboard({ isMP, onSelectIP, onSelectOuvidoria }: { isMP: boolean; o
           )}
         </TabsContent>
 
-        {/* DENÚNCIAS TAB */}
-        <TabsContent value="denuncias" className="mt-4">
-          {!denuncias?.length ? (
-            <EmptyState icon={Gavel} text="Nenhuma denúncia oferecida." />
-          ) : (
-            <div className="space-y-2">
-              {denuncias.map((d: any, i: number) => (
-                <motion.div key={d.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
-                  className="bg-card rounded-xl p-4 border border-border shadow-institutional">
-                  <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <span className="font-mono text-sm font-semibold text-institutional">{d.numero_protocolo}</span>
-                    <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400">{d.status}</span>
-                    {d.tipificacao && <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{d.tipificacao}</span>}
-                  </div>
-                  <p className="text-sm text-foreground line-clamp-2">{d.resumo}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{format(new Date(d.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        {/* ARQUIVAMENTOS TAB */}
-        <TabsContent value="arquivamentos" className="mt-4">
-          {!arquivamentos?.length ? (
-            <EmptyState icon={Archive} text="Nenhum arquivamento promovido." />
-          ) : (
-            <div className="space-y-2">
-              {arquivamentos.map((a: any, i: number) => (
-                <motion.div key={a.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
-                  className="bg-card rounded-xl p-4 border border-border shadow-institutional">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Archive className="h-4 w-4 text-muted-foreground" />
-                    <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${a.status === 'promovido' ? 'bg-gold/10 text-gold-dark' : 'bg-green-100 text-green-800'}`}>{a.status}</span>
-                  </div>
-                  <p className="text-sm text-foreground line-clamp-2">{a.justificativa}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{format(new Date(a.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        {/* PARECERES TAB */}
-        <TabsContent value="pareceres" className="mt-4">
-          <ParecerTab pareceres={pareceres || []} processos={processos || []} />
-        </TabsContent>
 
         {/* REQUISIÇÕES TAB */}
         <TabsContent value="requisicoes" className="mt-4">
@@ -406,34 +315,6 @@ function MPDashboard({ isMP, onSelectIP, onSelectOuvidoria }: { isMP: boolean; o
           <ComunicacoesExternasTab isMP={isMP} onSelectIP={onSelectIP} />
         </TabsContent>
 
-        <TabsContent value="estatisticas" className="mt-4">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            <div className="bg-card rounded-xl p-5 border border-border shadow-institutional text-center">
-              <p className="text-3xl font-bold text-institutional">{stats.inqueritos}</p>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider mt-1">Inquéritos Recebidos</p>
-            </div>
-            <div className="bg-card rounded-xl p-5 border border-border shadow-institutional text-center">
-              <p className="text-3xl font-bold text-foreground">{stats.denuncias}</p>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider mt-1">Denúncias Oferecidas</p>
-            </div>
-            <div className="bg-card rounded-xl p-5 border border-border shadow-institutional text-center">
-              <p className="text-3xl font-bold text-foreground">{stats.arquivamentos}</p>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider mt-1">Arquivamentos</p>
-            </div>
-            <div className="bg-card rounded-xl p-5 border border-border shadow-institutional text-center">
-              <p className="text-3xl font-bold text-foreground">{stats.requisicoes}</p>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider mt-1">Diligências Requisitadas</p>
-            </div>
-            <div className="bg-card rounded-xl p-5 border border-border shadow-institutional text-center">
-              <p className="text-3xl font-bold text-foreground">{pareceres?.length || 0}</p>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider mt-1">Pareceres Emitidos</p>
-            </div>
-            <div className="bg-card rounded-xl p-5 border border-border shadow-institutional text-center">
-              <p className="text-3xl font-bold text-foreground">{stats.processos}</p>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider mt-1">Processos Acompanhados</p>
-            </div>
-          </div>
-        </TabsContent>
 
         {/* RANKING */}
         <TabsContent value="ranking" className="mt-4">
@@ -527,101 +408,6 @@ function PromotorRanking() {
   );
 }
 
-/* ═══════════════════════════════════════════ */
-/*  PARECER TAB                                */
-/* ═══════════════════════════════════════════ */
-function ParecerTab({ pareceres, processos }: { pareceres: any[]; processos: any[] }) {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const [openParecer, setOpenParecer] = useState(false);
-  const [parecerForm, setParecerForm] = useState({ processo_id: "", tipo: "parecer", conteudo: "" });
-
-  const createParecer = useMutation({
-    mutationFn: async () => {
-      if (!parecerForm.processo_id || !parecerForm.conteudo) throw new Error("Preencha todos os campos.");
-      const { error } = await supabase.from("pareceres_mp").insert({
-        processo_id: parecerForm.processo_id,
-        promotor_id: user!.id,
-        tipo: parecerForm.tipo,
-        conteudo: parecerForm.conteudo,
-      } as any);
-      if (error) throw error;
-
-      // Add movimentação
-      await supabase.from("movimentacoes").insert({
-        processo_id: parecerForm.processo_id,
-        tipo: "parecer_mp",
-        descricao: `Parecer do Ministério Público juntado aos autos.`,
-        autor_id: user!.id,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["mp-pareceres"] });
-      setOpenParecer(false);
-      setParecerForm({ processo_id: "", tipo: "parecer", conteudo: "" });
-      toast.success("Parecer emitido com sucesso!");
-    },
-    onError: (err: any) => toast.error(err.message),
-  });
-
-  return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
-        <Dialog open={openParecer} onOpenChange={setOpenParecer}>
-          <DialogTrigger asChild>
-            <Button size="sm" className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
-              <Plus className="h-4 w-4 mr-1" /> Emitir Parecer
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-lg">
-            <DialogHeader><DialogTitle className="font-display">Emitir Parecer Ministerial</DialogTitle></DialogHeader>
-            <form onSubmit={(e) => { e.preventDefault(); createParecer.mutate(); }} className="space-y-4 mt-4">
-              <Select value={parecerForm.processo_id} onValueChange={(v) => setParecerForm({ ...parecerForm, processo_id: v })}>
-                <SelectTrigger className="rounded-xl"><SelectValue placeholder="Selecione o Processo" /></SelectTrigger>
-                <SelectContent>
-                  {processos.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>{p.numero} — {p.assunto}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={parecerForm.tipo} onValueChange={(v) => setParecerForm({ ...parecerForm, tipo: v })}>
-                <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="parecer">Parecer</SelectItem>
-                  <SelectItem value="manifestacao">Manifestação</SelectItem>
-                  <SelectItem value="alegacoes_finais">Alegações Finais</SelectItem>
-                  <SelectItem value="contrarrazoes">Contrarrazões</SelectItem>
-                </SelectContent>
-              </Select>
-              <Textarea placeholder="Conteúdo do parecer..." value={parecerForm.conteudo} onChange={(e) => setParecerForm({ ...parecerForm, conteudo: e.target.value })} required rows={6} className="rounded-xl" />
-              <Button type="submit" disabled={createParecer.isPending} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
-                {createParecer.isPending ? "Emitindo..." : "Emitir Parecer"}
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {!pareceres.length ? (
-        <EmptyState icon={MessageSquare} text="Nenhum parecer emitido." />
-      ) : (
-        <div className="space-y-2">
-          {pareceres.map((p: any, i: number) => (
-            <motion.div key={p.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
-              className="bg-card rounded-xl p-4 border border-border shadow-institutional">
-              <div className="flex items-center gap-2 mb-1">
-                <MessageSquare className="h-4 w-4 text-institutional" />
-                <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-institutional/10 text-institutional">{p.tipo?.replace("_", " ")}</span>
-              </div>
-              <p className="text-sm text-foreground line-clamp-3">{p.conteudo}</p>
-              <p className="text-xs text-muted-foreground mt-1">{format(new Date(p.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
-            </motion.div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 /* ═══════════════════════════════════════════ */
 /*  COMUNICAÇÕES CHAT                          */
