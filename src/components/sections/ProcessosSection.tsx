@@ -1055,9 +1055,9 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
 
   const cfg = STATUS_CONFIG[processo.status] || STATUS_CONFIG.novo;
 
-  // Advogados from procuracoes
-  const advAutor = procuracoes?.filter((p: any) => p.status === "ativa" && p.parte === "autor") || [];
-  const advReu = procuracoes?.filter((p: any) => p.status === "ativa" && p.parte === "reu") || [];
+  // Advogados from procuracoes (parte can be "autor", "reu", "autor:Nome", "reu:Nome")
+  const advAutor = procuracoes?.filter((p: any) => p.status === "ativa" && (p.parte === "autor" || p.parte?.startsWith("autor:"))) || [];
+  const advReu = procuracoes?.filter((p: any) => p.status === "ativa" && (p.parte === "reu" || p.parte?.startsWith("reu:"))) || [];
 
   return (
     <div className="space-y-6">
