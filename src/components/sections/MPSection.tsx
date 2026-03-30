@@ -184,8 +184,6 @@ function MPDashboard({ isMP, onSelectIP, onSelectOuvidoria }: { isMP: boolean; o
   const stats = {
     inqueritos: inqueritos?.length || 0,
     pendentes: pendentes.length,
-    denuncias: denuncias?.length || 0,
-    arquivamentos: arquivamentos?.length || 0,
     processos: processos?.length || 0,
     requisicoes: requisicoes?.length || 0,
   };
