@@ -476,6 +476,7 @@ function PromotorRanking() {
           <span>⚖️ Trânsito em julgado: <strong className="text-foreground">50 pts</strong></span>
           <span>⚡ Denúncia rápida (&lt;24h): <strong className="text-foreground">+25 pts</strong></span>
           <span>📁 Arquivamento promovido: <strong className="text-foreground">10 pts</strong></span>
+          <span>🤝 Manifestação de interesse: <strong className="text-foreground">15 pts</strong></span>
         </div>
       </div>
 
@@ -511,6 +512,7 @@ function PromotorRanking() {
                   {Number(p.denuncias_rapidas) > 0 && <><span>•</span><span className="text-green-600 dark:text-green-400">⚡ {p.denuncias_rapidas} rápida(s)</span></>}
                   {Number(p.requisicoes) > 0 && <><span>•</span><span>{p.requisicoes} requisição(ões)</span></>}
                   {Number(p.arquivamentos) > 0 && <><span>•</span><span>{p.arquivamentos} arquivamento(s)</span></>}
+                  {Number(p.manifestacoes) > 0 && <><span>•</span><span>🤝 {p.manifestacoes} manifestação(ões)</span></>}
                 </div>
               </div>
               <div className="text-right flex-shrink-0">
