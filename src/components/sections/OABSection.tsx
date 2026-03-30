@@ -664,8 +664,8 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
                         <p className="font-mono text-xs text-institutional">{adv.numero_oab}</p>
                       </div>
                       <div className="text-right flex-shrink-0">
-                        <p className="text-lg font-bold text-foreground">{adv.score}</p>
-                        <p className="text-[10px] text-muted-foreground">{adv.processos_count} proc. • {adv.vitorias} concl.</p>
+                        <p className="text-lg font-bold text-foreground">{adv.score} <span className="text-[10px] font-normal text-muted-foreground">pts</span></p>
+                        <p className="text-[10px] text-muted-foreground">{adv.processos_count} {adv.processos_count === 1 ? 'processo' : 'processos'} • {adv.vitorias} {adv.vitorias === 1 ? 'vitória' : 'vitórias'}</p>
                       </div>
                     </div>
                   </motion.div>
