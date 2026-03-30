@@ -476,6 +476,7 @@ function PromotorRanking() {
           <span>⚖️ Trânsito em julgado: <strong className="text-foreground">50 pts</strong></span>
           <span>⚡ Denúncia rápida (&lt;24h): <strong className="text-foreground">+25 pts</strong></span>
           <span>📁 Arquivamento promovido: <strong className="text-foreground">10 pts</strong></span>
+          <span>🤝 Manifestação de interesse: <strong className="text-foreground">15 pts</strong></span>
         </div>
       </div>
 
