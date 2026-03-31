@@ -1598,6 +1598,35 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             </div>
           </TabsContent>
         )}
+
+        {embargosProc && embargosProc.length > 0 && (
+          <TabsContent value="embargos" className="mt-4">
+            <div className="space-y-3">
+              {embargosProc.map((emb: any) => {
+                const tipoLabels: Record<string, string> = { omissao: "Omissão", contradicao: "Contradição", obscuridade: "Obscuridade" };
+                const statusCfg: Record<string, { label: string; color: string }> = {
+                  opostos: { label: "Pendente", color: "bg-gold/10 text-gold-dark" },
+                  acolhidos: { label: "Acolhidos", color: "bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400" },
+                  rejeitados: { label: "Rejeitados", color: "bg-destructive/10 text-destructive" },
+                  parcialmente_acolhidos: { label: "Parc. Acolhidos", color: "bg-amber-100 text-amber-800 dark:bg-amber-950/30 dark:text-amber-400" },
+                };
+                const cfg = statusCfg[emb.status] || statusCfg.opostos;
+                return (
+                  <EmbargosCard
+                    key={emb.id}
+                    emb={emb}
+                    tipoLabels={tipoLabels}
+                    statusCfg={cfg}
+                    canDecide={emb.status === "opostos" && processo?.juiz_id === user?.id}
+                    processoId={processoId}
+                    userId={user?.id}
+                    profileName={profile?.nome_completo}
+                  />
+                );
+              })}
+            </div>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
