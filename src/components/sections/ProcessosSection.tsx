@@ -1000,7 +1000,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
 
   // Interpor apelação
   const [showApelacao, setShowApelacao] = useState(false);
-  const [apelacaoForm, setApelacaoForm] = useState({ sentenca_id: "", apelante_tipo: "defesa", fundamentacao: "", pedido: "" });
+  const [apelacaoForm, setApelacaoForm] = useState({ sentenca_id: "", apelante_tipo: "reu", fundamentacao: "", pedido: "" });
   const interporApelacao = useMutation({
     mutationFn: async () => {
       if (!apelacaoForm.sentenca_id || !apelacaoForm.fundamentacao || !apelacaoForm.pedido) throw new Error("Preencha todos os campos.");
