@@ -1594,7 +1594,18 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               }
             });
 
-            // Certidões
+            // Embargos de declaração
+            embargosProc?.forEach((emb: any) => {
+              const tipoLabels: Record<string, string> = { omissao: "Omissão", contradicao: "Contradição", obscuridade: "Obscuridade" };
+              const statusLabels: Record<string, string> = { opostos: "Opostos", acolhidos: "Acolhidos", rejeitados: "Rejeitados", parcialmente_acolhidos: "Parcialmente Acolhidos" };
+              items.push({
+                id: `emb-${emb.id}`, date: emb.created_at, tipo: `embargos de declaração — ${tipoLabels[emb.tipo] || emb.tipo}`,
+                titulo: `Embargos de Declaração opostos por ${emb.embargante_nome}`,
+                descricao: `Tipo: ${tipoLabels[emb.tipo] || emb.tipo} — Status: ${statusLabels[emb.status] || emb.status}\n\nFundamentação:\n${emb.fundamentacao}\n\nPedido:\n${emb.pedido}${emb.decisao ? `\n\nDecisão:\n${emb.decisao}` : ""}`,
+                badge_color: "bg-orange-100 text-orange-800 dark:bg-orange-950/30 dark:text-orange-400",
+              });
+            });
+
             certidoes?.forEach((c: any) => items.push({
               id: `cert-${c.id}`, date: c.created_at, tipo: `certidão — ${c.tipo}`,
               titulo: `Certidão de ${c.tipo}`,
