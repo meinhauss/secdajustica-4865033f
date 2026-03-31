@@ -171,8 +171,9 @@ function MagistradoDashboard({ onSelectProcesso }: { onSelectProcesso: (id: stri
 
   const stats = {
     conclusos: conclusos.length,
+    em_andamento: emAndamento.length,
+    arquivados: arquivados.length,
     total: processos?.length || 0,
-    despachos: atos?.length || 0,
     audiencias: audiencias?.length || 0,
     mandados: mandados?.length || 0,
     sentencas: sentencas?.length || 0,
