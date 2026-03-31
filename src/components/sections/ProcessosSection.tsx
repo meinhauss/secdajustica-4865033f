@@ -1828,7 +1828,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                         <span className="font-mono text-sm font-semibold text-institutional">{ap.numero_acordao}</span>
                         <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${apCfg.color}`}>{apCfg.label}</span>
                       </div>
-                      <p className="text-sm text-foreground">Apelante: {ap.apelante_nome} ({ap.apelante_tipo === "defesa" ? "Defesa" : ap.apelante_tipo === "acusacao" ? "Acusação" : "Ambos"})</p>
+                      <p className="text-sm text-foreground">Apelante: {ap.apelante_nome} ({ap.apelante_tipo === "reu" ? "Réu" : ap.apelante_tipo === "autor" ? "Autor" : ap.apelante_tipo === "defesa" ? "Defesa" : ap.apelante_tipo === "acusacao" ? "Acusação" : "Ambas as partes"})</p>
                       <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{ap.fundamentacao}</p>
                       {ap.decisao_tipo && (
                         <p className="text-xs font-medium text-foreground mt-2">

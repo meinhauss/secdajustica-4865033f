@@ -297,7 +297,7 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
           <div>
             <p className="text-muted-foreground text-xs uppercase tracking-wider">Apelante</p>
             <p className="text-foreground">{apelacao.apelante_nome}</p>
-            <p className="text-muted-foreground text-xs capitalize">{apelacao.apelante_tipo === "defesa" ? "Defesa" : apelacao.apelante_tipo === "acusacao" ? "Acusação" : "Ambas as partes"}</p>
+            <p className="text-muted-foreground text-xs capitalize">{apelacao.apelante_tipo === "reu" ? "Réu" : apelacao.apelante_tipo === "autor" ? "Autor" : apelacao.apelante_tipo === "defesa" ? "Defesa" : apelacao.apelante_tipo === "acusacao" ? "Acusação" : "Ambas as partes"}</p>
           </div>
           <div>
             <p className="text-muted-foreground text-xs uppercase tracking-wider">Magistrado de 1ª Instância</p>
