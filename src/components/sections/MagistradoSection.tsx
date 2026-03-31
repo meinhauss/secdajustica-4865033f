@@ -598,7 +598,15 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     },
   });
 
-  // Prazos
+  // Embargos de declaração
+  const { data: embargosProc } = useQuery({
+    queryKey: ["mag-embargos-proc", processoId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("embargos_declaracao").select("*").eq("processo_id", processoId).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+  });
   const { data: prazos } = useQuery({
     queryKey: ["mag-prazos", processoId],
     queryFn: async () => {
@@ -1397,6 +1405,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
           <TabsTrigger value="certidoes" className="rounded-lg text-xs">Certidões ({certidoes?.length || 0})</TabsTrigger>
           {sentencasProc && sentencasProc.length > 0 && <TabsTrigger value="sentencas" className="rounded-lg text-xs">Sentenças ({sentencasProc.length})</TabsTrigger>}
           {apelacoesProc && apelacoesProc.length > 0 && <TabsTrigger value="apelacoes" className="rounded-lg text-xs">Apelações ({apelacoesProc.length})</TabsTrigger>}
+          {embargosProc && embargosProc.length > 0 && <TabsTrigger value="embargos" className="rounded-lg text-xs">Embargos ({embargosProc.length})</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="movimentacoes" className="mt-4">
@@ -1589,6 +1598,35 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             </div>
           </TabsContent>
         )}
+
+        {embargosProc && embargosProc.length > 0 && (
+          <TabsContent value="embargos" className="mt-4">
+            <div className="space-y-3">
+              {embargosProc.map((emb: any) => {
+                const tipoLabels: Record<string, string> = { omissao: "Omissão", contradicao: "Contradição", obscuridade: "Obscuridade" };
+                const statusCfg: Record<string, { label: string; color: string }> = {
+                  opostos: { label: "Pendente", color: "bg-gold/10 text-gold-dark" },
+                  acolhidos: { label: "Acolhidos", color: "bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400" },
+                  rejeitados: { label: "Rejeitados", color: "bg-destructive/10 text-destructive" },
+                  parcialmente_acolhidos: { label: "Parc. Acolhidos", color: "bg-amber-100 text-amber-800 dark:bg-amber-950/30 dark:text-amber-400" },
+                };
+                const cfg = statusCfg[emb.status] || statusCfg.opostos;
+                return (
+                  <EmbargosCard
+                    key={emb.id}
+                    emb={emb}
+                    tipoLabels={tipoLabels}
+                    statusCfg={cfg}
+                    canDecide={emb.status === "opostos" && processo?.juiz_id === user?.id}
+                    processoId={processoId}
+                    userId={user?.id}
+                    profileName={profile?.nome_completo}
+                  />
+                );
+              })}
+            </div>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
@@ -1623,6 +1661,86 @@ function ActionCard({ title, icon: Icon, onCancel, children }: { title: string; 
         <Button variant="ghost" size="sm" onClick={onCancel} className="rounded-lg text-xs">Cancelar</Button>
       </div>
       {children}
+    </div>
+  );
+}
+
+function EmbargosCard({ emb, tipoLabels, statusCfg, canDecide, processoId, userId, profileName }: {
+  emb: any; tipoLabels: Record<string, string>; statusCfg: { label: string; color: string };
+  canDecide: boolean; processoId: string; userId?: string; profileName?: string;
+}) {
+  const [deciding, setDeciding] = useState(false);
+  const [decisao, setDecisao] = useState("");
+  const [resultado, setResultado] = useState("acolhidos");
+  const queryClient = useQueryClient();
+
+  const decidirEmbargos = useMutation({
+    mutationFn: async () => {
+      if (!decisao) throw new Error("Preencha a decisão.");
+      const { error } = await supabase.from("embargos_declaracao").update({
+        status: resultado,
+        decisao,
+        decidido_por: userId,
+        updated_at: new Date().toISOString(),
+      } as any).eq("id", emb.id);
+      if (error) throw error;
+      // Add movimentação
+      const resLabel = resultado === "acolhidos" ? "ACOLHIDOS" : resultado === "rejeitados" ? "REJEITADOS" : "PARCIALMENTE ACOLHIDOS";
+      await supabase.from("movimentacoes").insert({
+        processo_id: processoId,
+        autor_id: userId,
+        tipo: "decisao_embargos",
+        descricao: `EMBARGOS DE DECLARAÇÃO ${resLabel} por ${profileName || "Magistrado(a)"}. Decisão: ${decisao}`,
+      } as any);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["mag-embargos-proc", processoId] });
+      setDeciding(false);
+      toast.success("Decisão sobre embargos registrada!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  return (
+    <div className="bg-secondary/30 rounded-lg p-4">
+      <div className="flex items-center gap-2 mb-2 flex-wrap">
+        <FileText className="h-4 w-4 text-institutional" />
+        <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{tipoLabels[emb.tipo] || emb.tipo}</span>
+        <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${statusCfg.color}`}>{statusCfg.label}</span>
+      </div>
+      <p className="text-sm font-medium text-foreground">Embargante: {emb.embargante_nome}</p>
+      <p className="text-xs text-foreground whitespace-pre-wrap mt-1">{emb.fundamentacao}</p>
+      <p className="text-xs text-muted-foreground mt-1">Pedido: {emb.pedido}</p>
+      {emb.decisao && (
+        <div className="mt-2 pt-2 border-t border-border/50">
+          <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Decisão</p>
+          <p className="text-xs text-foreground mt-1">{emb.decisao}</p>
+        </div>
+      )}
+      <p className="text-xs text-muted-foreground mt-2">{format(new Date(emb.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
+
+      {canDecide && !deciding && (
+        <Button size="sm" variant="outline" className="mt-3 rounded-lg text-xs gap-1" onClick={() => setDeciding(true)}>
+          <Gavel className="h-3 w-3" /> Decidir Embargos
+        </Button>
+      )}
+      {deciding && (
+        <div className="mt-3 space-y-3 border-t border-border pt-3">
+          <Select value={resultado} onValueChange={setResultado}>
+            <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="acolhidos">Acolher</SelectItem>
+              <SelectItem value="rejeitados">Rejeitar</SelectItem>
+              <SelectItem value="parcialmente_acolhidos">Acolher Parcialmente</SelectItem>
+            </SelectContent>
+          </Select>
+          <Textarea placeholder="Fundamentação da decisão..." value={decisao} onChange={(e) => setDecisao(e.target.value)} rows={4} className="rounded-xl" />
+          <div className="flex gap-2">
+            <Button size="sm" className="rounded-lg text-xs" onClick={() => decidirEmbargos.mutate()} disabled={decidirEmbargos.isPending}>Confirmar</Button>
+            <Button size="sm" variant="ghost" className="rounded-lg text-xs" onClick={() => setDeciding(false)}>Cancelar</Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

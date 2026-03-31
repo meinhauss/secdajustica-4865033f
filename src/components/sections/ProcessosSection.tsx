@@ -990,6 +990,16 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     },
   });
 
+  // Embargos de declaração
+  const { data: embargosProc } = useQuery({
+    queryKey: ["embargos-proc", processoId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("embargos_declaracao").select("*").eq("processo_id", processoId).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
   // Check if appeal deadline (3 days after latest sentença) has passed
   const prazoApelacaoExpirado = (() => {
     if (!isSentenciado || !sentencasProc?.length) return false;
@@ -1021,6 +1031,34 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
       setShowApelacao(false);
       setApelacaoForm({ sentenca_id: "", apelante_tipo: "reu", fundamentacao: "", pedido: "" });
       toast.success("Apelação interposta com sucesso!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  // Embargos de declaração
+  const [showEmbargos, setShowEmbargos] = useState(false);
+  const [embargosForm, setEmbargosForm] = useState({ sentenca_id: "", tipo: "omissao", fundamentacao: "", pedido: "" });
+  const oporEmbargos = useMutation({
+    mutationFn: async () => {
+      if (!embargosForm.sentenca_id || !embargosForm.fundamentacao || !embargosForm.pedido) throw new Error("Preencha todos os campos.");
+      const { error } = await supabase.from("embargos_declaracao").insert({
+        processo_id: processoId,
+        sentenca_id: embargosForm.sentenca_id,
+        embargante_id: user?.id,
+        embargante_nome: profile?.nome_completo || "Embargante",
+        tipo: embargosForm.tipo,
+        fundamentacao: embargosForm.fundamentacao,
+        pedido: embargosForm.pedido,
+      } as any);
+      if (error) throw error;
+      const tipoLabel = embargosForm.tipo === "omissao" ? "omissão" : embargosForm.tipo === "contradicao" ? "contradição" : "obscuridade";
+      await addMovimentacao.mutateAsync({ tipo: "embargos_declaracao", descricao: `EMBARGOS DE DECLARAÇÃO opostos por ${profile?.nome_completo || "Embargante"} — Tipo: ${tipoLabel}.` });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["embargos-proc", processoId] });
+      setShowEmbargos(false);
+      setEmbargosForm({ sentenca_id: "", tipo: "omissao", fundamentacao: "", pedido: "" });
+      toast.success("Embargos de declaração opostos com sucesso!");
     },
     onError: (err: any) => toast.error(err.message),
   });
@@ -1418,6 +1456,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
           <TabsTrigger value="audiencias" className="rounded-lg text-xs"><Calendar className="h-3 w-3 mr-1" /> Audiências</TabsTrigger>
           {(isOficialJustica || isJudicialReadOnly) && <TabsTrigger value="certidoes" className="rounded-lg text-xs"><ScrollText className="h-3 w-3 mr-1" /> Certidões</TabsTrigger>}
           {(isSentenciado || isArquivado) && <TabsTrigger value="apelacoes" className="rounded-lg text-xs"><Scale className="h-3 w-3 mr-1" /> Apelações</TabsTrigger>}
+          {(isSentenciado || isArquivado) && <TabsTrigger value="embargos" className="rounded-lg text-xs"><FileText className="h-3 w-3 mr-1" /> Embargos</TabsTrigger>}
         </TabsList>
 
         {/* TIMELINE — unified view */}
@@ -1426,7 +1465,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
           {isSentenciado && !prazoApelacaoExpirado && (
             <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-xl p-4 text-sm text-green-800 dark:text-green-300 flex items-center gap-2">
               <CheckCircle className="h-4 w-4" />
-              Processo sentenciado. Novas movimentações não são permitidas — recursos de apelação podem ser interpostos em até 72 horas na aba "Apelações".
+              Processo sentenciado. Novas movimentações não são permitidas — recursos de apelação e embargos de declaração podem ser interpostos em até 72 horas.
             </div>
           )}
           {isSentenciado && prazoApelacaoExpirado && (
@@ -1555,7 +1594,18 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               }
             });
 
-            // Certidões
+            // Embargos de declaração
+            embargosProc?.forEach((emb: any) => {
+              const tipoLabels: Record<string, string> = { omissao: "Omissão", contradicao: "Contradição", obscuridade: "Obscuridade" };
+              const statusLabels: Record<string, string> = { opostos: "Opostos", acolhidos: "Acolhidos", rejeitados: "Rejeitados", parcialmente_acolhidos: "Parcialmente Acolhidos" };
+              items.push({
+                id: `emb-${emb.id}`, date: emb.created_at, tipo: `embargos de declaração — ${tipoLabels[emb.tipo] || emb.tipo}`,
+                titulo: `Embargos de Declaração opostos por ${emb.embargante_nome}`,
+                descricao: `Tipo: ${tipoLabels[emb.tipo] || emb.tipo} — Status: ${statusLabels[emb.status] || emb.status}\n\nFundamentação:\n${emb.fundamentacao}\n\nPedido:\n${emb.pedido}${emb.decisao ? `\n\nDecisão:\n${emb.decisao}` : ""}`,
+                badge_color: "bg-orange-100 text-orange-800 dark:bg-orange-950/30 dark:text-orange-400",
+              });
+            });
+
             certidoes?.forEach((c: any) => items.push({
               id: `cert-${c.id}`, date: c.created_at, tipo: `certidão — ${c.tipo}`,
               titulo: `Certidão de ${c.tipo}`,
@@ -1836,6 +1886,102 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                         </p>
                       )}
                       <p className="text-[10px] text-muted-foreground mt-1">{format(new Date(ap.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </TabsContent>
+        )}
+
+        {/* EMBARGOS DE DECLARAÇÃO */}
+        {(isSentenciado || isArquivado) && (
+          <TabsContent value="embargos" className="mt-4 space-y-4">
+            {/* Botão para opor embargos */}
+            {prazoApelacaoExpirado || isArquivado ? (
+              <div className="bg-muted border border-border rounded-xl p-4 text-sm text-muted-foreground flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                O prazo de 72 horas para oposição de embargos expirou.
+              </div>
+            ) : (isAdvogado || isMP) && sentencasProc?.length ? (
+              <Dialog open={showEmbargos} onOpenChange={setShowEmbargos}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2"><FileText className="h-4 w-4" /> Opor Embargos de Declaração</Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Opor Embargos de Declaração</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={(e) => { e.preventDefault(); oporEmbargos.mutate(); }} className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium text-foreground">Sentença Embargada</label>
+                      <Select value={embargosForm.sentenca_id} onValueChange={(v) => setEmbargosForm({ ...embargosForm, sentenca_id: v })}>
+                        <SelectTrigger className="rounded-xl mt-1"><SelectValue placeholder="Selecione a sentença" /></SelectTrigger>
+                        <SelectContent>
+                          {sentencasProc?.map((s: any) => (
+                            <SelectItem key={s.id} value={s.id}>{s.tipo} — {s.ementa || s.dispositivo?.substring(0, 60) || "Sentença"}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-foreground">Tipo de Vício</label>
+                      <Select value={embargosForm.tipo} onValueChange={(v) => setEmbargosForm({ ...embargosForm, tipo: v })}>
+                        <SelectTrigger className="rounded-xl mt-1"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="omissao">Omissão</SelectItem>
+                          <SelectItem value="contradicao">Contradição</SelectItem>
+                          <SelectItem value="obscuridade">Obscuridade</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-foreground">Fundamentação</label>
+                      <Textarea value={embargosForm.fundamentacao} onChange={(e) => setEmbargosForm({ ...embargosForm, fundamentacao: e.target.value })} placeholder="Indique o ponto omisso, contraditório ou obscuro da sentença..." rows={6} className="mt-1" />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-foreground">Pedido</label>
+                      <Textarea value={embargosForm.pedido} onChange={(e) => setEmbargosForm({ ...embargosForm, pedido: e.target.value })} placeholder="O que se requer ao Juízo..." rows={4} className="mt-1" />
+                    </div>
+                    <Button type="submit" disabled={oporEmbargos.isPending} className="w-full gap-2">
+                      <FileText className="h-4 w-4" /> Opor Embargos
+                    </Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            ) : null}
+
+            {/* Lista de embargos existentes */}
+            {!embargosProc?.length ? (
+              <p className="text-center py-8 text-sm text-muted-foreground">Nenhum embargo de declaração oposto neste processo.</p>
+            ) : (
+              <div className="space-y-3">
+                {embargosProc.map((emb: any) => {
+                  const statusCfg: Record<string, { label: string; color: string }> = {
+                    opostos: { label: "Opostos", color: "bg-gold/10 text-gold-dark" },
+                    acolhidos: { label: "Acolhidos", color: "bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400" },
+                    rejeitados: { label: "Rejeitados", color: "bg-destructive/10 text-destructive" },
+                    parcialmente_acolhidos: { label: "Parcialmente Acolhidos", color: "bg-amber-100 text-amber-800 dark:bg-amber-950/30 dark:text-amber-400" },
+                  };
+                  const tipoLabels: Record<string, string> = { omissao: "Omissão", contradicao: "Contradição", obscuridade: "Obscuridade" };
+                  const embCfg = statusCfg[emb.status] || statusCfg.opostos;
+                  return (
+                    <div key={emb.id} className="bg-card rounded-xl p-4 border border-border">
+                      <div className="flex items-center gap-2 flex-wrap mb-2">
+                        <FileText className="h-4 w-4 text-institutional" />
+                        <span className="text-sm font-semibold text-foreground">Embargos de Declaração</span>
+                        <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${embCfg.color}`}>{embCfg.label}</span>
+                        <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{tipoLabels[emb.tipo] || emb.tipo}</span>
+                      </div>
+                      <p className="text-sm text-foreground">Embargante: {emb.embargante_nome}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{emb.fundamentacao}</p>
+                      {emb.decisao && (
+                        <div className="mt-2 bg-secondary/30 rounded-lg p-2">
+                          <p className="text-xs font-medium text-foreground">Decisão:</p>
+                          <p className="text-xs text-muted-foreground">{emb.decisao}</p>
+                        </div>
+                      )}
+                      <p className="text-[10px] text-muted-foreground mt-1">{format(new Date(emb.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
                     </div>
                   );
                 })}
