@@ -1405,6 +1405,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
           <TabsTrigger value="certidoes" className="rounded-lg text-xs">Certidões ({certidoes?.length || 0})</TabsTrigger>
           {sentencasProc && sentencasProc.length > 0 && <TabsTrigger value="sentencas" className="rounded-lg text-xs">Sentenças ({sentencasProc.length})</TabsTrigger>}
           {apelacoesProc && apelacoesProc.length > 0 && <TabsTrigger value="apelacoes" className="rounded-lg text-xs">Apelações ({apelacoesProc.length})</TabsTrigger>}
+          {embargosProc && embargosProc.length > 0 && <TabsTrigger value="embargos" className="rounded-lg text-xs">Embargos ({embargosProc.length})</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="movimentacoes" className="mt-4">
