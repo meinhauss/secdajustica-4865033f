@@ -598,7 +598,15 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     },
   });
 
-  // Prazos
+  // Embargos de declaração
+  const { data: embargosProc } = useQuery({
+    queryKey: ["mag-embargos-proc", processoId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("embargos_declaracao").select("*").eq("processo_id", processoId).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+  });
   const { data: prazos } = useQuery({
     queryKey: ["mag-prazos", processoId],
     queryFn: async () => {
