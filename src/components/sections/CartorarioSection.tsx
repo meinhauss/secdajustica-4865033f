@@ -484,8 +484,46 @@ export default function CartorarioSection() {
     let initialStatus = "solicitado";
     let observacoesData: string | null = formObservacoes || null;
 
-    if (fieldConfig.autoEmit) {
-      // Auto-emit (certidao_distribuicao): immediately emitted
+    if (fieldConfig.autoEmit && formTipo === "certidao_distribuicao") {
+      // Fetch processes where the person appears as author or defendant (public only)
+      initialStatus = "emitido";
+      const idPers = formRequerentes[0]?.id_personagem || "";
+      const nomePers = formRequerentes[0]?.nome || "";
+
+      const { data: allProcessos } = await supabase
+        .from("processos")
+        .select("numero, classe, status, autor_nome, reu_nome, assunto, created_at")
+        .eq("sigilo", "publico")
+        .order("created_at", { ascending: false });
+
+      const processosDoSolicitante = (allProcessos || []).filter(p => {
+        const checkField = (field: string) => {
+          try {
+            const arr = JSON.parse(field);
+            if (Array.isArray(arr)) return arr.some((e: any) => e.id_personagem === idPers || e.nome === nomePers);
+          } catch { /* plain text */ }
+          return field.includes(nomePers);
+        };
+        return checkField(p.autor_nome) || checkField(p.reu_nome);
+      });
+
+      if (processosDoSolicitante.length > 0) {
+        const lines = processosDoSolicitante.map(p => {
+          const polo = (() => {
+            const isAutor = (() => { try { const a = JSON.parse(p.autor_nome); return Array.isArray(a) && a.some((e: any) => e.id_personagem === idPers || e.nome === nomePers); } catch { return p.autor_nome.includes(nomePers); } })();
+            const isReu = (() => { try { const a = JSON.parse(p.reu_nome); return Array.isArray(a) && a.some((e: any) => e.id_personagem === idPers || e.nome === nomePers); } catch { return p.reu_nome.includes(nomePers); } })();
+            if (isAutor && isReu) return "Autor/Réu";
+            if (isAutor) return "Autor";
+            return "Réu";
+          })();
+          const statusMap: Record<string, string> = { novo: "Novo", em_andamento: "Em Andamento", concluso: "Concluso", sentenciado: "Sentenciado", arquivado: "Arquivado", suspenso: "Suspenso" };
+          return `• ${p.numero} | ${p.classe?.toUpperCase()} | ${statusMap[p.status] || p.status} | Polo: ${polo} | ${p.assunto}`;
+        });
+        observacoesData = `PROCESSOS ENCONTRADOS: ${processosDoSolicitante.length}\n\n${lines.join("\n")}`;
+      } else {
+        observacoesData = "NADA CONSTA — Nenhum processo público encontrado para o solicitante.";
+      }
+    } else if (fieldConfig.autoEmit) {
       initialStatus = "emitido";
     } else if (fieldConfig.confirmByParties) {
       // Procuração: needs confirmation from all parties
@@ -1034,8 +1072,10 @@ export default function CartorarioSection() {
                 {/* Observações (only show if not confirmation JSON) */}
                 {showDetalhes.observacoes && parseConfirmations(showDetalhes.observacoes).length === 0 && (
                   <div>
-                    <p className="text-xs text-muted-foreground">Observações</p>
-                    <p className="text-sm">{showDetalhes.observacoes}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {showDetalhes.tipo === "certidao_distribuicao" ? "Processos Distribuídos" : "Observações"}
+                    </p>
+                    <p className="text-sm whitespace-pre-wrap font-mono leading-relaxed">{showDetalhes.observacoes}</p>
                   </div>
                 )}
 
