@@ -318,6 +318,32 @@ export function generateCartorioPDF(params: {
     autenticacao: "AUTENTICACAO DE DOCUMENTO",
   };
 
+  const requerenteLabels: Record<string, string> = {
+    certidao_nascimento: "REGISTRANDO",
+    certidao_casamento: "CONJUGE 1",
+    certidao_obito: "SOLICITANTE (FAMILIAR/RESPONSAVEL)",
+    certidao_distribuicao: "SOLICITANTE",
+    divorcio: "CONJUGE 1",
+    adocao: "ADOTANTE(S)",
+    antecedentes: "PESSOA CONSULTADA",
+    contrato: "PARTE 1",
+    escritura: "OUTORGANTE(S)",
+    procuracao: "OUTORGANTE(S)",
+    reconhecimento_firma: "SOLICITANTE",
+    autenticacao: "SOLICITANTE",
+  };
+
+  const envolvidosLabels: Record<string, string> = {
+    certidao_nascimento: "PAIS / RESPONSAVEIS",
+    certidao_casamento: "CONJUGE 2",
+    certidao_obito: "FALECIDO(A)",
+    divorcio: "CONJUGE 2",
+    adocao: "ADOTADO(A)",
+    contrato: "DEMAIS PARTES",
+    escritura: "OUTORGADO(S) / ADQUIRENTE(S)",
+    procuracao: "OUTORGADO(S)",
+  };
+
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(30, 30, 30);
