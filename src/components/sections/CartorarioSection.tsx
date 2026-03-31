@@ -839,7 +839,7 @@ export default function CartorarioSection() {
                 <TableRow>
                   <TableHead>Nº Registro</TableHead>
                   <TableHead>Tipo</TableHead>
-                  <TableHead>Partes / Solicitante</TableHead>
+                  <TableHead>Requerente(s)</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Data</TableHead>
                   <TableHead>Ações</TableHead>
