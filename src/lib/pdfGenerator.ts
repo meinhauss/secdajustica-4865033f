@@ -373,7 +373,7 @@ export function generateCartorioPDF(params: {
   y = drawSeparator(doc, y);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(30, 30, 30);
-  doc.text("REQUERENTE(S)", MARGIN, y + 3);
+  doc.text(requerenteLabels[registro.tipo] || "REQUERENTE(S)", MARGIN, y + 3);
   y += 8;
   doc.setTextColor(50);
   doc.setFont("helvetica", "normal");
