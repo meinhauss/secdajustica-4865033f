@@ -1019,7 +1019,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["apelacoes-proc", processoId] });
       setShowApelacao(false);
-      setApelacaoForm({ sentenca_id: "", apelante_tipo: "defesa", fundamentacao: "", pedido: "" });
+      setApelacaoForm({ sentenca_id: "", apelante_tipo: "reu", fundamentacao: "", pedido: "" });
       toast.success("Apelação interposta com sucesso!");
     },
     onError: (err: any) => toast.error(err.message),
