@@ -1072,8 +1072,10 @@ export default function CartorarioSection() {
                 {/* Observações (only show if not confirmation JSON) */}
                 {showDetalhes.observacoes && parseConfirmations(showDetalhes.observacoes).length === 0 && (
                   <div>
-                    <p className="text-xs text-muted-foreground">Observações</p>
-                    <p className="text-sm">{showDetalhes.observacoes}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {showDetalhes.tipo === "certidao_distribuicao" ? "Processos Distribuídos" : "Observações"}
+                    </p>
+                    <p className="text-sm whitespace-pre-wrap font-mono leading-relaxed">{showDetalhes.observacoes}</p>
                   </div>
                 )}
 
