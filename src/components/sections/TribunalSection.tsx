@@ -148,7 +148,7 @@ function TribunalDashboard({ onSelect }: { onSelect: (id: string) => void }) {
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-mono text-sm font-semibold text-institutional">{a.numero_acordao}</span>
                       <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${cfg.color}`}>{cfg.label}</span>
-                      <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{a.apelante_tipo}</span>
+                      <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{a.apelante_tipo === "reu" ? "Réu" : a.apelante_tipo === "autor" ? "Autor" : a.apelante_tipo === "defesa" ? "Defesa" : a.apelante_tipo === "acusacao" ? "Acusação" : "Ambas as partes"}</span>
                     </div>
                     <p className="text-sm text-foreground mt-1">
                       Processo: {a.processos?.numero} — {formatPartesShort(a.processos?.autor_nome || "")} vs {formatPartesShort(a.processos?.reu_nome || "")}
