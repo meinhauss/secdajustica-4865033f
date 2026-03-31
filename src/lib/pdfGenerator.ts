@@ -298,7 +298,7 @@ export function generateCartorioPDF(params: {
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(100);
-  doc.text("Cartorios do Estado de Sao Paulo - Comarca de Jaguare RP", PAGE_W / 2, 37, { align: "center" });
+  doc.text("Comarca de Jaguare RP - Estado de Sao Paulo", PAGE_W / 2, 37, { align: "center" });
 
   let y = 43;
   y = drawSeparator(doc, y);
@@ -388,7 +388,38 @@ export function generateCartorioPDF(params: {
   doc.setFontSize(9);
   y = addWrappedText(doc, registro.descricao || "-", MARGIN, y, CONTENT_W, 4.5);
 
-  if (registro.observacoes) {
+  // For procuração, show digital signatures section instead of raw JSON observacoes
+  if (registro.tipo === "procuracao" && registro.observacoes) {
+    let signatures: any[] = [];
+    try { signatures = JSON.parse(registro.observacoes); } catch {}
+    if (Array.isArray(signatures) && signatures.length > 0) {
+      y += 4;
+      y = drawSeparator(doc, y);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(30, 30, 30);
+      doc.text("ASSINATURAS DIGITAIS", MARGIN, y + 3);
+      y += 8;
+      doc.setTextColor(50);
+      doc.setFont("helvetica", "normal");
+      for (const sig of signatures) {
+        const status = sig.confirmed ? "Confirmada" : "Pendente";
+        doc.text(sanitize(`- ${sig.nome} (ID: ${sig.id_personagem}) - ${status}`), MARGIN + 2, y);
+        y += 5;
+      }
+    }
+  } else if (registro.tipo === "certidao_distribuicao" && registro.observacoes) {
+    y += 4;
+    y = drawSeparator(doc, y);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(30, 30, 30);
+    doc.text("PROCESSOS DISTRIBUIDOS", MARGIN, y + 3);
+    y += 8;
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(50);
+    doc.setFontSize(8);
+    y = addWrappedText(doc, registro.observacoes, MARGIN, y, CONTENT_W, 4);
+    doc.setFontSize(9);
+  } else if (registro.observacoes) {
     y += 4;
     doc.setFont("helvetica", "bold");
     doc.text("Observacoes:", MARGIN, y);
@@ -427,7 +458,7 @@ export function generateCartorioPDF(params: {
   doc.setFontSize(7);
   doc.text("Cartorio de Registro Civil - Comarca de Jaguare RP", PAGE_W / 2, y, { align: "center" });
 
-  addFooter(doc, `Registro no ${registro.numero_registro} - Cartorios do Estado de Sao Paulo - Sistema Judiciario vBETA`);
+  addFooter(doc, `Registro ${registro.numero_registro} - Cartorio de Registro Civil - Comarca de Jaguare RP`);
 
   doc.save(`Cartorio_${registro.numero_registro.replace(/\W/g, "_")}.pdf`);
 }
