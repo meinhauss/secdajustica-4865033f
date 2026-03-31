@@ -451,7 +451,7 @@ export default function CartorarioSection() {
   };
 
   const resetForm = () => {
-    setFormTipo("certidao_nascimento");
+    setFormTipo("procuracao");
     setFormRequerentes([]);
     setFormEnvolvidos([]);
     setFormDescricao("");
