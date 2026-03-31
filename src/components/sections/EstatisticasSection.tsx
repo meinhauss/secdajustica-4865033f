@@ -10,6 +10,22 @@ import { CURRENT_VERSION } from "@/lib/version";
 
 const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
   {
+    version: "2.10.0",
+    date: "31/03/2026",
+    changes: [
+      "Embargos de Declaração como recurso pós-sentença (omissão, contradição, obscuridade)",
+      "Juiz pode acolher, rejeitar ou acolher parcialmente embargos no Portal do Magistrado",
+      "Embargos integrados à timeline do processo",
+      "Aba 'Embargos' visível em processos sentenciados e arquivados",
+      "Nomenclaturas do polo apelante atualizadas (Réu/Autor/Ambas as partes)",
+      "Portal do MP simplificado (removidas abas Denúncias, Arquivamentos, Pareceres, Estatísticas)",
+      "Concursos anteriores agora exibem todas as informações do edital",
+      "Ranking OAB atualizado com pontos e bônus de velocidade",
+      "Rankings de Magistrados e Promotores com pontuação por velocidade e trânsito em julgado",
+      "Todos os prazos convertidos para horas",
+    ],
+  },
+  {
     version: "2.9.0",
     date: "27/03/2026",
     changes: [
