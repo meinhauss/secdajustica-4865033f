@@ -156,6 +156,8 @@ function MagistradoDashboard({ onSelectProcesso }: { onSelectProcesso: (id: stri
   });
 
   const conclusos = processos?.filter((p) => p.status === "concluso") || [];
+  const emAndamento = processos?.filter((p) => p.status === "em_andamento") || [];
+  const arquivados = processos?.filter((p) => p.status === "arquivado") || [];
   const filtered = processos?.filter((p) => {
     const matchSearch = !search ||
       p.numero?.toLowerCase().includes(search.toLowerCase()) ||
@@ -169,8 +171,9 @@ function MagistradoDashboard({ onSelectProcesso }: { onSelectProcesso: (id: stri
 
   const stats = {
     conclusos: conclusos.length,
+    em_andamento: emAndamento.length,
+    arquivados: arquivados.length,
     total: processos?.length || 0,
-    despachos: atos?.length || 0,
     audiencias: audiencias?.length || 0,
     mandados: mandados?.length || 0,
     sentencas: sentencas?.length || 0,
@@ -187,7 +190,7 @@ function MagistradoDashboard({ onSelectProcesso }: { onSelectProcesso: (id: stri
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <StatCard label="Conclusos" value={stats.conclusos} icon={Gavel} delay={0} />
         <StatCard label="Total Processos" value={stats.total} icon={FileText} delay={0.05} />
-        <StatCard label="Despachos" value={stats.despachos} icon={PenTool} delay={0.1} />
+        <StatCard label="Em Andamento" value={stats.em_andamento} icon={Clock} delay={0.1} />
         <StatCard label="Audiências" value={stats.audiencias} icon={Calendar} delay={0.15} />
         <StatCard label="Mandados" value={stats.mandados} icon={Stamp} delay={0.2} />
         <StatCard label="Sentenças" value={stats.sentencas} icon={Scroll} delay={0.25} />
@@ -224,46 +227,36 @@ function MagistradoDashboard({ onSelectProcesso }: { onSelectProcesso: (id: stri
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="conclusos" className="w-full">
+      <Tabs defaultValue="todos" className="w-full">
         <TabsList className="w-full justify-start rounded-xl bg-secondary/50 p-1 h-auto gap-1 flex-wrap">
-          <TabsTrigger value="conclusos" className="rounded-lg text-xs"><Gavel className="h-3 w-3 mr-1" /> Conclusos ({stats.conclusos})</TabsTrigger>
           <TabsTrigger value="todos" className="rounded-lg text-xs"><FileText className="h-3 w-3 mr-1" /> Todos ({filtered.length})</TabsTrigger>
-          <TabsTrigger value="despachos" className="rounded-lg text-xs"><PenTool className="h-3 w-3 mr-1" /> Despachos ({stats.despachos})</TabsTrigger>
+          <TabsTrigger value="conclusos" className="rounded-lg text-xs"><Gavel className="h-3 w-3 mr-1" /> Conclusos ({stats.conclusos})</TabsTrigger>
+          <TabsTrigger value="em_andamento" className="rounded-lg text-xs"><Clock className="h-3 w-3 mr-1" /> Em Andamento ({stats.em_andamento})</TabsTrigger>
+          <TabsTrigger value="arquivados" className="rounded-lg text-xs"><Shield className="h-3 w-3 mr-1" /> Arquivados ({stats.arquivados})</TabsTrigger>
           <TabsTrigger value="audiencias" className="rounded-lg text-xs"><Calendar className="h-3 w-3 mr-1" /> Audiências ({stats.audiencias})</TabsTrigger>
           <TabsTrigger value="mandados" className="rounded-lg text-xs"><Stamp className="h-3 w-3 mr-1" /> Mandados ({stats.mandados})</TabsTrigger>
           <TabsTrigger value="sentencas" className="rounded-lg text-xs"><Scroll className="h-3 w-3 mr-1" /> Sentenças ({stats.sentencas})</TabsTrigger>
-          <TabsTrigger value="estatisticas" className="rounded-lg text-xs"><BarChart3 className="h-3 w-3 mr-1" /> Estatísticas</TabsTrigger>
           <TabsTrigger value="ranking" className="rounded-lg text-xs"><Scale className="h-3 w-3 mr-1" /> Ranking</TabsTrigger>
         </TabsList>
-
-        {/* CONCLUSOS */}
-        <TabsContent value="conclusos" className="mt-4">
-          <ProcessoList processos={conclusos} onSelect={onSelectProcesso} emptyText="Nenhum processo concluso para decisão." />
-        </TabsContent>
 
         {/* TODOS */}
         <TabsContent value="todos" className="mt-4">
           <ProcessoList processos={filtered} onSelect={onSelectProcesso} emptyText="Nenhum processo encontrado." />
         </TabsContent>
 
-        {/* DESPACHOS */}
-        <TabsContent value="despachos" className="mt-4">
-          {!atos?.length ? <EmptyState icon={PenTool} text="Nenhum despacho registrado." /> : (
-            <div className="space-y-2">
-              {atos.map((a, i) => (
-                <motion.div key={a.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
-                  className="bg-card rounded-xl p-4 border border-border shadow-institutional">
-                  <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-institutional/10 text-institutional">{a.tipo}</span>
-                    {a.assinado && <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400">Assinado</span>}
-                  </div>
-                  <p className="text-sm font-medium text-foreground">{a.titulo}</p>
-                  <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{a.conteudo}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{format(new Date(a.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
-                </motion.div>
-              ))}
-            </div>
-          )}
+        {/* CONCLUSOS */}
+        <TabsContent value="conclusos" className="mt-4">
+          <ProcessoList processos={conclusos} onSelect={onSelectProcesso} emptyText="Nenhum processo concluso para decisão." />
+        </TabsContent>
+
+        {/* EM ANDAMENTO */}
+        <TabsContent value="em_andamento" className="mt-4">
+          <ProcessoList processos={emAndamento} onSelect={onSelectProcesso} emptyText="Nenhum processo em andamento." />
+        </TabsContent>
+
+        {/* ARQUIVADOS */}
+        <TabsContent value="arquivados" className="mt-4">
+          <ProcessoList processos={arquivados} onSelect={onSelectProcesso} emptyText="Nenhum processo arquivado." />
         </TabsContent>
 
         {/* AUDIÊNCIAS */}
@@ -327,26 +320,6 @@ function MagistradoDashboard({ onSelectProcesso }: { onSelectProcesso: (id: stri
               ))}
             </div>
           )}
-        </TabsContent>
-
-        {/* ESTATÍSTICAS */}
-        <TabsContent value="estatisticas" className="mt-4">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {[
-              { label: "Processos Conclusos", value: stats.conclusos },
-              { label: "Despachos Proferidos", value: stats.despachos },
-              { label: "Audiências Realizadas", value: audiencias?.filter(a => a.status === "realizada").length || 0 },
-              { label: "Mandados Expedidos", value: stats.mandados },
-              { label: "Sentenças Proferidas", value: stats.sentencas },
-              { label: "Processos Sentenciados", value: processos?.filter(p => p.status === "sentenciado").length || 0 },
-            ].map((s, i) => (
-              <motion.div key={s.label} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.05 }}
-                className="bg-card rounded-xl p-5 border border-border shadow-institutional text-center">
-                <p className="text-3xl font-bold text-institutional">{s.value}</p>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider mt-1">{s.label}</p>
-              </motion.div>
-            ))}
-          </div>
         </TabsContent>
 
         {/* RANKING */}
