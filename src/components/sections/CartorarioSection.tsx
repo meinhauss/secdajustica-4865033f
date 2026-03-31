@@ -71,6 +71,7 @@ function parseLinks(val: string | null): string[] {
 
 /* ─── Document type config ─── */
 const TIPOS_REGISTRO = [
+  { value: "procuracao", label: "Procuração", icon: ScrollText },
   { value: "certidao_nascimento", label: "Certidão de Nascimento", icon: Baby },
   { value: "certidao_casamento", label: "Certidão de Casamento", icon: Heart },
   { value: "certidao_obito", label: "Certidão de Óbito", icon: ScrollText },
@@ -80,7 +81,6 @@ const TIPOS_REGISTRO = [
   { value: "antecedentes", label: "Certidão de Antecedentes", icon: FileText },
   { value: "contrato", label: "Registro de Contrato", icon: FileSignature },
   { value: "escritura", label: "Escritura Pública", icon: Home },
-  { value: "procuracao", label: "Procuração", icon: ScrollText },
   { value: "reconhecimento_firma", label: "Reconhecimento de Firma", icon: Stamp },
   { value: "autenticacao", label: "Autenticação de Documento", icon: CheckCircle },
 ];
@@ -427,7 +427,7 @@ export default function CartorarioSection() {
   const [viewingProfile, setViewingProfile] = useState<ProfileData | null>(null);
 
   // Form state
-  const [formTipo, setFormTipo] = useState("certidao_nascimento");
+  const [formTipo, setFormTipo] = useState("procuracao");
   const [formRequerentes, setFormRequerentes] = useState<PersonEntry[]>([]);
   const [formEnvolvidos, setFormEnvolvidos] = useState<PersonEntry[]>([]);
   const [formDescricao, setFormDescricao] = useState("");
@@ -451,7 +451,7 @@ export default function CartorarioSection() {
   };
 
   const resetForm = () => {
-    setFormTipo("certidao_nascimento");
+    setFormTipo("procuracao");
     setFormRequerentes([]);
     setFormEnvolvidos([]);
     setFormDescricao("");
