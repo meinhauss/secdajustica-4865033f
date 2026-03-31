@@ -156,6 +156,8 @@ function MagistradoDashboard({ onSelectProcesso }: { onSelectProcesso: (id: stri
   });
 
   const conclusos = processos?.filter((p) => p.status === "concluso") || [];
+  const emAndamento = processos?.filter((p) => p.status === "em_andamento") || [];
+  const arquivados = processos?.filter((p) => p.status === "arquivado") || [];
   const filtered = processos?.filter((p) => {
     const matchSearch = !search ||
       p.numero?.toLowerCase().includes(search.toLowerCase()) ||
