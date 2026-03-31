@@ -190,7 +190,7 @@ function MagistradoDashboard({ onSelectProcesso }: { onSelectProcesso: (id: stri
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <StatCard label="Conclusos" value={stats.conclusos} icon={Gavel} delay={0} />
         <StatCard label="Total Processos" value={stats.total} icon={FileText} delay={0.05} />
-        <StatCard label="Despachos" value={stats.despachos} icon={PenTool} delay={0.1} />
+        <StatCard label="Em Andamento" value={stats.em_andamento} icon={Clock} delay={0.1} />
         <StatCard label="Audiências" value={stats.audiencias} icon={Calendar} delay={0.15} />
         <StatCard label="Mandados" value={stats.mandados} icon={Stamp} delay={0.2} />
         <StatCard label="Sentenças" value={stats.sentencas} icon={Scroll} delay={0.25} />
