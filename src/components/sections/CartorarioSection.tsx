@@ -14,7 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Label } from "@/components/ui/label";
 import {
   FileText, Plus, Search, CheckCircle, Clock, Eye, Stamp,
-  Heart, Home, Users, ScrollText, FileSignature, Baby, BarChart3, User, Link, X, Trash2, ExternalLink, Download
+  Heart, Home, Users, ScrollText, FileSignature, Baby, BarChart3, User, Link, X, Trash2, ExternalLink, Download, Scale
 } from "lucide-react";
 import { generateCartorioPDF, imageToBase64 } from "@/lib/pdfGenerator";
 import logoCartorio from "@/assets/logo-cartorio-sp.png";
@@ -64,16 +64,17 @@ function parseLinks(val: string | null): string[] {
     const parsed = JSON.parse(val);
     if (Array.isArray(parsed)) return parsed;
   } catch {
-    // legacy single URL
     if (val.startsWith("http")) return [val];
   }
   return [];
 }
 
+/* ─── Document type config ─── */
 const TIPOS_REGISTRO = [
   { value: "certidao_nascimento", label: "Certidão de Nascimento", icon: Baby },
   { value: "certidao_casamento", label: "Certidão de Casamento", icon: Heart },
   { value: "certidao_obito", label: "Certidão de Óbito", icon: ScrollText },
+  { value: "certidao_distribuicao", label: "Certidão de Distribuição", icon: Scale },
   { value: "divorcio", label: "Divórcio", icon: FileSignature },
   { value: "adocao", label: "Adoção", icon: Users },
   { value: "antecedentes", label: "Certidão de Antecedentes", icon: FileText },
@@ -83,6 +84,105 @@ const TIPOS_REGISTRO = [
   { value: "reconhecimento_firma", label: "Reconhecimento de Firma", icon: Stamp },
   { value: "autenticacao", label: "Autenticação de Documento", icon: CheckCircle },
 ];
+
+/* Document-specific field definitions */
+interface FieldConfig {
+  requerenteLabel: string;
+  envolvidosLabel?: string;
+  envolvidosRequired?: boolean;
+  descricaoLabel: string;
+  descricaoPlaceholder: string;
+  extraFields?: string[];
+  autoEmit?: boolean; // no approval needed
+  confirmByParties?: boolean; // needs party confirmation
+}
+
+const TIPO_FIELDS: Record<string, FieldConfig> = {
+  certidao_nascimento: {
+    requerenteLabel: "Registrando (pessoa a ser registrada) *",
+    envolvidosLabel: "Pais / Responsáveis",
+    envolvidosRequired: true,
+    descricaoLabel: "Informações do Nascimento *",
+    descricaoPlaceholder: "Data de nascimento, local, hospital, naturalidade...",
+  },
+  certidao_casamento: {
+    requerenteLabel: "Cônjuge 1 *",
+    envolvidosLabel: "Cônjuge 2 *",
+    envolvidosRequired: true,
+    descricaoLabel: "Informações do Casamento *",
+    descricaoPlaceholder: "Data do casamento, regime de bens, local da cerimônia...",
+  },
+  certidao_obito: {
+    requerenteLabel: "Solicitante (familiar / responsável) *",
+    envolvidosLabel: "Falecido(a) *",
+    envolvidosRequired: true,
+    descricaoLabel: "Informações do Óbito *",
+    descricaoPlaceholder: "Data do óbito, causa, local, hospital...",
+  },
+  certidao_distribuicao: {
+    requerenteLabel: "Solicitante *",
+    descricaoLabel: "Finalidade da Certidão",
+    descricaoPlaceholder: "Informe a finalidade (ex: concurso público, licitação, etc.)",
+    autoEmit: true,
+  },
+  divorcio: {
+    requerenteLabel: "Cônjuge 1 *",
+    envolvidosLabel: "Cônjuge 2 *",
+    envolvidosRequired: true,
+    descricaoLabel: "Informações do Divórcio *",
+    descricaoPlaceholder: "Nº do casamento, motivo, partilha de bens, guarda...",
+  },
+  adocao: {
+    requerenteLabel: "Adotante(s) *",
+    envolvidosLabel: "Adotado(a) *",
+    envolvidosRequired: true,
+    descricaoLabel: "Informações da Adoção *",
+    descricaoPlaceholder: "Detalhes do processo de adoção, decisão judicial...",
+  },
+  antecedentes: {
+    requerenteLabel: "Pessoa Consultada *",
+    descricaoLabel: "Finalidade *",
+    descricaoPlaceholder: "Motivo da solicitação (ex: emprego, concurso)...",
+  },
+  contrato: {
+    requerenteLabel: "Parte 1 *",
+    envolvidosLabel: "Demais Partes *",
+    envolvidosRequired: true,
+    descricaoLabel: "Objeto do Contrato *",
+    descricaoPlaceholder: "Descrição do contrato, objeto, valor, prazo...",
+  },
+  escritura: {
+    requerenteLabel: "Outorgante(s) *",
+    envolvidosLabel: "Outorgado(s) / Adquirente(s) *",
+    envolvidosRequired: true,
+    descricaoLabel: "Objeto da Escritura *",
+    descricaoPlaceholder: "Descrição do imóvel/bem, endereço, matrícula, valor...",
+  },
+  procuracao: {
+    requerenteLabel: "Outorgante(s) — quem concede poderes *",
+    envolvidosLabel: "Outorgado(s) — quem recebe poderes *",
+    envolvidosRequired: true,
+    descricaoLabel: "Poderes Conferidos *",
+    descricaoPlaceholder: "Descreva os poderes: gerais, especiais, ad judicia, etc.",
+    confirmByParties: true,
+  },
+  reconhecimento_firma: {
+    requerenteLabel: "Solicitante *",
+    descricaoLabel: "Documento a Reconhecer *",
+    descricaoPlaceholder: "Tipo do documento, finalidade, descrição...",
+  },
+  autenticacao: {
+    requerenteLabel: "Solicitante *",
+    descricaoLabel: "Documento a Autenticar *",
+    descricaoPlaceholder: "Tipo e descrição do documento original...",
+  },
+};
+
+const getFieldConfig = (tipo: string): FieldConfig => TIPO_FIELDS[tipo] || {
+  requerenteLabel: "Requerente(s) *",
+  descricaoLabel: "Descrição *",
+  descricaoPlaceholder: "Descreva o pedido...",
+};
 
 interface Registro {
   id: string;
@@ -110,6 +210,7 @@ const statusBadge = (s: string) => {
     aprovado: "bg-emerald-100 text-emerald-800",
     emitido: "bg-primary/10 text-primary",
     recusado: "bg-destructive/10 text-destructive",
+    aguardando_confirmacao: "bg-purple-100 text-purple-800",
   };
   return map[s] || "bg-muted text-muted-foreground";
 };
@@ -118,6 +219,7 @@ const statusLabel = (s: string) => {
   const map: Record<string, string> = {
     solicitado: "Solicitado", em_analise: "Em Análise",
     aprovado: "Aprovado", emitido: "Emitido", recusado: "Recusado",
+    aguardando_confirmacao: "Aguardando Confirmação",
   };
   return map[s] || s;
 };
@@ -292,6 +394,22 @@ function ProfileCard({ profile, onClose }: { profile: ProfileData; onClose: () =
   );
 }
 
+/* ─── Confirmations helper ─── */
+interface ConfirmationEntry {
+  id_personagem: string;
+  nome: string;
+  confirmed: boolean;
+}
+
+function parseConfirmations(obs: string | null): ConfirmationEntry[] {
+  if (!obs) return [];
+  try {
+    const parsed = JSON.parse(obs);
+    if (Array.isArray(parsed) && parsed.length > 0 && "id_personagem" in parsed[0]) return parsed;
+  } catch { /* not confirmation JSON */ }
+  return [];
+}
+
 /* ─── Main Component ─── */
 export default function CartorarioSection() {
   const { user, profile, roles } = useAuth();
@@ -341,12 +459,18 @@ export default function CartorarioSection() {
     setFormLinks([]);
   };
 
+  const fieldConfig = getFieldConfig(formTipo);
+
   const handleSolicitar = async () => {
     if (formRequerentes.length === 0) {
-      toast({ title: "Adicione pelo menos um requerente", variant: "destructive" });
+      toast({ title: "Adicione pelo menos um requerente/pessoa", variant: "destructive" });
       return;
     }
-    if (!formDescricao) {
+    if (fieldConfig.envolvidosRequired && formEnvolvidos.length === 0) {
+      toast({ title: `Preencha: ${fieldConfig.envolvidosLabel?.replace(" *", "")}`, variant: "destructive" });
+      return;
+    }
+    if (!formDescricao && !fieldConfig.autoEmit) {
       toast({ title: "Preencha a descrição", variant: "destructive" });
       return;
     }
@@ -356,22 +480,55 @@ export default function CartorarioSection() {
     const documentoUrl = formLinks.length > 0 ? JSON.stringify(formLinks) : null;
     const primaryId = formRequerentes[0]?.id_personagem || null;
 
-    const { error } = await supabase.from("registros_cartorio").insert({
+    // Determine initial status and observacoes
+    let initialStatus = "solicitado";
+    let observacoesData: string | null = formObservacoes || null;
+
+    if (fieldConfig.autoEmit) {
+      // Auto-emit (certidao_distribuicao): immediately emitted
+      initialStatus = "emitido";
+    } else if (fieldConfig.confirmByParties) {
+      // Procuração: needs confirmation from all parties
+      initialStatus = "aguardando_confirmacao";
+      const allParties = [...formRequerentes, ...formEnvolvidos];
+      const confirmations: ConfirmationEntry[] = allParties.map(p => ({
+        id_personagem: p.id_personagem,
+        nome: p.nome,
+        confirmed: false,
+      }));
+      observacoesData = JSON.stringify(confirmations);
+    }
+
+    const insertData: any = {
       tipo: formTipo,
       requerente_id: user?.id,
       requerente_nome: requerenteNome,
       id_personagem: primaryId,
       partes_envolvidas: partesEnvolvidas,
-      descricao: formDescricao,
-      observacoes: formObservacoes || null,
+      descricao: formDescricao || `Certidão de Distribuição solicitada por ${formRequerentes[0]?.nome}`,
+      observacoes: observacoesData,
       documento_url: documentoUrl,
-    } as any);
+      status: initialStatus,
+    };
+
+    if (fieldConfig.autoEmit) {
+      insertData.emitido_por_nome = "Sistema — Emissão Automática";
+    }
+
+    const { error } = await supabase.from("registros_cartorio").insert(insertData);
 
     if (error) {
       toast({ title: "Erro ao solicitar", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Solicitação registrada com sucesso" });
+
+    if (fieldConfig.autoEmit) {
+      toast({ title: "Certidão emitida automaticamente!" });
+    } else if (fieldConfig.confirmByParties) {
+      toast({ title: "Procuração registrada — aguardando confirmação das partes" });
+    } else {
+      toast({ title: "Solicitação registrada com sucesso" });
+    }
     setShowNovoRegistro(false);
     resetForm();
     fetchRegistros();
@@ -383,7 +540,6 @@ export default function CartorarioSection() {
       updateData.emitido_por = user?.id;
       updateData.emitido_por_nome = profile?.nome_completo || "Servidor";
       if (emitirLinks.length > 0) {
-        // Merge with existing links
         const existing = parseLinks(showDetalhes?.documento_url || null);
         updateData.documento_url = JSON.stringify([...existing, ...emitirLinks]);
       }
@@ -395,6 +551,50 @@ export default function CartorarioSection() {
     setShowDetalhes(null);
   };
 
+  const handleConfirmParty = async (registro: Registro) => {
+    if (!profile?.id_personagem) {
+      toast({ title: "Seu perfil não possui ID de personagem", variant: "destructive" });
+      return;
+    }
+    const confirmations = parseConfirmations(registro.observacoes);
+    if (confirmations.length === 0) {
+      toast({ title: "Dados de confirmação inválidos", variant: "destructive" });
+      return;
+    }
+
+    const idx = confirmations.findIndex(c => c.id_personagem === profile.id_personagem);
+    if (idx === -1) {
+      toast({ title: "Você não é parte desta procuração", variant: "destructive" });
+      return;
+    }
+    if (confirmations[idx].confirmed) {
+      toast({ title: "Você já confirmou esta procuração" });
+      return;
+    }
+
+    confirmations[idx].confirmed = true;
+    const allConfirmed = confirmations.every(c => c.confirmed);
+
+    const updateData: any = {
+      observacoes: JSON.stringify(confirmations),
+    };
+
+    if (allConfirmed) {
+      updateData.status = "emitido";
+      updateData.emitido_por_nome = "Sistema — Confirmação Automática";
+    }
+
+    await supabase.from("registros_cartorio").update(updateData).eq("id", registro.id);
+
+    if (allConfirmed) {
+      toast({ title: "Todas as partes confirmaram — procuração emitida automaticamente!" });
+    } else {
+      toast({ title: "Sua confirmação foi registrada" });
+    }
+    fetchRegistros();
+    setShowDetalhes(null);
+  };
+
   const handleViewProfile = async (idPersonagem: string) => {
     const prof = await lookupProfile(idPersonagem);
     if (prof) setViewingProfile(prof);
@@ -402,15 +602,14 @@ export default function CartorarioSection() {
   };
 
   // Stats
-  const solicitados = registros.filter((r) => r.status === "solicitado").length;
+  const solicitados = registros.filter((r) => r.status === "solicitado" || r.status === "aguardando_confirmacao").length;
   const emAnalise = registros.filter((r) => r.status === "em_analise").length;
   const emitidos = registros.filter((r) => r.status === "emitido").length;
 
-  // Parse display names for table
   const getDisplayRequerentes = (r: Registro): string => {
     const arr = parseJsonArray<PersonEntry>(r.requerente_nome);
     if (arr.length > 0) return arr.map((p) => p.nome).join(", ");
-    return r.requerente_nome; // legacy plain text
+    return r.requerente_nome;
   };
 
   const filteredRegistros = registros.filter((r) => {
@@ -436,7 +635,7 @@ export default function CartorarioSection() {
       {/* Header Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
-          { label: "Solicitações Pendentes", value: solicitados, icon: Clock, color: "text-amber-600" },
+          { label: "Pendentes / Aguardando", value: solicitados, icon: Clock, color: "text-amber-600" },
           { label: "Em Análise", value: emAnalise, icon: Eye, color: "text-blue-600" },
           { label: "Documentos Emitidos", value: emitidos, icon: CheckCircle, color: "text-emerald-600" },
           { label: "Total de Registros", value: registros.length, icon: BarChart3, color: "text-primary" },
@@ -478,11 +677,11 @@ export default function CartorarioSection() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 max-h-72 overflow-y-auto">
-                {registros.filter((r) => r.status === "solicitado" || r.status === "em_analise").length === 0 && (
+                {registros.filter((r) => ["solicitado", "em_analise", "aguardando_confirmacao"].includes(r.status)).length === 0 && (
                   <p className="text-sm text-muted-foreground">Nenhuma solicitação pendente.</p>
                 )}
                 {registros
-                  .filter((r) => r.status === "solicitado" || r.status === "em_analise")
+                  .filter((r) => ["solicitado", "em_analise", "aguardando_confirmacao"].includes(r.status))
                   .slice(0, 10)
                   .map((r) => (
                     <div
@@ -601,26 +800,34 @@ export default function CartorarioSection() {
         {/* SERVIÇOS */}
         <TabsContent value="servicos" className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {TIPOS_REGISTRO.map((t) => (
-              <Card key={t.value} className={`transition-colors ${canSolicitar ? "hover:border-accent cursor-pointer" : "opacity-60"}`} onClick={() => {
-                if (!canSolicitar) {
-                  toast({ title: "Apenas advogados podem fazer solicitações", variant: "destructive" });
-                  return;
-                }
-                setFormTipo(t.value);
-                setShowNovoRegistro(true);
-              }}>
-                <CardContent className="p-5 flex items-start gap-3">
-                  <t.icon className="h-8 w-8 text-accent flex-shrink-0" />
-                  <div>
-                    <p className="font-medium text-foreground text-sm">{t.label}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Solicite a emissão deste documento no cartório.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+            {TIPOS_REGISTRO.map((t) => {
+              const cfg = getFieldConfig(t.value);
+              const desc = cfg.autoEmit
+                ? "Emissão automática — sem necessidade de aprovação."
+                : cfg.confirmByParties
+                ? "Emissão automática após confirmação de todas as partes."
+                : "Solicite a emissão deste documento no cartório.";
+              return (
+                <Card key={t.value} className={`transition-colors ${canSolicitar ? "hover:border-accent cursor-pointer" : "opacity-60"}`} onClick={() => {
+                  if (!canSolicitar) {
+                    toast({ title: "Apenas advogados podem fazer solicitações", variant: "destructive" });
+                    return;
+                  }
+                  setFormTipo(t.value);
+                  setShowNovoRegistro(true);
+                }}>
+                  <CardContent className="p-5 flex items-start gap-3">
+                    <t.icon className="h-8 w-8 text-accent flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-foreground text-sm">{t.label}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{desc}</p>
+                      {cfg.autoEmit && <Badge className="mt-1 bg-emerald-100 text-emerald-800 text-[10px]">Automático</Badge>}
+                      {cfg.confirmByParties && <Badge className="mt-1 bg-purple-100 text-purple-800 text-[10px]">Confirmação</Badge>}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </TabsContent>
       </Tabs>
@@ -629,13 +836,13 @@ export default function CartorarioSection() {
       <Dialog open={showNovoRegistro} onOpenChange={(open) => { if (!open) resetForm(); setShowNovoRegistro(open); }}>
         <DialogContent className="max-w-lg !max-h-[85vh] !overflow-hidden !flex !flex-col">
           <DialogHeader className="flex-shrink-0">
-            <DialogTitle>Nova Solicitação de Cartório</DialogTitle>
+            <DialogTitle>Nova Solicitação — {getTipoLabel(formTipo)}</DialogTitle>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto pr-2">
             <div className="space-y-4 pb-4">
               <div>
                 <Label>Tipo de Documento *</Label>
-                <Select value={formTipo} onValueChange={setFormTipo}>
+                <Select value={formTipo} onValueChange={(v) => { setFormTipo(v); setFormRequerentes([]); setFormEnvolvidos([]); setFormDescricao(""); setFormObservacoes(""); setFormLinks([]); }}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {TIPOS_REGISTRO.map((t) => (
@@ -643,29 +850,43 @@ export default function CartorarioSection() {
                     ))}
                   </SelectContent>
                 </Select>
+                {fieldConfig.autoEmit && (
+                  <p className="text-xs text-emerald-600 mt-1 flex items-center gap-1">
+                    <CheckCircle className="h-3 w-3" /> Este documento é emitido automaticamente.
+                  </p>
+                )}
+                {fieldConfig.confirmByParties && (
+                  <p className="text-xs text-purple-600 mt-1 flex items-center gap-1">
+                    <Users className="h-3 w-3" /> Será emitido automaticamente após confirmação de todas as partes.
+                  </p>
+                )}
               </div>
 
               <PersonInput
-                label="Requerente(s) * — buscar por ID"
+                label={fieldConfig.requerenteLabel}
                 entries={formRequerentes}
                 onChange={setFormRequerentes}
               />
 
-              <PersonInput
-                label="Partes Envolvidas — buscar por ID"
-                entries={formEnvolvidos}
-                onChange={setFormEnvolvidos}
-              />
+              {fieldConfig.envolvidosLabel && (
+                <PersonInput
+                  label={fieldConfig.envolvidosLabel}
+                  entries={formEnvolvidos}
+                  onChange={setFormEnvolvidos}
+                />
+              )}
 
               <div>
-                <Label>Descrição / Detalhes *</Label>
-                <Textarea value={formDescricao} onChange={(e) => setFormDescricao(e.target.value)} placeholder="Descreva o pedido..." rows={3} />
+                <Label>{fieldConfig.descricaoLabel}</Label>
+                <Textarea value={formDescricao} onChange={(e) => setFormDescricao(e.target.value)} placeholder={fieldConfig.descricaoPlaceholder} rows={3} />
               </div>
 
-              <div>
-                <Label>Observações</Label>
-                <Textarea value={formObservacoes} onChange={(e) => setFormObservacoes(e.target.value)} placeholder="Informações adicionais..." rows={2} />
-              </div>
+              {!fieldConfig.autoEmit && !fieldConfig.confirmByParties && (
+                <div>
+                  <Label>Observações</Label>
+                  <Textarea value={formObservacoes} onChange={(e) => setFormObservacoes(e.target.value)} placeholder="Informações adicionais..." rows={2} />
+                </div>
+              )}
 
               <LinksInput
                 label="Links / Documentos Anexos"
@@ -674,7 +895,8 @@ export default function CartorarioSection() {
               />
 
               <Button className="w-full" onClick={handleSolicitar}>
-                <Stamp className="h-4 w-4 mr-1" /> Solicitar Documento
+                <Stamp className="h-4 w-4 mr-1" />
+                {fieldConfig.autoEmit ? "Emitir Certidão" : fieldConfig.confirmByParties ? "Registrar Procuração" : "Solicitar Documento"}
               </Button>
             </div>
           </div>
@@ -711,7 +933,9 @@ export default function CartorarioSection() {
 
                 {/* Requerentes */}
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Requerente(s)</p>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    {getFieldConfig(showDetalhes.tipo).requerenteLabel.replace(" *", "")}
+                  </p>
                   {(() => {
                     const arr = parseJsonArray<PersonEntry>(showDetalhes.requerente_nome);
                     if (arr.length > 0) {
@@ -739,7 +963,9 @@ export default function CartorarioSection() {
                 {/* Envolvidos */}
                 {showDetalhes.partes_envolvidas && (
                   <div>
-                    <p className="text-xs text-muted-foreground mb-1">Partes Envolvidas</p>
+                    <p className="text-xs text-muted-foreground mb-1">
+                      {getFieldConfig(showDetalhes.tipo).envolvidosLabel?.replace(" *", "") || "Partes Envolvidas"}
+                    </p>
                     {(() => {
                       const arr = parseJsonArray<PersonEntry>(showDetalhes.partes_envolvidas);
                       if (arr.length > 0) {
@@ -765,13 +991,48 @@ export default function CartorarioSection() {
                   </div>
                 )}
 
+                {/* Procuração confirmation status */}
+                {showDetalhes.tipo === "procuracao" && showDetalhes.status === "aguardando_confirmacao" && (() => {
+                  const confirmations = parseConfirmations(showDetalhes.observacoes);
+                  if (confirmations.length === 0) return null;
+                  const myIdPersonagem = profile?.id_personagem;
+                  const canConfirm = myIdPersonagem && confirmations.some(c => c.id_personagem === myIdPersonagem && !c.confirmed);
+                  return (
+                    <div className="space-y-2 p-3 rounded-lg bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800">
+                      <p className="text-xs font-semibold text-purple-800 dark:text-purple-300">Confirmação das Partes</p>
+                      <div className="space-y-1">
+                        {confirmations.map((c, i) => (
+                          <div key={i} className="flex items-center gap-2 text-xs">
+                            {c.confirmed ? (
+                              <CheckCircle className="h-3 w-3 text-emerald-600" />
+                            ) : (
+                              <Clock className="h-3 w-3 text-amber-600" />
+                            )}
+                            <span className={c.confirmed ? "text-emerald-700 dark:text-emerald-400" : "text-amber-700 dark:text-amber-400"}>
+                              {c.nome} — {c.confirmed ? "Confirmado" : "Pendente"}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      {canConfirm && (
+                        <Button size="sm" className="w-full mt-2" onClick={() => handleConfirmParty(showDetalhes)}>
+                          <CheckCircle className="h-3 w-3 mr-1" /> Confirmar minha assinatura
+                        </Button>
+                      )}
+                    </div>
+                  );
+                })()}
+
                 {/* Descrição */}
                 <div>
-                  <p className="text-xs text-muted-foreground">Descrição</p>
+                  <p className="text-xs text-muted-foreground">
+                    {getFieldConfig(showDetalhes.tipo).descricaoLabel.replace(" *", "")}
+                  </p>
                   <p className="text-sm">{showDetalhes.descricao}</p>
                 </div>
 
-                {showDetalhes.observacoes && (
+                {/* Observações (only show if not confirmation JSON) */}
+                {showDetalhes.observacoes && parseConfirmations(showDetalhes.observacoes).length === 0 && (
                   <div>
                     <p className="text-xs text-muted-foreground">Observações</p>
                     <p className="text-sm">{showDetalhes.observacoes}</p>
@@ -825,8 +1086,8 @@ export default function CartorarioSection() {
                   </div>
                 )}
 
-                {/* Ações do cartorário */}
-                {isCartorario && showDetalhes.status !== "emitido" && showDetalhes.status !== "recusado" && (
+                {/* Ações do cartorário — only for non-auto types */}
+                {isCartorario && showDetalhes.status !== "emitido" && showDetalhes.status !== "recusado" && showDetalhes.status !== "aguardando_confirmacao" && (
                   <div className="space-y-3 pt-2 border-t border-border">
                     <LinksInput
                       label="Anexar Links ao Emitir"
