@@ -1785,8 +1785,8 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                       <Select value={apelacaoForm.apelante_tipo} onValueChange={(v) => setApelacaoForm({ ...apelacaoForm, apelante_tipo: v })}>
                         <SelectTrigger className="rounded-xl mt-1"><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="defesa">Defesa</SelectItem>
-                          <SelectItem value="acusacao">Acusação</SelectItem>
+                          <SelectItem value="reu">Réu</SelectItem>
+                          <SelectItem value="autor">Autor</SelectItem>
                           <SelectItem value="ambos">Ambas as partes</SelectItem>
                         </SelectContent>
                       </Select>
