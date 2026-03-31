@@ -458,7 +458,7 @@ export function generateCartorioPDF(params: {
   doc.setFontSize(7);
   doc.text("Cartorio de Registro Civil - Comarca de Jaguare RP", PAGE_W / 2, y, { align: "center" });
 
-  addFooter(doc, `Registro no ${registro.numero_registro} - Cartorios do Estado de Sao Paulo - Sistema Judiciario vBETA`);
+  addFooter(doc, `Registro ${registro.numero_registro} - Cartorio de Registro Civil - Comarca de Jaguare RP`);
 
   doc.save(`Cartorio_${registro.numero_registro.replace(/\W/g, "_")}.pdf`);
 }
