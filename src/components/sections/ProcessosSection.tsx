@@ -1035,6 +1035,34 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     onError: (err: any) => toast.error(err.message),
   });
 
+  // Embargos de declaração
+  const [showEmbargos, setShowEmbargos] = useState(false);
+  const [embargosForm, setEmbargosForm] = useState({ sentenca_id: "", tipo: "omissao", fundamentacao: "", pedido: "" });
+  const oporEmbargos = useMutation({
+    mutationFn: async () => {
+      if (!embargosForm.sentenca_id || !embargosForm.fundamentacao || !embargosForm.pedido) throw new Error("Preencha todos os campos.");
+      const { error } = await supabase.from("embargos_declaracao").insert({
+        processo_id: processoId,
+        sentenca_id: embargosForm.sentenca_id,
+        embargante_id: user?.id,
+        embargante_nome: profile?.nome_completo || "Embargante",
+        tipo: embargosForm.tipo,
+        fundamentacao: embargosForm.fundamentacao,
+        pedido: embargosForm.pedido,
+      } as any);
+      if (error) throw error;
+      const tipoLabel = embargosForm.tipo === "omissao" ? "omissão" : embargosForm.tipo === "contradicao" ? "contradição" : "obscuridade";
+      await addMovimentacao.mutateAsync({ tipo: "embargos_declaracao", descricao: `EMBARGOS DE DECLARAÇÃO opostos por ${profile?.nome_completo || "Embargante"} — Tipo: ${tipoLabel}.` });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["embargos-proc", processoId] });
+      setShowEmbargos(false);
+      setEmbargosForm({ sentenca_id: "", tipo: "omissao", fundamentacao: "", pedido: "" });
+      toast.success("Embargos de declaração opostos com sucesso!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
   const createCertidao = useMutation({
     mutationFn: async (cert: { tipo: string; conteudo: string }) => {
       const { error } = await supabase.from("certificacoes").insert({
