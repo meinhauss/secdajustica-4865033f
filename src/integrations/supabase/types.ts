@@ -812,6 +812,69 @@ export type Database = {
           },
         ]
       }
+      embargos_declaracao: {
+        Row: {
+          created_at: string
+          decidido_por: string | null
+          decisao: string | null
+          embargante_id: string | null
+          embargante_nome: string
+          fundamentacao: string
+          id: string
+          pedido: string
+          processo_id: string
+          sentenca_id: string
+          status: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          decidido_por?: string | null
+          decisao?: string | null
+          embargante_id?: string | null
+          embargante_nome: string
+          fundamentacao: string
+          id?: string
+          pedido: string
+          processo_id: string
+          sentenca_id: string
+          status?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          decidido_por?: string | null
+          decisao?: string | null
+          embargante_id?: string | null
+          embargante_nome?: string
+          fundamentacao?: string
+          id?: string
+          pedido?: string
+          processo_id?: string
+          sentenca_id?: string
+          status?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "embargos_declaracao_processo_id_fkey"
+            columns: ["processo_id"]
+            isOneToOne: false
+            referencedRelation: "processos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "embargos_declaracao_sentenca_id_fkey"
+            columns: ["sentenca_id"]
+            isOneToOne: false
+            referencedRelation: "sentencas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       envolvidos_bo: {
         Row: {
           bo_id: string
