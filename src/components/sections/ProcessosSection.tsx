@@ -1014,7 +1014,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         pedido: apelacaoForm.pedido,
       } as any);
       if (error) throw error;
-      await addMovimentacao.mutateAsync({ tipo: "apelacao", descricao: `RECURSO DE APELAÇÃO interposto por ${profile?.nome_completo || "Apelante"} (${apelacaoForm.apelante_tipo === "defesa" ? "Defesa" : "Acusação"}).` });
+      await addMovimentacao.mutateAsync({ tipo: "apelacao", descricao: `RECURSO DE APELAÇÃO interposto por ${profile?.nome_completo || "Apelante"} (${apelacaoForm.apelante_tipo === "reu" ? "Réu" : apelacaoForm.apelante_tipo === "autor" ? "Autor" : "Ambas as partes"}).` });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["apelacoes-proc", processoId] });
