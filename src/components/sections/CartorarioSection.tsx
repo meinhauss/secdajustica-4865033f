@@ -622,7 +622,50 @@ export default function CartorarioSection() {
       updateData.emitido_por_nome = "Sistema — Confirmação Automática";
     }
 
-    await supabase.from("registros_cartorio").update(updateData).eq("id", registro.id);
+    const { error } = await supabase.from("registros_cartorio").update(updateData).eq("id", registro.id);
+
+    if (error) {
+      console.error("Erro ao confirmar assinatura:", error);
+      toast({ title: "Erro ao confirmar assinatura", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    // Send notification to all parties about the confirmation
+    const allParties = parseConfirmations(JSON.stringify(confirmations));
+    const confirmerName = confirmations[idx].nome || profile.nome_completo;
+
+    // Notify requerente
+    if (registro.requerente_id && registro.requerente_id !== user?.id) {
+      await supabase.from("notificacoes").insert({
+        user_id: registro.requerente_id,
+        titulo: `Assinatura confirmada — ${registro.numero_registro}`,
+        mensagem: `${confirmerName} confirmou a assinatura na procuração.${allConfirmed ? " Todas as partes confirmaram — documento emitido automaticamente!" : ""}`,
+        tipo: "cartorio",
+        link_secao: "cartorio",
+      });
+    }
+
+    // Notify other parties via id_personagem lookup
+    for (const party of confirmations) {
+      if (party.id_personagem === profile.id_personagem) continue;
+      const partyProfile = await lookupProfile(party.id_personagem);
+      if (partyProfile) {
+        const { data: partyUser } = await supabase
+          .from("profiles")
+          .select("user_id")
+          .eq("id_personagem", party.id_personagem)
+          .maybeSingle();
+        if (partyUser && partyUser.user_id !== user?.id) {
+          await supabase.from("notificacoes").insert({
+            user_id: partyUser.user_id,
+            titulo: `Assinatura confirmada — ${registro.numero_registro}`,
+            mensagem: `${confirmerName} confirmou a assinatura na procuração.${allConfirmed ? " Todas as partes confirmaram — documento emitido automaticamente!" : ""}`,
+            tipo: "cartorio",
+            link_secao: "cartorio",
+          });
+        }
+      }
+    }
 
     if (allConfirmed) {
       toast({ title: "Todas as partes confirmaram — procuração emitida automaticamente!" });
