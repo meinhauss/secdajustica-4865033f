@@ -71,6 +71,7 @@ function parseLinks(val: string | null): string[] {
 
 /* ─── Document type config ─── */
 const TIPOS_REGISTRO = [
+  { value: "procuracao", label: "Procuração", icon: ScrollText },
   { value: "certidao_nascimento", label: "Certidão de Nascimento", icon: Baby },
   { value: "certidao_casamento", label: "Certidão de Casamento", icon: Heart },
   { value: "certidao_obito", label: "Certidão de Óbito", icon: ScrollText },
@@ -80,7 +81,6 @@ const TIPOS_REGISTRO = [
   { value: "antecedentes", label: "Certidão de Antecedentes", icon: FileText },
   { value: "contrato", label: "Registro de Contrato", icon: FileSignature },
   { value: "escritura", label: "Escritura Pública", icon: Home },
-  { value: "procuracao", label: "Procuração", icon: ScrollText },
   { value: "reconhecimento_firma", label: "Reconhecimento de Firma", icon: Stamp },
   { value: "autenticacao", label: "Autenticação de Documento", icon: CheckCircle },
 ];
