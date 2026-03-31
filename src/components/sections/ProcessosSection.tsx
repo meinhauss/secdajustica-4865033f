@@ -1532,7 +1532,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               items.push({
                 id: `apel-${ap.id}`, date: ap.created_at, tipo: "apelação — interposição",
                 titulo: `Recurso de Apelação ${ap.numero_acordao || ""} interposto por ${ap.apelante_nome}`,
-                descricao: `Polo: ${ap.apelante_tipo === "defesa" ? "Defesa" : ap.apelante_tipo === "acusacao" ? "Acusação" : "Ambas as partes"}\n\nFundamentação:\n${ap.fundamentacao}\n\nPedido:\n${ap.pedido}`,
+                descricao: `Polo: ${ap.apelante_tipo === "reu" ? "Réu" : ap.apelante_tipo === "autor" ? "Autor" : ap.apelante_tipo === "defesa" ? "Defesa" : ap.apelante_tipo === "acusacao" ? "Acusação" : "Ambas as partes"}\n\nFundamentação:\n${ap.fundamentacao}\n\nPedido:\n${ap.pedido}`,
                 badge_color: "bg-red-100 text-red-800 dark:bg-red-950/30 dark:text-red-400",
               });
               // 2. Admissão / Inadmissão
