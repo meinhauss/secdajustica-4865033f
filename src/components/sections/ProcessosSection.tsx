@@ -990,6 +990,16 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     },
   });
 
+  // Embargos de declaração
+  const { data: embargosProc } = useQuery({
+    queryKey: ["embargos-proc", processoId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("embargos_declaracao").select("*").eq("processo_id", processoId).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
   // Check if appeal deadline (3 days after latest sentença) has passed
   const prazoApelacaoExpirado = (() => {
     if (!isSentenciado || !sentencasProc?.length) return false;
