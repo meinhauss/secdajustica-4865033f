@@ -1664,3 +1664,83 @@ function ActionCard({ title, icon: Icon, onCancel, children }: { title: string; 
     </div>
   );
 }
+
+function EmbargosCard({ emb, tipoLabels, statusCfg, canDecide, processoId, userId, profileName }: {
+  emb: any; tipoLabels: Record<string, string>; statusCfg: { label: string; color: string };
+  canDecide: boolean; processoId: string; userId?: string; profileName?: string;
+}) {
+  const [deciding, setDeciding] = useState(false);
+  const [decisao, setDecisao] = useState("");
+  const [resultado, setResultado] = useState("acolhidos");
+  const queryClient = useQueryClient();
+
+  const decidirEmbargos = useMutation({
+    mutationFn: async () => {
+      if (!decisao) throw new Error("Preencha a decisão.");
+      const { error } = await supabase.from("embargos_declaracao").update({
+        status: resultado,
+        decisao,
+        decidido_por: userId,
+        updated_at: new Date().toISOString(),
+      } as any).eq("id", emb.id);
+      if (error) throw error;
+      // Add movimentação
+      const resLabel = resultado === "acolhidos" ? "ACOLHIDOS" : resultado === "rejeitados" ? "REJEITADOS" : "PARCIALMENTE ACOLHIDOS";
+      await supabase.from("movimentacoes").insert({
+        processo_id: processoId,
+        autor_id: userId,
+        tipo: "decisao_embargos",
+        descricao: `EMBARGOS DE DECLARAÇÃO ${resLabel} por ${profileName || "Magistrado(a)"}. Decisão: ${decisao}`,
+      } as any);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["mag-embargos-proc", processoId] });
+      setDeciding(false);
+      toast.success("Decisão sobre embargos registrada!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  return (
+    <div className="bg-secondary/30 rounded-lg p-4">
+      <div className="flex items-center gap-2 mb-2 flex-wrap">
+        <FileText className="h-4 w-4 text-institutional" />
+        <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{tipoLabels[emb.tipo] || emb.tipo}</span>
+        <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${statusCfg.color}`}>{statusCfg.label}</span>
+      </div>
+      <p className="text-sm font-medium text-foreground">Embargante: {emb.embargante_nome}</p>
+      <p className="text-xs text-foreground whitespace-pre-wrap mt-1">{emb.fundamentacao}</p>
+      <p className="text-xs text-muted-foreground mt-1">Pedido: {emb.pedido}</p>
+      {emb.decisao && (
+        <div className="mt-2 pt-2 border-t border-border/50">
+          <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Decisão</p>
+          <p className="text-xs text-foreground mt-1">{emb.decisao}</p>
+        </div>
+      )}
+      <p className="text-xs text-muted-foreground mt-2">{format(new Date(emb.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
+
+      {canDecide && !deciding && (
+        <Button size="sm" variant="outline" className="mt-3 rounded-lg text-xs gap-1" onClick={() => setDeciding(true)}>
+          <Gavel className="h-3 w-3" /> Decidir Embargos
+        </Button>
+      )}
+      {deciding && (
+        <div className="mt-3 space-y-3 border-t border-border pt-3">
+          <Select value={resultado} onValueChange={setResultado}>
+            <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="acolhidos">Acolher</SelectItem>
+              <SelectItem value="rejeitados">Rejeitar</SelectItem>
+              <SelectItem value="parcialmente_acolhidos">Acolher Parcialmente</SelectItem>
+            </SelectContent>
+          </Select>
+          <Textarea placeholder="Fundamentação da decisão..." value={decisao} onChange={(e) => setDecisao(e.target.value)} rows={4} className="rounded-xl" />
+          <div className="flex gap-2">
+            <Button size="sm" className="rounded-lg text-xs" onClick={() => decidirEmbargos.mutate()} disabled={decidirEmbargos.isPending}>Confirmar</Button>
+            <Button size="sm" variant="ghost" className="rounded-lg text-xs" onClick={() => setDeciding(false)}>Cancelar</Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
