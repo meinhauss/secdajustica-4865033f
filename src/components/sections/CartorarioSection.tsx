@@ -427,7 +427,7 @@ export default function CartorarioSection() {
   const [viewingProfile, setViewingProfile] = useState<ProfileData | null>(null);
 
   // Form state
-  const [formTipo, setFormTipo] = useState("certidao_nascimento");
+  const [formTipo, setFormTipo] = useState("procuracao");
   const [formRequerentes, setFormRequerentes] = useState<PersonEntry[]>([]);
   const [formEnvolvidos, setFormEnvolvidos] = useState<PersonEntry[]>([]);
   const [formDescricao, setFormDescricao] = useState("");
