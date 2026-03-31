@@ -319,26 +319,6 @@ function MagistradoDashboard({ onSelectProcesso }: { onSelectProcesso: (id: stri
           )}
         </TabsContent>
 
-        {/* ESTATÍSTICAS */}
-        <TabsContent value="estatisticas" className="mt-4">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {[
-              { label: "Processos Conclusos", value: stats.conclusos },
-              { label: "Despachos Proferidos", value: stats.despachos },
-              { label: "Audiências Realizadas", value: audiencias?.filter(a => a.status === "realizada").length || 0 },
-              { label: "Mandados Expedidos", value: stats.mandados },
-              { label: "Sentenças Proferidas", value: stats.sentencas },
-              { label: "Processos Sentenciados", value: processos?.filter(p => p.status === "sentenciado").length || 0 },
-            ].map((s, i) => (
-              <motion.div key={s.label} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.05 }}
-                className="bg-card rounded-xl p-5 border border-border shadow-institutional text-center">
-                <p className="text-3xl font-bold text-institutional">{s.value}</p>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider mt-1">{s.label}</p>
-              </motion.div>
-            ))}
-          </div>
-        </TabsContent>
-
         {/* RANKING */}
         <TabsContent value="ranking" className="mt-4">
           <MagistradoRanking />
