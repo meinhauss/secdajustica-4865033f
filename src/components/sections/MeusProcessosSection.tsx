@@ -52,23 +52,27 @@ export default function MeusProcessosSection({ onOpenProcesso }: MeusProcessosSe
       if (!user?.id) return [];
 
       // Fetch processes where user is directly involved
-      const [directRes, procuracoesRes] = await Promise.all([
+      const [directRes, procuracoesRes, interessadosRes] = await Promise.all([
         supabase.from("processos").select("*")
           .or(`advogado_autor_id.eq.${user.id},advogado_reu_id.eq.${user.id},juiz_id.eq.${user.id}`)
           .order("created_at", { ascending: false }),
         supabase.from("procuracoes").select("processo_id")
           .eq("advogado_id", user.id)
           .eq("status", "ativa"),
+        supabase.from("interessados_processo").select("processo_id")
+          .eq("user_id", user.id),
       ]);
 
       const directProcessos = directRes.data || [];
       const procProcessoIds = (procuracoesRes.data || []).map(p => p.processo_id);
+      const interessadosIds = (interessadosRes.data || []).map(p => p.processo_id);
+      const allExtraIds = [...new Set([...procProcessoIds, ...interessadosIds])];
 
       // Also check if user's id_personagem appears in autor_nome or reu_nome
       let allProcessos = directProcessos;
 
-      if (procProcessoIds.length > 0) {
-        const missingIds = procProcessoIds.filter(id => !directProcessos.some(p => p.id === id));
+      if (allExtraIds.length > 0) {
+        const missingIds = allExtraIds.filter(id => !directProcessos.some(p => p.id === id));
         if (missingIds.length > 0) {
           const { data: extraProcessos } = await supabase.from("processos").select("*")
             .in("id", missingIds);
