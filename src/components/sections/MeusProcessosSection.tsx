@@ -65,12 +65,14 @@ export default function MeusProcessosSection({ onOpenProcesso }: MeusProcessosSe
 
       const directProcessos = directRes.data || [];
       const procProcessoIds = (procuracoesRes.data || []).map(p => p.processo_id);
+      const interessadosIds = (interessadosRes.data || []).map(p => p.processo_id);
+      const allExtraIds = [...new Set([...procProcessoIds, ...interessadosIds])];
 
       // Also check if user's id_personagem appears in autor_nome or reu_nome
       let allProcessos = directProcessos;
 
-      if (procProcessoIds.length > 0) {
-        const missingIds = procProcessoIds.filter(id => !directProcessos.some(p => p.id === id));
+      if (allExtraIds.length > 0) {
+        const missingIds = allExtraIds.filter(id => !directProcessos.some(p => p.id === id));
         if (missingIds.length > 0) {
           const { data: extraProcessos } = await supabase.from("processos").select("*")
             .in("id", missingIds);
