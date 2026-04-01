@@ -16,16 +16,31 @@ function formatPartesForPdf(value: string): string {
 
 /** Sanitize text for jsPDF standard fonts (Latin1 only) */
 function sanitize(text: string): string {
-  return String(text || "")
-    .replace(/\u2713/g, "(OK)")
-    .replace(/\u2022/g, "-")
-    .replace(/\u2014/g, "-")
-    .replace(/\u2013/g, "-")
-    .replace(/\u2018/g, "'")
-    .replace(/\u2019/g, "'")
-    .replace(/\u201C/g, '"')
-    .replace(/\u201D/g, '"')
-    .replace(/\u2026/g, "...");
+  let s = String(text || "");
+  // Common Unicode replacements
+  s = s.replace(/\u2713|\u2714/g, "(OK)");
+  s = s.replace(/\u2022|\u2023|\u25CF|\u25CB/g, "-");
+  s = s.replace(/\u2014|\u2015/g, "-");
+  s = s.replace(/\u2013/g, "-");
+  s = s.replace(/\u2018|\u2019|\u02BC|\u0060|\u00B4/g, "'");
+  s = s.replace(/\u201C|\u201D|\u201E|\u201F/g, '"');
+  s = s.replace(/\u2026/g, "...");
+  s = s.replace(/\u2192/g, "->");
+  s = s.replace(/\u2190/g, "<-");
+  s = s.replace(/\u00A0/g, " ");
+  s = s.replace(/\u200B|\u200C|\u200D|\uFEFF/g, "");
+  // Portuguese accented chars -> ASCII equivalents for Helvetica compatibility
+  s = s.replace(/[àáâãä]/g, "a").replace(/[ÀÁÂÃÄ]/g, "A");
+  s = s.replace(/[èéêë]/g, "e").replace(/[ÈÉÊË]/g, "E");
+  s = s.replace(/[ìíîï]/g, "i").replace(/[ÌÍÎÏ]/g, "I");
+  s = s.replace(/[òóôõö]/g, "o").replace(/[ÒÓÔÕÖ]/g, "O");
+  s = s.replace(/[ùúûü]/g, "u").replace(/[ÙÚÛÜ]/g, "U");
+  s = s.replace(/ç/g, "c").replace(/Ç/g, "C");
+  s = s.replace(/ñ/g, "n").replace(/Ñ/g, "N");
+  s = s.replace(/[ýÿ]/g, "y").replace(/Ý/g, "Y");
+  // Remove any remaining non-printable or non-ASCII chars that could garble
+  s = s.replace(/[^\x20-\x7E\n\r\t]/g, "");
+  return s;
 }
 
 const MARGIN = 20;
