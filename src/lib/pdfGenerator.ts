@@ -168,13 +168,13 @@ export function generateProcessoPDF(params: {
     y += 8;
     doc.setTextColor(50);
     for (const p of procuracoes) {
+      if (y > 270) { doc.addPage(); y = 20; }
       doc.setFont("helvetica", "bold");
-      const bulletText = sanitize(`- ${p.advogado_nome}`);
-      doc.text(bulletText, MARGIN + 2, y);
+      doc.text(sanitize(`- ${p.advogado_nome}`), MARGIN + 2, y);
       doc.setFont("helvetica", "normal");
-      doc.text(sanitize(` - ${p.parte === "autor" ? "Autor" : "Reu"} - ${p.status}`), MARGIN + 2 + doc.getTextWidth(bulletText), y);
-      y += 5;
-      y += 5;
+      const labelParte = p.parte === "autor" ? "Autor" : "Reu";
+      doc.text(sanitize(` | ${labelParte} | ${p.status}`), MARGIN + 2 + doc.getTextWidth(sanitize(`- ${p.advogado_nome}`)), y);
+      y += 6;
     }
   }
 
