@@ -16,16 +16,51 @@ function formatPartesForPdf(value: string): string {
 
 /** Sanitize text for jsPDF standard fonts (Latin1 only) */
 function sanitize(text: string): string {
-  return String(text || "")
-    .replace(/\u2713/g, "(OK)")
-    .replace(/\u2022/g, "-")
-    .replace(/\u2014/g, "-")
-    .replace(/\u2013/g, "-")
-    .replace(/\u2018/g, "'")
-    .replace(/\u2019/g, "'")
-    .replace(/\u201C/g, '"')
-    .replace(/\u201D/g, '"')
-    .replace(/\u2026/g, "...");
+  let s = String(text || "");
+  // Common Unicode replacements
+  s = s.replace(/\u2713|\u2714/g, "(OK)");
+  s = s.replace(/\u2022|\u2023|\u25CF|\u25CB/g, "-");
+  s = s.replace(/\u2014|\u2015/g, "-");
+  s = s.replace(/\u2013/g, "-");
+  s = s.replace(/\u2018|\u2019|\u02BC|\u0060|\u00B4/g, "'");
+  s = s.replace(/\u201C|\u201D|\u201E|\u201F/g, '"');
+  s = s.replace(/\u2026/g, "...");
+  s = s.replace(/\u2192/g, "->");
+  s = s.replace(/\u2190/g, "<-");
+  s = s.replace(/\u00A0/g, " ");
+  s = s.replace(/\u200B|\u200C|\u200D|\uFEFF/g, "");
+  // Portuguese accented chars -> ASCII equivalents for Helvetica compatibility
+  s = s.replace(/[àáâãä]/g, "a").replace(/[ÀÁÂÃÄ]/g, "A");
+  s = s.replace(/[èéêë]/g, "e").replace(/[ÈÉÊË]/g, "E");
+  s = s.replace(/[ìíîï]/g, "i").replace(/[ÌÍÎÏ]/g, "I");
+  s = s.replace(/[òóôõö]/g, "o").replace(/[ÒÓÔÕÖ]/g, "O");
+  s = s.replace(/[ùúûü]/g, "u").replace(/[ÙÚÛÜ]/g, "U");
+  s = s.replace(/ç/g, "c").replace(/Ç/g, "C");
+  s = s.replace(/ñ/g, "n").replace(/Ñ/g, "N");
+  s = s.replace(/[ýÿ]/g, "y").replace(/Ý/g, "Y");
+  // Remove any remaining non-printable or non-ASCII chars that could garble
+  s = s.replace(/[^\x20-\x7E\n\r\t]/g, "");
+  return s;
+}
+
+/** Split text into plain-text and URL segments */
+function splitTextAndUrls(text: string): { text: string; isUrl: boolean }[] {
+  const urlRegex = /(https?:\/\/[^\s,;]+)/g;
+  const parts: { text: string; isUrl: boolean }[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  while ((match = urlRegex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push({ text: text.substring(lastIndex, match.index).trim(), isUrl: false });
+    }
+    parts.push({ text: match[1], isUrl: true });
+    lastIndex = match.index + match[0].length;
+  }
+  if (lastIndex < text.length) {
+    const remaining = text.substring(lastIndex).trim();
+    if (remaining) parts.push({ text: remaining, isUrl: false });
+  }
+  return parts.length ? parts : [{ text, isUrl: false }];
 }
 
 const MARGIN = 20;
@@ -153,13 +188,13 @@ export function generateProcessoPDF(params: {
     y += 8;
     doc.setTextColor(50);
     for (const p of procuracoes) {
+      if (y > 270) { doc.addPage(); y = 20; }
       doc.setFont("helvetica", "bold");
-      const bulletText = sanitize(`- ${p.advogado_nome}`);
-      doc.text(bulletText, MARGIN + 2, y);
+      doc.text(sanitize(`- ${p.advogado_nome}`), MARGIN + 2, y);
       doc.setFont("helvetica", "normal");
-      doc.text(sanitize(` - ${p.parte === "autor" ? "Autor" : "Reu"} - ${p.status}`), MARGIN + 2 + doc.getTextWidth(bulletText), y);
-      y += 5;
-      y += 5;
+      const labelParte = p.parte === "autor" ? "Autor" : "Reu";
+      doc.text(sanitize(` | ${labelParte} | ${p.status}`), MARGIN + 2 + doc.getTextWidth(sanitize(`- ${p.advogado_nome}`)), y);
+      y += 6;
     }
   }
 
@@ -249,7 +284,7 @@ export function generateProcessoPDF(params: {
     }
   }
 
-  // Movimentações
+  // Movimentacoes
   if (movimentacoes?.length) {
     y += 4;
     y = drawSeparator(doc, y);
@@ -259,14 +294,30 @@ export function generateProcessoPDF(params: {
     y += 8;
     doc.setTextColor(50);
     for (const m of movimentacoes) {
-      if (y > 270) { doc.addPage(); y = 20; }
+      if (y > 265) { doc.addPage(); y = 20; }
       doc.setFont("helvetica", "bold");
       doc.setFontSize(8);
       doc.text(sanitize(`${new Date(m.created_at).toLocaleString("pt-BR")} - ${m.tipo?.toUpperCase()}`), MARGIN + 2, y);
       y += 4;
       doc.setFont("helvetica", "normal");
       doc.setFontSize(7.5);
-      y = addWrappedText(doc, `${m.autor_nome || "Sistema"}: ${m.descricao}`, MARGIN + 4, y, CONTENT_W - 6, 3.5);
+      // Separate text and URLs from descricao
+      const descParts = splitTextAndUrls(m.descricao || "");
+      const authorLine = sanitize(`${m.autor_nome || "Sistema"}:`);
+      doc.text(authorLine, MARGIN + 4, y);
+      y += 3.5;
+      for (const part of descParts) {
+        if (y > 275) { doc.addPage(); y = 20; }
+        if (part.isUrl) {
+          doc.setTextColor(0, 50, 150);
+          const urlText = part.text.length > 80 ? part.text.substring(0, 77) + "..." : part.text;
+          doc.textWithLink(urlText, MARGIN + 4, y, { url: part.text });
+          doc.setTextColor(50);
+          y += 3.5;
+        } else {
+          y = addWrappedText(doc, part.text, MARGIN + 4, y, CONTENT_W - 6, 3.5);
+        }
+      }
       y += 3;
     }
   }
@@ -454,7 +505,7 @@ export function generateCartorioPDF(params: {
     y = addWrappedText(doc, registro.observacoes, MARGIN, y, CONTENT_W, 4.5);
   }
 
-  // Links
+  // Links / Documentos Anexos
   if (links.length) {
     y += 4;
     y = drawSeparator(doc, y);
@@ -463,12 +514,16 @@ export function generateCartorioPDF(params: {
     doc.text("DOCUMENTOS ANEXOS", MARGIN, y + 3);
     y += 8;
     doc.setFont("helvetica", "normal");
-    doc.setTextColor(50);
     doc.setFontSize(7);
-    for (const url of links) {
-      doc.textWithLink(url, MARGIN + 2, y, { url });
-      y += 4;
+    for (let idx = 0; idx < links.length; idx++) {
+      if (y > 275) { doc.addPage(); y = 20; }
+      const url = links[idx];
+      const label = `${idx + 1}. ${url.length > 90 ? url.substring(0, 87) + "..." : url}`;
+      doc.setTextColor(0, 50, 150);
+      doc.textWithLink(label, MARGIN + 2, y, { url });
+      y += 5;
     }
+    doc.setTextColor(50);
   }
 
   // Signature area
