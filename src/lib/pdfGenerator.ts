@@ -264,7 +264,7 @@ export function generateProcessoPDF(params: {
     }
   }
 
-  // Movimentações
+  // Movimentacoes
   if (movimentacoes?.length) {
     y += 4;
     y = drawSeparator(doc, y);
@@ -274,14 +274,30 @@ export function generateProcessoPDF(params: {
     y += 8;
     doc.setTextColor(50);
     for (const m of movimentacoes) {
-      if (y > 270) { doc.addPage(); y = 20; }
+      if (y > 265) { doc.addPage(); y = 20; }
       doc.setFont("helvetica", "bold");
       doc.setFontSize(8);
       doc.text(sanitize(`${new Date(m.created_at).toLocaleString("pt-BR")} - ${m.tipo?.toUpperCase()}`), MARGIN + 2, y);
       y += 4;
       doc.setFont("helvetica", "normal");
       doc.setFontSize(7.5);
-      y = addWrappedText(doc, `${m.autor_nome || "Sistema"}: ${m.descricao}`, MARGIN + 4, y, CONTENT_W - 6, 3.5);
+      // Separate text and URLs from descricao
+      const descParts = splitTextAndUrls(m.descricao || "");
+      const authorLine = sanitize(`${m.autor_nome || "Sistema"}:`);
+      doc.text(authorLine, MARGIN + 4, y);
+      y += 3.5;
+      for (const part of descParts) {
+        if (y > 275) { doc.addPage(); y = 20; }
+        if (part.isUrl) {
+          doc.setTextColor(0, 50, 150);
+          const urlText = part.text.length > 80 ? part.text.substring(0, 77) + "..." : part.text;
+          doc.textWithLink(urlText, MARGIN + 4, y, { url: part.text });
+          doc.setTextColor(50);
+          y += 3.5;
+        } else {
+          y = addWrappedText(doc, part.text, MARGIN + 4, y, CONTENT_W - 6, 3.5);
+        }
+      }
       y += 3;
     }
   }
