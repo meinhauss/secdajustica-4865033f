@@ -52,13 +52,15 @@ export default function MeusProcessosSection({ onOpenProcesso }: MeusProcessosSe
       if (!user?.id) return [];
 
       // Fetch processes where user is directly involved
-      const [directRes, procuracoesRes] = await Promise.all([
+      const [directRes, procuracoesRes, interessadosRes] = await Promise.all([
         supabase.from("processos").select("*")
           .or(`advogado_autor_id.eq.${user.id},advogado_reu_id.eq.${user.id},juiz_id.eq.${user.id}`)
           .order("created_at", { ascending: false }),
         supabase.from("procuracoes").select("processo_id")
           .eq("advogado_id", user.id)
           .eq("status", "ativa"),
+        supabase.from("interessados_processo").select("processo_id")
+          .eq("user_id", user.id),
       ]);
 
       const directProcessos = directRes.data || [];
