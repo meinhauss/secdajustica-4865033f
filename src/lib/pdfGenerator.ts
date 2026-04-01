@@ -505,7 +505,7 @@ export function generateCartorioPDF(params: {
     y = addWrappedText(doc, registro.observacoes, MARGIN, y, CONTENT_W, 4.5);
   }
 
-  // Links
+  // Links / Documentos Anexos
   if (links.length) {
     y += 4;
     y = drawSeparator(doc, y);
@@ -514,12 +514,16 @@ export function generateCartorioPDF(params: {
     doc.text("DOCUMENTOS ANEXOS", MARGIN, y + 3);
     y += 8;
     doc.setFont("helvetica", "normal");
-    doc.setTextColor(50);
     doc.setFontSize(7);
-    for (const url of links) {
-      doc.textWithLink(url, MARGIN + 2, y, { url });
-      y += 4;
+    for (let idx = 0; idx < links.length; idx++) {
+      if (y > 275) { doc.addPage(); y = 20; }
+      const url = links[idx];
+      const label = `${idx + 1}. ${url.length > 90 ? url.substring(0, 87) + "..." : url}`;
+      doc.setTextColor(0, 50, 150);
+      doc.textWithLink(label, MARGIN + 2, y, { url });
+      y += 5;
     }
+    doc.setTextColor(50);
   }
 
   // Signature area
