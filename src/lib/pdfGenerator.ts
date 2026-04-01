@@ -43,6 +43,26 @@ function sanitize(text: string): string {
   return s;
 }
 
+/** Split text into plain-text and URL segments */
+function splitTextAndUrls(text: string): { text: string; isUrl: boolean }[] {
+  const urlRegex = /(https?:\/\/[^\s,;]+)/g;
+  const parts: { text: string; isUrl: boolean }[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  while ((match = urlRegex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push({ text: text.substring(lastIndex, match.index).trim(), isUrl: false });
+    }
+    parts.push({ text: match[1], isUrl: true });
+    lastIndex = match.index + match[0].length;
+  }
+  if (lastIndex < text.length) {
+    const remaining = text.substring(lastIndex).trim();
+    if (remaining) parts.push({ text: remaining, isUrl: false });
+  }
+  return parts.length ? parts : [{ text, isUrl: false }];
+}
+
 const MARGIN = 20;
 const PAGE_W = 210;
 const CONTENT_W = PAGE_W - MARGIN * 2;
