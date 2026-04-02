@@ -317,7 +317,113 @@ export default function EstatisticasSection() {
         </div>
       </motion.div>
 
-      {isAdmin && (
+      {/* Distribuição de Processos - Admin only */}
+      {isAdmin && magistrados && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }} className="bg-card rounded-xl p-6 border border-border shadow-institutional">
+          <div className="flex items-center gap-3 mb-4">
+            <Shuffle className="h-5 w-5 text-institutional" />
+            <h3 className="font-display text-lg font-semibold">Distribuição de Processos</h3>
+          </div>
+
+          {/* Next judge info */}
+          <div className="bg-institutional/5 border border-institutional/20 rounded-lg p-4 mb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground font-medium mb-1">Próximo juiz a receber processo</p>
+                <div className="flex items-center gap-2">
+                  <UserCheck className="h-4 w-4 text-institutional" />
+                  <span className="font-semibold text-foreground">
+                    {proximoJuiz?.nome_completo || "Nenhum magistrado disponível"}
+                  </span>
+                  {proximoJuiz?.id_personagem && (
+                    <Badge variant="outline" className="text-[10px]">ID {proximoJuiz.id_personagem}</Badge>
+                  )}
+                  {overrideConfig && (
+                    <Badge className="bg-amber-500/20 text-amber-700 border-amber-500/30 text-[10px]">MANUAL</Badge>
+                  )}
+                  {!overrideConfig && (
+                    <Badge className="bg-green-500/20 text-green-700 border-green-500/30 text-[10px]">AUTOMÁTICO</Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Manual override */}
+          <div className="flex items-center gap-3 mb-4">
+            <Select
+              value={selectedJudge}
+              onValueChange={setSelectedJudge}
+            >
+              <SelectTrigger className="flex-1 rounded-xl">
+                <SelectValue placeholder="Selecionar próximo juiz manualmente..." />
+              </SelectTrigger>
+              <SelectContent>
+                {magistrados.map(m => (
+                  <SelectItem key={m.user_id} value={m.user_id}>
+                    {m.nome_completo} ({m.ativos} ativos)
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              size="sm"
+              className="rounded-xl"
+              disabled={!selectedJudge || setOverride.isPending}
+              onClick={() => {
+                setOverride.mutate(selectedJudge);
+                setSelectedJudge("");
+              }}
+            >
+              Definir
+            </Button>
+            {overrideConfig && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="rounded-xl"
+                disabled={setOverride.isPending}
+                onClick={() => setOverride.mutate(null)}
+              >
+                Limpar
+              </Button>
+            )}
+          </div>
+
+          {/* Distribution table */}
+          <div className="border border-border rounded-lg overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-muted/50">
+                  <th className="text-left p-2 font-medium text-muted-foreground">Magistrado</th>
+                  <th className="text-center p-2 font-medium text-muted-foreground">Ativos</th>
+                  <th className="text-center p-2 font-medium text-muted-foreground">Total</th>
+                  <th className="text-center p-2 font-medium text-muted-foreground">Cargo</th>
+                </tr>
+              </thead>
+              <tbody>
+                {magistrados.map((m, i) => (
+                  <tr key={m.user_id} className={`border-t border-border ${i === 0 && !overrideConfig ? "bg-institutional/5" : ""} ${overrideConfig === m.user_id ? "bg-institutional/5" : ""}`}>
+                    <td className="p-2 font-medium text-foreground">
+                      {m.nome_completo}
+                      {m.id_personagem && <span className="text-xs text-muted-foreground ml-1">(ID {m.id_personagem})</span>}
+                    </td>
+                    <td className="p-2 text-center text-foreground">{m.ativos}</td>
+                    <td className="p-2 text-center text-muted-foreground">{m.total}</td>
+                    <td className="p-2 text-center">
+                      <Badge variant="secondary" className="text-[10px]">
+                        {m.role === "desembargador" ? "Desembargador" : "Magistrado"}
+                      </Badge>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </motion.div>
+      )}
+
+
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-card rounded-xl p-6 border border-border shadow-institutional">
           <div className="flex items-center gap-3 mb-6">
             <GitCommit className="h-5 w-5 text-institutional" />
