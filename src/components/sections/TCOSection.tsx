@@ -438,32 +438,27 @@ export default function TCOSection() {
                       <Trash2 className="h-3 w-3" />
                     </Button>
                   )}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-xs text-muted-foreground">Nome *</label>
-                      <Input value={env.nome} onChange={(e) => updateEnvolvido(i, "nome", e.target.value)} className="rounded-xl mt-1" />
-                    </div>
-                    <div>
-                      <label className="text-xs text-muted-foreground">Tipo</label>
-                      <Select value={env.tipo} onValueChange={(v) => updateEnvolvido(i, "tipo", v)}>
-                        <SelectTrigger className="rounded-xl mt-1"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="autor_fato">Autor do Fato</SelectItem>
-                          <SelectItem value="vitima">Vítima</SelectItem>
-                          <SelectItem value="testemunha">Testemunha</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground">Tipo</label>
+                    <Select value={env.tipo} onValueChange={(v) => updateEnvolvido(i, "tipo", v)}>
+                      <SelectTrigger className="rounded-xl mt-1"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="autor_fato">Autor do Fato</SelectItem>
+                        <SelectItem value="vitima">Vítima</SelectItem>
+                        <SelectItem value="testemunha">Testemunha</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-xs text-muted-foreground">ID Personagem</label>
-                      <Input value={env.id_personagem} onChange={(e) => updateEnvolvido(i, "id_personagem", e.target.value)} className="rounded-xl mt-1" />
-                    </div>
-                    <div>
-                      <label className="text-xs text-muted-foreground">Qualificação</label>
-                      <Input value={env.qualificacao} onChange={(e) => updateEnvolvido(i, "qualificacao", e.target.value)} placeholder="RG, CPF..." className="rounded-xl mt-1" />
-                    </div>
+                  <PersonLookupInput
+                    idValue={env.id_personagem}
+                    nomeValue={env.nome}
+                    onIdChange={(v) => updateEnvolvido(i, "id_personagem", v)}
+                    onNomeChange={(v) => updateEnvolvido(i, "nome", v)}
+                    required
+                  />
+                  <div>
+                    <label className="text-xs text-muted-foreground">Qualificação</label>
+                    <Input value={env.qualificacao} onChange={(e) => updateEnvolvido(i, "qualificacao", e.target.value)} placeholder="RG, CPF..." className="rounded-xl mt-1" />
                   </div>
                   <div>
                     <label className="text-xs text-muted-foreground">Observações</label>
