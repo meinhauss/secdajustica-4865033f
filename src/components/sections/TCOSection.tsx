@@ -69,8 +69,6 @@ export default function TCOSection() {
   const [dataFato, setDataFato] = useState("");
   const [localFato, setLocalFato] = useState("");
   const [compromisso, setCompromisso] = useState(false);
-  const [dataCompromisso, setDataCompromisso] = useState("");
-  const [localCompromisso, setLocalCompromisso] = useState("");
   const [links, setLinks] = useState<string[]>([""]);
   const [envolvidos, setEnvolvidos] = useState<Envolvido[]>([
     { ...emptyEnvolvido(), tipo: "autor_fato" },
