@@ -1620,8 +1620,8 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               tipo: p.status === "renunciada" ? "renúncia de mandato" : "procuração",
               titulo: p.status === "renunciada" ? `Renúncia — ${p.advogado_nome}` : `Procuração — ${p.advogado_nome}`,
               descricao: p.status === "renunciada"
-                ? `${p.advogado_nome} renunciou ao mandato de advogado(a) do(a) ${p.parte === "autor" ? "AUTOR" : "RÉU"}.${p.motivo_renuncia ? `\nMotivo: ${p.motivo_renuncia}` : ""}`
-                : `${p.advogado_nome} juntou procuração qualificando-se como advogado(a) do(a) ${p.parte === "autor" ? "AUTOR" : "RÉU"}.`,
+                ? `${p.advogado_nome} renunciou ao mandato de advogado(a) do(a) ${(p.parte || "").startsWith("autor") ? "AUTOR" : "RÉU"}.${p.motivo_renuncia ? `\nMotivo: ${p.motivo_renuncia}` : ""}`
+                : `${p.advogado_nome} juntou procuração qualificando-se como advogado(a) do(a) ${(p.parte || "").startsWith("autor") ? "AUTOR" : "RÉU"}.`,
               link: p.documento_url || undefined,
               badge_color: p.status === "renunciada"
                 ? "bg-red-100 text-red-800 dark:bg-red-950/30 dark:text-red-400"
