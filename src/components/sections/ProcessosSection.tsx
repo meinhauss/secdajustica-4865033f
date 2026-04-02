@@ -1494,8 +1494,13 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             // Match documents to movimentações by close timestamp & same author
             const usedDocIds = new Set<string>();
 
-            // Movimentações — attach related documents
+            // Types that already have dedicated timeline entries (atos, sentenças, audiências, etc.)
+            const duplicatedMovTypes = new Set(["despacho", "sentenca", "audiencia_designada", "mandado_expedido", "intimacao"]);
+
+            // Movimentações — attach related documents, skip types rendered by dedicated sections
             movimentacoes?.forEach(m => {
+              if (duplicatedMovTypes.has(m.tipo)) return;
+
               const mTime = new Date(m.created_at).getTime();
               const relatedDocs = (documentos || []).filter((d: any) => {
                 if (usedDocIds.has(d.id)) return false;
