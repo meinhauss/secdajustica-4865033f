@@ -454,6 +454,14 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const queryClient = useQueryClient();
   const [activeAction, setActiveAction] = useState<string>("none");
 
+  // Helper to get judge name reliably (profile may not be loaded yet)
+  const getJudgeName = async (): Promise<string> => {
+    if (profile?.nome_completo) return profile.nome_completo;
+    if (!user?.id) return "Magistrado(a)";
+    const { data } = await supabase.from("profiles").select("nome_completo").eq("user_id", user.id).maybeSingle();
+    return data?.nome_completo || "Magistrado(a)";
+  };
+
   const { data: processo } = useQuery({
     queryKey: ["mag-proc", processoId],
     queryFn: async () => {
@@ -608,13 +616,14 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const criarDespacho = useMutation({
     mutationFn: async () => {
       if (!despachoForm.titulo || !despachoForm.conteudo) throw new Error("Preencha título e conteúdo.");
+      const judgeName = await getJudgeName();
       const { error } = await supabase.from("atos_judiciais").insert({
         processo_id: processoId,
         titulo: despachoForm.titulo,
         conteudo: despachoForm.conteudo,
         tipo: despachoForm.tipo,
         autor_id: user!.id,
-        autor_nome: profile?.nome_completo || "Juiz de Direito",
+        autor_nome: judgeName,
         assinado: true,
         data_assinatura: new Date().toISOString(),
       });
@@ -871,10 +880,11 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const declararSuspeicao = useMutation({
     mutationFn: async (justificativa: string) => {
       if (!justificativa) throw new Error("Informe a justificativa.");
+      const judgeName = await getJudgeName();
       await supabase.from("movimentacoes").insert({
         processo_id: processoId,
         tipo: "suspeicao",
-        descricao: `DECLARAÇÃO DE SUSPEIÇÃO\n\nO(A) Magistrado(a) ${profile?.nome_completo} declarou-se suspeito(a) para atuar neste processo.\n\nJustificativa: ${justificativa}`,
+        descricao: `DECLARAÇÃO DE SUSPEIÇÃO\n\nO(A) Magistrado(a) ${judgeName} declarou-se suspeito(a) para atuar neste processo.\n\nJustificativa: ${justificativa}`,
         autor_id: user!.id,
       });
       const { data: newJudgeId, error: sortError } = await supabase.rpc("sortear_magistrado");
@@ -1650,6 +1660,12 @@ function EmbargosCard({ emb, tipoLabels, statusCfg, canDecide, processoId, userI
   const decidirEmbargos = useMutation({
     mutationFn: async () => {
       if (!decisao) throw new Error("Preencha a decisão.");
+      // Fetch judge name reliably
+      let judgeName = profileName;
+      if (!judgeName && userId) {
+        const { data } = await supabase.from("profiles").select("nome_completo").eq("user_id", userId).maybeSingle();
+        judgeName = data?.nome_completo || "Magistrado(a)";
+      }
       const { error } = await supabase.from("embargos_declaracao").update({
         status: resultado,
         decisao,
@@ -1663,7 +1679,7 @@ function EmbargosCard({ emb, tipoLabels, statusCfg, canDecide, processoId, userI
         processo_id: processoId,
         autor_id: userId,
         tipo: "decisao_embargos",
-        descricao: `EMBARGOS DE DECLARAÇÃO ${resLabel} por ${profileName || "Magistrado(a)"}. Decisão: ${decisao}`,
+        descricao: `EMBARGOS DE DECLARAÇÃO ${resLabel} por ${judgeName || "Magistrado(a)"}. Decisão: ${decisao}`,
       } as any);
     },
     onSuccess: () => {
