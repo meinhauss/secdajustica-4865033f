@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Scale, Gavel, BookOpen, FileText, Users, BarChart3,
-  LogOut, Menu, X, Home, Briefcase, Calendar, Crown, GraduationCap, Stamp
+  LogOut, Menu, X, Home, Briefcase, Calendar, Crown, GraduationCap, Stamp, ClipboardList
  } from "lucide-react";
 import logoSjc from "@/assets/logo-sjc.jpg";
 import logoMpsp from "@/assets/logo-mpsp.png";
