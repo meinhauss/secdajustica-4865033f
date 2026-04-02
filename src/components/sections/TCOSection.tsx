@@ -223,8 +223,6 @@ export default function TCOSection() {
     setDataFato("");
     setLocalFato("");
     setCompromisso(false);
-    setDataCompromisso("");
-    setLocalCompromisso("");
     setLinks([""]);
     setEnvolvidos([
       { ...emptyEnvolvido(), tipo: "autor_fato" },
