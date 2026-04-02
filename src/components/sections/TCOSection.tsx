@@ -24,18 +24,18 @@ const STATUS_COLORS: Record<string, string> = {
   encaminhado_jecrim: "bg-blue-500/20 text-blue-700",
 };
 
-const NATUREZAS = [
-  "Lesão Corporal Leve",
-  "Ameaça",
-  "Injúria",
-  "Calúnia",
-  "Difamação",
-  "Perturbação do Sossego",
-  "Vias de Fato",
-  "Desacato",
-  "Dano Simples",
-  "Desobediência",
-  "Contravenção Penal",
+const NATUREZAS: { label: string; tipificacao: string }[] = [
+  { label: "Lesão Corporal Leve", tipificacao: "Art. 129, caput, do Código Penal" },
+  { label: "Ameaça", tipificacao: "Art. 147 do Código Penal" },
+  { label: "Injúria", tipificacao: "Art. 140 do Código Penal" },
+  { label: "Calúnia", tipificacao: "Art. 138 do Código Penal" },
+  { label: "Difamação", tipificacao: "Art. 139 do Código Penal" },
+  { label: "Perturbação do Sossego", tipificacao: "Art. 42, III, da Lei de Contravenções Penais" },
+  { label: "Vias de Fato", tipificacao: "Art. 21 da Lei de Contravenções Penais" },
+  { label: "Desacato", tipificacao: "Art. 331 do Código Penal" },
+  { label: "Dano Simples", tipificacao: "Art. 163, caput, do Código Penal" },
+  { label: "Desobediência", tipificacao: "Art. 330 do Código Penal" },
+  { label: "Contravenção Penal", tipificacao: "Lei de Contravenções Penais (Dec.-Lei 3.688/41)" },
 ];
 
 interface Envolvido {
