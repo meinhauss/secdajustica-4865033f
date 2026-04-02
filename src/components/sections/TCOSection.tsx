@@ -118,8 +118,8 @@ export default function TCOSection() {
           data_fato: dataFato || null,
           local_fato: localFato || null,
           compromisso_jecrim: compromisso,
-          data_compromisso: compromisso && dataCompromisso ? dataCompromisso : null,
-          local_compromisso: compromisso && localCompromisso ? localCompromisso : null,
+          data_compromisso: null,
+          local_compromisso: null,
           links: validLinks,
         } as any)
         .select()
