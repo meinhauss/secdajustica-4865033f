@@ -616,13 +616,14 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const criarDespacho = useMutation({
     mutationFn: async () => {
       if (!despachoForm.titulo || !despachoForm.conteudo) throw new Error("Preencha título e conteúdo.");
+      const judgeName = await getJudgeName();
       const { error } = await supabase.from("atos_judiciais").insert({
         processo_id: processoId,
         titulo: despachoForm.titulo,
         conteudo: despachoForm.conteudo,
         tipo: despachoForm.tipo,
         autor_id: user!.id,
-        autor_nome: profile?.nome_completo || "Juiz de Direito",
+        autor_nome: judgeName,
         assinado: true,
         data_assinatura: new Date().toISOString(),
       });
