@@ -396,23 +396,15 @@ export default function TCOSection() {
             </div>
 
             {/* Compromisso JECrim */}
-            <div className="space-y-2">
+            <div>
               <label className="flex items-center gap-2">
                 <input type="checkbox" checked={compromisso} onChange={(e) => setCompromisso(e.target.checked)} className="rounded" />
                 <span className="text-sm font-medium">Compromisso de comparecimento ao JECrim</span>
               </label>
               {compromisso && (
-                <div className="grid grid-cols-2 gap-3 ml-6">
-                  <div>
-                    <label className="text-xs text-muted-foreground">Data/Hora</label>
-                    <Input type="datetime-local" value={dataCompromisso} onChange={(e) => setDataCompromisso(e.target.value)} className="rounded-xl mt-1" />
-                  </div>
-                  <div>
-                    <label className="text-xs text-muted-foreground">Local</label>
-                    <Input value={localCompromisso} onChange={(e) => setLocalCompromisso(e.target.value)} placeholder="Local da audiência" className="rounded-xl mt-1" />
-                  </div>
-                </div>
+                <p className="text-xs text-muted-foreground ml-6 mt-1">A data da audiência será agendada pelo juiz no decorrer do processo.</p>
               )}
+            </div>
             </div>
 
             {/* Links/Anexos */}
