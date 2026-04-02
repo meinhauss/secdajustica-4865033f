@@ -15,7 +15,7 @@ import {
   Gavel, FileText, Clock, Search, ArrowLeft, ChevronRight,
   Calendar, Shield, Send, BookOpen, BarChart3, Eye,
   CheckCircle, AlertTriangle, Scale, Plus, Stamp, Scroll,
-  PenTool, Users, MapPin, ShieldAlert, Lock, User, Megaphone, UserPlus, Trash2
+  PenTool, Users, MapPin, ShieldAlert, Lock, User, Megaphone, UserPlus, Trash2, X
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
