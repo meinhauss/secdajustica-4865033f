@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileText, Plus, ArrowLeft, Trash2, Send, Eye, Search } from "lucide-react";
 import { format } from "date-fns";
+import { PersonLookupInput } from "@/components/PersonLookupInput";
 
 const STATUS_LABELS: Record<string, string> = {
   elaborado: "Elaborado",
