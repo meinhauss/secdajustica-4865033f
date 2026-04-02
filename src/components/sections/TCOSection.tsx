@@ -462,7 +462,7 @@ export default function TCOSection() {
                             ...updated[i],
                             nome: result.nome_completo,
                             id_personagem: result.id_personagem,
-                            qualificacao: result.cpf ? `CPF: ${result.cpf}` : updated[i].qualificacao,
+                            qualificacao: result.id_personagem ? `ID: ${result.id_personagem}` : updated[i].qualificacao,
                           };
                           return updated;
                         });
