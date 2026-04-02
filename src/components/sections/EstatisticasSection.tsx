@@ -1,10 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { BarChart3, GitCommit, ChevronDown, ChevronUp, Gavel, FileText, Bell, Shield, Scale, BookOpen, AlertTriangle, Users } from "lucide-react";
+import { BarChart3, GitCommit, ChevronDown, ChevronUp, Gavel, FileText, Bell, Shield, Scale, BookOpen, AlertTriangle, Users, Shuffle, UserCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
 
 import { CURRENT_VERSION } from "@/lib/version";
 
