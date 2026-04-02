@@ -880,10 +880,11 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const declararSuspeicao = useMutation({
     mutationFn: async (justificativa: string) => {
       if (!justificativa) throw new Error("Informe a justificativa.");
+      const judgeName = await getJudgeName();
       await supabase.from("movimentacoes").insert({
         processo_id: processoId,
         tipo: "suspeicao",
-        descricao: `DECLARAÇÃO DE SUSPEIÇÃO\n\nO(A) Magistrado(a) ${profile?.nome_completo} declarou-se suspeito(a) para atuar neste processo.\n\nJustificativa: ${justificativa}`,
+        descricao: `DECLARAÇÃO DE SUSPEIÇÃO\n\nO(A) Magistrado(a) ${judgeName} declarou-se suspeito(a) para atuar neste processo.\n\nJustificativa: ${justificativa}`,
         autor_id: user!.id,
       });
       const { data: newJudgeId, error: sortError } = await supabase.rpc("sortear_magistrado");
