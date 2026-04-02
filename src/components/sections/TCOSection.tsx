@@ -454,6 +454,20 @@ export default function TCOSection() {
                     nomeValue={env.nome}
                     onIdChange={(v) => updateEnvolvido(i, "id_personagem", v)}
                     onNomeChange={(v) => updateEnvolvido(i, "nome", v)}
+                    onLookupResult={(result) => {
+                      if (result) {
+                        setEnvolvidos(prev => {
+                          const updated = [...prev];
+                          updated[i] = {
+                            ...updated[i],
+                            nome: result.nome_completo,
+                            id_personagem: result.id_personagem,
+                            qualificacao: result.cpf ? `CPF: ${result.cpf}` : updated[i].qualificacao,
+                          };
+                          return updated;
+                        });
+                      }
+                    }}
                     required
                   />
                   <div>
