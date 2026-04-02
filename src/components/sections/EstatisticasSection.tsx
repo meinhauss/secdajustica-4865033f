@@ -174,6 +174,57 @@ export default function EstatisticasSection() {
     },
   });
 
+  // Distribution data
+  const { data: magistrados } = useQuery({
+    queryKey: ["magistrados-distribuicao"],
+    queryFn: async () => {
+      const { data: roles } = await supabase.from("user_roles").select("user_id, role").in("role", ["magistrado", "desembargador"]);
+      if (!roles?.length) return [];
+      const userIds = roles.map(r => r.user_id);
+      const { data: profiles } = await supabase.from("profiles").select("user_id, nome_completo, id_personagem").in("user_id", userIds);
+      const { data: processos } = await supabase.from("processos").select("juiz_id, status");
+      return (profiles || []).map(p => {
+        const total = processos?.filter(pr => pr.juiz_id === p.user_id).length || 0;
+        const ativos = processos?.filter(pr => pr.juiz_id === p.user_id && !["arquivado", "sentenciado"].includes(pr.status)).length || 0;
+        return { ...p, total, ativos, role: roles.find(r => r.user_id === p.user_id)?.role };
+      }).sort((a, b) => a.ativos - b.ativos);
+    },
+    enabled: isAdmin,
+  });
+
+  const { data: overrideConfig } = useQuery({
+    queryKey: ["config-proximo-juiz"],
+    queryFn: async () => {
+      const { data } = await supabase.from("config_sistema").select("valor").eq("chave", "proximo_juiz_id").maybeSingle();
+      return data?.valor || null;
+    },
+    enabled: isAdmin,
+  });
+
+  const setOverride = useMutation({
+    mutationFn: async (juizId: string | null) => {
+      if (!juizId) {
+        await supabase.from("config_sistema").delete().eq("chave", "proximo_juiz_id");
+      } else {
+        const { data: existing } = await supabase.from("config_sistema").select("chave").eq("chave", "proximo_juiz_id").maybeSingle();
+        if (existing) {
+          await supabase.from("config_sistema").update({ valor: juizId, updated_at: new Date().toISOString() } as any).eq("chave", "proximo_juiz_id");
+        } else {
+          await supabase.from("config_sistema").insert({ chave: "proximo_juiz_id", valor: juizId } as any);
+        }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["config-proximo-juiz"] });
+      toast.success("Próximo juiz atualizado");
+    },
+  });
+
+  const proximoJuizNatural = magistrados?.length ? magistrados[0] : null;
+  const proximoJuiz = overrideConfig
+    ? magistrados?.find(m => m.user_id === overrideConfig) || null
+    : proximoJuizNatural;
+
   const classeCount = stats?.por_classe ?? {};
   const statusCount = stats?.por_status ?? {};
   const total = stats?.total ?? Object.values(classeCount).reduce((a, b) => a + b, 0);
