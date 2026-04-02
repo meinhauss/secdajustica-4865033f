@@ -75,15 +75,19 @@ export function PersonLookupInput({
     setFound(null);
     const { data } = await supabase
       .from("profiles")
-      .select("nome_completo, id_personagem")
+      .select("nome_completo, id_personagem, cpf")
       .ilike("nome_completo", `%${nome}%`)
       .limit(1)
       .maybeSingle();
     if (data) {
       setFound(true);
-      onNomeChange(data.nome_completo);
-      if (data.id_personagem) onIdChange(data.id_personagem);
-      onLookupResult?.({ nome_completo: data.nome_completo, id_personagem: data.id_personagem || "" });
+      const result: PersonLookupResult = { nome_completo: data.nome_completo, id_personagem: data.id_personagem || "", cpf: data.cpf };
+      if (onLookupResult) {
+        onLookupResult(result);
+      } else {
+        onNomeChange(data.nome_completo);
+        if (data.id_personagem) onIdChange(data.id_personagem);
+      }
     } else {
       setFound(false);
       onLookupResult?.(null);
