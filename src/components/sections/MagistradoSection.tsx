@@ -1660,6 +1660,12 @@ function EmbargosCard({ emb, tipoLabels, statusCfg, canDecide, processoId, userI
   const decidirEmbargos = useMutation({
     mutationFn: async () => {
       if (!decisao) throw new Error("Preencha a decisão.");
+      // Fetch judge name reliably
+      let judgeName = profileName;
+      if (!judgeName && userId) {
+        const { data } = await supabase.from("profiles").select("nome_completo").eq("user_id", userId).maybeSingle();
+        judgeName = data?.nome_completo || "Magistrado(a)";
+      }
       const { error } = await supabase.from("embargos_declaracao").update({
         status: resultado,
         decisao,
@@ -1673,7 +1679,7 @@ function EmbargosCard({ emb, tipoLabels, statusCfg, canDecide, processoId, userI
         processo_id: processoId,
         autor_id: userId,
         tipo: "decisao_embargos",
-        descricao: `EMBARGOS DE DECLARAÇÃO ${resLabel} por ${profileName || "Magistrado(a)"}. Decisão: ${decisao}`,
+        descricao: `EMBARGOS DE DECLARAÇÃO ${resLabel} por ${judgeName || "Magistrado(a)"}. Decisão: ${decisao}`,
       } as any);
     },
     onSuccess: () => {
