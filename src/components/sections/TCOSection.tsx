@@ -405,7 +405,6 @@ export default function TCOSection() {
                 <p className="text-xs text-muted-foreground ml-6 mt-1">A data da audiência será agendada pelo juiz no decorrer do processo.</p>
               )}
             </div>
-            </div>
 
             {/* Links/Anexos */}
             <div className="space-y-2">
