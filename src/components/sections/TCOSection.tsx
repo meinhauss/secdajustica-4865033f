@@ -277,9 +277,8 @@ export default function TCOSection() {
             </div>
             {t.compromisso_jecrim && (
               <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 text-sm">
-                <p className="font-semibold text-blue-700">Compromisso JECrim</p>
-                {t.data_compromisso && <p>Data: {format(new Date(t.data_compromisso), "dd/MM/yyyy HH:mm")}</p>}
-                {t.local_compromisso && <p>Local: {t.local_compromisso}</p>}
+                <p className="font-semibold text-blue-700">Compromisso de comparecimento ao JECrim registrado</p>
+                <p className="text-xs text-muted-foreground">A audiência será agendada pelo juiz.</p>
               </div>
             )}
             {Array.isArray(t.links) && t.links.length > 0 && (
