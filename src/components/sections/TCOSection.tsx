@@ -362,17 +362,21 @@ export default function TCOSection() {
 
             <div>
               <label className="text-sm font-medium">Natureza da Infração *</label>
-              <Select value={natureza} onValueChange={setNatureza}>
+              <Select value={natureza} onValueChange={(v) => {
+                setNatureza(v);
+                const found = NATUREZAS.find((n) => n.label === v);
+                if (found) setTipificacao(found.tipificacao);
+              }}>
                 <SelectTrigger className="rounded-xl mt-1"><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
-                  {NATUREZAS.map((n) => <SelectItem key={n} value={n}>{n}</SelectItem>)}
+                  {NATUREZAS.map((n) => <SelectItem key={n.label} value={n.label}>{n.label}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
 
             <div>
               <label className="text-sm font-medium">Tipificação Penal</label>
-              <Input value={tipificacao} onChange={(e) => setTipificacao(e.target.value)} placeholder="Ex: Art. 129, §1º do CP" className="rounded-xl mt-1" />
+              <Input value={tipificacao} onChange={(e) => setTipificacao(e.target.value)} placeholder="Preenchido automaticamente" className="rounded-xl mt-1" readOnly />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
