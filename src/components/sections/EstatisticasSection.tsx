@@ -143,6 +143,9 @@ export default function EstatisticasSection() {
   const isAdmin = roles.includes("admin");
   const [expandedVersions, setExpandedVersions] = useState<Set<string>>(new Set([CURRENT_VERSION]));
 
+  const queryClient = useQueryClient();
+  const [selectedJudge, setSelectedJudge] = useState<string>("");
+
   const { data: stats } = useQuery({
     queryKey: ["stats-processos"],
     queryFn: async () => {
