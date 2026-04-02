@@ -972,6 +972,47 @@ export type Database = {
           },
         ]
       }
+      envolvidos_tco: {
+        Row: {
+          created_at: string
+          id: string
+          id_personagem: string | null
+          nome: string
+          observacoes: string | null
+          qualificacao: string | null
+          tco_id: string
+          tipo: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          id_personagem?: string | null
+          nome: string
+          observacoes?: string | null
+          qualificacao?: string | null
+          tco_id: string
+          tipo?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          id_personagem?: string | null
+          nome?: string
+          observacoes?: string | null
+          qualificacao?: string | null
+          tco_id?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "envolvidos_tco_tco_id_fkey"
+            columns: ["tco_id"]
+            isOneToOne: false
+            referencedRelation: "tcos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       honorarios_tabela: {
         Row: {
           ativo: boolean
@@ -2053,6 +2094,74 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "sentencas_processo_id_fkey"
+            columns: ["processo_id"]
+            isOneToOne: false
+            referencedRelation: "processos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tcos: {
+        Row: {
+          autor_policial_id: string | null
+          autor_policial_nome: string
+          compromisso_jecrim: boolean
+          created_at: string
+          data_compromisso: string | null
+          data_fato: string | null
+          descricao_fatos: string
+          id: string
+          links: Json | null
+          local_compromisso: string | null
+          local_fato: string | null
+          natureza_infracao: string
+          numero: string
+          processo_id: string | null
+          status: string
+          tipificacao_penal: string
+          updated_at: string
+        }
+        Insert: {
+          autor_policial_id?: string | null
+          autor_policial_nome: string
+          compromisso_jecrim?: boolean
+          created_at?: string
+          data_compromisso?: string | null
+          data_fato?: string | null
+          descricao_fatos: string
+          id?: string
+          links?: Json | null
+          local_compromisso?: string | null
+          local_fato?: string | null
+          natureza_infracao: string
+          numero?: string
+          processo_id?: string | null
+          status?: string
+          tipificacao_penal?: string
+          updated_at?: string
+        }
+        Update: {
+          autor_policial_id?: string | null
+          autor_policial_nome?: string
+          compromisso_jecrim?: boolean
+          created_at?: string
+          data_compromisso?: string | null
+          data_fato?: string | null
+          descricao_fatos?: string
+          id?: string
+          links?: Json | null
+          local_compromisso?: string | null
+          local_fato?: string | null
+          natureza_infracao?: string
+          numero?: string
+          processo_id?: string | null
+          status?: string
+          tipificacao_penal?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tcos_processo_id_fkey"
             columns: ["processo_id"]
             isOneToOne: false
             referencedRelation: "processos"
