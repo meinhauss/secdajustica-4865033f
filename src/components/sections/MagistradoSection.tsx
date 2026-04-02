@@ -454,6 +454,14 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const queryClient = useQueryClient();
   const [activeAction, setActiveAction] = useState<string>("none");
 
+  // Helper to get judge name reliably (profile may not be loaded yet)
+  const getJudgeName = async (): Promise<string> => {
+    if (profile?.nome_completo) return profile.nome_completo;
+    if (!user?.id) return "Magistrado(a)";
+    const { data } = await supabase.from("profiles").select("nome_completo").eq("user_id", user.id).maybeSingle();
+    return data?.nome_completo || "Magistrado(a)";
+  };
+
   const { data: processo } = useQuery({
     queryKey: ["mag-proc", processoId],
     queryFn: async () => {
