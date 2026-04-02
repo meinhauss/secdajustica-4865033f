@@ -637,6 +637,24 @@ export type Database = {
         }
         Relationships: []
       }
+      config_sistema: {
+        Row: {
+          chave: string
+          updated_at: string
+          valor: string | null
+        }
+        Insert: {
+          chave: string
+          updated_at?: string
+          valor?: string | null
+        }
+        Update: {
+          chave?: string
+          updated_at?: string
+          valor?: string | null
+        }
+        Relationships: []
+      }
       denuncias_mp: {
         Row: {
           created_at: string
