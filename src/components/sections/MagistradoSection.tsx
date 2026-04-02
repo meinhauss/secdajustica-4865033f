@@ -675,41 +675,53 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   });
 
   // ── MANDADO ──
-  const [mandadoForm, setMandadoForm] = useState({ tipos: [] as string[], destinatario_nome: "", destinatario_id: "", descricao: "" });
+  const [mandadoForm, setMandadoForm] = useState({ tipos: [] as string[], destinatarios: [{ id: "", nome: "" }] as { id: string; nome: string }[], descricao: "" });
   const toggleMandadoTipo = (val: string) => {
     setMandadoForm(f => ({
       ...f,
       tipos: f.tipos.includes(val) ? f.tipos.filter(t => t !== val) : [...f.tipos, val],
     }));
   };
+  const addDestinatario = () => setMandadoForm(f => ({ ...f, destinatarios: [...f.destinatarios, { id: "", nome: "" }] }));
+  const removeDestinatario = (idx: number) => setMandadoForm(f => ({ ...f, destinatarios: f.destinatarios.filter((_, i) => i !== idx) }));
+  const updateDestinatario = (idx: number, field: "id" | "nome", value: string) => {
+    setMandadoForm(f => {
+      const dest = [...f.destinatarios];
+      dest[idx] = { ...dest[idx], [field]: value };
+      return { ...f, destinatarios: dest };
+    });
+  };
   const mandadoLookup = useProfileLookup();
   const expedirMandado = useMutation({
     mutationFn: async () => {
-      if (!mandadoForm.destinatario_nome || !mandadoForm.descricao) throw new Error("Preencha todos os campos.");
+      const validDest = mandadoForm.destinatarios.filter(d => d.nome.trim());
+      if (validDest.length === 0 || !mandadoForm.descricao) throw new Error("Preencha todos os campos.");
       if (mandadoForm.tipos.length === 0) throw new Error("Selecione pelo menos um tipo de mandado.");
       const tipoStr = mandadoForm.tipos.join("+");
       const tipoLabel = mandadoForm.tipos.map(t => MANDADO_TIPOS.find(mt => mt.value === t)?.label || t).join(" + ");
-      const { error } = await supabase.from("mandados").insert({
+      const allNames = validDest.map(d => d.nome).join(", ");
+      const rows = validDest.map(d => ({
         processo_id: processoId,
         magistrado_id: user!.id,
         tipo: tipoStr,
-        destinatario_nome: mandadoForm.destinatario_nome,
+        destinatario_nome: d.nome,
         descricao: mandadoForm.descricao,
-      } as any);
+      }));
+      const { error } = await supabase.from("mandados").insert(rows as any);
       if (error) throw error;
       await supabase.from("movimentacoes").insert({
         processo_id: processoId,
         tipo: "mandado_expedido",
-        descricao: `MANDADO DE ${tipoLabel.toUpperCase()}\n\nDestinatário: ${mandadoForm.destinatario_nome}\n\n${mandadoForm.descricao}`,
+        descricao: `MANDADO DE ${tipoLabel.toUpperCase()}\n\nDestinatário(s): ${allNames}\n\n${mandadoForm.descricao}`,
         autor_id: user!.id,
       });
     },
     onSuccess: () => {
       invalidateAll();
       setActiveAction("none");
-      setMandadoForm({ tipos: [], destinatario_nome: "", destinatario_id: "", descricao: "" });
+      setMandadoForm({ tipos: [], destinatarios: [{ id: "", nome: "" }], descricao: "" });
       mandadoLookup.clear();
-      toast.success("Mandado expedido!");
+      toast.success("Mandado(s) expedido(s)!");
     },
     onError: (err: any) => toast.error(err.message),
   });
