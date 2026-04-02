@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Gavel, FileText, Clock, Search, ArrowLeft, ChevronRight,
@@ -289,7 +290,7 @@ function MagistradoDashboard({ onSelectProcesso }: { onSelectProcesso: (id: stri
                   className="bg-card rounded-xl p-4 border border-border shadow-institutional">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
                     <Stamp className="h-4 w-4 text-institutional" />
-                    <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-institutional/10 text-institutional">{MANDADO_TIPOS.find(t => t.value === m.tipo)?.label || m.tipo}</span>
+                    <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-institutional/10 text-institutional">{m.tipo.includes("+") ? m.tipo.split("+").map((t: string) => MANDADO_TIPOS.find(mt => mt.value === t)?.label || t).join(" + ") : (MANDADO_TIPOS.find(t => t.value === m.tipo)?.label || m.tipo)}</span>
                     <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${m.status === 'cumprido' ? 'bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400' : m.status === 'devolvido' ? 'bg-muted text-muted-foreground' : 'bg-gold/10 text-gold-dark'}`}>{m.status}</span>
                   </div>
                   <p className="text-sm text-foreground">Destinatário: {m.destinatario_nome}</p>
@@ -674,15 +675,24 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   });
 
   // ── MANDADO ──
-  const [mandadoForm, setMandadoForm] = useState({ tipo: "intimacao", destinatario_nome: "", destinatario_id: "", descricao: "" });
+  const [mandadoForm, setMandadoForm] = useState({ tipos: [] as string[], destinatario_nome: "", destinatario_id: "", descricao: "" });
+  const toggleMandadoTipo = (val: string) => {
+    setMandadoForm(f => ({
+      ...f,
+      tipos: f.tipos.includes(val) ? f.tipos.filter(t => t !== val) : [...f.tipos, val],
+    }));
+  };
   const mandadoLookup = useProfileLookup();
   const expedirMandado = useMutation({
     mutationFn: async () => {
       if (!mandadoForm.destinatario_nome || !mandadoForm.descricao) throw new Error("Preencha todos os campos.");
+      if (mandadoForm.tipos.length === 0) throw new Error("Selecione pelo menos um tipo de mandado.");
+      const tipoStr = mandadoForm.tipos.join("+");
+      const tipoLabel = mandadoForm.tipos.map(t => MANDADO_TIPOS.find(mt => mt.value === t)?.label || t).join(" + ");
       const { error } = await supabase.from("mandados").insert({
         processo_id: processoId,
         magistrado_id: user!.id,
-        tipo: mandadoForm.tipo,
+        tipo: tipoStr,
         destinatario_nome: mandadoForm.destinatario_nome,
         descricao: mandadoForm.descricao,
       } as any);
@@ -690,14 +700,14 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
       await supabase.from("movimentacoes").insert({
         processo_id: processoId,
         tipo: "mandado_expedido",
-        descricao: `MANDADO DE ${(MANDADO_TIPOS.find(t => t.value === mandadoForm.tipo)?.label || mandadoForm.tipo).toUpperCase()}\n\nDestinatário: ${mandadoForm.destinatario_nome}\n\n${mandadoForm.descricao}`,
+        descricao: `MANDADO DE ${tipoLabel.toUpperCase()}\n\nDestinatário: ${mandadoForm.destinatario_nome}\n\n${mandadoForm.descricao}`,
         autor_id: user!.id,
       });
     },
     onSuccess: () => {
       invalidateAll();
       setActiveAction("none");
-      setMandadoForm({ tipo: "intimacao", destinatario_nome: "", destinatario_id: "", descricao: "" });
+      setMandadoForm({ tipos: [], destinatario_nome: "", destinatario_id: "", descricao: "" });
       mandadoLookup.clear();
       toast.success("Mandado expedido!");
     },
@@ -1227,12 +1237,17 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
       {activeAction === "mandado" && (
         <ActionCard title="Expedir Mandado" icon={Stamp} onCancel={() => setActiveAction("none")}>
           <form onSubmit={(e) => { e.preventDefault(); expedirMandado.mutate(); }} className="space-y-4">
-             <Select value={mandadoForm.tipo} onValueChange={(v) => setMandadoForm({ ...mandadoForm, tipo: v })}>
-              <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {MANDADO_TIPOS.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Tipo(s) de Mandado</label>
+              <div className="grid grid-cols-2 gap-2">
+                {MANDADO_TIPOS.map((t) => (
+                  <label key={t.value} className={`flex items-center gap-2 cursor-pointer rounded-xl border px-3 py-2 text-sm transition-colors ${mandadoForm.tipos.includes(t.value) ? 'border-institutional bg-institutional/10 text-institutional font-medium' : 'border-border bg-background text-foreground hover:bg-muted'}`}>
+                    <Checkbox checked={mandadoForm.tipos.includes(t.value)} onCheckedChange={() => toggleMandadoTipo(t.value)} />
+                    {t.label}
+                  </label>
+                ))}
+              </div>
+            </div>
             <div className="space-y-1.5">
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
