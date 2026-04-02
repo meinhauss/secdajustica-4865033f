@@ -423,7 +423,7 @@ export default function EstatisticasSection() {
         </motion.div>
       )}
 
-
+      {isAdmin && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-card rounded-xl p-6 border border-border shadow-institutional">
           <div className="flex items-center gap-3 mb-6">
             <GitCommit className="h-5 w-5 text-institutional" />
