@@ -7,6 +7,7 @@ import { Search, User } from "lucide-react";
 interface PersonLookupResult {
   nome_completo: string;
   id_personagem: string;
+  cpf?: string | null;
 }
 
 interface PersonLookupInputProps {
