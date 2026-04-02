@@ -24,18 +24,18 @@ const STATUS_COLORS: Record<string, string> = {
   encaminhado_jecrim: "bg-blue-500/20 text-blue-700",
 };
 
-const NATUREZAS = [
-  "Lesão Corporal Leve",
-  "Ameaça",
-  "Injúria",
-  "Calúnia",
-  "Difamação",
-  "Perturbação do Sossego",
-  "Vias de Fato",
-  "Desacato",
-  "Dano Simples",
-  "Desobediência",
-  "Contravenção Penal",
+const NATUREZAS: { label: string; tipificacao: string }[] = [
+  { label: "Lesão Corporal Leve", tipificacao: "Art. 129, caput, do Código Penal" },
+  { label: "Ameaça", tipificacao: "Art. 147 do Código Penal" },
+  { label: "Injúria", tipificacao: "Art. 140 do Código Penal" },
+  { label: "Calúnia", tipificacao: "Art. 138 do Código Penal" },
+  { label: "Difamação", tipificacao: "Art. 139 do Código Penal" },
+  { label: "Perturbação do Sossego", tipificacao: "Art. 42, III, da Lei de Contravenções Penais" },
+  { label: "Vias de Fato", tipificacao: "Art. 21 da Lei de Contravenções Penais" },
+  { label: "Desacato", tipificacao: "Art. 331 do Código Penal" },
+  { label: "Dano Simples", tipificacao: "Art. 163, caput, do Código Penal" },
+  { label: "Desobediência", tipificacao: "Art. 330 do Código Penal" },
+  { label: "Contravenção Penal", tipificacao: "Lei de Contravenções Penais (Dec.-Lei 3.688/41)" },
 ];
 
 interface Envolvido {
@@ -362,17 +362,21 @@ export default function TCOSection() {
 
             <div>
               <label className="text-sm font-medium">Natureza da Infração *</label>
-              <Select value={natureza} onValueChange={setNatureza}>
+              <Select value={natureza} onValueChange={(v) => {
+                setNatureza(v);
+                const found = NATUREZAS.find((n) => n.label === v);
+                if (found) setTipificacao(found.tipificacao);
+              }}>
                 <SelectTrigger className="rounded-xl mt-1"><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
-                  {NATUREZAS.map((n) => <SelectItem key={n} value={n}>{n}</SelectItem>)}
+                  {NATUREZAS.map((n) => <SelectItem key={n.label} value={n.label}>{n.label}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
 
             <div>
               <label className="text-sm font-medium">Tipificação Penal</label>
-              <Input value={tipificacao} onChange={(e) => setTipificacao(e.target.value)} placeholder="Ex: Art. 129, §1º do CP" className="rounded-xl mt-1" />
+              <Input value={tipificacao} onChange={(e) => setTipificacao(e.target.value)} placeholder="Preenchido automaticamente" className="rounded-xl mt-1" readOnly />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
