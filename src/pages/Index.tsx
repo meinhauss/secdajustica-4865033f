@@ -19,6 +19,7 @@ import EstatisticasSection from "@/components/sections/EstatisticasSection";
 import ConcursosSection from "@/components/sections/ConcursosSection";
 import CartorarioSection from "@/components/sections/CartorarioSection";
 import MeuPerfilSection from "@/components/sections/MeuPerfilSection";
+import TCOSection from "@/components/sections/TCOSection";
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -56,6 +57,7 @@ const Index = () => {
       case "estatisticas": return <EstatisticasSection />;
       case "concursos": return <ConcursosSection />;
       case "cartorio": return <CartorarioSection />;
+      case "tco": return <TCOSection />;
       default: return <DashboardHome />;
     }
   };
