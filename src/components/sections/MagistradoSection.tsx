@@ -290,7 +290,7 @@ function MagistradoDashboard({ onSelectProcesso }: { onSelectProcesso: (id: stri
                   className="bg-card rounded-xl p-4 border border-border shadow-institutional">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
                     <Stamp className="h-4 w-4 text-institutional" />
-                    <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-institutional/10 text-institutional">{MANDADO_TIPOS.find(t => t.value === m.tipo)?.label || m.tipo}</span>
+                    <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-institutional/10 text-institutional">{m.tipo.includes("+") ? m.tipo.split("+").map((t: string) => MANDADO_TIPOS.find(mt => mt.value === t)?.label || t).join(" + ") : (MANDADO_TIPOS.find(t => t.value === m.tipo)?.label || m.tipo)}</span>
                     <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${m.status === 'cumprido' ? 'bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400' : m.status === 'devolvido' ? 'bg-muted text-muted-foreground' : 'bg-gold/10 text-gold-dark'}`}>{m.status}</span>
                   </div>
                   <p className="text-sm text-foreground">Destinatário: {m.destinatario_nome}</p>
