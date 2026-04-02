@@ -1236,12 +1236,17 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
       {activeAction === "mandado" && (
         <ActionCard title="Expedir Mandado" icon={Stamp} onCancel={() => setActiveAction("none")}>
           <form onSubmit={(e) => { e.preventDefault(); expedirMandado.mutate(); }} className="space-y-4">
-             <Select value={mandadoForm.tipo} onValueChange={(v) => setMandadoForm({ ...mandadoForm, tipo: v })}>
-              <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {MANDADO_TIPOS.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Tipo(s) de Mandado</label>
+              <div className="grid grid-cols-2 gap-2">
+                {MANDADO_TIPOS.map((t) => (
+                  <label key={t.value} className={`flex items-center gap-2 cursor-pointer rounded-xl border px-3 py-2 text-sm transition-colors ${mandadoForm.tipos.includes(t.value) ? 'border-institutional bg-institutional/10 text-institutional font-medium' : 'border-border bg-background text-foreground hover:bg-muted'}`}>
+                    <Checkbox checked={mandadoForm.tipos.includes(t.value)} onCheckedChange={() => toggleMandadoTipo(t.value)} />
+                    {t.label}
+                  </label>
+                ))}
+              </div>
+            </div>
             <div className="space-y-1.5">
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
