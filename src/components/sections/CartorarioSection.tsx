@@ -234,41 +234,102 @@ function PersonInput({ label, entries, onChange }: {
   onChange: (entries: PersonEntry[]) => void;
 }) {
   const [idInput, setIdInput] = useState("");
+  const [nomeInput, setNomeInput] = useState("");
   const [lookingUp, setLookingUp] = useState(false);
+  const [lookupStatus, setLookupStatus] = useState<"idle" | "found" | "not_found">("idle");
 
-  const addPerson = async () => {
+  const handleLookupById = async () => {
     if (!idInput.trim()) return;
     if (entries.some((e) => e.id_personagem === idInput.trim())) {
       toast({ title: "ID já adicionado", variant: "destructive" });
       return;
     }
     setLookingUp(true);
+    setLookupStatus("idle");
     const profile = await lookupProfile(idInput);
     setLookingUp(false);
     if (profile) {
-      onChange([...entries, { id_personagem: profile.id_personagem || idInput.trim(), nome: profile.nome_completo }]);
-      setIdInput("");
+      setLookupStatus("found");
+      setNomeInput(profile.nome_completo);
+      setIdInput(profile.id_personagem || idInput.trim());
     } else {
-      toast({ title: "Personagem não encontrado", description: `ID "${idInput}" não existe no sistema.`, variant: "destructive" });
+      setLookupStatus("not_found");
     }
+  };
+
+  const handleLookupByName = async () => {
+    if (!nomeInput.trim()) return;
+    setLookingUp(true);
+    setLookupStatus("idle");
+    const { data } = await supabase
+      .from("profiles")
+      .select("nome_completo, id_personagem")
+      .ilike("nome_completo", `%${nomeInput.trim()}%`)
+      .limit(1)
+      .maybeSingle();
+    setLookingUp(false);
+    if (data) {
+      setLookupStatus("found");
+      setNomeInput(data.nome_completo);
+      if (data.id_personagem) setIdInput(data.id_personagem);
+    } else {
+      setLookupStatus("not_found");
+    }
+  };
+
+  const addPerson = () => {
+    const nome = nomeInput.trim();
+    if (!nome) return;
+    const id = idInput.trim();
+    if (id && entries.some((e) => e.id_personagem === id)) {
+      toast({ title: "ID já adicionado", variant: "destructive" });
+      return;
+    }
+    onChange([...entries, { id_personagem: id || nome, nome }]);
+    setIdInput("");
+    setNomeInput("");
+    setLookupStatus("idle");
   };
 
   return (
     <div className="space-y-2">
       <Label>{label}</Label>
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            value={idInput}
-            onChange={(e) => setIdInput(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addPerson(); } }}
-            placeholder="Digite o ID do Personagem"
-            className="pl-10"
-          />
+      <div className="space-y-1.5">
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={idInput}
+              onChange={(e) => { setIdInput(e.target.value); setLookupStatus("idle"); }}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleLookupById(); } }}
+              placeholder="ID do Personagem"
+              className="pl-10"
+            />
+          </div>
+          <Button type="button" size="sm" variant="outline" onClick={handleLookupById} disabled={lookingUp || !idInput.trim()}>
+            {lookingUp ? <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" /> : <Search className="h-4 w-4" />}
+          </Button>
         </div>
-        <Button type="button" size="sm" variant="outline" onClick={addPerson} disabled={lookingUp || !idInput.trim()}>
-          {lookingUp ? <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" /> : <Plus className="h-4 w-4" />}
+        <div className="flex gap-2">
+          <Input
+            value={nomeInput}
+            onChange={(e) => { setNomeInput(e.target.value); setLookupStatus("idle"); }}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleLookupByName(); } }}
+            placeholder="Nome completo (buscar ou preencher)"
+            className="flex-1"
+          />
+          <Button type="button" size="sm" variant="outline" onClick={handleLookupByName} disabled={lookingUp || !nomeInput.trim()}>
+            <Search className="h-4 w-4" />
+          </Button>
+        </div>
+        {lookupStatus === "found" && (
+          <p className="text-[11px] text-green-600 dark:text-green-400 px-1">✓ Perfil encontrado</p>
+        )}
+        {lookupStatus === "not_found" && (
+          <p className="text-[11px] text-amber-600 dark:text-amber-400 px-1">Não encontrado — preencha manualmente</p>
+        )}
+        <Button type="button" size="sm" variant="outline" onClick={addPerson} disabled={!nomeInput.trim()} className="w-full">
+          <Plus className="h-4 w-4 mr-1" /> Adicionar
         </Button>
       </div>
       {entries.length > 0 && (

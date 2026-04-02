@@ -1282,16 +1282,34 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                     <Input
                       placeholder="ID do Personagem"
                       value={dest.id}
-                      onChange={async (e) => {
-                        const val = e.target.value;
-                        updateDestinatario(idx, "id", val);
-                        const data = await mandadoLookup.lookup(val);
-                        if (data) updateDestinatario(idx, "nome", data.nome_completo);
+                      onChange={(e) => { updateDestinatario(idx, "id", e.target.value); }}
+                      onKeyDown={async (e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          const data = await mandadoLookup.lookup(dest.id);
+                          if (data) updateDestinatario(idx, "nome", data.nome_completo);
+                        }
                       }}
                       className="rounded-xl pl-10"
                     />
                   </div>
-                  <Input placeholder="Nome do destinatário" value={dest.nome} onChange={(e) => updateDestinatario(idx, "nome", e.target.value)} className="rounded-xl" required />
+                  <Button type="button" variant="ghost" size="sm" className="text-xs w-full" onClick={async () => {
+                    const data = await mandadoLookup.lookup(dest.id);
+                    if (data) updateDestinatario(idx, "nome", data.nome_completo);
+                  }} disabled={!dest.id.trim()}>
+                    <Search className="h-3 w-3 mr-1" /> Buscar por ID
+                  </Button>
+                  <Input placeholder="Nome do destinatário (buscar ou preencher)" value={dest.nome} onChange={(e) => updateDestinatario(idx, "nome", e.target.value)} className="rounded-xl" required />
+                  <Button type="button" variant="ghost" size="sm" className="text-xs w-full" onClick={async () => {
+                    if (!dest.nome.trim()) return;
+                    const { data } = await supabase.from("profiles").select("nome_completo, id_personagem").ilike("nome_completo", `%${dest.nome.trim()}%`).limit(1).maybeSingle();
+                    if (data) {
+                      updateDestinatario(idx, "nome", data.nome_completo);
+                      if (data.id_personagem) updateDestinatario(idx, "id", data.id_personagem);
+                    }
+                  }} disabled={!dest.nome.trim()}>
+                    <Search className="h-3 w-3 mr-1" /> Buscar por Nome
+                  </Button>
                 </div>
               ))}
             </div>
