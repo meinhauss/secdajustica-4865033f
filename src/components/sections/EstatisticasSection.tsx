@@ -1,10 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { BarChart3, GitCommit, ChevronDown, ChevronUp, Gavel, FileText, Bell, Shield, Scale, BookOpen, AlertTriangle, Users } from "lucide-react";
+import { BarChart3, GitCommit, ChevronDown, ChevronUp, Gavel, FileText, Bell, Shield, Scale, BookOpen, AlertTriangle, Users, Shuffle, UserCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
 
 import { CURRENT_VERSION } from "@/lib/version";
 
@@ -140,6 +143,9 @@ export default function EstatisticasSection() {
   const isAdmin = roles.includes("admin");
   const [expandedVersions, setExpandedVersions] = useState<Set<string>>(new Set([CURRENT_VERSION]));
 
+  const queryClient = useQueryClient();
+  const [selectedJudge, setSelectedJudge] = useState<string>("");
+
   const { data: stats } = useQuery({
     queryKey: ["stats-processos"],
     queryFn: async () => {
@@ -167,6 +173,57 @@ export default function EstatisticasSection() {
       } | null;
     },
   });
+
+  // Distribution data
+  const { data: magistrados } = useQuery({
+    queryKey: ["magistrados-distribuicao"],
+    queryFn: async () => {
+      const { data: roles } = await supabase.from("user_roles").select("user_id, role").in("role", ["magistrado", "desembargador"]);
+      if (!roles?.length) return [];
+      const userIds = roles.map(r => r.user_id);
+      const { data: profiles } = await supabase.from("profiles").select("user_id, nome_completo, id_personagem").in("user_id", userIds);
+      const { data: processos } = await supabase.from("processos").select("juiz_id, status");
+      return (profiles || []).map(p => {
+        const total = processos?.filter(pr => pr.juiz_id === p.user_id).length || 0;
+        const ativos = processos?.filter(pr => pr.juiz_id === p.user_id && !["arquivado", "sentenciado"].includes(pr.status)).length || 0;
+        return { ...p, total, ativos, role: roles.find(r => r.user_id === p.user_id)?.role };
+      }).sort((a, b) => a.ativos - b.ativos);
+    },
+    enabled: isAdmin,
+  });
+
+  const { data: overrideConfig } = useQuery({
+    queryKey: ["config-proximo-juiz"],
+    queryFn: async () => {
+      const { data } = await supabase.from("config_sistema").select("valor").eq("chave", "proximo_juiz_id").maybeSingle();
+      return data?.valor || null;
+    },
+    enabled: isAdmin,
+  });
+
+  const setOverride = useMutation({
+    mutationFn: async (juizId: string | null) => {
+      if (!juizId) {
+        await supabase.from("config_sistema").delete().eq("chave", "proximo_juiz_id");
+      } else {
+        const { data: existing } = await supabase.from("config_sistema").select("chave").eq("chave", "proximo_juiz_id").maybeSingle();
+        if (existing) {
+          await supabase.from("config_sistema").update({ valor: juizId, updated_at: new Date().toISOString() } as any).eq("chave", "proximo_juiz_id");
+        } else {
+          await supabase.from("config_sistema").insert({ chave: "proximo_juiz_id", valor: juizId } as any);
+        }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["config-proximo-juiz"] });
+      toast.success("Próximo juiz atualizado");
+    },
+  });
+
+  const proximoJuizNatural = magistrados?.length ? magistrados[0] : null;
+  const proximoJuiz = overrideConfig
+    ? magistrados?.find(m => m.user_id === overrideConfig) || null
+    : proximoJuizNatural;
 
   const classeCount = stats?.por_classe ?? {};
   const statusCount = stats?.por_status ?? {};
@@ -259,6 +316,112 @@ export default function EstatisticasSection() {
           ))}
         </div>
       </motion.div>
+
+      {/* Distribuição de Processos - Admin only */}
+      {isAdmin && magistrados && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }} className="bg-card rounded-xl p-6 border border-border shadow-institutional">
+          <div className="flex items-center gap-3 mb-4">
+            <Shuffle className="h-5 w-5 text-institutional" />
+            <h3 className="font-display text-lg font-semibold">Distribuição de Processos</h3>
+          </div>
+
+          {/* Next judge info */}
+          <div className="bg-institutional/5 border border-institutional/20 rounded-lg p-4 mb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground font-medium mb-1">Próximo juiz a receber processo</p>
+                <div className="flex items-center gap-2">
+                  <UserCheck className="h-4 w-4 text-institutional" />
+                  <span className="font-semibold text-foreground">
+                    {proximoJuiz?.nome_completo || "Nenhum magistrado disponível"}
+                  </span>
+                  {proximoJuiz?.id_personagem && (
+                    <Badge variant="outline" className="text-[10px]">ID {proximoJuiz.id_personagem}</Badge>
+                  )}
+                  {overrideConfig && (
+                    <Badge className="bg-amber-500/20 text-amber-700 border-amber-500/30 text-[10px]">MANUAL</Badge>
+                  )}
+                  {!overrideConfig && (
+                    <Badge className="bg-green-500/20 text-green-700 border-green-500/30 text-[10px]">AUTOMÁTICO</Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Manual override */}
+          <div className="flex items-center gap-3 mb-4">
+            <Select
+              value={selectedJudge}
+              onValueChange={setSelectedJudge}
+            >
+              <SelectTrigger className="flex-1 rounded-xl">
+                <SelectValue placeholder="Selecionar próximo juiz manualmente..." />
+              </SelectTrigger>
+              <SelectContent>
+                {magistrados.map(m => (
+                  <SelectItem key={m.user_id} value={m.user_id}>
+                    {m.nome_completo} ({m.ativos} ativos)
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              size="sm"
+              className="rounded-xl"
+              disabled={!selectedJudge || setOverride.isPending}
+              onClick={() => {
+                setOverride.mutate(selectedJudge);
+                setSelectedJudge("");
+              }}
+            >
+              Definir
+            </Button>
+            {overrideConfig && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="rounded-xl"
+                disabled={setOverride.isPending}
+                onClick={() => setOverride.mutate(null)}
+              >
+                Limpar
+              </Button>
+            )}
+          </div>
+
+          {/* Distribution table */}
+          <div className="border border-border rounded-lg overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-muted/50">
+                  <th className="text-left p-2 font-medium text-muted-foreground">Magistrado</th>
+                  <th className="text-center p-2 font-medium text-muted-foreground">Ativos</th>
+                  <th className="text-center p-2 font-medium text-muted-foreground">Total</th>
+                  <th className="text-center p-2 font-medium text-muted-foreground">Cargo</th>
+                </tr>
+              </thead>
+              <tbody>
+                {magistrados.map((m, i) => (
+                  <tr key={m.user_id} className={`border-t border-border ${i === 0 && !overrideConfig ? "bg-institutional/5" : ""} ${overrideConfig === m.user_id ? "bg-institutional/5" : ""}`}>
+                    <td className="p-2 font-medium text-foreground">
+                      {m.nome_completo}
+                      {m.id_personagem && <span className="text-xs text-muted-foreground ml-1">(ID {m.id_personagem})</span>}
+                    </td>
+                    <td className="p-2 text-center text-foreground">{m.ativos}</td>
+                    <td className="p-2 text-center text-muted-foreground">{m.total}</td>
+                    <td className="p-2 text-center">
+                      <Badge variant="secondary" className="text-[10px]">
+                        {m.role === "desembargador" ? "Desembargador" : "Magistrado"}
+                      </Badge>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </motion.div>
+      )}
 
       {isAdmin && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-card rounded-xl p-6 border border-border shadow-institutional">
