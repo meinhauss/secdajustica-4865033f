@@ -674,15 +674,24 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   });
 
   // ── MANDADO ──
-  const [mandadoForm, setMandadoForm] = useState({ tipo: "intimacao", destinatario_nome: "", destinatario_id: "", descricao: "" });
+  const [mandadoForm, setMandadoForm] = useState({ tipos: [] as string[], destinatario_nome: "", destinatario_id: "", descricao: "" });
+  const toggleMandadoTipo = (val: string) => {
+    setMandadoForm(f => ({
+      ...f,
+      tipos: f.tipos.includes(val) ? f.tipos.filter(t => t !== val) : [...f.tipos, val],
+    }));
+  };
   const mandadoLookup = useProfileLookup();
   const expedirMandado = useMutation({
     mutationFn: async () => {
       if (!mandadoForm.destinatario_nome || !mandadoForm.descricao) throw new Error("Preencha todos os campos.");
+      if (mandadoForm.tipos.length === 0) throw new Error("Selecione pelo menos um tipo de mandado.");
+      const tipoStr = mandadoForm.tipos.join("+");
+      const tipoLabel = mandadoForm.tipos.map(t => MANDADO_TIPOS.find(mt => mt.value === t)?.label || t).join(" + ");
       const { error } = await supabase.from("mandados").insert({
         processo_id: processoId,
         magistrado_id: user!.id,
-        tipo: mandadoForm.tipo,
+        tipo: tipoStr,
         destinatario_nome: mandadoForm.destinatario_nome,
         descricao: mandadoForm.descricao,
       } as any);
@@ -690,14 +699,14 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
       await supabase.from("movimentacoes").insert({
         processo_id: processoId,
         tipo: "mandado_expedido",
-        descricao: `MANDADO DE ${(MANDADO_TIPOS.find(t => t.value === mandadoForm.tipo)?.label || mandadoForm.tipo).toUpperCase()}\n\nDestinatário: ${mandadoForm.destinatario_nome}\n\n${mandadoForm.descricao}`,
+        descricao: `MANDADO DE ${tipoLabel.toUpperCase()}\n\nDestinatário: ${mandadoForm.destinatario_nome}\n\n${mandadoForm.descricao}`,
         autor_id: user!.id,
       });
     },
     onSuccess: () => {
       invalidateAll();
       setActiveAction("none");
-      setMandadoForm({ tipo: "intimacao", destinatario_nome: "", destinatario_id: "", descricao: "" });
+      setMandadoForm({ tipos: [], destinatario_nome: "", destinatario_id: "", descricao: "" });
       mandadoLookup.clear();
       toast.success("Mandado expedido!");
     },
