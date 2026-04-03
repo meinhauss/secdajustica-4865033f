@@ -184,8 +184,8 @@ export default function TCOSection() {
       const { data: processo, error: procErr } = await supabase
         .from("processos")
         .insert({
-          autor_nome: vitimaComoAutor,
-          reu_nome: autorNome,
+          autor_nome: autorProcesso,
+          reu_nome: reuNome,
           assunto: `TCO - ${(tco as any).natureza_infracao}`,
           descricao: (tco as any).descricao_fatos,
           classe: "criminal" as any,
