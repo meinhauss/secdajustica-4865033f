@@ -162,9 +162,22 @@ export default function TCOSection() {
       const autores = (envs || []).filter((e: any) => e.tipo === "autor_fato");
       const vitimas = (envs || []).filter((e: any) => e.tipo === "vitima");
 
-      const autorNome = autores.map((a: any) => a.nome).join(", ") || "Autor desconhecido";
-      const reuNome = vitimas.map((v: any) => v.nome).join(", ") || autorNome;
-      const vitimaComoAutor = vitimas.length > 0 ? vitimas.map((v: any) => v.nome).join(", ") : "Ministério Público";
+      const autoresFato = autores.map((a: any) => ({ nome: a.nome, id_personagem: a.id_personagem || "" }));
+      const vitimasArr = vitimas.map((v: any) => ({ nome: v.nome, id_personagem: v.id_personagem || "" }));
+
+      // Autor do processo = cargo policial que criou o TCO
+      const cargoMap: Record<string, string> = {
+        policia_civil: "Polícia Civil",
+        policia_militar: "Polícia Militar",
+        policia_federal: "Polícia Federal",
+      };
+      const cargoPolicial = roles.find(r => ["policia_civil", "policia_militar", "policia_federal"].includes(r));
+      const autorProcesso = cargoMap[cargoPolicial || ""] || "Autoridade Policial";
+
+      // Réu = autor do fato no TCO
+      const reuNome = autoresFato.length > 0
+        ? JSON.stringify(autoresFato)
+        : "Autor desconhecido";
 
       const { data: juizData } = await supabase.rpc("sortear_magistrado");
 
