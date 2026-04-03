@@ -253,13 +253,13 @@ export default function ProcessosSection({ initialProcessoId }: ProcessosSection
 /*  PROCESSOS LIST                             */
 /* ═══════════════════════════════════════════ */
 function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
-  const { user } = useAuth();
+  const { user, roles, profile } = useAuth();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
 
-
+  const isCidadao = roles.length === 0 || (roles.length === 1 && roles[0] === "cidadao");
 
   const [autores, setAutores] = useState<ParteEntry[]>([]);
   const [reus, setReus] = useState<ParteEntry[]>([]);
@@ -269,11 +269,43 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
   });
 
   const { data: processos, isLoading } = useQuery({
-    queryKey: ["processos"],
+    queryKey: ["processos", isCidadao, profile?.id_personagem, user?.id],
     queryFn: async () => {
       const { data, error } = await supabase.from("processos").select("*").order("created_at", { ascending: false });
       if (error) throw error;
-      return data;
+      if (!isCidadao) return data;
+
+      // Cidadãos só veem processos onde estão envolvidos
+      const idPersonagem = profile?.id_personagem;
+      const userId = user?.id;
+      if (!idPersonagem && !userId) return [];
+
+      // Buscar processos onde cidadão é interessado
+      const { data: interessados } = await supabase
+        .from("interessados_processo")
+        .select("processo_id")
+        .eq("user_id", userId || "");
+      const interessadoIds = new Set((interessados || []).map(i => i.processo_id));
+
+      // Buscar processos com procuração ativa
+      const { data: procuracoes } = await supabase
+        .from("procuracoes")
+        .select("processo_id")
+        .eq("advogado_id", userId || "")
+        .eq("status", "ativa");
+      const procuracaoIds = new Set((procuracoes || []).map(p => p.processo_id));
+
+      return (data || []).filter(p => {
+        // Verificar se é parte (autor ou réu) pelo id_personagem
+        if (idPersonagem) {
+          const isAutor = p.autor_nome?.includes(idPersonagem);
+          const isReu = p.reu_nome?.includes(idPersonagem);
+          if (isAutor || isReu) return true;
+        }
+        // Verificar se é interessado ou tem procuração
+        if (interessadoIds.has(p.id) || procuracaoIds.has(p.id)) return true;
+        return false;
+      });
     },
   });
 
