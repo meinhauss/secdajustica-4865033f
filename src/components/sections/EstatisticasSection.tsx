@@ -13,6 +13,25 @@ import { CURRENT_VERSION } from "@/lib/version";
 
 const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
   {
+    version: "2.11.0",
+    date: "03/04/2026",
+    changes: [
+      "Sistema de TCO (Termo Circunstanciado de Ocorrência) exclusivo para polícias",
+      "Tipificação penal automática com base na natureza da infração no TCO",
+      "Encaminhamento de TCO ao JECrim com geração automática de processo",
+      "Campos de busca por ID do Personagem em todos os formulários com preenchimento automático",
+      "Mandados com suporte a múltiplos tipos e múltiplos destinatários",
+      "Distribuição de processos corrigida para balanceamento justo entre magistrados",
+      "Painel de previsão de sorteio e seleção manual do próximo juiz nas Estatísticas",
+      "Cidadãos agora visualizam apenas processos onde estão envolvidos",
+      "Cidadãos bloqueados de acessar processos com segredo de justiça",
+      "Exclusão de processos gerados por TCO corrigida (constraint ON DELETE SET NULL)",
+      "Autor do processo via TCO agora exibe o cargo policial corretamente",
+      "Correção de atos judiciais assinados com nome do juiz ao invés de cargo genérico",
+      "Correção de duplicidade de publicações entre Portal do Juiz e aba Processos",
+    ],
+  },
+  {
     version: "2.10.0",
     date: "31/03/2026",
     changes: [
