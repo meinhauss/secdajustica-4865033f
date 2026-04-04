@@ -893,6 +893,44 @@ export type Database = {
           },
         ]
       }
+      envolvidos_audiencia: {
+        Row: {
+          audiencia_id: string
+          created_at: string
+          id: string
+          id_personagem: string | null
+          nome: string
+          observacoes: string | null
+          tipo: string
+        }
+        Insert: {
+          audiencia_id: string
+          created_at?: string
+          id?: string
+          id_personagem?: string | null
+          nome: string
+          observacoes?: string | null
+          tipo?: string
+        }
+        Update: {
+          audiencia_id?: string
+          created_at?: string
+          id?: string
+          id_personagem?: string | null
+          nome?: string
+          observacoes?: string | null
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "envolvidos_audiencia_audiencia_id_fkey"
+            columns: ["audiencia_id"]
+            isOneToOne: false
+            referencedRelation: "audiencias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       envolvidos_bo: {
         Row: {
           bo_id: string
