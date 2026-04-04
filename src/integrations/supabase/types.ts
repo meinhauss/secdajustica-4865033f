@@ -211,7 +211,7 @@ export type Database = {
           id: string
           local: string | null
           observacoes: string | null
-          processo_id: string
+          processo_id: string | null
           status: string
           tipo: string
         }
@@ -221,7 +221,7 @@ export type Database = {
           id?: string
           local?: string | null
           observacoes?: string | null
-          processo_id: string
+          processo_id?: string | null
           status?: string
           tipo?: string
         }
@@ -231,7 +231,7 @@ export type Database = {
           id?: string
           local?: string | null
           observacoes?: string | null
-          processo_id?: string
+          processo_id?: string | null
           status?: string
           tipo?: string
         }
