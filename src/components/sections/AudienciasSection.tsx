@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Calendar, Plus, X } from "lucide-react";
+import { Calendar, Plus, UserPlus, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import PersonLookupInput from "@/components/PersonLookupInput";
 
 const TIPOS_AUDIENCIA = [
   "instrução",
@@ -23,10 +24,18 @@ const TIPOS_AUDIENCIA = [
   "admonitória",
 ];
 
+const TIPOS_ENVOLVIDO = [
+  "participante",
+  "testemunha",
+  "perito",
+  "outro",
+];
+
 export default function AudienciasSection() {
   const { roles, user } = useAuth();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [envolvidosDialogId, setEnvolvidosDialogId] = useState<string | null>(null);
 
   const isMagistrado = roles.some(r => ["magistrado", "desembargador", "presidente_tribunal", "admin"].includes(r));
 
@@ -40,6 +49,21 @@ export default function AudienciasSection() {
       if (error) throw error;
       return data;
     },
+  });
+
+  const { data: envolvidos } = useQuery({
+    queryKey: ["envolvidos-audiencia", envolvidosDialogId],
+    queryFn: async () => {
+      if (!envolvidosDialogId) return [];
+      const { data, error } = await supabase
+        .from("envolvidos_audiencia")
+        .select("*")
+        .eq("audiencia_id", envolvidosDialogId)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!envolvidosDialogId,
   });
 
   const { data: processos } = useQuery({
@@ -64,6 +88,8 @@ export default function AudienciasSection() {
     observacoes: "",
   });
 
+  const [envForm, setEnvForm] = useState({ nome: "", tipo: "participante", id_personagem: "", observacoes: "" });
+
   const createMutation = useMutation({
     mutationFn: async () => {
       const dataHoraISO = new Date(form.data_hora).toISOString();
@@ -77,7 +103,6 @@ export default function AudienciasSection() {
       const { error } = await supabase.from("audiencias").insert(payload);
       if (error) throw error;
 
-      // Notify parties if linked to a processo
       if (form.processo_id) {
         const { data: proc } = await supabase
           .from("processos")
@@ -118,6 +143,41 @@ export default function AudienciasSection() {
     },
     onError: (e: any) => toast.error("Erro ao agendar: " + e.message),
   });
+
+  const addEnvolvidoMutation = useMutation({
+    mutationFn: async () => {
+      if (!envolvidosDialogId || !envForm.nome.trim()) throw new Error("Nome obrigatório");
+      const { error } = await supabase.from("envolvidos_audiencia").insert({
+        audiencia_id: envolvidosDialogId,
+        nome: envForm.nome.trim(),
+        tipo: envForm.tipo,
+        id_personagem: envForm.id_personagem || null,
+        observacoes: envForm.observacoes || null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Envolvido adicionado!");
+      queryClient.invalidateQueries({ queryKey: ["envolvidos-audiencia", envolvidosDialogId] });
+      setEnvForm({ nome: "", tipo: "participante", id_personagem: "", observacoes: "" });
+    },
+    onError: (e: any) => toast.error("Erro: " + e.message),
+  });
+
+  const removeEnvolvidoMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("envolvidos_audiencia").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Envolvido removido!");
+      queryClient.invalidateQueries({ queryKey: ["envolvidos-audiencia", envolvidosDialogId] });
+    },
+    onError: (e: any) => toast.error("Erro: " + e.message),
+  });
+
+  const audienciaEnvolvidos = envolvidosDialogId ? audiencias?.find((a: any) => a.id === envolvidosDialogId) : null;
+  const isAudienciaSemProcesso = audienciaEnvolvidos && !audienciaEnvolvidos.processo_id;
 
   return (
     <div className="space-y-6">
@@ -188,6 +248,72 @@ export default function AudienciasSection() {
         )}
       </div>
 
+      {/* Dialog de envolvidos */}
+      <Dialog open={!!envolvidosDialogId} onOpenChange={o => { if (!o) setEnvolvidosDialogId(null); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Envolvidos na Audiência</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            {/* Lista de envolvidos */}
+            {envolvidos && envolvidos.length > 0 ? (
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {envolvidos.map((e: any) => (
+                  <div key={e.id} className="flex items-center justify-between bg-muted/50 rounded-lg px-3 py-2 text-sm">
+                    <div>
+                      <span className="font-medium text-foreground">{e.nome}</span>
+                      {e.id_personagem && <span className="text-muted-foreground ml-1">(ID: {e.id_personagem})</span>}
+                      <span className="text-xs text-muted-foreground ml-2 capitalize">— {e.tipo}</span>
+                      {e.observacoes && <p className="text-xs text-muted-foreground italic">{e.observacoes}</p>}
+                    </div>
+                    {isMagistrado && (
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => removeEnvolvidoMutation.mutate(e.id)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-2">Nenhum envolvido adicionado.</p>
+            )}
+
+            {/* Form para adicionar */}
+            {isMagistrado && (
+              <div className="border-t pt-3 space-y-3">
+                <p className="text-sm font-medium text-foreground">Adicionar envolvido</p>
+                <PersonLookupInput
+                  label="Nome"
+                  value={envForm.nome}
+                  onChange={nome => setEnvForm(f => ({ ...f, nome }))}
+                  onPersonFound={p => setEnvForm(f => ({ ...f, nome: p.nome_completo, id_personagem: p.id_personagem || "" }))}
+                  idValue={envForm.id_personagem}
+                  onIdChange={id => setEnvForm(f => ({ ...f, id_personagem: id }))}
+                />
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label>Tipo</Label>
+                    <Select value={envForm.tipo} onValueChange={v => setEnvForm(f => ({ ...f, tipo: v }))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {TIPOS_ENVOLVIDO.map(t => <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Observações</Label>
+                    <Input value={envForm.observacoes} onChange={e => setEnvForm(f => ({ ...f, observacoes: e.target.value }))} placeholder="Opcional" />
+                  </div>
+                </div>
+                <Button size="sm" className="w-full gap-2" disabled={!envForm.nome.trim() || addEnvolvidoMutation.isPending} onClick={() => addEnvolvidoMutation.mutate()}>
+                  <UserPlus className="h-4 w-4" /> {addEnvolvidoMutation.isPending ? "Adicionando..." : "Adicionar"}
+                </Button>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {!audiencias?.length ? (
         <div className="text-center py-16 text-muted-foreground">
           <Calendar className="h-16 w-16 mx-auto mb-4 opacity-20" />
@@ -207,7 +333,7 @@ export default function AudienciasSection() {
                 <div className="bg-institutional/10 rounded-lg p-2">
                   <Calendar className="h-5 w-5 text-institutional" />
                 </div>
-                <div>
+                <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-foreground">
                     {format(new Date(a.data_hora), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                   </p>
@@ -217,9 +343,16 @@ export default function AudienciasSection() {
                   </p>
                   {a.observacoes && <p className="text-xs text-muted-foreground mt-0.5 italic">{a.observacoes}</p>}
                 </div>
-                <span className="ml-auto text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-gold/10 text-gold-dark">
-                  {a.status}
-                </span>
+                <div className="flex items-center gap-2 ml-auto shrink-0">
+                  {!a.processo_id && isMagistrado && (
+                    <Button variant="outline" size="sm" className="gap-1 text-xs" onClick={() => setEnvolvidosDialogId(a.id)}>
+                      <UserPlus className="h-3.5 w-3.5" /> Envolvidos
+                    </Button>
+                  )}
+                  <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-gold/10 text-gold-dark">
+                    {a.status}
+                  </span>
+                </div>
               </div>
             </motion.div>
           ))}
