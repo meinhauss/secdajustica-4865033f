@@ -300,26 +300,77 @@ export default function AudienciasSection() {
         )}
       </div>
 
-      {/* Dialog detalhes envolvidos */}
+      {/* Dialog detalhes completos da audiência */}
       <Dialog open={!!detailId} onOpenChange={o => { if (!o) setDetailId(null); }}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Envolvidos na Audiência</DialogTitle>
+            <DialogTitle>Detalhes da Audiência</DialogTitle>
           </DialogHeader>
-          {detailEnvolvidos && detailEnvolvidos.length > 0 ? (
-            <div className="space-y-2">
-              {detailEnvolvidos.map((e: any) => (
-                <div key={e.id} className="bg-muted/50 rounded-lg px-3 py-2 text-sm">
-                  <span className="font-medium text-foreground">{e.nome}</span>
-                  {e.id_personagem && <span className="text-muted-foreground ml-1">(ID: {e.id_personagem})</span>}
-                  <span className="text-xs text-muted-foreground ml-2 capitalize">— {e.tipo}</span>
-                  {e.observacoes && <p className="text-xs text-muted-foreground italic">{e.observacoes}</p>}
+          {(() => {
+            const a = audiencias?.find((x: any) => x.id === detailId);
+            if (!a) return null;
+            return (
+              <div className="space-y-4 pt-2">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Tipo</p>
+                    <p className="text-sm font-medium text-foreground capitalize">{a.tipo}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Status</p>
+                    <span className="text-xs uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-gold/10 text-gold-dark">{a.status}</span>
+                  </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground text-center py-4">Nenhum envolvido registrado.</p>
-          )}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Data e Hora</p>
+                    <p className="text-sm font-medium text-foreground">{format(new Date(a.data_hora), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Local</p>
+                    <p className="text-sm font-medium text-foreground">{a.local || "Não definido"}</p>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Processo</p>
+                  <p className="text-sm font-medium text-foreground">
+                    {(a as any).processos?.numero
+                      ? `${(a as any).processos.numero} — ${(a as any).processos.assunto}`
+                      : "Sem vínculo a processo"}
+                  </p>
+                </div>
+                {a.observacoes && (
+                  <div>
+                    <p className="text-xs text-muted-foreground">Observações</p>
+                    <p className="text-sm text-foreground">{a.observacoes}</p>
+                  </div>
+                )}
+
+                {/* Envolvidos (audiências sem processo) */}
+                {!a.processo_id && (
+                  <div className="border-t pt-3">
+                    <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+                      <UserPlus className="h-3.5 w-3.5" /> Envolvidos
+                    </p>
+                    {detailEnvolvidos && detailEnvolvidos.length > 0 ? (
+                      <div className="space-y-1.5">
+                        {detailEnvolvidos.map((e: any) => (
+                          <div key={e.id} className="bg-muted/50 rounded-lg px-3 py-2 text-sm">
+                            <span className="font-medium text-foreground">{e.nome}</span>
+                            {e.id_personagem && <span className="text-muted-foreground ml-1 text-xs">(ID: {e.id_personagem})</span>}
+                            <span className="text-xs text-muted-foreground ml-2 capitalize">— {e.tipo}</span>
+                            {e.observacoes && <p className="text-xs text-muted-foreground italic">{e.observacoes}</p>}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground text-center py-2">Nenhum envolvido registrado.</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </DialogContent>
       </Dialog>
 
@@ -336,7 +387,8 @@ export default function AudienciasSection() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="bg-card rounded-xl p-4 border border-border shadow-institutional"
+              className="bg-card rounded-xl p-4 border border-border shadow-institutional cursor-pointer hover:border-institutional/40 transition-colors"
+              onClick={() => setDetailId(a.id)}
             >
               <div className="flex items-center gap-3">
                 <div className="bg-institutional/10 rounded-lg p-2">
@@ -350,18 +402,11 @@ export default function AudienciasSection() {
                     {a.tipo} — {a.local}
                     {a.processos?.numero ? ` — Processo: ${a.processos.numero}` : " — Sem processo vinculado"}
                   </p>
-                  {a.observacoes && <p className="text-xs text-muted-foreground mt-0.5 italic">{a.observacoes}</p>}
+                  {a.observacoes && <p className="text-xs text-muted-foreground mt-0.5 italic truncate">{a.observacoes}</p>}
                 </div>
-                <div className="flex items-center gap-2 ml-auto shrink-0">
-                  {!a.processo_id && (
-                    <Button variant="outline" size="sm" className="gap-1 text-xs" onClick={() => setDetailId(a.id)}>
-                      <UserPlus className="h-3.5 w-3.5" /> Envolvidos
-                    </Button>
-                  )}
-                  <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-gold/10 text-gold-dark">
-                    {a.status}
-                  </span>
-                </div>
+                <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-gold/10 text-gold-dark ml-auto shrink-0">
+                  {a.status}
+                </span>
               </div>
             </motion.div>
           ))}
