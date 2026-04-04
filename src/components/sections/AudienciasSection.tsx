@@ -15,27 +15,22 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from "sonner";
 import { PersonLookupInput } from "@/components/PersonLookupInput";
 
-const TIPOS_AUDIENCIA = [
-  "instrução",
-  "conciliação",
-  "julgamento",
-  "custódia",
-  "justificação",
-  "admonitória",
-];
+const TIPOS_AUDIENCIA = ["instrução", "conciliação", "julgamento", "custódia", "justificação", "admonitória"];
+const TIPOS_ENVOLVIDO = ["participante", "testemunha", "perito", "outro"];
 
-const TIPOS_ENVOLVIDO = [
-  "participante",
-  "testemunha",
-  "perito",
-  "outro",
-];
+interface EnvolvidoLocal {
+  nome: string;
+  tipo: string;
+  id_personagem: string;
+  observacoes: string;
+  user_id?: string | null;
+}
 
 export default function AudienciasSection() {
   const { roles, user } = useAuth();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [envolvidosDialogId, setEnvolvidosDialogId] = useState<string | null>(null);
+  const [detailId, setDetailId] = useState<string | null>(null);
 
   const isMagistrado = roles.some(r => ["magistrado", "desembargador", "presidente_tribunal", "admin"].includes(r));
 
@@ -51,19 +46,19 @@ export default function AudienciasSection() {
     },
   });
 
-  const { data: envolvidos } = useQuery({
-    queryKey: ["envolvidos-audiencia", envolvidosDialogId],
+  const { data: detailEnvolvidos } = useQuery({
+    queryKey: ["envolvidos-audiencia", detailId],
     queryFn: async () => {
-      if (!envolvidosDialogId) return [];
+      if (!detailId) return [];
       const { data, error } = await supabase
         .from("envolvidos_audiencia")
         .select("*")
-        .eq("audiencia_id", envolvidosDialogId)
+        .eq("audiencia_id", detailId)
         .order("created_at", { ascending: true });
       if (error) throw error;
       return data;
     },
-    enabled: !!envolvidosDialogId,
+    enabled: !!detailId,
   });
 
   const { data: processos } = useQuery({
@@ -88,7 +83,19 @@ export default function AudienciasSection() {
     observacoes: "",
   });
 
-  const [envForm, setEnvForm] = useState({ nome: "", tipo: "participante", id_personagem: "", observacoes: "" });
+  // Envolvidos adicionados no formulário de agendamento (audiências sem processo)
+  const [envolvidos, setEnvolvidos] = useState<EnvolvidoLocal[]>([]);
+  const [envForm, setEnvForm] = useState<EnvolvidoLocal>({ nome: "", tipo: "participante", id_personagem: "", observacoes: "" });
+
+  const addEnvolvidoLocal = () => {
+    if (!envForm.nome.trim()) return;
+    setEnvolvidos(prev => [...prev, { ...envForm }]);
+    setEnvForm({ nome: "", tipo: "participante", id_personagem: "", observacoes: "" });
+  };
+
+  const removeEnvolvidoLocal = (idx: number) => {
+    setEnvolvidos(prev => prev.filter((_, i) => i !== idx));
+  };
 
   const createMutation = useMutation({
     mutationFn: async () => {
@@ -100,10 +107,13 @@ export default function AudienciasSection() {
         observacoes: form.observacoes || null,
         processo_id: form.processo_id || null,
       };
-      const { error } = await supabase.from("audiencias").insert(payload);
+      const { data: inserted, error } = await supabase.from("audiencias").insert(payload).select("id").single();
       if (error) throw error;
 
+      const dataFormatada = format(new Date(form.data_hora), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
+
       if (form.processo_id) {
+        // Notificar partes do processo
         const { data: proc } = await supabase
           .from("processos")
           .select("numero, advogado_autor_id, advogado_reu_id, juiz_id")
@@ -115,7 +125,6 @@ export default function AudienciasSection() {
           .select("user_id")
           .eq("processo_id", form.processo_id);
 
-        const dataFormatada = format(new Date(form.data_hora), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
         const userIds = new Set<string>();
         if (proc?.advogado_autor_id) userIds.add(proc.advogado_autor_id);
         if (proc?.advogado_reu_id) userIds.add(proc.advogado_reu_id);
@@ -130,8 +139,38 @@ export default function AudienciasSection() {
           tipo: "audiencia",
           link_secao: "audiencias",
         }));
-        if (notifs.length > 0) {
-          await supabase.from("notificacoes").insert(notifs);
+        if (notifs.length > 0) await supabase.from("notificacoes").insert(notifs);
+      } else if (envolvidos.length > 0) {
+        // Inserir envolvidos e notificar por user_id (se encontrado pelo id_personagem)
+        const envsToInsert = envolvidos.map(e => ({
+          audiencia_id: inserted.id,
+          nome: e.nome,
+          tipo: e.tipo,
+          id_personagem: e.id_personagem || null,
+          observacoes: e.observacoes || null,
+        }));
+        await supabase.from("envolvidos_audiencia").insert(envsToInsert);
+
+        // Buscar user_ids dos envolvidos pelo id_personagem para notificar
+        const idsPersonagem = envolvidos.map(e => e.id_personagem).filter(Boolean);
+        if (idsPersonagem.length > 0) {
+          const { data: profiles } = await supabase
+            .from("profiles")
+            .select("user_id, id_personagem")
+            .in("id_personagem", idsPersonagem);
+
+          const userIds = new Set<string>();
+          profiles?.forEach(p => userIds.add(p.user_id));
+          if (user?.id) userIds.delete(user.id);
+
+          const notifs = Array.from(userIds).map(uid => ({
+            user_id: uid,
+            titulo: "Audiência Agendada",
+            mensagem: `Você foi incluído como envolvido em audiência de ${form.tipo} agendada para ${dataFormatada}. Local: ${form.local || "A definir"}`,
+            tipo: "audiencia",
+            link_secao: "audiencias",
+          }));
+          if (notifs.length > 0) await supabase.from("notificacoes").insert(notifs);
         }
       }
     },
@@ -140,44 +179,12 @@ export default function AudienciasSection() {
       queryClient.invalidateQueries({ queryKey: ["audiencias"] });
       setOpen(false);
       setForm({ tipo: "instrução", data_hora: "", local: "Sala de Audiências 1", processo_id: "", observacoes: "" });
+      setEnvolvidos([]);
     },
     onError: (e: any) => toast.error("Erro ao agendar: " + e.message),
   });
 
-  const addEnvolvidoMutation = useMutation({
-    mutationFn: async () => {
-      if (!envolvidosDialogId || !envForm.nome.trim()) throw new Error("Nome obrigatório");
-      const { error } = await supabase.from("envolvidos_audiencia").insert({
-        audiencia_id: envolvidosDialogId,
-        nome: envForm.nome.trim(),
-        tipo: envForm.tipo,
-        id_personagem: envForm.id_personagem || null,
-        observacoes: envForm.observacoes || null,
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Envolvido adicionado!");
-      queryClient.invalidateQueries({ queryKey: ["envolvidos-audiencia", envolvidosDialogId] });
-      setEnvForm({ nome: "", tipo: "participante", id_personagem: "", observacoes: "" });
-    },
-    onError: (e: any) => toast.error("Erro: " + e.message),
-  });
-
-  const removeEnvolvidoMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("envolvidos_audiencia").delete().eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Envolvido removido!");
-      queryClient.invalidateQueries({ queryKey: ["envolvidos-audiencia", envolvidosDialogId] });
-    },
-    onError: (e: any) => toast.error("Erro: " + e.message),
-  });
-
-  const audienciaEnvolvidos = envolvidosDialogId ? audiencias?.find((a: any) => a.id === envolvidosDialogId) : null;
-  const isAudienciaSemProcesso = audienciaEnvolvidos && !audienciaEnvolvidos.processo_id;
+  const showEnvolvidos = !form.processo_id;
 
   return (
     <div className="space-y-6">
@@ -187,13 +194,13 @@ export default function AudienciasSection() {
           <p className="text-sm text-muted-foreground">Pauta de audiências da Comarca</p>
         </div>
         {isMagistrado && (
-          <Dialog open={open} onOpenChange={setOpen}>
+          <Dialog open={open} onOpenChange={o => { setOpen(o); if (!o) { setEnvolvidos([]); setEnvForm({ nome: "", tipo: "participante", id_personagem: "", observacoes: "" }); } }}>
             <DialogTrigger asChild>
               <Button size="sm" className="gap-2">
                 <Plus className="h-4 w-4" /> Agendar Audiência
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-lg">
+            <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Nova Audiência</DialogTitle>
               </DialogHeader>
@@ -226,9 +233,7 @@ export default function AudienciasSection() {
                     <SelectContent>
                       <SelectItem value="__none__">Sem vínculo a processo</SelectItem>
                       {processos?.map(p => (
-                        <SelectItem key={p.id} value={p.id}>
-                          {p.numero} — {p.assunto}
-                        </SelectItem>
+                        <SelectItem key={p.id} value={p.id}>{p.numero} — {p.assunto}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -236,8 +241,55 @@ export default function AudienciasSection() {
 
                 <div className="space-y-1.5">
                   <Label>Observações</Label>
-                  <Textarea value={form.observacoes} onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))} rows={3} placeholder="Informações adicionais..." />
+                  <Textarea value={form.observacoes} onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))} rows={2} placeholder="Informações adicionais..." />
                 </div>
+
+                {/* Envolvidos — apenas quando sem processo */}
+                {showEnvolvidos && (
+                  <div className="border rounded-lg p-3 space-y-3 bg-muted/30">
+                    <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+                      <UserPlus className="h-4 w-4" /> Envolvidos na Audiência
+                    </p>
+
+                    {envolvidos.length > 0 && (
+                      <div className="space-y-1.5">
+                        {envolvidos.map((e, idx) => (
+                          <div key={idx} className="flex items-center justify-between bg-background rounded-md px-2.5 py-1.5 text-sm border">
+                            <div>
+                              <span className="font-medium">{e.nome}</span>
+                              {e.id_personagem && <span className="text-muted-foreground ml-1 text-xs">(ID: {e.id_personagem})</span>}
+                              <span className="text-xs text-muted-foreground ml-1.5 capitalize">— {e.tipo}</span>
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => removeEnvolvidoLocal(idx)}>
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <PersonLookupInput
+                      nomeValue={envForm.nome}
+                      onNomeChange={nome => setEnvForm(f => ({ ...f, nome }))}
+                      onLookupResult={p => { if (p) setEnvForm(f => ({ ...f, nome: p.nome_completo, id_personagem: p.id_personagem || "" })); }}
+                      idValue={envForm.id_personagem}
+                      onIdChange={id => setEnvForm(f => ({ ...f, id_personagem: id }))}
+                      compact
+                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <Select value={envForm.tipo} onValueChange={v => setEnvForm(f => ({ ...f, tipo: v }))}>
+                        <SelectTrigger className="text-xs h-8"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {TIPOS_ENVOLVIDO.map(t => <SelectItem key={t} value={t} className="capitalize text-xs">{t}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <Input className="h-8 text-xs" value={envForm.observacoes} onChange={e => setEnvForm(f => ({ ...f, observacoes: e.target.value }))} placeholder="Obs. (opcional)" />
+                    </div>
+                    <Button type="button" variant="outline" size="sm" className="w-full gap-1 text-xs" disabled={!envForm.nome.trim()} onClick={addEnvolvidoLocal}>
+                      <Plus className="h-3 w-3" /> Adicionar Envolvido
+                    </Button>
+                  </div>
+                )}
 
                 <Button className="w-full" disabled={!form.data_hora || createMutation.isPending} onClick={() => createMutation.mutate()}>
                   {createMutation.isPending ? "Agendando..." : "Agendar Audiência"}
@@ -248,69 +300,26 @@ export default function AudienciasSection() {
         )}
       </div>
 
-      {/* Dialog de envolvidos */}
-      <Dialog open={!!envolvidosDialogId} onOpenChange={o => { if (!o) setEnvolvidosDialogId(null); }}>
-        <DialogContent className="max-w-lg">
+      {/* Dialog detalhes envolvidos */}
+      <Dialog open={!!detailId} onOpenChange={o => { if (!o) setDetailId(null); }}>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Envolvidos na Audiência</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 pt-2">
-            {/* Lista de envolvidos */}
-            {envolvidos && envolvidos.length > 0 ? (
-              <div className="space-y-2 max-h-48 overflow-y-auto">
-                {envolvidos.map((e: any) => (
-                  <div key={e.id} className="flex items-center justify-between bg-muted/50 rounded-lg px-3 py-2 text-sm">
-                    <div>
-                      <span className="font-medium text-foreground">{e.nome}</span>
-                      {e.id_personagem && <span className="text-muted-foreground ml-1">(ID: {e.id_personagem})</span>}
-                      <span className="text-xs text-muted-foreground ml-2 capitalize">— {e.tipo}</span>
-                      {e.observacoes && <p className="text-xs text-muted-foreground italic">{e.observacoes}</p>}
-                    </div>
-                    {isMagistrado && (
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => removeEnvolvidoMutation.mutate(e.id)}>
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground text-center py-2">Nenhum envolvido adicionado.</p>
-            )}
-
-            {/* Form para adicionar */}
-            {isMagistrado && (
-              <div className="border-t pt-3 space-y-3">
-                <p className="text-sm font-medium text-foreground">Adicionar envolvido</p>
-                <PersonLookupInput
-                  nomeValue={envForm.nome}
-                  onNomeChange={nome => setEnvForm(f => ({ ...f, nome }))}
-                  onLookupResult={p => { if (p) setEnvForm(f => ({ ...f, nome: p.nome_completo, id_personagem: p.id_personagem || "" })); }}
-                  idValue={envForm.id_personagem}
-                  onIdChange={id => setEnvForm(f => ({ ...f, id_personagem: id }))}
-                  compact
-                />
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label>Tipo</Label>
-                    <Select value={envForm.tipo} onValueChange={v => setEnvForm(f => ({ ...f, tipo: v }))}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {TIPOS_ENVOLVIDO.map(t => <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Observações</Label>
-                    <Input value={envForm.observacoes} onChange={e => setEnvForm(f => ({ ...f, observacoes: e.target.value }))} placeholder="Opcional" />
-                  </div>
+          {detailEnvolvidos && detailEnvolvidos.length > 0 ? (
+            <div className="space-y-2">
+              {detailEnvolvidos.map((e: any) => (
+                <div key={e.id} className="bg-muted/50 rounded-lg px-3 py-2 text-sm">
+                  <span className="font-medium text-foreground">{e.nome}</span>
+                  {e.id_personagem && <span className="text-muted-foreground ml-1">(ID: {e.id_personagem})</span>}
+                  <span className="text-xs text-muted-foreground ml-2 capitalize">— {e.tipo}</span>
+                  {e.observacoes && <p className="text-xs text-muted-foreground italic">{e.observacoes}</p>}
                 </div>
-                <Button size="sm" className="w-full gap-2" disabled={!envForm.nome.trim() || addEnvolvidoMutation.isPending} onClick={() => addEnvolvidoMutation.mutate()}>
-                  <UserPlus className="h-4 w-4" /> {addEnvolvidoMutation.isPending ? "Adicionando..." : "Adicionar"}
-                </Button>
-              </div>
-            )}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-4">Nenhum envolvido registrado.</p>
+          )}
         </DialogContent>
       </Dialog>
 
@@ -344,8 +353,8 @@ export default function AudienciasSection() {
                   {a.observacoes && <p className="text-xs text-muted-foreground mt-0.5 italic">{a.observacoes}</p>}
                 </div>
                 <div className="flex items-center gap-2 ml-auto shrink-0">
-                  {!a.processo_id && isMagistrado && (
-                    <Button variant="outline" size="sm" className="gap-1 text-xs" onClick={() => setEnvolvidosDialogId(a.id)}>
+                  {!a.processo_id && (
+                    <Button variant="outline" size="sm" className="gap-1 text-xs" onClick={() => setDetailId(a.id)}>
                       <UserPlus className="h-3.5 w-3.5" /> Envolvidos
                     </Button>
                   )}
