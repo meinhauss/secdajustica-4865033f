@@ -283,12 +283,12 @@ export default function AudienciasSection() {
               <div className="border-t pt-3 space-y-3">
                 <p className="text-sm font-medium text-foreground">Adicionar envolvido</p>
                 <PersonLookupInput
-                  label="Nome"
-                  value={envForm.nome}
-                  onChange={nome => setEnvForm(f => ({ ...f, nome }))}
-                  onPersonFound={p => setEnvForm(f => ({ ...f, nome: p.nome_completo, id_personagem: p.id_personagem || "" }))}
+                  nomeValue={envForm.nome}
+                  onNomeChange={nome => setEnvForm(f => ({ ...f, nome }))}
+                  onLookupResult={p => { if (p) setEnvForm(f => ({ ...f, nome: p.nome_completo, id_personagem: p.id_personagem || "" })); }}
                   idValue={envForm.id_personagem}
                   onIdChange={id => setEnvForm(f => ({ ...f, id_personagem: id }))}
+                  compact
                 />
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
