@@ -66,15 +66,49 @@ export default function AudienciasSection() {
 
   const createMutation = useMutation({
     mutationFn: async () => {
+      const dataHoraISO = new Date(form.data_hora).toISOString();
       const payload: any = {
         tipo: form.tipo,
-        data_hora: new Date(form.data_hora).toISOString(),
+        data_hora: dataHoraISO,
         local: form.local || null,
         observacoes: form.observacoes || null,
         processo_id: form.processo_id || null,
       };
       const { error } = await supabase.from("audiencias").insert(payload);
       if (error) throw error;
+
+      // Notify parties if linked to a processo
+      if (form.processo_id) {
+        const { data: proc } = await supabase
+          .from("processos")
+          .select("numero, advogado_autor_id, advogado_reu_id, juiz_id")
+          .eq("id", form.processo_id)
+          .single();
+
+        const { data: interessados } = await supabase
+          .from("interessados_processo")
+          .select("user_id")
+          .eq("processo_id", form.processo_id);
+
+        const dataFormatada = format(new Date(form.data_hora), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
+        const userIds = new Set<string>();
+        if (proc?.advogado_autor_id) userIds.add(proc.advogado_autor_id);
+        if (proc?.advogado_reu_id) userIds.add(proc.advogado_reu_id);
+        if (proc?.juiz_id) userIds.add(proc.juiz_id);
+        interessados?.forEach(i => userIds.add(i.user_id));
+        if (user?.id) userIds.delete(user.id);
+
+        const notifs = Array.from(userIds).map(uid => ({
+          user_id: uid,
+          titulo: "Audiência Agendada",
+          mensagem: `Audiência de ${form.tipo} agendada para ${dataFormatada} — Processo ${proc?.numero || ""}. Local: ${form.local || "A definir"}`,
+          tipo: "audiencia",
+          link_secao: "audiencias",
+        }));
+        if (notifs.length > 0) {
+          await supabase.from("notificacoes").insert(notifs);
+        }
+      }
     },
     onSuccess: () => {
       toast.success("Audiência agendada com sucesso!");
