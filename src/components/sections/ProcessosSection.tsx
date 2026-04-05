@@ -1527,7 +1527,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             const usedDocIds = new Set<string>();
 
             // Types that already have dedicated timeline entries (atos, sentenças, audiências, etc.)
-            const duplicatedMovTypes = new Set(["despacho", "sentenca", "audiencia_designada", "mandado_expedido", "intimacao"]);
+            const duplicatedMovTypes = new Set(["despacho", "sentenca", "audiencia_designada", "mandado_expedido", "intimacao", "certidao_oficial"]);
 
             // Movimentações — attach related documents, skip types rendered by dedicated sections
             movimentacoes?.forEach(m => {
