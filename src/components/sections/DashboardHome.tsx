@@ -7,7 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-const JUDICIAL_ROLES = ["admin", "magistrado", "presidente_tribunal", "desembargador", "ministerio_publico", "advogado"];
+const JUDICIAL_ROLES = ["admin", "magistrado", "presidente_tribunal", "desembargador", "ministerio_publico", "advogado", "procurador_estado"];
 
 interface DashboardHomeProps {
   onNavigate?: (section: string) => void;

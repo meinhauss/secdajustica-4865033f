@@ -28,6 +28,7 @@ const ROLE_LABELS: Record<string, string> = {
   presidente_oab: "Presidente da OAB",
   procurador_geral: "Procurador(a)-Geral",
   bacharel_direito: "Bacharel em Direito",
+  procurador_estado: "Procurador(a) Geral do Estado",
 };
 
 interface InstitutionInfo {
@@ -45,6 +46,8 @@ function getInstitutionForRole(role: string): InstitutionInfo {
     case "ministerio_publico":
     case "procurador_geral":
       return { name: "Ministério Público de São Paulo", logo: logoMpsp };
+    case "procurador_estado":
+      return { name: "Procuradoria Geral do Estado", logo: logoSjc };
     case "advogado":
     case "presidente_oab":
     case "bacharel_direito":
@@ -57,7 +60,7 @@ function getInstitutionForRole(role: string): InstitutionInfo {
 function getPrimaryRole(roles: string[]): string {
   const priority = [
     "presidente_tribunal", "desembargador", "magistrado",
-    "procurador_geral", "ministerio_publico",
+    "procurador_geral", "procurador_estado", "ministerio_publico",
     "presidente_oab", "advogado",
     "oficial_justica", "bacharel_direito",
     "admin", "cidadao",
