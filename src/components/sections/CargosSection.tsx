@@ -119,6 +119,16 @@ const ROLE_HIERARCHY = [
   },
   {
     level: 11,
+    role: "procurador_estado",
+    label: "Procurador Geral do Estado",
+    icon: Scale,
+    color: "text-indigo-600",
+    bgColor: "bg-indigo-600/10",
+    description: "Advogado do Estado. Representa e defende os interesses do Estado em processos judiciais e administrativos.",
+    permissions: ["ver_processos", "peticoes", "pareceres", "consulta_publica"],
+  },
+  {
+    level: 11,
     role: "oficial_justica",
     label: "Oficial de Justiça",
     icon: BadgeCheck,
