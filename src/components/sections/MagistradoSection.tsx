@@ -737,6 +737,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     { value: "hospital", label: "Hospital" },
     { value: "presidente_oab", label: "Presidente da OAB" },
     { value: "procurador_geral", label: "Procurador(a)-Geral" },
+    { value: "procurador_estado", label: "Procurador(a) Geral do Estado" },
     { value: "desembargador", label: "Desembargador(a)" },
     { value: "presidente_tribunal", label: "Presidente do Tribunal" },
   ];
