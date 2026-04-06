@@ -1219,7 +1219,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             processoId={processoId}
             advAutor={advAutor}
             advReu={advReu}
-            canEdit={isJudicial || isAssignedJudge}
+            canEdit={isJudicial || isAssignedJudge || isMagistradoOrDesembargador}
             userId={user?.id}
             profileName={profile?.nome_completo}
           />
