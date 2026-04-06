@@ -644,6 +644,7 @@ function TabTransparencia() {
     policia_federal: "Polícia Federal",
     hospital: "Hospital",
     investigador: "Investigador(a)",
+    procurador_estado: "Procurador(a) Geral do Estado",
   };
 
   useState(() => {

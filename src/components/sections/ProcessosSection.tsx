@@ -626,7 +626,8 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const isPolicia = roles.some(r => ["policia_civil", "policia_militar", "policia_federal"].includes(r));
   const isHospital = roles.includes("hospital");
   const isProcuradorGeral = roles.includes("procurador_geral");
-  const isInstitucional = isMP || isProcuradorGeral || isPolicia || isHospital;
+  const isProcuradorEstado = roles.includes("procurador_estado");
+  const isInstitucional = isMP || isProcuradorGeral || isProcuradorEstado || isPolicia || isHospital;
   // Move processo query up so we can compute permissions based on juiz_id
   const { data: processo } = useQuery({
     queryKey: ["processo", processoId],
@@ -956,14 +957,15 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const ORGAOS_INTERESSADOS = [
     { role: "ministerio_publico", label: "Ministério Público" },
     { role: "procurador_geral", label: "Procuradoria-Geral" },
+    { role: "procurador_estado", label: "Procuradoria Geral do Estado" },
     { role: "policia_civil", label: "Polícia Civil" },
     { role: "policia_militar", label: "Polícia Militar" },
     { role: "policia_federal", label: "Polícia Federal" },
     { role: "hospital", label: "Hospital" },
   ];
 
-  const canManifestInteresse = roles.some(r => ["ministerio_publico", "procurador_geral", "policia_civil", "policia_militar", "policia_federal", "hospital"].includes(r));
-  const userOrgao = roles.includes("procurador_geral") ? "Procuradoria-Geral" : roles.includes("ministerio_publico") ? "Ministério Público" : roles.includes("policia_civil") ? "Polícia Civil" : roles.includes("policia_militar") ? "Polícia Militar" : roles.includes("policia_federal") ? "Polícia Federal" : roles.includes("hospital") ? "Hospital" : null;
+  const canManifestInteresse = roles.some(r => ["ministerio_publico", "procurador_geral", "procurador_estado", "policia_civil", "policia_militar", "policia_federal", "hospital"].includes(r));
+  const userOrgao = roles.includes("procurador_estado") ? "Procuradoria Geral do Estado" : roles.includes("procurador_geral") ? "Procuradoria-Geral" : roles.includes("ministerio_publico") ? "Ministério Público" : roles.includes("policia_civil") ? "Polícia Civil" : roles.includes("policia_militar") ? "Polícia Militar" : roles.includes("policia_federal") ? "Polícia Federal" : roles.includes("hospital") ? "Hospital" : null;
   const jaInteressado = interessadosData?.some(i => i.user_id === user?.id);
 
   // Institutional roles (MP/PC/PM/PF/Hospital) can only move after qualifying as interested
@@ -976,7 +978,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const manifestarInteresse = useMutation({
     mutationFn: async () => {
       if (!userOrgao) throw new Error("Seu cargo não permite manifestar-se como interessado.");
-      const qualificacao = (roles.includes("ministerio_publico") || roles.includes("procurador_geral")) && processo?.classe !== "criminal" ? "custos legis" : "interessado";
+      const qualificacao = (roles.includes("ministerio_publico") || roles.includes("procurador_geral") || roles.includes("procurador_estado")) && processo?.classe !== "criminal" ? "custos legis" : "interessado";
       const { error } = await supabase.from("interessados_processo").insert({
         processo_id: processoId, user_id: user?.id, orgao: userOrgao, qualificacao,
       } as any);

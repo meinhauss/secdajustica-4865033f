@@ -557,6 +557,7 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
       const cargoRoleMap: Record<string, string> = {
         "Juiz de Direito": "magistrado", "Promotor de Justiça": "ministerio_publico",
         "Procurador-Geral de Justiça": "procurador_geral",
+        "Procurador Geral do Estado": "procurador_estado",
         "Polícia Civil": "policia_civil", "Polícia Militar": "policia_militar",
         "Polícia Federal": "policia_federal", "Oficial de Justiça": "oficial_justica",
       };
