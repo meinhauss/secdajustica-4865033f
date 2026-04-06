@@ -955,17 +955,27 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   });
 
   const ORGAOS_INTERESSADOS = [
+    { role: "admin", label: "Administração" },
+    { role: "magistrado", label: "Magistratura" },
     { role: "ministerio_publico", label: "Ministério Público" },
     { role: "procurador_geral", label: "Procuradoria-Geral" },
     { role: "procurador_estado", label: "Procuradoria Geral do Estado" },
+    { role: "oficial_justica", label: "Oficial de Justiça" },
+    { role: "advogado", label: "Advocacia" },
+    { role: "presidente_tribunal", label: "Presidência do Tribunal" },
+    { role: "desembargador", label: "Desembargadoria" },
+    { role: "presidente_oab", label: "Presidência da OAB" },
+    { role: "investigador", label: "Investigação" },
     { role: "policia_civil", label: "Polícia Civil" },
     { role: "policia_militar", label: "Polícia Militar" },
     { role: "policia_federal", label: "Polícia Federal" },
     { role: "hospital", label: "Hospital" },
   ];
 
-  const canManifestInteresse = roles.some(r => ["ministerio_publico", "procurador_geral", "procurador_estado", "policia_civil", "policia_militar", "policia_federal", "hospital"].includes(r));
-  const userOrgao = roles.includes("procurador_estado") ? "Procuradoria Geral do Estado" : roles.includes("procurador_geral") ? "Procuradoria-Geral" : roles.includes("ministerio_publico") ? "Ministério Público" : roles.includes("policia_civil") ? "Polícia Civil" : roles.includes("policia_militar") ? "Polícia Militar" : roles.includes("policia_federal") ? "Polícia Federal" : roles.includes("hospital") ? "Hospital" : null;
+  const ROLES_NAO_MANIFESTAM = ["cidadao", "bacharel_direito"];
+  const canManifestInteresse = roles.some(r => !ROLES_NAO_MANIFESTAM.includes(r));
+  const userOrgaoEntry = ORGAOS_INTERESSADOS.find(o => roles.includes(o.role));
+  const userOrgao = userOrgaoEntry?.label ?? null;
   const jaInteressado = interessadosData?.some(i => i.user_id === user?.id);
 
   // Institutional roles (MP/PC/PM/PF/Hospital) can only move after qualifying as interested
