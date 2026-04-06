@@ -24,6 +24,7 @@ const ROLE_LABELS: Record<string, string> = {
   procurador_geral: "Procurador-Geral",
   bacharel_direito: "Bacharel em Direito",
   hospital: "Hospital",
+  procurador_estado: "Procurador Geral do Estado",
 };
 
 export default function UsuariosSection() {
