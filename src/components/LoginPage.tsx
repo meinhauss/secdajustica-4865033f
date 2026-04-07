@@ -30,7 +30,7 @@ export default function LoginPage() {
   const [idPersonagem, setIdPersonagem] = useState("");
   const [telefoneIngame, setTelefoneIngame] = useState("");
   const [loading, setLoading] = useState(false);
-  const [unispOptIn, setUnispOptIn] = useState(true);
+  const [unispOptIn, setUnispOptIn] = useState(false);
   const [unispAreaInteresse, setUnispAreaInteresse] = useState("juridico_publico");
   const [unispMotivacao, setUnispMotivacao] = useState("");
 
