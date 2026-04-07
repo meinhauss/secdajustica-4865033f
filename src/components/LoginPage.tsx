@@ -82,7 +82,7 @@ export default function LoginPage() {
   { id: "ouvidoria", label: "Ouvidoria MP" },
   { id: "transparencia", label: "Transparência" },
   { id: "concursos", label: "Concursos" },
-  { id: "unisp", label: "🎓 UNISP" }];
+  { id: "unisp", label: "UNISP" }];
 
 
   return (
