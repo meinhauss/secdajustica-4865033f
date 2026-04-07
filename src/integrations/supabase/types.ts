@@ -1244,6 +1244,51 @@ export type Database = {
         }
         Relationships: []
       }
+      inscricoes_unisp: {
+        Row: {
+          area_interesse: string
+          cpf: string | null
+          created_at: string
+          email: string | null
+          id: string
+          id_personagem: string | null
+          motivacao: string
+          nome_completo: string
+          status: string
+          telefone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          area_interesse?: string
+          cpf?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          id_personagem?: string | null
+          motivacao: string
+          nome_completo: string
+          status?: string
+          telefone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          area_interesse?: string
+          cpf?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          id_personagem?: string | null
+          motivacao?: string
+          nome_completo?: string
+          status?: string
+          telefone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       interessados_processo: {
         Row: {
           created_at: string
