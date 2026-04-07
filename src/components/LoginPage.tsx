@@ -832,7 +832,7 @@ function TabLogin(props: LoginProps) {
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
             {isSignUp ?
-            "Registre-se e inscreva-se automaticamente na UNISP." :
+            "Registre-se no sistema jurídico" :
             "Faça login com sua conta do sistema judiciário."}
           </p>
         </div>
