@@ -260,6 +260,37 @@ function TabInicio({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
         </div>
       </div>
 
+      {/* UNISP CTA Banner */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          onClick={() => onNavigate("unisp")}
+          className="relative overflow-hidden rounded-2xl border-2 border-gold/30 bg-gradient-to-r from-institutional via-institutional-dark to-institutional p-8 cursor-pointer hover:border-gold/60 transition-all group"
+        >
+          <div className="absolute top-0 right-0 w-64 h-64 bg-gold/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
+            <div className="bg-gold/20 rounded-2xl p-4">
+              <GraduationCap className="h-12 w-12 text-gold" />
+            </div>
+            <div className="flex-1 text-center md:text-left">
+              <span className="text-[10px] uppercase tracking-[0.2em] text-gold font-bold">Inscrições Abertas</span>
+              <h3 className="font-display text-2xl font-bold text-sidebar-foreground mt-1">
+                UNISP — Universidade de Direito do Estado de São Paulo
+              </h3>
+              <p className="text-sidebar-foreground/60 text-sm mt-2 max-w-2xl">
+                Curso prático de Direito <strong className="text-gold">100% gratuito</strong>. Ideal para quem deseja atuar no jurídico público ou obter a OAB e advogar por conta própria.
+              </p>
+            </div>
+            <Button className="rounded-xl h-12 px-8 bg-gold hover:bg-gold-light text-institutional-dark font-semibold whitespace-nowrap group-hover:scale-105 transition-transform">
+              Inscreva-se Agora
+              <ChevronRight className="ml-1 h-4 w-4" />
+            </Button>
+          </div>
+        </motion.div>
+      </div>
+
       {/* News / Updates */}
       <div className="bg-secondary/50 py-12">
         <div className="max-w-7xl mx-auto px-4">
