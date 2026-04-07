@@ -840,6 +840,10 @@ interface LoginProps {
   setTelefoneIngame: (v: string) => void;
   loading: boolean;
   handleSubmit: (e: React.FormEvent) => void;
+  unispAreaInteresse: string;
+  setUnispAreaInteresse: (v: string) => void;
+  unispMotivacao: string;
+  setUnispMotivacao: (v: string) => void;
 }
 
 function TabLogin(props: LoginProps) {
