@@ -172,6 +172,8 @@ export default function LoginPage() {
               setTelefoneIngame={setTelefoneIngame}
               loading={loading}
               handleSubmit={handleSubmit}
+              unispOptIn={unispOptIn}
+              setUnispOptIn={setUnispOptIn}
               unispAreaInteresse={unispAreaInteresse}
               setUnispAreaInteresse={setUnispAreaInteresse}
               unispMotivacao={unispMotivacao}
@@ -844,6 +846,8 @@ interface LoginProps {
   setTelefoneIngame: (v: string) => void;
   loading: boolean;
   handleSubmit: (e: React.FormEvent) => void;
+  unispOptIn: boolean;
+  setUnispOptIn: (v: boolean) => void;
   unispAreaInteresse: string;
   setUnispAreaInteresse: (v: string) => void;
   unispMotivacao: string;
@@ -855,7 +859,7 @@ function TabLogin(props: LoginProps) {
     isSignUp, setIsSignUp, email, setEmail, password, setPassword,
     nome, setNome, discord, setDiscord, idPersonagem, setIdPersonagem,
     telefoneIngame, setTelefoneIngame, loading, handleSubmit,
-    unispAreaInteresse, setUnispAreaInteresse, unispMotivacao, setUnispMotivacao
+    unispOptIn, setUnispOptIn, unispAreaInteresse, setUnispAreaInteresse, unispMotivacao, setUnispMotivacao
   } = props;
 
   return (
