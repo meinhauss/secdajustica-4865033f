@@ -30,19 +30,38 @@ export default function LoginPage() {
   const [idPersonagem, setIdPersonagem] = useState("");
   const [telefoneIngame, setTelefoneIngame] = useState("");
   const [loading, setLoading] = useState(false);
+  const [unispAreaInteresse, setUnispAreaInteresse] = useState("juridico_publico");
+  const [unispMotivacao, setUnispMotivacao] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
       if (isSignUp) {
-        const { error } = await signUp(email, password, nome, {
+        if (!unispMotivacao.trim()) {
+          toast.error("Preencha a motivação para inscrição na UNISP.");
+          setLoading(false);
+          return;
+        }
+        const { data, error } = await signUp(email, password, nome, {
           discord,
           id_personagem: idPersonagem,
           telefone_ingame: telefoneIngame
         });
         if (error) throw error;
-        toast.success("Conta criada com sucesso! Bem-vindo ao sistema.");
+        // Insert UNISP inscription after signup
+        if (data?.user) {
+          await supabase.from("inscricoes_unisp").insert({
+            user_id: data.user.id,
+            nome_completo: nome.trim(),
+            email: email.trim() || null,
+            telefone: telefoneIngame.trim() || null,
+            id_personagem: idPersonagem.trim() || null,
+            motivacao: unispMotivacao.trim(),
+            area_interesse: unispAreaInteresse,
+          });
+        }
+        toast.success("Conta criada e inscrição na UNISP realizada com sucesso!");
       } else {
         const { error } = await signIn(email, password);
         if (error) throw error;
