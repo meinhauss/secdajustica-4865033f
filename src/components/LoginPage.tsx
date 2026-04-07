@@ -854,27 +854,20 @@ function TabLogin(props: LoginProps) {
   const {
     isSignUp, setIsSignUp, email, setEmail, password, setPassword,
     nome, setNome, discord, setDiscord, idPersonagem, setIdPersonagem,
-    telefoneIngame, setTelefoneIngame, loading, handleSubmit
+    telefoneIngame, setTelefoneIngame, loading, handleSubmit,
+    unispAreaInteresse, setUnispAreaInteresse, unispMotivacao, setUnispMotivacao
   } = props;
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
-      <div className="max-w-md mx-auto">
-        {/* GOV Header */}
+      <div className={`mx-auto ${isSignUp ? 'max-w-lg' : 'max-w-md'}`}>
         <div className="text-center mb-8">
-          
-
-
-
-
-
-          
           <h2 className="font-display text-2xl font-bold text-foreground">
             {isSignUp ? "Criar Conta GOV" : "Acesso GOV.BR"}
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
             {isSignUp ?
-            "Registre-se no sistema do Poder Judiciário." :
+            "Registre-se e inscreva-se automaticamente na UNISP." :
             "Faça login com sua conta do sistema judiciário."}
           </p>
         </div>
@@ -884,7 +877,7 @@ function TabLogin(props: LoginProps) {
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="space-y-3">
               <div>
                 <label className="text-[11px] uppercase tracking-widest font-semibold text-muted-foreground mb-1 block">
-                  Nome Completo (IN GAME)  
+                  Nome Completo (IN GAME)
                 </label>
                 <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Nome completo do seu personagem" required className="rounded-lg h-11" />
               </div>
@@ -906,6 +899,44 @@ function TabLogin(props: LoginProps) {
                     Tel. In-Game
                   </label>
                   <Input value={telefoneIngame} onChange={(e) => setTelefoneIngame(e.target.value)} placeholder="Telefone RP" required className="rounded-lg h-11" />
+                </div>
+              </div>
+
+              {/* UNISP Section */}
+              <div className="mt-2 p-4 rounded-xl border border-gold/30 bg-gold/5 space-y-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <GraduationCap className="h-4 w-4 text-gold" />
+                  <span className="text-xs font-bold text-gold uppercase tracking-wider">Inscrição UNISP</span>
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Ao criar sua conta, você será automaticamente inscrito no curso prático de Direito gratuito da UNISP.
+                </p>
+                <div>
+                  <label className="text-[11px] uppercase tracking-widest font-semibold text-muted-foreground mb-1 block">
+                    Área de Interesse *
+                  </label>
+                  <select
+                    value={unispAreaInteresse}
+                    onChange={(e) => setUnispAreaInteresse(e.target.value)}
+                    className="w-full h-11 rounded-lg border border-input bg-background px-3 text-sm"
+                  >
+                    <option value="juridico_publico">Carreira Jurídica Pública (Concursos)</option>
+                    <option value="advocacia_privada">Advocacia Privada (OAB)</option>
+                    <option value="ambos">Ambos — Público e Privado</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[11px] uppercase tracking-widest font-semibold text-muted-foreground mb-1 block">
+                    Motivação *
+                  </label>
+                  <textarea
+                    value={unispMotivacao}
+                    onChange={(e) => setUnispMotivacao(e.target.value)}
+                    placeholder="Por que você deseja cursar Direito na UNISP?"
+                    required
+                    rows={3}
+                    className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm min-h-[80px] resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  />
                 </div>
               </div>
             </motion.div>
