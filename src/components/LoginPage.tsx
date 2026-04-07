@@ -1121,59 +1121,6 @@ function TabConcursos({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
 }
 
 function TabUnisp({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
-  const [nome, setNome] = useState("");
-  const [emailU, setEmailU] = useState("");
-  const [telefone, setTelefone] = useState("");
-  const [cpf, setCpf] = useState("");
-  const [idPers, setIdPers] = useState("");
-  const [motivacao, setMotivacao] = useState("");
-  const [areaInteresse, setAreaInteresse] = useState("juridico_publico");
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!nome.trim() || !motivacao.trim()) {
-      toast.error("Preencha ao menos o nome e a motivação.");
-      return;
-    }
-    setSubmitting(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error("Você precisa estar logado para se inscrever. Faça login primeiro.");
-        onNavigate("login");
-        return;
-      }
-
-      const { error } = await supabase.from("inscricoes_unisp").insert({
-        user_id: user.id,
-        nome_completo: nome.trim(),
-        email: emailU.trim() || null,
-        telefone: telefone.trim() || null,
-        cpf: cpf.trim() || null,
-        id_personagem: idPers.trim() || null,
-        motivacao: motivacao.trim(),
-        area_interesse: areaInteresse,
-      });
-      if (error) {
-        if (error.message?.includes("row-level security")) {
-          toast.error("Você precisa estar logado para se inscrever.");
-          onNavigate("login");
-        } else {
-          throw error;
-        }
-        return;
-      }
-      setSubmitted(true);
-      toast.success("Inscrição realizada com sucesso!");
-    } catch (err: any) {
-      toast.error(err.message || "Erro ao enviar inscrição.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
       {/* Header */}
@@ -1219,88 +1166,34 @@ function TabUnisp({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
           ))}
         </div>
 
-        {/* Form */}
+        {/* CTA to Register */}
         <div className="lg:col-span-2">
-          {submitted ? (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-card rounded-2xl p-10 border border-border shadow-institutional text-center"
-            >
-              <div className="bg-accent/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <GraduationCap className="h-8 w-8 text-accent" />
-              </div>
-              <h3 className="font-display text-xl font-bold text-foreground mb-2">Inscrição Enviada!</h3>
-              <p className="text-muted-foreground text-sm">
-                Sua inscrição na UNISP foi recebida com sucesso. Você será notificado sobre o andamento do processo seletivo.
-              </p>
-            </motion.div>
-          ) : (
-            <motion.form
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              onSubmit={handleSubmit}
-              className="bg-card rounded-2xl p-8 border border-border shadow-institutional space-y-5"
-            >
-              <h3 className="font-display text-lg font-semibold text-foreground mb-1">Formulário de Inscrição</h3>
-              <p className="text-xs text-muted-foreground mb-4">Preencha seus dados para se candidatar ao curso de Direito da UNISP.</p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="sm:col-span-2">
-                  <label className="text-xs font-medium text-foreground mb-1 block">Nome Completo *</label>
-                  <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Seu nome completo" required className="rounded-xl" />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-foreground mb-1 block">E-mail</label>
-                  <Input type="email" value={emailU} onChange={(e) => setEmailU(e.target.value)} placeholder="seu@email.com" className="rounded-xl" />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-foreground mb-1 block">Telefone (In-Game)</label>
-                  <Input value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="Telefone in-game" className="rounded-xl" />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-foreground mb-1 block">CPF</label>
-                  <Input value={cpf} onChange={(e) => setCpf(e.target.value)} placeholder="000.000.000-00" className="rounded-xl" />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-foreground mb-1 block">ID do Personagem</label>
-                  <Input value={idPers} onChange={(e) => setIdPers(e.target.value)} placeholder="ID in-game" className="rounded-xl" />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="text-xs font-medium text-foreground mb-1 block">Área de Interesse *</label>
-                  <select
-                    value={areaInteresse}
-                    onChange={(e) => setAreaInteresse(e.target.value)}
-                    className="w-full h-10 rounded-xl border border-input bg-background px-3 text-sm"
-                  >
-                    <option value="juridico_publico">Carreira Jurídica Pública (Concursos)</option>
-                    <option value="advocacia_privada">Advocacia Privada (OAB)</option>
-                    <option value="ambos">Ambos — Público e Privado</option>
-                  </select>
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="text-xs font-medium text-foreground mb-1 block">Motivação *</label>
-                  <textarea
-                    value={motivacao}
-                    onChange={(e) => setMotivacao(e.target.value)}
-                    placeholder="Por que você deseja cursar Direito na UNISP? Quais são seus objetivos?"
-                    required
-                    rows={4}
-                    className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm min-h-[100px] resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  />
-                </div>
-              </div>
-
-              <Button type="submit" disabled={submitting} className="w-full h-12 rounded-xl bg-gold hover:bg-gold-light text-institutional-dark font-semibold text-base">
-                {submitting ? "Enviando..." : "Enviar Inscrição"}
-                <GraduationCap className="ml-2 h-5 w-5" />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-card rounded-2xl p-10 border border-border shadow-institutional text-center space-y-6"
+          >
+            <div className="bg-gold/10 rounded-full w-20 h-20 flex items-center justify-center mx-auto">
+              <GraduationCap className="h-10 w-10 text-gold" />
+            </div>
+            <h3 className="font-display text-2xl font-bold text-foreground">Como se inscrever?</h3>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              A inscrição na UNISP é feita automaticamente ao criar sua conta no sistema. 
+              Basta se registrar e preencher os dados de inscrição no formulário de cadastro.
+            </p>
+            <div className="space-y-3">
+              <Button
+                onClick={() => onNavigate("login")}
+                className="h-12 px-8 rounded-xl bg-gold hover:bg-gold-light text-institutional-dark font-semibold text-base"
+              >
+                Criar Conta e Inscrever-se
+                <ChevronRight className="ml-2 h-5 w-5" />
               </Button>
-
-              <p className="text-[10px] text-muted-foreground text-center">
-                É necessário possuir cadastro no sistema para se inscrever. Caso não possua, <button type="button" onClick={() => onNavigate("login")} className="text-gold hover:underline font-medium">clique aqui para criar sua conta</button>.
+              <p className="text-[11px] text-muted-foreground">
+                Já possui conta? <button type="button" onClick={() => onNavigate("login")} className="text-gold hover:underline font-medium">Faça login</button>.
               </p>
-            </motion.form>
-          )}
+            </div>
+          </motion.div>
         </div>
       </div>
     </div>
