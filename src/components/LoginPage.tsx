@@ -39,7 +39,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (isSignUp) {
-        if (!unispMotivacao.trim()) {
+        if (unispOptIn && !unispMotivacao.trim()) {
           toast.error("Preencha a motivação para inscrição na UNISP.");
           setLoading(false);
           return;
@@ -50,8 +50,7 @@ export default function LoginPage() {
           telefone_ingame: telefoneIngame
         });
         if (error) throw error;
-        // Insert UNISP inscription after signup
-        if (data?.user) {
+        if (data?.user && unispOptIn) {
           await supabase.from("inscricoes_unisp").insert({
             user_id: data.user.id,
             nome_completo: nome.trim(),
@@ -62,7 +61,7 @@ export default function LoginPage() {
             area_interesse: unispAreaInteresse,
           });
         }
-        toast.success("Conta criada e inscrição na UNISP realizada com sucesso!");
+        toast.success(unispOptIn ? "Conta criada e inscrição na UNISP realizada com sucesso!" : "Conta criada com sucesso!");
       } else {
         const { error } = await signIn(email, password);
         if (error) throw error;
