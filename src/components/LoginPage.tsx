@@ -171,7 +171,11 @@ export default function LoginPage() {
               telefoneIngame={telefoneIngame}
               setTelefoneIngame={setTelefoneIngame}
               loading={loading}
-              handleSubmit={handleSubmit} />
+              handleSubmit={handleSubmit}
+              unispAreaInteresse={unispAreaInteresse}
+              setUnispAreaInteresse={setUnispAreaInteresse}
+              unispMotivacao={unispMotivacao}
+              setUnispMotivacao={setUnispMotivacao} />
 
             }
           </motion.div>
