@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ConsultaPublicaSection from "@/components/sections/ConsultaPublicaSection";
 import {
-  Scale, Shield, Gavel, BookOpen, Building2, Users, FileText,
+  Scale, Shield, Gavel, BookOpen, Building2, Users, FileText, Briefcase,
   Phone, MapPin, Clock, ChevronRight, ExternalLink, GraduationCap, Stamp, Heart, Home, ScrollText, FileSignature, Baby } from
 "lucide-react";
 import logoTjsp from "@/assets/logo-tjsp.png";
