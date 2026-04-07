@@ -17,7 +17,7 @@ import govLogo from "@/assets/gov-logo.png";
 import logoCartorio from "@/assets/logo-cartorio-sp.png";
 import { toast } from "sonner";
 
-type Tab = "inicio" | "institucional" | "servicos" | "transparencia" | "concursos" | "login" | "credencial" | "ouvidoria" | "unisp";
+type Tab = "inicio" | "institucional" | "transparencia" | "concursos" | "login" | "credencial" | "ouvidoria" | "unisp";
 
 export default function LoginPage() {
   const { signIn, signUp } = useAuth();
@@ -77,7 +77,7 @@ export default function LoginPage() {
   const tabs: {id: Tab;label: string;}[] = [
   { id: "inicio", label: "Início" },
   { id: "institucional", label: "Institucional" },
-  { id: "servicos", label: "Serviços" },
+  
   { id: "credencial", label: "Consultar Credencial" },
   { id: "ouvidoria", label: "Ouvidoria MP" },
   { id: "transparencia", label: "Transparência" },
@@ -148,7 +148,7 @@ export default function LoginPage() {
             {activeTab === "inicio" && <TabInicio onNavigate={setActiveTab} />}
             {activeTab === "concursos" && <TabConcursos onNavigate={setActiveTab} />}
             {activeTab === "institucional" && <TabInstitucional />}
-            {activeTab === "servicos" && <TabServicos />}
+            
             {activeTab === "credencial" && <TabCredencial />}
             {activeTab === "ouvidoria" && <TabOuvidoria />}
             {activeTab === "unisp" && <TabUnisp onNavigate={setActiveTab} />}
@@ -206,7 +206,7 @@ export default function LoginPage() {
 function TabInicio({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
   const cards = [
   { icon: FileText, title: "Consulta Processual", desc: "Acompanhe processos judiciais em andamento na Comarca.", action: "Consultar", tab: "login" as Tab },
-  { icon: Stamp, title: "Cartório Civil", desc: "Certidões de nascimento, casamento, óbito, escrituras e mais.", action: "Saiba Mais", tab: "servicos" as Tab },
+  { icon: Stamp, title: "Cartório Civil", desc: "Certidões de nascimento, casamento, óbito, escrituras e mais.", action: "Saiba Mais", tab: "login" as Tab },
   { icon: Scale, title: "Ministério Público", desc: "Portal do Ministério Público para denúncias e pareceres.", action: "Acessar", tab: "login" as Tab },
   { icon: GraduationCap, title: "Concursos Públicos", desc: "Editais abertos, inscrições e resultados de concursos.", action: "Ver Editais", tab: "concursos" as Tab },
   { icon: Users, title: "Portal da OAB", desc: "Cadastro de advogados, carteira digital e honorários.", action: "Acessar", tab: "login" as Tab },
@@ -398,45 +398,6 @@ function TabInstitucional() {
                 </div>
               </div>
             </div>
-          </motion.div>
-        )}
-      </div>
-    </div>);
-
-}
-
-function TabServicos() {
-  const servicos = [
-  { title: "Consulta Processual", desc: "Pesquise processos por número, nome das partes ou assunto.", icon: FileText },
-  { title: "Peticionamento Eletrônico", desc: "Protocole petições e documentos diretamente no sistema.", icon: BookOpen },
-  { title: "Agendamento de Audiências", desc: "Consulte e agende audiências junto às varas competentes.", icon: Clock },
-  { title: "Emissão de Certidões", desc: "Solicite certidões negativas e de antecedentes criminais.", icon: FileText },
-  { title: "Cadastro OAB", desc: "Advogados podem se cadastrar e obter carteira digital.", icon: Users },
-  { title: "Certidão de Nascimento", desc: "Registro e emissão de certidões de nascimento via cartório.", icon: Baby },
-  { title: "Certidão de Casamento", desc: "Habilitação matrimonial e emissão de certidão de casamento.", icon: Heart },
-  { title: "Escrituras Públicas", desc: "Lavratura de escrituras de compra e venda de imóveis.", icon: Home },
-  { title: "Procuração Pública", desc: "Emissão de procurações com fé pública pelo cartório.", icon: ScrollText },
-  { title: "Reconhecimento de Firma", desc: "Autenticação de assinaturas em documentos oficiais.", icon: Stamp },
-  { title: "Registro de Contratos", desc: "Registro público de contratos e acordos civis.", icon: FileSignature }];
-
-
-  return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
-      <h2 className="font-display text-2xl font-bold text-foreground mb-2">Serviços Disponíveis</h2>
-      <p className="text-muted-foreground mb-8">Acesse os serviços digitais do Poder Judiciário.</p>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {servicos.map((s, i) =>
-        <motion.div
-          key={s.title}
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: i * 0.05 }}
-          className="bg-card rounded-xl p-5 border border-border shadow-institutional">
-          
-            <s.icon className="h-6 w-6 text-gold mb-3" />
-            <h4 className="font-display text-sm font-semibold text-foreground mb-1">{s.title}</h4>
-            <p className="text-xs text-muted-foreground">{s.desc}</p>
           </motion.div>
         )}
       </div>
