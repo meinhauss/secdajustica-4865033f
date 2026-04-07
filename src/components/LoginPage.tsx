@@ -17,7 +17,7 @@ import govLogo from "@/assets/gov-logo.png";
 import logoCartorio from "@/assets/logo-cartorio-sp.png";
 import { toast } from "sonner";
 
-type Tab = "inicio" | "institucional" | "servicos" | "transparencia" | "concursos" | "login" | "credencial" | "ouvidoria" | "unisp";
+type Tab = "inicio" | "institucional" | "transparencia" | "concursos" | "login" | "credencial" | "ouvidoria" | "unisp";
 
 export default function LoginPage() {
   const { signIn, signUp } = useAuth();
@@ -77,7 +77,7 @@ export default function LoginPage() {
   const tabs: {id: Tab;label: string;}[] = [
   { id: "inicio", label: "Início" },
   { id: "institucional", label: "Institucional" },
-  { id: "servicos", label: "Serviços" },
+  
   { id: "credencial", label: "Consultar Credencial" },
   { id: "ouvidoria", label: "Ouvidoria MP" },
   { id: "transparencia", label: "Transparência" },
@@ -148,7 +148,7 @@ export default function LoginPage() {
             {activeTab === "inicio" && <TabInicio onNavigate={setActiveTab} />}
             {activeTab === "concursos" && <TabConcursos onNavigate={setActiveTab} />}
             {activeTab === "institucional" && <TabInstitucional />}
-            {activeTab === "servicos" && <TabServicos />}
+            
             {activeTab === "credencial" && <TabCredencial />}
             {activeTab === "ouvidoria" && <TabOuvidoria />}
             {activeTab === "unisp" && <TabUnisp onNavigate={setActiveTab} />}
@@ -206,7 +206,7 @@ export default function LoginPage() {
 function TabInicio({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
   const cards = [
   { icon: FileText, title: "Consulta Processual", desc: "Acompanhe processos judiciais em andamento na Comarca.", action: "Consultar", tab: "login" as Tab },
-  { icon: Stamp, title: "Cartório Civil", desc: "Certidões de nascimento, casamento, óbito, escrituras e mais.", action: "Saiba Mais", tab: "servicos" as Tab },
+  { icon: Stamp, title: "Cartório Civil", desc: "Certidões de nascimento, casamento, óbito, escrituras e mais.", action: "Saiba Mais", tab: "login" as Tab },
   { icon: Scale, title: "Ministério Público", desc: "Portal do Ministério Público para denúncias e pareceres.", action: "Acessar", tab: "login" as Tab },
   { icon: GraduationCap, title: "Concursos Públicos", desc: "Editais abertos, inscrições e resultados de concursos.", action: "Ver Editais", tab: "concursos" as Tab },
   { icon: Users, title: "Portal da OAB", desc: "Cadastro de advogados, carteira digital e honorários.", action: "Acessar", tab: "login" as Tab },
