@@ -62,7 +62,8 @@ export default function LoginPage() {
   { id: "credencial", label: "Consultar Credencial" },
   { id: "ouvidoria", label: "Ouvidoria MP" },
   { id: "transparencia", label: "Transparência" },
-  { id: "concursos", label: "Concursos" }];
+  { id: "concursos", label: "Concursos" },
+  { id: "unisp", label: "🎓 UNISP" }];
 
 
   return (
@@ -131,6 +132,7 @@ export default function LoginPage() {
             {activeTab === "servicos" && <TabServicos />}
             {activeTab === "credencial" && <TabCredencial />}
             {activeTab === "ouvidoria" && <TabOuvidoria />}
+            {activeTab === "unisp" && <TabUnisp onNavigate={setActiveTab} />}
             {activeTab === "transparencia" && <TabTransparencia />}
             
             {activeTab === "login" &&
