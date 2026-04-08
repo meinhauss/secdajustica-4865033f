@@ -97,9 +97,33 @@ export default function MagistradoSection() {
 /* ═══════════════════════════════════════════ */
 function MagistradoDashboard({ onSelectProcesso }: { onSelectProcesso: (id: string) => void }) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [filterClasse, setFilterClasse] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
+
+  // Recesso state
+  const { data: profile } = useQuery({
+    queryKey: ["mag-profile-recesso", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("profiles").select("id, recesso").eq("user_id", user!.id).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const toggleRecesso = useMutation({
+    mutationFn: async (val: boolean) => {
+      const { error } = await supabase.from("profiles").update({ recesso: val }).eq("user_id", user!.id);
+      if (error) throw error;
+    },
+    onSuccess: (_, val) => {
+      queryClient.invalidateQueries({ queryKey: ["mag-profile-recesso"] });
+      toast.success(val ? "Recesso ativado — você foi removido do sorteio." : "Recesso desativado — você voltou ao sorteio.");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
 
   const { data: processos } = useQuery({
     queryKey: ["mag-processos", user?.id],
