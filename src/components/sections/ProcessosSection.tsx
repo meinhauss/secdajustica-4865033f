@@ -769,6 +769,28 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     onError: (err: any) => toast.error(err.message),
   });
 
+  const createAtoCartorio = useMutation({
+    mutationFn: async (ato: { tipo: string; titulo: string; conteudo: string; anexo_url?: string }) => {
+      const autorNome = "Escrevente Técnico Judiciário Abel Haus";
+      const { error } = await supabase.from("atos_judiciais").insert({
+        processo_id: processoId, tipo: ato.tipo, titulo: ato.titulo, conteudo: ato.conteudo,
+        autor_id: user?.id, autor_nome: autorNome, assinado: true, data_assinatura: new Date().toISOString(),
+      });
+      if (error) throw error;
+      if (ato.anexo_url) {
+        await supabase.from("documentos_processo").insert({
+          processo_id: processoId, nome: ato.titulo, tipo: ato.tipo === "juntada" ? "certidao" : "outros",
+          arquivo_url: ato.anexo_url, autor_id: user?.id,
+        });
+      }
+      await addMovimentacao.mutateAsync({ tipo: ato.tipo, descricao: `${ato.tipo === "juntada" ? "JUNTADA" : "ATO ORDINATÓRIO"} — ${ato.titulo}\n\n${ato.conteudo}\n\nAssinado por: ${autorNome}` });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["atos", processoId] });
+      queryClient.invalidateQueries({ queryKey: ["documentos", processoId] });
+      toast.success("Ato do Cartório registrado!");
+    },
+  });
 
   const { data: movimentacoes } = useQuery({
     queryKey: ["movimentacoes", processoId],
