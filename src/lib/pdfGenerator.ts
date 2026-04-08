@@ -17,7 +17,6 @@ function formatPartesForPdf(value: string): string {
 /** Sanitize text for jsPDF standard fonts (Latin1 only) */
 function sanitize(text: string): string {
   let s = String(text || "");
-  // Common Unicode replacements
   s = s.replace(/\u2713|\u2714/g, "(OK)");
   s = s.replace(/\u2022|\u2023|\u25CF|\u25CB/g, "-");
   s = s.replace(/\u2014|\u2015/g, "-");
@@ -29,7 +28,6 @@ function sanitize(text: string): string {
   s = s.replace(/\u2190/g, "<-");
   s = s.replace(/\u00A0/g, " ");
   s = s.replace(/\u200B|\u200C|\u200D|\uFEFF/g, "");
-  // Portuguese accented chars -> ASCII equivalents for Helvetica compatibility
   s = s.replace(/[àáâãä]/g, "a").replace(/[ÀÁÂÃÄ]/g, "A");
   s = s.replace(/[èéêë]/g, "e").replace(/[ÈÉÊË]/g, "E");
   s = s.replace(/[ìíîï]/g, "i").replace(/[ÌÍÎÏ]/g, "I");
@@ -38,7 +36,6 @@ function sanitize(text: string): string {
   s = s.replace(/ç/g, "c").replace(/Ç/g, "C");
   s = s.replace(/ñ/g, "n").replace(/Ñ/g, "N");
   s = s.replace(/[ýÿ]/g, "y").replace(/Ý/g, "Y");
-  // Remove any remaining non-printable or non-ASCII chars that could garble
   s = s.replace(/[^\x20-\x7E\n\r\t]/g, "");
   return s;
 }
@@ -63,39 +60,73 @@ function splitTextAndUrls(text: string): { text: string; isUrl: boolean }[] {
   return parts.length ? parts : [{ text, isUrl: false }];
 }
 
-const MARGIN = 20;
+const MARGIN = 18;
 const PAGE_W = 210;
 const CONTENT_W = PAGE_W - MARGIN * 2;
+
+function checkPage(doc: jsPDF, y: number, needed: number = 12): number {
+  if (y + needed > 278) {
+    doc.addPage();
+    return 20;
+  }
+  return y;
+}
 
 function addWrappedText(doc: jsPDF, text: string, x: number, y: number, maxWidth: number, lineHeight: number): number {
   const lines = doc.splitTextToSize(sanitize(text), maxWidth);
   for (const line of lines) {
-    if (y > 275) {
-      doc.addPage();
-      y = 20;
-    }
+    y = checkPage(doc, y, lineHeight + 1);
     doc.text(line, x, y);
     y += lineHeight;
   }
   return y;
 }
 
-function drawSeparator(doc: jsPDF, y: number): number {
-  doc.setDrawColor(180, 160, 120);
-  doc.setLineWidth(0.3);
+function drawSectionHeader(doc: jsPDF, title: string, y: number): number {
+  y = checkPage(doc, y, 14);
+  // Colored bar
+  doc.setFillColor(25, 55, 85);
+  doc.rect(MARGIN, y - 1, CONTENT_W, 7, "F");
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(255, 255, 255);
+  doc.text(sanitize(title), MARGIN + 3, y + 4);
+  doc.setTextColor(50);
+  return y + 11;
+}
+
+function drawLightSeparator(doc: jsPDF, y: number): number {
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.2);
   doc.line(MARGIN, y, PAGE_W - MARGIN, y);
-  return y + 4;
+  return y + 3;
 }
 
 function addFooter(doc: jsPDF, text: string) {
   const pages = doc.getNumberOfPages();
   for (let i = 1; i <= pages; i++) {
     doc.setPage(i);
-    doc.setFontSize(7);
-    doc.setTextColor(150);
-    doc.text(sanitize(text), PAGE_W / 2, 290, { align: "center" });
-    doc.text(sanitize(`Pagina ${i} de ${pages}`), PAGE_W - MARGIN, 290, { align: "right" });
+    doc.setDrawColor(25, 55, 85);
+    doc.setLineWidth(0.4);
+    doc.line(MARGIN, 284, PAGE_W - MARGIN, 284);
+    doc.setFontSize(6.5);
+    doc.setTextColor(120);
+    doc.text(sanitize(text), MARGIN, 289);
+    doc.text(sanitize(`Pagina ${i} de ${pages}`), PAGE_W - MARGIN, 289, { align: "right" });
   }
+}
+
+function drawInfoRow(doc: jsPDF, label: string, value: string, x: number, y: number, labelWidth: number = 38): number {
+  y = checkPage(doc, y);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8.5);
+  doc.setTextColor(25, 55, 85);
+  doc.text(sanitize(label), x, y);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(50);
+  const valLines = doc.splitTextToSize(sanitize(String(value || "-")), CONTENT_W - labelWidth - 2);
+  doc.text(valLines, x + labelWidth, y);
+  return y + Math.max(valLines.length * 4.5, 5);
 }
 
 /* ─── TRIBUNAL DE JUSTIÇA PDF ─── */
@@ -108,47 +139,65 @@ export function generateProcessoPDF(params: {
   sentencas: any[];
   procuracoes: any[];
   interessados: any[];
+  apelacoes?: any[];
+  embargos?: any[];
   logoBase64: string;
 }) {
-  const { processo, juizNome, movimentacoes, atos, audiencias, sentencas, procuracoes, interessados, logoBase64 } = params;
+  const { processo, juizNome, movimentacoes, atos, audiencias, sentencas, procuracoes, interessados, apelacoes, embargos, logoBase64 } = params;
   const doc = new jsPDF();
 
-  // Header
-  if (logoBase64) {
-    try { doc.addImage(logoBase64, "PNG", MARGIN, 8, 22, 22); } catch {}
-  }
-  doc.setFontSize(11);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(30, 60, 90);
-  doc.text("PODER JUDICIARIO", PAGE_W / 2, 14, { align: "center" });
-  doc.setFontSize(9);
-  doc.text("TRIBUNAL DE JUSTICA DO ESTADO DE SAO PAULO", PAGE_W / 2, 19, { align: "center" });
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  doc.setTextColor(100);
-  doc.text("Comarca de Sao Paulo - Jaguare RP", PAGE_W / 2, 24, { align: "center" });
+  // ─── HEADER ───
+  // Top bar
+  doc.setFillColor(25, 55, 85);
+  doc.rect(0, 0, PAGE_W, 3, "F");
 
-  let y = 32;
-  y = drawSeparator(doc, y);
+  if (logoBase64) {
+    try { doc.addImage(logoBase64, "PNG", MARGIN, 6, 20, 20); } catch {}
+  }
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(25, 55, 85);
+  doc.text("PODER JUDICIARIO", PAGE_W / 2, 13, { align: "center" });
+  doc.setFontSize(9);
+  doc.text("TRIBUNAL DE JUSTICA DO ESTADO DE SAO PAULO", PAGE_W / 2, 18, { align: "center" });
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.5);
+  doc.setTextColor(100);
+  doc.text("Comarca de Sao Paulo - Jaguare RP", PAGE_W / 2, 23, { align: "center" });
+
+  // Header line
+  doc.setDrawColor(25, 55, 85);
+  doc.setLineWidth(0.6);
+  doc.line(MARGIN, 28, PAGE_W - MARGIN, 28);
+  doc.setDrawColor(180, 140, 50);
+  doc.setLineWidth(0.3);
+  doc.line(MARGIN, 29, PAGE_W - MARGIN, 29);
+
+  let y = 34;
 
   // Title
   doc.setFontSize(13);
   doc.setFont("helvetica", "bold");
-  doc.setTextColor(30, 60, 90);
-  doc.text("INTEGRA DO PROCESSO", PAGE_W / 2, y + 4, { align: "center" });
-  y += 12;
+  doc.setTextColor(25, 55, 85);
+  doc.text("INTEGRA DO PROCESSO", PAGE_W / 2, y, { align: "center" });
+  y += 3;
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(80);
+  doc.text(sanitize(processo.numero), PAGE_W / 2, y + 4, { align: "center" });
+  y += 10;
 
-  // Process info
-  doc.setFontSize(9);
-  doc.setTextColor(50);
-  const infoRows = [
-    ["No do Processo:", processo.numero],
+  // ─── DADOS DO PROCESSO ───
+  y = drawSectionHeader(doc, "DADOS DO PROCESSO", y);
+
+  const infoRows: [string, string][] = [
+    ["No Processo:", processo.numero],
     ["Classe:", processo.classe?.toUpperCase()],
     ["Assunto:", processo.assunto],
     ["Vara:", processo.vara || "-"],
     ["Juiz(a):", juizNome || "Nao atribuido"],
     ["Status:", processo.status?.replace(/_/g, " ").toUpperCase()],
-    ["Data de Autuacao:", new Date(processo.created_at).toLocaleString("pt-BR")],
+    ["Data Autuacao:", new Date(processo.created_at).toLocaleString("pt-BR")],
     ["Autor(es):", formatPartesForPdf(processo.autor_nome)],
     ["Reu(s):", formatPartesForPdf(processo.reu_nome)],
   ];
@@ -160,165 +209,232 @@ export function generateProcessoPDF(params: {
   }
 
   for (const [label, value] of infoRows) {
-    doc.setFont("helvetica", "bold");
-    doc.text(sanitize(label), MARGIN, y);
-    doc.setFont("helvetica", "normal");
-    doc.text(sanitize(String(value || "-")), MARGIN + 40, y);
-    y += 5;
+    y = drawInfoRow(doc, label, value, MARGIN + 2, y);
   }
 
   if (processo.descricao) {
-    y += 3;
+    y += 2;
     doc.setFont("helvetica", "bold");
-    doc.text("Sintese dos Fatos:", MARGIN, y);
-    y += 5;
+    doc.setFontSize(8.5);
+    doc.setTextColor(25, 55, 85);
+    doc.text("Sintese dos Fatos:", MARGIN + 2, y);
+    y += 4;
     doc.setFont("helvetica", "normal");
+    doc.setTextColor(50);
     doc.setFontSize(8);
-    y = addWrappedText(doc, processo.descricao, MARGIN, y, CONTENT_W, 4);
-    doc.setFontSize(9);
+    y = addWrappedText(doc, processo.descricao, MARGIN + 2, y, CONTENT_W - 4, 3.8);
   }
 
-  // Procurações
+  // ─── PROCURAÇÕES ───
   if (procuracoes?.length) {
     y += 4;
-    y = drawSeparator(doc, y);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(30, 60, 90);
-    doc.text("PROCURACOES", MARGIN, y + 3);
-    y += 8;
+    y = drawSectionHeader(doc, "PROCURACOES", y);
+    doc.setFontSize(8);
     doc.setTextColor(50);
     for (const p of procuracoes) {
-      if (y > 270) { doc.addPage(); y = 20; }
+      y = checkPage(doc, y, 6);
       doc.setFont("helvetica", "bold");
-      doc.text(sanitize(`- ${p.advogado_nome}`), MARGIN + 2, y);
+      const name = sanitize(`${p.advogado_nome}`);
+      doc.text(`- ${name}`, MARGIN + 2, y);
       doc.setFont("helvetica", "normal");
       const labelParte = p.parte === "autor" ? "Autor" : "Reu";
-      doc.text(sanitize(` | ${labelParte} | ${p.status}`), MARGIN + 2 + doc.getTextWidth(sanitize(`- ${p.advogado_nome}`)), y);
-      y += 6;
+      doc.text(sanitize(` | ${labelParte} | ${p.status}`), MARGIN + 2 + doc.getTextWidth(`- ${name}`), y);
+      y += 5;
     }
   }
 
-  // Interessados
+  // ─── INTERESSADOS ───
   if (interessados?.length) {
     y += 4;
-    y = drawSeparator(doc, y);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(30, 60, 90);
-    doc.text("INTERESSADOS", MARGIN, y + 3);
-    y += 8;
+    y = drawSectionHeader(doc, "INTERESSADOS NO PROCESSO", y);
+    doc.setFontSize(8);
     doc.setTextColor(50);
     for (const i of interessados) {
+      y = checkPage(doc, y, 5);
       doc.setFont("helvetica", "normal");
       doc.text(sanitize(`- ${i.orgao || ""} - ${i.nome || ""}`), MARGIN + 2, y);
       y += 5;
     }
   }
 
-  // Atos Judiciais
+  // ─── ATOS JUDICIAIS ───
   if (atos?.length) {
     y += 4;
-    y = drawSeparator(doc, y);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(30, 60, 90);
-    doc.text("ATOS JUDICIAIS", MARGIN, y + 3);
-    y += 8;
-    doc.setTextColor(50);
+    y = drawSectionHeader(doc, "ATOS JUDICIAIS", y);
     for (const a of atos) {
-      if (y > 265) { doc.addPage(); y = 20; }
+      y = checkPage(doc, y, 18);
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(9);
+      doc.setFontSize(8.5);
+      doc.setTextColor(25, 55, 85);
       doc.text(sanitize(`${a.tipo?.toUpperCase()} - ${a.titulo}`), MARGIN + 2, y);
       y += 4;
       doc.setFont("helvetica", "normal");
       doc.setFontSize(7);
+      doc.setTextColor(100);
       doc.text(sanitize(`${new Date(a.created_at).toLocaleString("pt-BR")} - ${a.autor_nome || "Sistema"} ${a.assinado ? "(OK) Assinado" : ""}`), MARGIN + 2, y);
       y += 4;
       doc.setFontSize(8);
+      doc.setTextColor(50);
       y = addWrappedText(doc, a.conteudo || "", MARGIN + 2, y, CONTENT_W - 4, 3.5);
-      y += 4;
+      y = drawLightSeparator(doc, y + 2);
     }
   }
 
-  // Audiências
+  // ─── AUDIÊNCIAS ───
   if (audiencias?.length) {
     y += 4;
-    y = drawSeparator(doc, y);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(30, 60, 90);
-    doc.text("AUDIENCIAS", MARGIN, y + 3);
-    y += 8;
+    y = drawSectionHeader(doc, "AUDIENCIAS", y);
+    doc.setFontSize(8);
     doc.setTextColor(50);
     for (const a of audiencias) {
+      y = checkPage(doc, y, 6);
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(8);
-      doc.text(sanitize(`- ${a.tipo} - ${new Date(a.data_hora).toLocaleString("pt-BR")} - ${a.local || "-"} - ${a.status}`), MARGIN + 2, y);
+      doc.text(sanitize(`- ${a.tipo} | ${new Date(a.data_hora).toLocaleString("pt-BR")} | ${a.local || "-"} | ${a.status}`), MARGIN + 2, y);
       y += 5;
     }
   }
 
-  // Sentenças
+  // ─── SENTENÇAS ───
   if (sentencas?.length) {
     y += 4;
-    y = drawSeparator(doc, y);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(30, 60, 90);
-    doc.text("SENTENCAS", MARGIN, y + 3);
-    y += 8;
-    doc.setTextColor(50);
+    y = drawSectionHeader(doc, "SENTENCAS", y);
     for (const s of sentencas) {
-      if (y > 260) { doc.addPage(); y = 20; }
+      y = checkPage(doc, y, 20);
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(9);
+      doc.setFontSize(8.5);
+      doc.setTextColor(25, 55, 85);
       doc.text(sanitize(`${s.tipo?.toUpperCase()} - ${s.assinado ? "(OK) Assinado" : "Pendente de assinatura"}`), MARGIN + 2, y);
       y += 4;
+      doc.setFontSize(8);
+      doc.setTextColor(50);
       if (s.ementa) {
         doc.setFont("helvetica", "italic");
-        doc.setFontSize(8);
         y = addWrappedText(doc, `Ementa: ${s.ementa}`, MARGIN + 2, y, CONTENT_W - 4, 3.5);
+        y += 1;
       }
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(8);
       y = addWrappedText(doc, `Fundamentacao: ${s.fundamentacao || "-"}`, MARGIN + 2, y, CONTENT_W - 4, 3.5);
+      y += 1;
       y = addWrappedText(doc, `Dispositivo: ${s.dispositivo || "-"}`, MARGIN + 2, y, CONTENT_W - 4, 3.5);
-      y += 4;
+      y = drawLightSeparator(doc, y + 2);
     }
   }
 
-  // Movimentacoes
-  if (movimentacoes?.length) {
+  // ─── APELAÇÕES ───
+  if (apelacoes?.length) {
     y += 4;
-    y = drawSeparator(doc, y);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(30, 60, 90);
-    doc.text("MOVIMENTACOES PROCESSUAIS", MARGIN, y + 3);
-    y += 8;
-    doc.setTextColor(50);
-    for (const m of movimentacoes) {
-      if (y > 265) { doc.addPage(); y = 20; }
+    y = drawSectionHeader(doc, "RECURSOS DE APELACAO", y);
+    const statusLabels: Record<string, string> = {
+      interposta: "Interposta", admitida: "Admitida", em_julgamento: "Em Julgamento",
+      provida: "Provida", improvida: "Improvida", parcialmente_provida: "Parcialmente Provida",
+      nao_conhecida: "Nao Conhecida",
+    };
+    for (const ap of apelacoes) {
+      y = checkPage(doc, y, 20);
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(8);
-      doc.text(sanitize(`${new Date(m.created_at).toLocaleString("pt-BR")} - ${m.tipo?.toUpperCase()}`), MARGIN + 2, y);
+      doc.setFontSize(8.5);
+      doc.setTextColor(25, 55, 85);
+      doc.text(sanitize(`APELACAO - ${ap.apelante_nome} (${ap.apelante_tipo === "reu" ? "Reu" : ap.apelante_tipo === "autor" ? "Autor" : "Ambas as partes"})`), MARGIN + 2, y);
       y += 4;
       doc.setFont("helvetica", "normal");
       doc.setFontSize(7.5);
-      // Separate text and URLs from descricao
+      doc.setTextColor(100);
+      doc.text(sanitize(`${new Date(ap.created_at).toLocaleString("pt-BR")} | Status: ${statusLabels[ap.status] || ap.status}`), MARGIN + 2, y);
+      y += 4;
+      doc.setFontSize(8);
+      doc.setTextColor(50);
+      y = addWrappedText(doc, `Fundamentacao: ${ap.fundamentacao}`, MARGIN + 2, y, CONTENT_W - 4, 3.5);
+      y += 1;
+      y = addWrappedText(doc, `Pedido: ${ap.pedido}`, MARGIN + 2, y, CONTENT_W - 4, 3.5);
+      if (ap.decisao_fundamentacao) {
+        y += 1;
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8);
+        doc.setTextColor(25, 55, 85);
+        doc.text("Decisao do Tribunal:", MARGIN + 2, y);
+        y += 4;
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(50);
+        y = addWrappedText(doc, `Tipo: ${ap.decisao_tipo || "-"} | Acordao: ${ap.numero_acordao || "-"}`, MARGIN + 2, y, CONTENT_W - 4, 3.5);
+        y = addWrappedText(doc, ap.decisao_fundamentacao, MARGIN + 2, y, CONTENT_W - 4, 3.5);
+        if (ap.decisao_dispositivo) {
+          y = addWrappedText(doc, `Dispositivo: ${ap.decisao_dispositivo}`, MARGIN + 2, y, CONTENT_W - 4, 3.5);
+        }
+      }
+      y = drawLightSeparator(doc, y + 2);
+    }
+  }
+
+  // ─── EMBARGOS DE DECLARAÇÃO ───
+  if (embargos?.length) {
+    y += 4;
+    y = drawSectionHeader(doc, "EMBARGOS DE DECLARACAO", y);
+    const tipoLabels: Record<string, string> = { omissao: "Omissao", contradicao: "Contradicao", obscuridade: "Obscuridade" };
+    const statusLabels: Record<string, string> = { opostos: "Opostos", acolhidos: "Acolhidos", rejeitados: "Rejeitados", parcialmente_acolhidos: "Parcialmente Acolhidos" };
+    for (const emb of embargos) {
+      y = checkPage(doc, y, 20);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8.5);
+      doc.setTextColor(25, 55, 85);
+      doc.text(sanitize(`EMBARGOS DE DECLARACAO - ${tipoLabels[emb.tipo] || emb.tipo}`), MARGIN + 2, y);
+      y += 4;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7.5);
+      doc.setTextColor(100);
+      doc.text(sanitize(`${new Date(emb.created_at).toLocaleString("pt-BR")} | Embargante: ${emb.embargante_nome} | Status: ${statusLabels[emb.status] || emb.status}`), MARGIN + 2, y);
+      y += 4;
+      doc.setFontSize(8);
+      doc.setTextColor(50);
+      y = addWrappedText(doc, `Fundamentacao: ${emb.fundamentacao}`, MARGIN + 2, y, CONTENT_W - 4, 3.5);
+      y += 1;
+      y = addWrappedText(doc, `Pedido: ${emb.pedido}`, MARGIN + 2, y, CONTENT_W - 4, 3.5);
+      if (emb.decisao) {
+        y += 1;
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8);
+        doc.setTextColor(25, 55, 85);
+        doc.text("Decisao:", MARGIN + 2, y);
+        y += 4;
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(50);
+        y = addWrappedText(doc, emb.decisao, MARGIN + 2, y, CONTENT_W - 4, 3.5);
+      }
+      y = drawLightSeparator(doc, y + 2);
+    }
+  }
+
+  // ─── MOVIMENTAÇÕES ───
+  if (movimentacoes?.length) {
+    y += 4;
+    y = drawSectionHeader(doc, "MOVIMENTACOES PROCESSUAIS", y);
+    for (const m of movimentacoes) {
+      y = checkPage(doc, y, 14);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(7.5);
+      doc.setTextColor(25, 55, 85);
+      doc.text(sanitize(`${new Date(m.created_at).toLocaleString("pt-BR")} - ${m.tipo?.toUpperCase()}`), MARGIN + 2, y);
+      y += 3.5;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7);
+      doc.setTextColor(80);
       const descParts = splitTextAndUrls(m.descricao || "");
       const authorLine = sanitize(`${m.autor_nome || "Sistema"}:`);
       doc.text(authorLine, MARGIN + 4, y);
-      y += 3.5;
+      y += 3;
       for (const part of descParts) {
-        if (y > 275) { doc.addPage(); y = 20; }
+        y = checkPage(doc, y, 4);
         if (part.isUrl) {
           doc.setTextColor(0, 50, 150);
           const urlText = part.text.length > 80 ? part.text.substring(0, 77) + "..." : part.text;
           doc.textWithLink(urlText, MARGIN + 4, y, { url: part.text });
-          doc.setTextColor(50);
-          y += 3.5;
+          doc.setTextColor(80);
+          y += 3;
         } else {
-          y = addWrappedText(doc, part.text, MARGIN + 4, y, CONTENT_W - 6, 3.5);
+          doc.setTextColor(50);
+          y = addWrappedText(doc, part.text, MARGIN + 4, y, CONTENT_W - 8, 3.2);
         }
       }
-      y += 3;
+      y += 2;
     }
   }
 
@@ -345,14 +461,14 @@ export function generateCartorioPDF(params: {
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(180, 40, 40);
-  doc.text("CARTÓRIO DE REGISTRO CIVIL", PAGE_W / 2, 32, { align: "center" });
+  doc.text("CARTORIO DE REGISTRO CIVIL", PAGE_W / 2, 32, { align: "center" });
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(100);
   doc.text("Comarca de Jaguare RP - Estado de Sao Paulo", PAGE_W / 2, 37, { align: "center" });
 
   let y = 43;
-  y = drawSeparator(doc, y);
+  y = drawLightSeparator(doc, y);
 
   // Document type title
   const tipoLabels: Record<string, string> = {
@@ -421,7 +537,7 @@ export function generateCartorioPDF(params: {
 
   // Requerentes
   y += 3;
-  y = drawSeparator(doc, y);
+  y = drawLightSeparator(doc, y);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(30, 30, 30);
   doc.text(requerenteLabels[registro.tipo] || "REQUERENTE(S)", MARGIN, y + 3);
@@ -440,7 +556,7 @@ export function generateCartorioPDF(params: {
   // Envolvidos
   if (envolvidos.length) {
     y += 3;
-    y = drawSeparator(doc, y);
+    y = drawLightSeparator(doc, y);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(30, 30, 30);
     doc.text(envolvidosLabels[registro.tipo] || "PARTES ENVOLVIDAS", MARGIN, y + 3);
@@ -455,7 +571,7 @@ export function generateCartorioPDF(params: {
 
   // Descrição
   y += 3;
-  y = drawSeparator(doc, y);
+  y = drawLightSeparator(doc, y);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(30, 30, 30);
   doc.text("DESCRICAO", MARGIN, y + 3);
@@ -471,7 +587,7 @@ export function generateCartorioPDF(params: {
     try { signatures = JSON.parse(registro.observacoes); } catch {}
     if (Array.isArray(signatures) && signatures.length > 0) {
       y += 4;
-      y = drawSeparator(doc, y);
+      y = drawLightSeparator(doc, y);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(30, 30, 30);
       doc.text("ASSINATURAS DIGITAIS", MARGIN, y + 3);
@@ -486,7 +602,7 @@ export function generateCartorioPDF(params: {
     }
   } else if (registro.tipo === "certidao_distribuicao" && registro.observacoes) {
     y += 4;
-    y = drawSeparator(doc, y);
+    y = drawLightSeparator(doc, y);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(30, 30, 30);
     doc.text("PROCESSOS DISTRIBUIDOS", MARGIN, y + 3);
@@ -508,7 +624,7 @@ export function generateCartorioPDF(params: {
   // Links / Documentos Anexos
   if (links.length) {
     y += 4;
-    y = drawSeparator(doc, y);
+    y = drawLightSeparator(doc, y);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(30, 30, 30);
     doc.text("DOCUMENTOS ANEXOS", MARGIN, y + 3);
