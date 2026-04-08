@@ -1516,7 +1516,10 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
 
         {/* TIMELINE — unified view */}
         <TabsContent value="timeline" className="mt-4 space-y-4">
-          {canAddMovimentacao && <AddMovimentacao roles={roles} onAdd={(tipo, desc) => addMovimentacao.mutate({ tipo, descricao: desc })} />}
+          <div className="flex flex-wrap gap-2">
+            {canAddMovimentacao && <AddMovimentacao roles={roles} onAdd={(tipo, desc) => addMovimentacao.mutate({ tipo, descricao: desc })} />}
+            {isJudicialReadOnly && <AddAtoCartorio onAdd={(ato) => createAtoCartorio.mutate(ato)} isPending={createAtoCartorio.isPending} />}
+          </div>
           {isSentenciado && !prazoApelacaoExpirado && (
             <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-xl p-4 text-sm text-green-800 dark:text-green-300 flex items-center gap-2">
               <CheckCircle className="h-4 w-4" />
