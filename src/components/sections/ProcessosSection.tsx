@@ -774,7 +774,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
       const autorNome = "Escrevente Técnico Judiciário Abel Haus";
       const { error } = await supabase.from("atos_judiciais").insert({
         processo_id: processoId, tipo: ato.tipo, titulo: ato.titulo, conteudo: ato.conteudo,
-        autor_id: user?.id, autor_nome: autorNome, assinado: true, data_assinatura: new Date().toISOString(),
+        autor_id: null, autor_nome: autorNome, assinado: true, data_assinatura: new Date().toISOString(),
       });
       if (error) throw error;
       if (ato.anexo_url) {
