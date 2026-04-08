@@ -937,6 +937,15 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     },
   });
 
+  const { data: intimacoesProc } = useQuery({
+    queryKey: ["intimacoes-processo", processoId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("intimacoes").select("*").eq("processo_id", processoId).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
   // Interessados no processo (opt-in)
   const { data: interessadosData } = useQuery({
     queryKey: ["interessados", processoId],
@@ -1541,7 +1550,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             const usedDocIds = new Set<string>();
 
             // Types that already have dedicated timeline entries (atos, sentenças, audiências, etc.)
-            const duplicatedMovTypes = new Set(["despacho", "sentenca", "audiencia_designada", "mandado_expedido", "intimacao", "certidao_oficial"]);
+            const duplicatedMovTypes = new Set(["despacho", "sentenca", "audiencia_designada", "mandado_expedido", "intimacao", "certidao_oficial", "procuracao"]);
 
             // Movimentações — attach related documents, skip types rendered by dedicated sections
             movimentacoes?.forEach(m => {
