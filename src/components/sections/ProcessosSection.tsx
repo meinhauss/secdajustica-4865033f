@@ -1674,7 +1674,18 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               badge_color: "bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400",
             }));
 
-            // Procurações
+            // Intimações
+            intimacoesProc?.forEach((intim: any) => {
+              const statusLabel: Record<string, string> = { pendente: "Pendente", lida: "Lida", cumprida: "Cumprida", expirada: "Expirada" };
+              items.push({
+                id: `intim-${intim.id}`, date: intim.created_at, tipo: `intimação — ${intim.tipo}`,
+                titulo: `Intimação para ${intim.destinatario_nome}${intim.cargo_intimado ? ` (${intim.cargo_intimado})` : ""}`,
+                descricao: `${intim.conteudo}\n\nPrazo: ${intim.prazo_dias} dia(s) — Status: ${statusLabel[intim.status] || intim.status}${intim.data_leitura ? `\nLida em: ${format(new Date(intim.data_leitura), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}` : ""}`,
+                badge_color: "bg-sky-100 text-sky-800 dark:bg-sky-950/30 dark:text-sky-400",
+              });
+            });
+
+
             procuracoes?.forEach((p: any) => items.push({
               id: `proc-${p.id}`, date: p.status === "renunciada" && p.renunciada_em ? p.renunciada_em : p.created_at,
               tipo: p.status === "renunciada" ? "renúncia de mandato" : "procuração",
