@@ -967,6 +967,38 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     onError: (err: any) => toast.error(err.message),
   });
 
+  // ── ATOS DO CARTÓRIO ──
+  const [cartorioForm, setCartorioForm] = useState({ tipo: "juntada", titulo: "", conteudo: "", anexo_url: "" });
+  const createAtoCartorio = useMutation({
+    mutationFn: async () => {
+      if (!cartorioForm.titulo || !cartorioForm.conteudo) throw new Error("Preencha título e conteúdo.");
+      const autorNome = "Escrevente Técnico Judiciário Abel Haus";
+      const { error } = await supabase.from("atos_judiciais").insert({
+        processo_id: processoId, tipo: cartorioForm.tipo, titulo: cartorioForm.titulo, conteudo: cartorioForm.conteudo,
+        autor_id: null, autor_nome: autorNome, assinado: true, data_assinatura: new Date().toISOString(),
+      });
+      if (error) throw error;
+      if (cartorioForm.anexo_url) {
+        await supabase.from("documentos_processo").insert({
+          processo_id: processoId, nome: cartorioForm.titulo, tipo: cartorioForm.tipo === "juntada" ? "certidao" : "outros",
+          arquivo_url: cartorioForm.anexo_url, autor_id: null,
+        });
+      }
+      await supabase.from("movimentacoes").insert({
+        processo_id: processoId, tipo: cartorioForm.tipo,
+        descricao: `${cartorioForm.tipo === "juntada" ? "JUNTADA" : "ATO ORDINATÓRIO"} — ${cartorioForm.titulo}\n\n${cartorioForm.conteudo}\n\nAssinado por: ${autorNome}`,
+        autor_id: null,
+      });
+    },
+    onSuccess: () => {
+      invalidateAll();
+      setActiveAction("none");
+      setCartorioForm({ tipo: "juntada", titulo: "", conteudo: "", anexo_url: "" });
+      toast.success("Ato do Cartório registrado!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
   const invalidateAll = () => {
     queryClient.invalidateQueries({ queryKey: ["mag-proc", processoId] });
     queryClient.invalidateQueries({ queryKey: ["mag-movs", processoId] });
