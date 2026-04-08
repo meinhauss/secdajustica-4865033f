@@ -968,7 +968,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   });
 
   // ── ATOS DO CARTÓRIO ──
-  const [cartorioForm, setCartorioForm] = useState({ tipo: "juntada", titulo: "", conteudo: "", anexo_url: "" });
+  const [cartorioForm, setCartorioForm] = useState({ tipo: "juntada", titulo: "", conteudo: "", anexo_urls: [""] });
   const createAtoCartorio = useMutation({
     mutationFn: async () => {
       if (!cartorioForm.titulo || !cartorioForm.conteudo) throw new Error("Preencha título e conteúdo.");
@@ -978,11 +978,18 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         autor_id: null, autor_nome: autorNome, assinado: true, data_assinatura: new Date().toISOString(),
       });
       if (error) throw error;
-      if (cartorioForm.anexo_url) {
-        await supabase.from("documentos_processo").insert({
-          processo_id: processoId, nome: cartorioForm.titulo, tipo: cartorioForm.tipo === "juntada" ? "certidao" : "outros",
-          arquivo_url: cartorioForm.anexo_url, autor_id: null,
-        });
+      const validUrls = cartorioForm.anexo_urls.filter((url) => url.trim());
+      if (validUrls.length > 0) {
+        const { error: docsError } = await supabase.from("documentos_processo").insert(
+          validUrls.map((url, idx) => ({
+            processo_id: processoId,
+            nome: validUrls.length > 1 ? `${cartorioForm.titulo} — Anexo ${idx + 1}` : cartorioForm.titulo,
+            tipo: cartorioForm.tipo === "juntada" ? "certidao" : "outros",
+            arquivo_url: url,
+            autor_id: null,
+          }))
+        );
+        if (docsError) throw docsError;
       }
       await supabase.from("movimentacoes").insert({
         processo_id: processoId, tipo: cartorioForm.tipo,
@@ -993,11 +1000,29 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     onSuccess: () => {
       invalidateAll();
       setActiveAction("none");
-      setCartorioForm({ tipo: "juntada", titulo: "", conteudo: "", anexo_url: "" });
+      setCartorioForm({ tipo: "juntada", titulo: "", conteudo: "", anexo_urls: [""] });
       toast.success("Ato do Cartório registrado!");
     },
     onError: (err: any) => toast.error(err.message),
   });
+
+  const addCartorioLink = () => {
+    setCartorioForm((prev) => ({ ...prev, anexo_urls: [...prev.anexo_urls, ""] }));
+  };
+
+  const removeCartorioLink = (index: number) => {
+    setCartorioForm((prev) => ({
+      ...prev,
+      anexo_urls: prev.anexo_urls.length === 1 ? [""] : prev.anexo_urls.filter((_, idx) => idx !== index),
+    }));
+  };
+
+  const updateCartorioLink = (index: number, value: string) => {
+    setCartorioForm((prev) => ({
+      ...prev,
+      anexo_urls: prev.anexo_urls.map((url, idx) => (idx === index ? value : url)),
+    }));
+  };
 
   const invalidateAll = () => {
     queryClient.invalidateQueries({ queryKey: ["mag-proc", processoId] });
@@ -1487,7 +1512,27 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             </Select>
             <Input placeholder="Título do ato" value={cartorioForm.titulo} onChange={(e) => setCartorioForm({ ...cartorioForm, titulo: e.target.value })} className="rounded-xl" required />
             <Textarea placeholder="Conteúdo..." value={cartorioForm.conteudo} onChange={(e) => setCartorioForm({ ...cartorioForm, conteudo: e.target.value })} rows={5} className="rounded-xl" required />
-            <Input placeholder="Link do anexo (opcional)" value={cartorioForm.anexo_url} onChange={(e) => setCartorioForm({ ...cartorioForm, anexo_url: e.target.value })} className="rounded-xl" />
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-foreground">Anexos (links opcionais)</label>
+              {cartorioForm.anexo_urls.map((url, idx) => (
+                <div key={idx} className="flex gap-2">
+                  <Input
+                    placeholder="https://drive.google.com/..."
+                    value={url}
+                    onChange={(e) => updateCartorioLink(idx, e.target.value)}
+                    className="rounded-xl flex-1"
+                  />
+                  {cartorioForm.anexo_urls.length > 1 && (
+                    <Button type="button" variant="ghost" size="icon" className="rounded-xl shrink-0" onClick={() => removeCartorioLink(idx)}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              <Button type="button" variant="outline" size="sm" className="rounded-xl text-xs" onClick={addCartorioLink}>
+                <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar outro link
+              </Button>
+            </div>
             <Button type="submit" disabled={createAtoCartorio.isPending} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
               {createAtoCartorio.isPending ? "Registrando..." : "Registrar Ato do Cartório"}
             </Button>
