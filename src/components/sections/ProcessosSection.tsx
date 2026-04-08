@@ -2589,3 +2589,48 @@ function AddCertidao({ onAdd, isPending }: { onAdd: (cert: { tipo: string; conte
     </Dialog>
   );
 }
+
+function AddAtoCartorio({ onAdd, isPending }: { onAdd: (ato: { tipo: string; titulo: string; conteudo: string; anexo_url?: string }) => void; isPending: boolean }) {
+  const [open, setOpen] = useState(false);
+  const [tipo, setTipo] = useState("juntada");
+  const [titulo, setTitulo] = useState("");
+  const [conteudo, setConteudo] = useState("");
+  const [anexoUrl, setAnexoUrl] = useState("");
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="rounded-xl"><FileText className="h-4 w-4 mr-2" /> Atos do Cartório</Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader><DialogTitle>Ato do Cartório Judicial</DialogTitle></DialogHeader>
+        <p className="text-xs text-muted-foreground">Assinatura: <span className="font-semibold">Escrevente Técnico Judiciário Abel Haus</span></p>
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          onAdd({ tipo, titulo, conteudo, anexo_url: anexoUrl.trim() || undefined });
+          setOpen(false);
+          setTitulo("");
+          setConteudo("");
+          setAnexoUrl("");
+        }} className="space-y-3 mt-2">
+          <Select value={tipo} onValueChange={setTipo}>
+            <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="juntada">Juntada</SelectItem>
+              <SelectItem value="ato_ordinatorio">Ato Ordinatório</SelectItem>
+            </SelectContent>
+          </Select>
+          <Input placeholder="Título (ex: Juntada de petição inicial)" value={titulo} onChange={(e) => setTitulo(e.target.value)} required className="rounded-xl" />
+          <Textarea placeholder="Conteúdo do ato..." value={conteudo} onChange={(e) => setConteudo(e.target.value)} required rows={6} className="rounded-xl font-mono text-xs" />
+          <div>
+            <label className="text-xs font-medium text-foreground">Anexo (link opcional)</label>
+            <Input placeholder="https://drive.google.com/..." value={anexoUrl} onChange={(e) => setAnexoUrl(e.target.value)} className="rounded-xl mt-1" />
+          </div>
+          <Button type="submit" disabled={isPending} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
+            {isPending ? "Registrando..." : "Registrar Ato do Cartório"}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
