@@ -16,7 +16,7 @@ import {
   ShieldCheck, ShieldOff, UserCheck, Lock, Trash2, Download, Edit
 } from "lucide-react";
 import { generateProcessoPDF, imageToBase64 } from "@/lib/pdfGenerator";
-import logoTjsp from "@/assets/logo-tjsp.png";
+import logoTjsp from "@/assets/tjsp-logo.png";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -1188,6 +1188,8 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                   sentencas: sentencasProc || [],
                   procuracoes: procuracoes || [],
                   interessados: interessadosData || [],
+                  apelacoes: apelacoesProc || [],
+                  embargos: embargosProc || [],
                   logoBase64: logo64,
                 });
               }}>
