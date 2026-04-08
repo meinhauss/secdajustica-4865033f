@@ -770,18 +770,21 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   });
 
   const createAtoCartorio = useMutation({
-    mutationFn: async (ato: { tipo: string; titulo: string; conteudo: string; anexo_url?: string }) => {
+    mutationFn: async (ato: { tipo: string; titulo: string; conteudo: string; anexo_urls?: string[] }) => {
       const autorNome = "Escrevente Técnico Judiciário Abel Haus";
       const { error } = await supabase.from("atos_judiciais").insert({
         processo_id: processoId, tipo: ato.tipo, titulo: ato.titulo, conteudo: ato.conteudo,
         autor_id: null, autor_nome: autorNome, assinado: true, data_assinatura: new Date().toISOString(),
       });
       if (error) throw error;
-      if (ato.anexo_url) {
-        await supabase.from("documentos_processo").insert({
-          processo_id: processoId, nome: ato.titulo, tipo: ato.tipo === "juntada" ? "certidao" : "outros",
-          arquivo_url: ato.anexo_url, autor_id: user?.id,
-        });
+      const validUrls = (ato.anexo_urls || []).filter(u => u.trim());
+      if (validUrls.length > 0) {
+        const docsToInsert = validUrls.map((url, idx) => ({
+          processo_id: processoId, nome: validUrls.length === 1 ? ato.titulo : `${ato.titulo} (${idx + 1})`,
+          tipo: ato.tipo === "juntada" ? "certidao" : "outros" as string,
+          arquivo_url: url.trim(), autor_id: user?.id,
+        }));
+        await supabase.from("documentos_processo").insert(docsToInsert);
       }
       await addMovimentacao.mutateAsync({ tipo: ato.tipo, descricao: `${ato.tipo === "juntada" ? "JUNTADA" : "ATO ORDINATÓRIO"} — ${ato.titulo}\n\n${ato.conteudo}\n\nAssinado por: ${autorNome}` });
     },
@@ -1598,13 +1601,24 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               });
             });
 
-            // Atos Judiciais
-            atos?.forEach((a: any) => items.push({
-              id: `ato-${a.id}`, date: a.created_at, tipo: `ato judicial — ${a.tipo}`,
-              titulo: a.titulo, descricao: a.conteudo,
-              autor: a.autor_nome || "Juiz de Direito",
-              badge_color: "bg-institutional/10 text-institutional",
-            }));
+            // Atos Judiciais — attach related documents by close timestamp
+            atos?.forEach((a: any) => {
+              const aTime = new Date(a.created_at).getTime();
+              const relatedDocs = (documentos || []).filter((d: any) => {
+                if (usedDocIds.has(d.id)) return false;
+                const dTime = new Date(d.created_at).getTime();
+                return Math.abs(dTime - aTime) < 120000; // within 2 minutes
+              });
+              relatedDocs.forEach((d: any) => usedDocIds.add(d.id));
+
+              items.push({
+                id: `ato-${a.id}`, date: a.created_at, tipo: `ato judicial — ${a.tipo}`,
+                titulo: a.titulo, descricao: a.conteudo,
+                autor: a.autor_nome || "Juiz de Direito",
+                badge_color: "bg-institutional/10 text-institutional",
+                attachments: relatedDocs.map((d: any) => ({ nome: d.nome, url: d.arquivo_url })).filter((att: any) => att.url),
+              });
+            });
 
             // Documentos (com links) — skip docs already attached to movimentações
             documentos?.forEach((d: any) => {
@@ -2590,12 +2604,16 @@ function AddCertidao({ onAdd, isPending }: { onAdd: (cert: { tipo: string; conte
   );
 }
 
-function AddAtoCartorio({ onAdd, isPending }: { onAdd: (ato: { tipo: string; titulo: string; conteudo: string; anexo_url?: string }) => void; isPending: boolean }) {
+function AddAtoCartorio({ onAdd, isPending }: { onAdd: (ato: { tipo: string; titulo: string; conteudo: string; anexo_urls?: string[] }) => void; isPending: boolean }) {
   const [open, setOpen] = useState(false);
   const [tipo, setTipo] = useState("juntada");
   const [titulo, setTitulo] = useState("");
   const [conteudo, setConteudo] = useState("");
-  const [anexoUrl, setAnexoUrl] = useState("");
+  const [anexoUrls, setAnexoUrls] = useState<string[]>([""]);
+
+  const handleAddLink = () => setAnexoUrls(prev => [...prev, ""]);
+  const handleRemoveLink = (idx: number) => setAnexoUrls(prev => prev.filter((_, i) => i !== idx));
+  const handleChangeLink = (idx: number, value: string) => setAnexoUrls(prev => prev.map((v, i) => i === idx ? value : v));
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -2607,11 +2625,12 @@ function AddAtoCartorio({ onAdd, isPending }: { onAdd: (ato: { tipo: string; tit
         <p className="text-xs text-muted-foreground">Assinatura: <span className="font-semibold">Escrevente Técnico Judiciário Abel Haus</span></p>
         <form onSubmit={(e) => {
           e.preventDefault();
-          onAdd({ tipo, titulo, conteudo, anexo_url: anexoUrl.trim() || undefined });
+          const validUrls = anexoUrls.filter(u => u.trim());
+          onAdd({ tipo, titulo, conteudo, anexo_urls: validUrls.length > 0 ? validUrls : undefined });
           setOpen(false);
           setTitulo("");
           setConteudo("");
-          setAnexoUrl("");
+          setAnexoUrls([""]);
         }} className="space-y-3 mt-2">
           <Select value={tipo} onValueChange={setTipo}>
             <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
@@ -2622,9 +2641,21 @@ function AddAtoCartorio({ onAdd, isPending }: { onAdd: (ato: { tipo: string; tit
           </Select>
           <Input placeholder="Título (ex: Juntada de petição inicial)" value={titulo} onChange={(e) => setTitulo(e.target.value)} required className="rounded-xl" />
           <Textarea placeholder="Conteúdo do ato..." value={conteudo} onChange={(e) => setConteudo(e.target.value)} required rows={6} className="rounded-xl font-mono text-xs" />
-          <div>
-            <label className="text-xs font-medium text-foreground">Anexo (link opcional)</label>
-            <Input placeholder="https://drive.google.com/..." value={anexoUrl} onChange={(e) => setAnexoUrl(e.target.value)} className="rounded-xl mt-1" />
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-foreground">Anexos (links opcionais)</label>
+            {anexoUrls.map((url, idx) => (
+              <div key={idx} className="flex gap-2">
+                <Input placeholder="https://drive.google.com/..." value={url} onChange={(e) => handleChangeLink(idx, e.target.value)} className="rounded-xl flex-1" />
+                {anexoUrls.length > 1 && (
+                  <Button type="button" variant="ghost" size="icon" className="rounded-xl shrink-0" onClick={() => handleRemoveLink(idx)}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            ))}
+            <Button type="button" variant="outline" size="sm" className="rounded-xl text-xs" onClick={handleAddLink}>
+              + Adicionar outro link
+            </Button>
           </div>
           <Button type="submit" disabled={isPending} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
             {isPending ? "Registrando..." : "Registrar Ato do Cartório"}
