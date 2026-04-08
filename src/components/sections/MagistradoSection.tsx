@@ -967,6 +967,38 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     onError: (err: any) => toast.error(err.message),
   });
 
+  // ── ATOS DO CARTÓRIO ──
+  const [cartorioForm, setCartorioForm] = useState({ tipo: "juntada", titulo: "", conteudo: "", anexo_url: "" });
+  const createAtoCartorio = useMutation({
+    mutationFn: async () => {
+      if (!cartorioForm.titulo || !cartorioForm.conteudo) throw new Error("Preencha título e conteúdo.");
+      const autorNome = "Escrevente Técnico Judiciário Abel Haus";
+      const { error } = await supabase.from("atos_judiciais").insert({
+        processo_id: processoId, tipo: cartorioForm.tipo, titulo: cartorioForm.titulo, conteudo: cartorioForm.conteudo,
+        autor_id: null, autor_nome: autorNome, assinado: true, data_assinatura: new Date().toISOString(),
+      });
+      if (error) throw error;
+      if (cartorioForm.anexo_url) {
+        await supabase.from("documentos_processo").insert({
+          processo_id: processoId, nome: cartorioForm.titulo, tipo: cartorioForm.tipo === "juntada" ? "certidao" : "outros",
+          arquivo_url: cartorioForm.anexo_url, autor_id: null,
+        });
+      }
+      await supabase.from("movimentacoes").insert({
+        processo_id: processoId, tipo: cartorioForm.tipo,
+        descricao: `${cartorioForm.tipo === "juntada" ? "JUNTADA" : "ATO ORDINATÓRIO"} — ${cartorioForm.titulo}\n\n${cartorioForm.conteudo}\n\nAssinado por: ${autorNome}`,
+        autor_id: null,
+      });
+    },
+    onSuccess: () => {
+      invalidateAll();
+      setActiveAction("none");
+      setCartorioForm({ tipo: "juntada", titulo: "", conteudo: "", anexo_url: "" });
+      toast.success("Ato do Cartório registrado!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
   const invalidateAll = () => {
     queryClient.invalidateQueries({ queryKey: ["mag-proc", processoId] });
     queryClient.invalidateQueries({ queryKey: ["mag-movs", processoId] });
@@ -1238,6 +1270,9 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             <Button onClick={() => setActiveAction("intimar_cargo")} variant="outline" className="rounded-xl">
               <Megaphone className="h-4 w-4 mr-2" /> Intimar Cargo
             </Button>
+            <Button onClick={() => setActiveAction("ato_cartorio")} variant="outline" className="rounded-xl">
+              <FileText className="h-4 w-4 mr-2" /> Atos do Cartório
+            </Button>
           </div>
         </div>
       )}
@@ -1433,6 +1468,28 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             <Textarea name="justificativa" placeholder="Justificativa da suspeição (art. 145 do CPC)..." rows={4} className="rounded-xl" required />
             <Button type="submit" disabled={declararSuspeicao.isPending} variant="destructive" className="rounded-xl">
               {declararSuspeicao.isPending ? "Processando..." : "Confirmar Suspeição e Redistribuir"}
+            </Button>
+          </form>
+        </ActionCard>
+      )}
+
+      {/* ATO DO CARTÓRIO FORM */}
+      {activeAction === "ato_cartorio" && (
+        <ActionCard title="Ato do Cartório Judicial" icon={FileText} onCancel={() => setActiveAction("none")}>
+          <p className="text-xs text-muted-foreground mb-3">Assinatura: <span className="font-semibold">Escrevente Técnico Judiciário Abel Haus</span></p>
+          <form onSubmit={(e) => { e.preventDefault(); createAtoCartorio.mutate(); }} className="space-y-4">
+            <Select value={cartorioForm.tipo} onValueChange={(v) => setCartorioForm({ ...cartorioForm, tipo: v })}>
+              <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="juntada">Juntada</SelectItem>
+                <SelectItem value="ato_ordinatorio">Ato Ordinatório</SelectItem>
+              </SelectContent>
+            </Select>
+            <Input placeholder="Título do ato" value={cartorioForm.titulo} onChange={(e) => setCartorioForm({ ...cartorioForm, titulo: e.target.value })} className="rounded-xl" required />
+            <Textarea placeholder="Conteúdo..." value={cartorioForm.conteudo} onChange={(e) => setCartorioForm({ ...cartorioForm, conteudo: e.target.value })} rows={5} className="rounded-xl" required />
+            <Input placeholder="Link do anexo (opcional)" value={cartorioForm.anexo_url} onChange={(e) => setCartorioForm({ ...cartorioForm, anexo_url: e.target.value })} className="rounded-xl" />
+            <Button type="submit" disabled={createAtoCartorio.isPending} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
+              {createAtoCartorio.isPending ? "Registrando..." : "Registrar Ato do Cartório"}
             </Button>
           </form>
         </ActionCard>
