@@ -207,9 +207,22 @@ function MagistradoDashboard({ onSelectProcesso }: { onSelectProcesso: (id: stri
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="font-display text-2xl font-bold text-foreground">Portal do Juiz de Direito</h2>
-        <p className="text-sm text-muted-foreground">Gabinete Digital — Processos, despachos, audiências e decisões</p>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h2 className="font-display text-2xl font-bold text-foreground">Portal do Juiz de Direito</h2>
+          <p className="text-sm text-muted-foreground">Gabinete Digital — Processos, despachos, audiências e decisões</p>
+        </div>
+        <div className="flex items-center gap-3 bg-card rounded-xl px-4 py-2.5 border border-border shadow-institutional">
+          <div className="text-right">
+            <p className="text-xs font-semibold text-foreground">Recesso</p>
+            <p className="text-[10px] text-muted-foreground">{profile?.recesso ? "Fora do sorteio" : "Ativo no sorteio"}</p>
+          </div>
+          <Switch
+            checked={profile?.recesso ?? false}
+            onCheckedChange={(val) => toggleRecesso.mutate(val)}
+            disabled={toggleRecesso.isPending}
+          />
+        </div>
       </div>
 
       {/* Stats */}
