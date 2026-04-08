@@ -1860,6 +1860,7 @@ export type Database = {
           id_personagem: string | null
           nome_completo: string
           oab_numero: string | null
+          recesso: boolean
           telefone_ingame: string | null
           updated_at: string
           user_id: string
@@ -1874,6 +1875,7 @@ export type Database = {
           id_personagem?: string | null
           nome_completo: string
           oab_numero?: string | null
+          recesso?: boolean
           telefone_ingame?: string | null
           updated_at?: string
           user_id: string
@@ -1888,6 +1890,7 @@ export type Database = {
           id_personagem?: string | null
           nome_completo?: string
           oab_numero?: string | null
+          recesso?: boolean
           telefone_ingame?: string | null
           updated_at?: string
           user_id?: string

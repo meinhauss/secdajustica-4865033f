@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { formatPartesShort, parsePartesFromString } from "@/lib/formatPartes";
 import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Gavel, FileText, Clock, Search, ArrowLeft, ChevronRight,
@@ -96,9 +97,33 @@ export default function MagistradoSection() {
 /* ═══════════════════════════════════════════ */
 function MagistradoDashboard({ onSelectProcesso }: { onSelectProcesso: (id: string) => void }) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [filterClasse, setFilterClasse] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
+
+  // Recesso state
+  const { data: profile } = useQuery({
+    queryKey: ["mag-profile-recesso", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("profiles").select("id, recesso").eq("user_id", user!.id).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const toggleRecesso = useMutation({
+    mutationFn: async (val: boolean) => {
+      const { error } = await supabase.from("profiles").update({ recesso: val }).eq("user_id", user!.id);
+      if (error) throw error;
+    },
+    onSuccess: (_, val) => {
+      queryClient.invalidateQueries({ queryKey: ["mag-profile-recesso"] });
+      toast.success(val ? "Recesso ativado — você foi removido do sorteio." : "Recesso desativado — você voltou ao sorteio.");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
 
   const { data: processos } = useQuery({
     queryKey: ["mag-processos", user?.id],
@@ -182,9 +207,22 @@ function MagistradoDashboard({ onSelectProcesso }: { onSelectProcesso: (id: stri
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="font-display text-2xl font-bold text-foreground">Portal do Juiz de Direito</h2>
-        <p className="text-sm text-muted-foreground">Gabinete Digital — Processos, despachos, audiências e decisões</p>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h2 className="font-display text-2xl font-bold text-foreground">Portal do Juiz de Direito</h2>
+          <p className="text-sm text-muted-foreground">Gabinete Digital — Processos, despachos, audiências e decisões</p>
+        </div>
+        <div className="flex items-center gap-3 bg-card rounded-xl px-4 py-2.5 border border-border shadow-institutional">
+          <div className="text-right">
+            <p className="text-xs font-semibold text-foreground">Recesso</p>
+            <p className="text-[10px] text-muted-foreground">{profile?.recesso ? "Fora do sorteio" : "Ativo no sorteio"}</p>
+          </div>
+          <Switch
+            checked={profile?.recesso ?? false}
+            onCheckedChange={(val) => toggleRecesso.mutate(val)}
+            disabled={toggleRecesso.isPending}
+          />
+        </div>
       </div>
 
       {/* Stats */}
