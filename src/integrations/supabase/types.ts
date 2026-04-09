@@ -1994,6 +1994,45 @@ export type Database = {
           },
         ]
       }
+      ranking_destaques: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          id: string
+          id_personagem: string | null
+          nome_completo: string
+          score: number
+          semana_fim: string
+          semana_inicio: string
+          tipo_ranking: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          id_personagem?: string | null
+          nome_completo: string
+          score?: number
+          semana_fim: string
+          semana_inicio: string
+          tipo_ranking: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          id_personagem?: string | null
+          nome_completo?: string
+          score?: number
+          semana_fim?: string
+          semana_inicio?: string
+          tipo_ranking?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       registros_cartorio: {
         Row: {
           created_at: string
@@ -2291,6 +2330,7 @@ export type Database = {
         Returns: boolean
       }
       get_advogado_ranking: { Args: never; Returns: Json }
+      get_last_friday: { Args: never; Returns: string }
       get_magistrado_ranking: { Args: never; Returns: Json }
       get_processo_stats: { Args: never; Returns: Json }
       get_promotor_ranking: { Args: never; Returns: Json }

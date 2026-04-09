@@ -648,9 +648,11 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
 
         {/* RANKING */}
         <TabsContent value="ranking" className="mt-4">
+          <OABDestaqueCard />
           {/* Tabela de pontuação */}
           <div className="bg-card rounded-xl border border-border p-4 mb-4">
-            <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2"><Award className="h-4 w-4 text-institutional" /> Sistema de Pontuação</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2"><Award className="h-4 w-4 text-institutional" /> Sistema de Pontuação</h3>
+            <p className="text-[10px] text-muted-foreground mb-2">Pontos zerados toda sexta-feira. O líder da semana recebe o título de Servidor Destaque.</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
               <div className="bg-secondary/50 rounded-lg p-2 text-center"><p className="font-bold text-foreground">10 pts</p><p className="text-muted-foreground">Processo vinculado</p></div>
               <div className="bg-secondary/50 rounded-lg p-2 text-center"><p className="font-bold text-foreground">25 pts</p><p className="text-muted-foreground">Sentença / Arquivamento</p></div>
@@ -1049,5 +1051,48 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function OABDestaqueCard() {
+  const { data: destaque } = useQuery({
+    queryKey: ["ranking-destaque-advogado"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ranking_destaques")
+        .select("*")
+        .eq("tipo_ranking", "advogado")
+        .order("semana_fim", { ascending: false })
+        .limit(1);
+      if (error) throw error;
+      return data?.[0] || null;
+    },
+  });
+
+  if (!destaque) return null;
+
+  return (
+    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+      className="bg-gradient-to-r from-gold/20 via-gold/10 to-transparent rounded-xl p-4 border-2 border-gold shadow-lg mb-4">
+      <div className="flex items-center gap-3">
+        <div className="text-3xl">🏆</div>
+        {destaque.avatar_url ? (
+          <img src={destaque.avatar_url} alt="" className="w-12 h-12 rounded-full object-cover border-2 border-gold" />
+        ) : (
+          <div className="w-12 h-12 rounded-full bg-gold/20 flex items-center justify-center">
+            <Award className="h-6 w-6 text-gold-dark" />
+          </div>
+        )}
+        <div className="flex-1">
+          <p className="text-[10px] uppercase tracking-wider font-bold text-gold-dark">⭐ Servidor Destaque da Semana</p>
+          <p className="text-base font-bold text-foreground">{destaque.nome_completo}</p>
+          {destaque.id_personagem && <p className="text-[10px] text-muted-foreground">ID: {destaque.id_personagem}</p>}
+        </div>
+        <div className="text-right">
+          <span className="text-xl font-bold text-gold-dark">{destaque.score}</span>
+          <p className="text-[10px] text-muted-foreground uppercase">pontos</p>
+        </div>
+      </div>
+    </motion.div>
   );
 }
