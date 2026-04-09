@@ -1749,7 +1749,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                     <div className="absolute -left-[25px] top-1 w-3 h-3 rounded-full bg-institutional border-2 border-background" />
                     <div className="bg-card rounded-xl p-3 border border-border">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${item.badge_color}`}>{item.tipo}</span>
+                        <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${item.badge_color}`}>{item.tipo.replace(/_/g, ' ')}</span>
                         <span className="text-[10px] text-muted-foreground ml-auto">{format(new Date(item.date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
                       </div>
                       {item.titulo && <p className="text-sm font-semibold text-foreground mb-1">{item.titulo}</p>}
