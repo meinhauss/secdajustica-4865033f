@@ -13,6 +13,25 @@ import { CURRENT_VERSION } from "@/lib/version";
 
 const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
   {
+    version: "2.12.0",
+    date: "09/04/2026",
+    changes: [
+      "Rankings semanais: pontuação zera toda sexta-feira com registro do Servidor Destaque da semana",
+      "Badge de Servidor Destaque exibido nos rankings de Magistrados, Promotores e Advogados",
+      "Tabela ranking_destaques para histórico de vencedores semanais",
+      "Cron job automático para reset semanal e premiação dos destaques",
+      "Ranking da advocacia reformulado com layout visual padronizado (avatares, badges, métricas)",
+      "Foto de perfil nos rankings com fallback automático entre carteira OAB e perfil",
+      "Atos do cartório assinados pelo Escrevente Técnico Judiciário no Portal do Juiz",
+      "Suporte a múltiplos links nos atos do cartório",
+      "Intimações visíveis na timeline do processo para todos os usuários com acesso",
+      "Correção de duplicidade na timeline ao juntar procuração",
+      "Correção de duplicidade nos atos do cartório na timeline",
+      "Ranking de promotores contabilizando trânsito em julgado, pareceres e requisições",
+      "Sistema de recesso para magistrados com exclusão do sorteio de processos",
+    ],
+  },
+  {
     version: "2.11.0",
     date: "03/04/2026",
     changes: [
