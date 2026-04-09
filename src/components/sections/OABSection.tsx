@@ -648,9 +648,11 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
 
         {/* RANKING */}
         <TabsContent value="ranking" className="mt-4">
+          <OABDestaqueCard />
           {/* Tabela de pontuação */}
           <div className="bg-card rounded-xl border border-border p-4 mb-4">
-            <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2"><Award className="h-4 w-4 text-institutional" /> Sistema de Pontuação</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2"><Award className="h-4 w-4 text-institutional" /> Sistema de Pontuação</h3>
+            <p className="text-[10px] text-muted-foreground mb-2">Pontos zerados toda sexta-feira. O líder da semana recebe o título de Servidor Destaque.</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
               <div className="bg-secondary/50 rounded-lg p-2 text-center"><p className="font-bold text-foreground">10 pts</p><p className="text-muted-foreground">Processo vinculado</p></div>
               <div className="bg-secondary/50 rounded-lg p-2 text-center"><p className="font-bold text-foreground">25 pts</p><p className="text-muted-foreground">Sentença / Arquivamento</p></div>
