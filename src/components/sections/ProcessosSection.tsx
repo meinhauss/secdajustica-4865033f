@@ -404,6 +404,7 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
                 <SelectContent>
                   <SelectItem value="publico">Público</SelectItem>
                   <SelectItem value="segredo_justica">Segredo de Justiça</SelectItem>
+                  <SelectItem value="sigilo_absoluto">Sigilo Absoluto</SelectItem>
                 </SelectContent>
               </Select>
 
