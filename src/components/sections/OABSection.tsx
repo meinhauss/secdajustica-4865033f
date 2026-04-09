@@ -662,32 +662,47 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
           </div>
           {!ranking.length ? <EmptyState icon={Award} text="Nenhum advogado no ranking." /> : (
             <div className="space-y-2">
-              {ranking.map((adv: any, i: number) => {
-                const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : null;
-                return (
-                  <motion.div key={adv.user_id || i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
-                    className={`bg-card rounded-xl p-4 border shadow-institutional ${i < 3 ? 'border-gold/30' : 'border-border'}`}>
-                    <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold flex-shrink-0 ${i < 3 ? 'bg-gold/10' : 'bg-secondary'}`}>
-                        {medal || <span className="text-sm text-muted-foreground">{i + 1}º</span>}
+              {ranking.map((adv: any, i: number) => (
+                <motion.div key={adv.user_id || i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
+                  className={`bg-card rounded-xl p-4 border shadow-institutional ${i === 0 ? 'border-gold ring-1 ring-gold/20' : i === 1 ? 'border-gray-400 dark:border-gray-500' : i === 2 ? 'border-amber-600 dark:border-amber-700' : 'border-border'}`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${i === 0 ? 'bg-gold/20 text-gold-dark' : i === 1 ? 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300' : i === 2 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : 'bg-secondary text-muted-foreground'}`}>
+                      {i + 1}º
+                    </div>
+                    {adv.foto_url ? (
+                      <img src={adv.foto_url} alt="" className="w-10 h-10 rounded-full object-cover border border-border" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-institutional/10 flex items-center justify-center">
+                        <Briefcase className="h-5 w-5 text-institutional" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-foreground">{adv.nome_completo}</p>
-                        <p className="font-mono text-xs text-institutional">{adv.numero_oab}</p>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-semibold text-foreground text-sm">{adv.nome_completo}</span>
+                        <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-institutional/10 text-institutional font-semibold">
+                          {adv.numero_oab}
+                        </span>
+                        {adv.especialidade && (
+                          <span className="text-[10px] text-muted-foreground">{adv.especialidade}</span>
+                        )}
                       </div>
-                      <div className="text-right flex-shrink-0">
-                        <p className="text-lg font-bold text-foreground">{adv.score} <span className="text-[10px] font-normal text-muted-foreground">pts</span></p>
-                        <div className="flex flex-wrap justify-end gap-x-2 text-[10px] text-muted-foreground">
-                          <span>{adv.processos_count} {adv.processos_count === 1 ? 'processo' : 'processos'}</span>
-                          <span>• {adv.sentencas} {adv.sentencas === 1 ? 'sentença' : 'sentenças'}</span>
-                          <span>• {adv.pareceres_favoraveis || 0} apel. deferida(s)</span>
-                          <span>• {adv.sentencas_rapidas || 0} sentença(s) rápida(s)</span>
-                        </div>
+                      {adv.id_personagem && <span className="text-[10px] text-muted-foreground">ID: {adv.id_personagem}</span>}
+                      <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-[11px] text-muted-foreground">
+                        <span>{adv.processos_count} {Number(adv.processos_count) === 1 ? 'processo' : 'processos'}</span>
+                        <span>•</span>
+                        <span>{adv.sentencas} {Number(adv.sentencas) === 1 ? 'sentença' : 'sentenças'}</span>
+                        <span>•</span>
+                        <span>{adv.pareceres_favoraveis || 0} apel. deferida(s)</span>
+                        {Number(adv.sentencas_rapidas) > 0 && <><span>•</span><span className="text-green-600 dark:text-green-400">⚡ {adv.sentencas_rapidas} rápida(s)</span></>}
                       </div>
                     </div>
-                  </motion.div>
-                );
-              })}
+                    <div className="text-right flex-shrink-0">
+                      <span className="text-xl font-bold text-institutional">{Number(adv.score)}</span>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">pontos</p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
             </div>
           )}
         </TabsContent>
