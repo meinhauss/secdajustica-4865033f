@@ -1053,3 +1053,46 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
     </div>
   );
 }
+
+function OABDestaqueCard() {
+  const { data: destaque } = useQuery({
+    queryKey: ["ranking-destaque-advogado"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ranking_destaques")
+        .select("*")
+        .eq("tipo_ranking", "advogado")
+        .order("semana_fim", { ascending: false })
+        .limit(1);
+      if (error) throw error;
+      return data?.[0] || null;
+    },
+  });
+
+  if (!destaque) return null;
+
+  return (
+    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+      className="bg-gradient-to-r from-gold/20 via-gold/10 to-transparent rounded-xl p-4 border-2 border-gold shadow-lg mb-4">
+      <div className="flex items-center gap-3">
+        <div className="text-3xl">🏆</div>
+        {destaque.avatar_url ? (
+          <img src={destaque.avatar_url} alt="" className="w-12 h-12 rounded-full object-cover border-2 border-gold" />
+        ) : (
+          <div className="w-12 h-12 rounded-full bg-gold/20 flex items-center justify-center">
+            <Award className="h-6 w-6 text-gold-dark" />
+          </div>
+        )}
+        <div className="flex-1">
+          <p className="text-[10px] uppercase tracking-wider font-bold text-gold-dark">⭐ Servidor Destaque da Semana</p>
+          <p className="text-base font-bold text-foreground">{destaque.nome_completo}</p>
+          {destaque.id_personagem && <p className="text-[10px] text-muted-foreground">ID: {destaque.id_personagem}</p>}
+        </div>
+        <div className="text-right">
+          <span className="text-xl font-bold text-gold-dark">{destaque.score}</span>
+          <p className="text-[10px] text-muted-foreground uppercase">pontos</p>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
