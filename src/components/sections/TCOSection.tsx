@@ -439,10 +439,10 @@ export default function TCOSection() {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => { setView("list"); resetForm(); }}>
+          <Button variant="ghost" size="sm" onClick={() => { if (editingTcoId) { setSelectedTco(editingTcoId); setView("detail"); } else { setView("list"); } resetForm(); }}>
             <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
           </Button>
-          <h2 className="font-display text-2xl font-bold text-foreground">Novo TCO</h2>
+          <h2 className="font-display text-2xl font-bold text-foreground">{editingTcoId ? "Editar TCO" : "Novo TCO"}</h2>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -577,8 +577,8 @@ export default function TCOSection() {
             </div>
 
             <div className="pt-4 border-t border-border">
-              <Button className="w-full rounded-xl" onClick={() => criarTco.mutate()} disabled={criarTco.isPending}>
-                {criarTco.isPending ? "Registrando..." : "Registrar TCO"}
+              <Button className="w-full rounded-xl" onClick={() => editingTcoId ? atualizarTco.mutate() : criarTco.mutate()} disabled={criarTco.isPending || atualizarTco.isPending}>
+                {editingTcoId ? (atualizarTco.isPending ? "Salvando..." : "Salvar Alterações") : (criarTco.isPending ? "Registrando..." : "Registrar TCO")}
               </Button>
             </div>
           </motion.div>
