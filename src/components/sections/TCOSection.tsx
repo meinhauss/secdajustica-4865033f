@@ -167,11 +167,12 @@ export default function TCOSection() {
 
       // Autor do processo = cargo policial que criou o TCO
       const cargoMap: Record<string, string> = {
+        delegado: "Delegacia de Polícia",
         policia_civil: "Polícia Civil",
         policia_militar: "Polícia Militar",
         policia_federal: "Polícia Federal",
       };
-      const cargoPolicial = roles.find(r => ["policia_civil", "policia_militar", "policia_federal"].includes(r));
+      const cargoPolicial = roles.find(r => ["delegado", "policia_civil", "policia_militar", "policia_federal"].includes(r));
       const autorProcesso = cargoMap[cargoPolicial || ""] || "Autoridade Policial";
 
       // Réu = autor do fato no TCO

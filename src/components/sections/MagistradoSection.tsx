@@ -809,6 +809,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     { value: "ministerio_publico", label: "Promotor(a) de Justiça" },
     { value: "advogado", label: "Advogado(a)" },
     { value: "oficial_justica", label: "Oficial de Justiça" },
+    { value: "delegado", label: "Delegado(a)" },
     { value: "policia_civil", label: "Polícia Civil" },
     { value: "policia_militar", label: "Polícia Militar" },
     { value: "policia_federal", label: "Polícia Federal" },

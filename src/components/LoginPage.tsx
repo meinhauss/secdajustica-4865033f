@@ -658,6 +658,7 @@ function TabTransparencia() {
     presidente_oab: "Presidente da OAB",
     procurador_geral: "Procurador(a)-Geral",
     bacharel_direito: "Bacharel em Direito",
+    delegado: "Delegado(a)",
     policia_civil: "Polícia Civil",
     policia_militar: "Polícia Militar",
     policia_federal: "Polícia Federal",
