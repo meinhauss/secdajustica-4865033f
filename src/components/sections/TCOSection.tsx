@@ -356,14 +356,9 @@ export default function TCOSection() {
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div><p className="text-muted-foreground">Natureza</p><p className="font-medium">{t.natureza_infracao}</p></div>
               <div><p className="text-muted-foreground">Tipificação</p><p className="font-medium">{t.tipificacao_penal || "—"}</p></div>
-              <div><p className="text-muted-foreground">Data do Fato</p><p className="font-medium">{t.data_fato ? format(new Date(t.data_fato), "dd/MM/yyyy HH:mm") : "—"}</p></div>
-              <div><p className="text-muted-foreground">Local</p><p className="font-medium">{t.local_fato || "—"}</p></div>
+              <div><p className="text-muted-foreground">Nº do B.O.</p><p className="font-medium">{t.descricao_fatos || "—"}</p></div>
               <div><p className="text-muted-foreground">Policial</p><p className="font-medium">{t.autor_policial_nome}</p></div>
               <div><p className="text-muted-foreground">Registrado em</p><p className="font-medium">{format(new Date(t.created_at), "dd/MM/yyyy HH:mm")}</p></div>
-            </div>
-            <div>
-              <p className="text-muted-foreground text-sm mb-1">Descrição dos Fatos</p>
-              <p className="text-sm whitespace-pre-wrap bg-muted/50 p-3 rounded-lg">{t.descricao_fatos}</p>
             </div>
             {t.compromisso_jecrim && (
               <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 text-sm">
@@ -454,35 +449,29 @@ export default function TCOSection() {
               <label className="text-sm font-medium">Natureza da Infração *</label>
               <Select value={natureza} onValueChange={(v) => {
                 setNatureza(v);
-                const found = NATUREZAS.find((n) => n.label === v);
-                if (found) setTipificacao(found.tipificacao);
+                if (v === "Outros") {
+                  setTipificacao("");
+                } else {
+                  const found = NATUREZAS.find((n) => n.label === v);
+                  if (found) setTipificacao(found.tipificacao);
+                }
               }}>
                 <SelectTrigger className="rounded-xl mt-1"><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
                   {NATUREZAS.map((n) => <SelectItem key={n.label} value={n.label}>{n.label}</SelectItem>)}
+                  <SelectItem value="Outros">Outros</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div>
               <label className="text-sm font-medium">Tipificação Penal</label>
-              <Input value={tipificacao} onChange={(e) => setTipificacao(e.target.value)} placeholder="Preenchido automaticamente" className="rounded-xl mt-1" readOnly />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-sm font-medium">Data/Hora do Fato</label>
-                <Input type="datetime-local" value={dataFato} onChange={(e) => setDataFato(e.target.value)} className="rounded-xl mt-1" />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Local do Fato</label>
-                <Input value={localFato} onChange={(e) => setLocalFato(e.target.value)} placeholder="Endereço..." className="rounded-xl mt-1" />
-              </div>
+              <Input value={tipificacao} onChange={(e) => setTipificacao(e.target.value)} placeholder={natureza === "Outros" ? "Informe a tipificação penal..." : "Preenchido automaticamente"} className="rounded-xl mt-1" readOnly={natureza !== "Outros"} />
             </div>
 
             <div>
-              <label className="text-sm font-medium">Descrição dos Fatos *</label>
-              <Textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} rows={5} placeholder="Relato circunstanciado dos fatos..." className="rounded-xl mt-1" />
+              <label className="text-sm font-medium">Número do Boletim de Ocorrência *</label>
+              <Input value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Ex: BO-000001/2026" className="rounded-xl mt-1" />
             </div>
 
             {/* Compromisso JECrim */}
@@ -494,24 +483,6 @@ export default function TCOSection() {
               {compromisso && (
                 <p className="text-xs text-muted-foreground ml-6 mt-1">A data da audiência será agendada pelo juiz no decorrer do processo.</p>
               )}
-            </div>
-
-            {/* Links/Anexos */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Links / Anexos</label>
-              {links.map((link, i) => (
-                <div key={i} className="flex gap-2">
-                  <Input value={link} onChange={(e) => { const u = [...links]; u[i] = e.target.value; setLinks(u); }} placeholder="https://..." className="rounded-xl" />
-                  {links.length > 1 && (
-                    <Button variant="ghost" size="icon" onClick={() => setLinks(links.filter((_, idx) => idx !== i))}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-              <Button variant="outline" size="sm" onClick={() => setLinks([...links, ""])} className="rounded-xl">
-                <Plus className="h-3 w-3 mr-1" /> Adicionar Link
-              </Button>
             </div>
           </motion.div>
 
