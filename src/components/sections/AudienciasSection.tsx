@@ -188,6 +188,25 @@ export default function AudienciasSection() {
     onError: (e: any) => toast.error("Erro ao agendar: " + e.message),
   });
 
+  const realizarMutation = useMutation({
+    mutationFn: async () => {
+      if (!detailId) throw new Error("Sem audiência selecionada");
+      const { error } = await supabase
+        .from("audiencias")
+        .update({ status: "realizada", ata: ataText || null })
+        .eq("id", detailId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Audiência marcada como realizada!");
+      queryClient.invalidateQueries({ queryKey: ["audiencias"] });
+      setShowAtaForm(false);
+      setAtaText("");
+      setDetailId(null);
+    },
+    onError: (e: any) => toast.error("Erro: " + e.message),
+  });
+
   const showEnvolvidos = !form.processo_id;
 
   return (
