@@ -413,6 +413,9 @@ export default function TCOSection() {
             {/* Actions */}
             {t.status === "elaborado" && (
               <div className="pt-4 border-t border-border space-y-2">
+                <Button variant="outline" className="w-full rounded-xl" onClick={() => startEditing(t)}>
+                  <Edit className="h-4 w-4 mr-2" /> Editar TCO
+                </Button>
                 <Button className="w-full rounded-xl" onClick={() => finalizarTco.mutate(t.id)} disabled={finalizarTco.isPending}>
                   Finalizar TCO
                 </Button>
