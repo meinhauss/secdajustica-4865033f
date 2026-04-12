@@ -489,11 +489,6 @@ export default function TCOSection() {
                 <p className="text-xs text-muted-foreground ml-6 mt-1">A data da audiência será agendada pelo juiz no decorrer do processo.</p>
               )}
             </div>
-              ))}
-              <Button variant="outline" size="sm" onClick={() => setLinks([...links, ""])} className="rounded-xl">
-                <Plus className="h-3 w-3 mr-1" /> Adicionar Link
-              </Button>
-            </div>
           </motion.div>
 
           {/* Right: Envolvidos */}
