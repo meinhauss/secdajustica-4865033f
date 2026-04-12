@@ -232,6 +232,81 @@ export default function TCOSection() {
     },
   });
 
+  const atualizarTco = useMutation({
+    mutationFn: async () => {
+      if (!editingTcoId) throw new Error("Nenhum TCO selecionado");
+      const validEnvolvidos = envolvidos.filter((e) => e.nome.trim());
+      if (!natureza || !descricao.trim()) throw new Error("Preencha os campos obrigatórios");
+      if (validEnvolvidos.length === 0) throw new Error("Adicione pelo menos um envolvido");
+
+      const validLinks = links.filter((l) => l.trim());
+
+      const { error } = await supabase
+        .from("tcos")
+        .update({
+          natureza_infracao: natureza,
+          tipificacao_penal: tipificacao,
+          descricao_fatos: descricao,
+          data_fato: dataFato || null,
+          local_fato: localFato || null,
+          compromisso_jecrim: compromisso,
+          links: validLinks,
+        } as any)
+        .eq("id", editingTcoId);
+      if (error) throw error;
+
+      // Delete existing envolvidos and re-insert
+      await supabase.from("envolvidos_tco").delete().eq("tco_id", editingTcoId);
+      if (validEnvolvidos.length > 0) {
+        const { error: envErr } = await supabase.from("envolvidos_tco").insert(
+          validEnvolvidos.map((e) => ({
+            tco_id: editingTcoId,
+            nome: e.nome,
+            tipo: e.tipo,
+            id_personagem: e.id_personagem || null,
+            qualificacao: e.qualificacao || null,
+            observacoes: e.observacoes || null,
+          })) as any
+        );
+        if (envErr) throw envErr;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tcos"] });
+      queryClient.invalidateQueries({ queryKey: ["tco-detail"] });
+      toast.success("TCO atualizado com sucesso");
+      resetForm();
+      setEditingTcoId(null);
+      setSelectedTco(editingTcoId);
+      setView("detail");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const startEditing = (t: any) => {
+    setEditingTcoId(t.id);
+    setNatureza(t.natureza_infracao || "");
+    setTipificacao(t.tipificacao_penal || "");
+    setDescricao(t.descricao_fatos || "");
+    setDataFato(t.data_fato ? new Date(t.data_fato).toISOString().slice(0, 16) : "");
+    setLocalFato(t.local_fato || "");
+    setCompromisso(!!t.compromisso_jecrim);
+    setLinks(Array.isArray(t.links) && t.links.length > 0 ? t.links : [""]);
+    setEnvolvidos(
+      (t.envolvidos || []).length > 0
+        ? t.envolvidos.map((e: any) => ({
+            id: e.id,
+            nome: e.nome,
+            tipo: e.tipo,
+            id_personagem: e.id_personagem || "",
+            qualificacao: e.qualificacao || "",
+            observacoes: e.observacoes || "",
+          }))
+        : [{ ...emptyEnvolvido(), tipo: "autor_fato" }, { ...emptyEnvolvido(), tipo: "vitima" }]
+    );
+    setView("new");
+  };
+
   const resetForm = () => {
     setNatureza("");
     setTipificacao("");
