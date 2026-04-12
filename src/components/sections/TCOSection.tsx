@@ -61,6 +61,7 @@ export default function TCOSection() {
   const queryClient = useQueryClient();
   const [view, setView] = useState<"list" | "new" | "detail">("list");
   const [selectedTco, setSelectedTco] = useState<string | null>(null);
+  const [editingTcoId, setEditingTcoId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
   // Form state
