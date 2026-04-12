@@ -1001,6 +1001,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     { role: "desembargador", label: "Desembargadoria" },
     { role: "presidente_oab", label: "Presidência da OAB" },
     { role: "investigador", label: "Investigação" },
+    { role: "delegado", label: "Delegacia" },
     { role: "policia_civil", label: "Polícia Civil" },
     { role: "policia_militar", label: "Polícia Militar" },
     { role: "policia_federal", label: "Polícia Federal" },
