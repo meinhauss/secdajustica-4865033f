@@ -369,6 +369,45 @@ export default function AudienciasSection() {
                   </div>
                 )}
 
+                {/* Ata da audiência (quando já realizada) */}
+                {a.status === "realizada" && (a as any).ata && (
+                  <div className="border-t pt-3">
+                    <p className="text-xs text-muted-foreground mb-1">Ata da Audiência</p>
+                    <p className="text-sm text-foreground whitespace-pre-wrap bg-muted/30 rounded-lg p-3">{(a as any).ata}</p>
+                  </div>
+                )}
+
+                {/* Botão para marcar como realizada */}
+                {a.status === "agendada" && canRealizarAudiencia && (
+                  <div className="border-t pt-3 space-y-3">
+                    {!showAtaForm ? (
+                      <Button className="w-full" onClick={() => setShowAtaForm(true)}>
+                        Marcar como Realizada
+                      </Button>
+                    ) : (
+                      <>
+                        <div className="space-y-1.5">
+                          <Label>Ata da Audiência</Label>
+                          <Textarea
+                            value={ataText}
+                            onChange={e => setAtaText(e.target.value)}
+                            rows={6}
+                            placeholder="Registre aqui o conteúdo da ata da audiência..."
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button variant="outline" className="flex-1" onClick={() => { setShowAtaForm(false); setAtaText(""); }}>
+                            Cancelar
+                          </Button>
+                          <Button className="flex-1" disabled={realizarMutation.isPending} onClick={() => realizarMutation.mutate()}>
+                            {realizarMutation.isPending ? "Salvando..." : "Confirmar Realização"}
+                          </Button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+
                 {/* Envolvidos (audiências sem processo) */}
                 {!a.processo_id && (
                   <div className="border-t pt-3">
