@@ -319,6 +319,7 @@ export default function TCOSection() {
       { ...emptyEnvolvido(), tipo: "autor_fato" },
       { ...emptyEnvolvido(), tipo: "vitima" },
     ]);
+    setEditingTcoId(null);
   };
 
   const addEnvolvido = () => setEnvolvidos([...envolvidos, emptyEnvolvido()]);
