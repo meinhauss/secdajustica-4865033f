@@ -206,6 +206,14 @@ export default function TCOSection() {
         autor_id: user!.id,
       });
 
+      // Registrar policial como interessado no processo
+      await supabase.from("interessados_processo").insert({
+        processo_id: processo.id,
+        user_id: user!.id,
+        orgao: autorProcesso,
+        qualificacao: "interessado",
+      });
+
       await supabase
         .from("tcos")
         .update({ status: "encaminhado_jecrim", processo_id: processo.id } as any)
