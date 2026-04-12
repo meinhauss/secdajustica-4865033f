@@ -357,6 +357,7 @@ export default function TCOSection() {
               <div><p className="text-muted-foreground">Natureza</p><p className="font-medium">{t.natureza_infracao}</p></div>
               <div><p className="text-muted-foreground">Tipificação</p><p className="font-medium">{t.tipificacao_penal || "—"}</p></div>
               <div><p className="text-muted-foreground">Nº do B.O.</p><p className="font-medium">{t.descricao_fatos || "—"}</p></div>
+              <div><p className="text-muted-foreground">Órgão Julgador</p><p className="font-medium">JECRIM</p></div>
               <div><p className="text-muted-foreground">Policial</p><p className="font-medium">{t.autor_policial_nome}</p></div>
               <div><p className="text-muted-foreground">Registrado em</p><p className="font-medium">{format(new Date(t.created_at), "dd/MM/yyyy HH:mm")}</p></div>
             </div>
