@@ -31,8 +31,12 @@ export default function AudienciasSection() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
+  const [ataText, setAtaText] = useState("");
+  const [showAtaForm, setShowAtaForm] = useState(false);
 
   const isMagistrado = roles.some(r => ["magistrado", "desembargador", "presidente_tribunal", "admin"].includes(r));
+  const isOficialJustica = roles.includes("oficial_justica");
+  const canRealizarAudiencia = isMagistrado || isOficialJustica;
 
   const { data: audiencias } = useQuery({
     queryKey: ["audiencias"],
