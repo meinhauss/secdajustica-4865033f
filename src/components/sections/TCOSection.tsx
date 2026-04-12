@@ -356,14 +356,9 @@ export default function TCOSection() {
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div><p className="text-muted-foreground">Natureza</p><p className="font-medium">{t.natureza_infracao}</p></div>
               <div><p className="text-muted-foreground">Tipificação</p><p className="font-medium">{t.tipificacao_penal || "—"}</p></div>
-              <div><p className="text-muted-foreground">Data do Fato</p><p className="font-medium">{t.data_fato ? format(new Date(t.data_fato), "dd/MM/yyyy HH:mm") : "—"}</p></div>
-              <div><p className="text-muted-foreground">Local</p><p className="font-medium">{t.local_fato || "—"}</p></div>
+              <div><p className="text-muted-foreground">Nº do B.O.</p><p className="font-medium">{t.descricao_fatos || "—"}</p></div>
               <div><p className="text-muted-foreground">Policial</p><p className="font-medium">{t.autor_policial_nome}</p></div>
               <div><p className="text-muted-foreground">Registrado em</p><p className="font-medium">{format(new Date(t.created_at), "dd/MM/yyyy HH:mm")}</p></div>
-            </div>
-            <div>
-              <p className="text-muted-foreground text-sm mb-1">Descrição dos Fatos</p>
-              <p className="text-sm whitespace-pre-wrap bg-muted/50 p-3 rounded-lg">{t.descricao_fatos}</p>
             </div>
             {t.compromisso_jecrim && (
               <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 text-sm">
