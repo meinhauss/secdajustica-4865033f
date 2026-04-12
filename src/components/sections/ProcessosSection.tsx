@@ -336,6 +336,17 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
       });
       if (error) throw error;
 
+      if (user?.id) {
+        const openerOrgao = isCidadao ? "Parte Interessada" : (roles.includes("advogado") ? "Advocacia" : "Parte Interessada");
+        const { error: interessadoError } = await supabase.from("interessados_processo").insert({
+          processo_id: processoId,
+          user_id: user.id,
+          orgao: openerOrgao,
+          qualificacao: "interessado",
+        } as any);
+        if (interessadoError) throw interessadoError;
+      }
+
       if (juizId) {
         await supabase.from("movimentacoes").insert({
           processo_id: processoId,
