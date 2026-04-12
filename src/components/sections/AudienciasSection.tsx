@@ -378,15 +378,7 @@ export default function AudienciasSection() {
                 )}
 
                 {/* Botão para marcar como realizada — juiz do caso, admin ou oficial de justiça */}
-                {a.status === "agendada" && (
-                  isOficialJustica
-                  || roles.includes("admin")
-                  || (a.processo_id && (a as any).processos && (() => {
-                    // Verifica se o usuário é o juiz do processo vinculado
-                    return false; // fallback — checked below
-                  })())
-                  || isMagistrado
-                ) && (
+                {a.status === "agendada" && canRealizarAudiencia && (
                   <div className="border-t pt-3 space-y-3">
                     {!showAtaForm ? (
                       <Button className="w-full" onClick={() => setShowAtaForm(true)}>
