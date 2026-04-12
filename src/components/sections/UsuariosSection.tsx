@@ -12,6 +12,7 @@ const ROLE_LABELS: Record<string, string> = {
   admin: "Administrador",
   magistrado: "Juiz de Direito",
   ministerio_publico: "Promotor de Justiça",
+  delegado: "Delegado(a)",
   policia_civil: "Polícia Civil",
   policia_militar: "Polícia Militar",
   policia_federal: "Polícia Federal",
