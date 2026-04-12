@@ -325,18 +325,31 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
 
       const autorDisplay = JSON.stringify(autores);
       const reuDisplay = JSON.stringify(reus);
-      const { data: processo, error } = await supabase.from("processos").insert({
+      const processoId = crypto.randomUUID();
+      const { error } = await supabase.from("processos").insert({
+        id: processoId,
         numero: "", classe: form.classe as any, assunto: form.assunto, descricao: form.descricao,
         autor_nome: autorDisplay, reu_nome: reuDisplay, vara: form.vara,
         valor_causa: parseCurrencyToNumber(form.valor_causa),
         juiz_id: juizId,
         sigilo: form.sigilo,
-      }).select().single();
+      });
       if (error) throw error;
 
-      if (juizId && processo) {
+      if (user?.id) {
+        const openerOrgao = isCidadao ? "Parte Interessada" : (roles.includes("advogado") ? "Advocacia" : "Parte Interessada");
+        const { error: interessadoError } = await supabase.from("interessados_processo").insert({
+          processo_id: processoId,
+          user_id: user.id,
+          orgao: openerOrgao,
+          qualificacao: "interessado",
+        } as any);
+        if (interessadoError) throw interessadoError;
+      }
+
+      if (juizId) {
         await supabase.from("movimentacoes").insert({
-          processo_id: processo.id,
+          processo_id: processoId,
           tipo: "distribuicao",
           descricao: `Processo distribuído por sorteio ao(à) Juiz(a) de Direito ${juizNome || "designado(a)"}`,
           autor_id: user?.id,
