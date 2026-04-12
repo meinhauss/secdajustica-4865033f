@@ -31,8 +31,12 @@ export default function AudienciasSection() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
+  const [ataText, setAtaText] = useState("");
+  const [showAtaForm, setShowAtaForm] = useState(false);
 
   const isMagistrado = roles.some(r => ["magistrado", "desembargador", "presidente_tribunal", "admin"].includes(r));
+  const isOficialJustica = roles.includes("oficial_justica");
+  const canRealizarAudiencia = isMagistrado || isOficialJustica;
 
   const { data: audiencias } = useQuery({
     queryKey: ["audiencias"],
@@ -184,6 +188,25 @@ export default function AudienciasSection() {
     onError: (e: any) => toast.error("Erro ao agendar: " + e.message),
   });
 
+  const realizarMutation = useMutation({
+    mutationFn: async () => {
+      if (!detailId) throw new Error("Sem audiência selecionada");
+      const { error } = await supabase
+        .from("audiencias")
+        .update({ status: "realizada", ata: ataText || null })
+        .eq("id", detailId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Audiência marcada como realizada!");
+      queryClient.invalidateQueries({ queryKey: ["audiencias"] });
+      setShowAtaForm(false);
+      setAtaText("");
+      setDetailId(null);
+    },
+    onError: (e: any) => toast.error("Erro: " + e.message),
+  });
+
   const showEnvolvidos = !form.processo_id;
 
   return (
@@ -301,8 +324,8 @@ export default function AudienciasSection() {
       </div>
 
       {/* Dialog detalhes completos da audiência */}
-      <Dialog open={!!detailId} onOpenChange={o => { if (!o) setDetailId(null); }}>
-        <DialogContent className="max-w-lg">
+      <Dialog open={!!detailId} onOpenChange={o => { if (!o) { setDetailId(null); setShowAtaForm(false); setAtaText(""); } }}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Detalhes da Audiência</DialogTitle>
           </DialogHeader>
@@ -343,6 +366,45 @@ export default function AudienciasSection() {
                   <div>
                     <p className="text-xs text-muted-foreground">Observações</p>
                     <p className="text-sm text-foreground">{a.observacoes}</p>
+                  </div>
+                )}
+
+                {/* Ata da audiência (quando já realizada) */}
+                {a.status === "realizada" && (a as any).ata && (
+                  <div className="border-t pt-3">
+                    <p className="text-xs text-muted-foreground mb-1">Ata da Audiência</p>
+                    <p className="text-sm text-foreground whitespace-pre-wrap bg-muted/30 rounded-lg p-3">{(a as any).ata}</p>
+                  </div>
+                )}
+
+                {/* Botão para marcar como realizada — juiz do caso, admin ou oficial de justiça */}
+                {a.status === "agendada" && canRealizarAudiencia && (
+                  <div className="border-t pt-3 space-y-3">
+                    {!showAtaForm ? (
+                      <Button className="w-full" onClick={() => setShowAtaForm(true)}>
+                        Marcar como Realizada
+                      </Button>
+                    ) : (
+                      <>
+                        <div className="space-y-1.5">
+                          <Label>Ata da Audiência</Label>
+                          <Textarea
+                            value={ataText}
+                            onChange={e => setAtaText(e.target.value)}
+                            rows={6}
+                            placeholder="Registre aqui o conteúdo da ata da audiência..."
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button variant="outline" className="flex-1" onClick={() => { setShowAtaForm(false); setAtaText(""); }}>
+                            Cancelar
+                          </Button>
+                          <Button className="flex-1" disabled={realizarMutation.isPending} onClick={() => realizarMutation.mutate()}>
+                            {realizarMutation.isPending ? "Salvando..." : "Confirmar Realização"}
+                          </Button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
 

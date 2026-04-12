@@ -206,6 +206,7 @@ export type Database = {
       }
       audiencias: {
         Row: {
+          ata: string | null
           created_at: string
           data_hora: string
           id: string
@@ -216,6 +217,7 @@ export type Database = {
           tipo: string
         }
         Insert: {
+          ata?: string | null
           created_at?: string
           data_hora: string
           id?: string
@@ -226,6 +228,7 @@ export type Database = {
           tipo?: string
         }
         Update: {
+          ata?: string | null
           created_at?: string
           data_hora?: string
           id?: string
