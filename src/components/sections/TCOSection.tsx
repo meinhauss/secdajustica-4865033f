@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Plus, ArrowLeft, Trash2, Send, Eye, Search } from "lucide-react";
+import { FileText, Plus, ArrowLeft, Trash2, Send, Eye, Search, Edit } from "lucide-react";
 import { format } from "date-fns";
 import { PersonLookupInput } from "@/components/PersonLookupInput";
 
@@ -61,6 +61,7 @@ export default function TCOSection() {
   const queryClient = useQueryClient();
   const [view, setView] = useState<"list" | "new" | "detail">("list");
   const [selectedTco, setSelectedTco] = useState<string | null>(null);
+  const [editingTcoId, setEditingTcoId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
   // Form state
@@ -231,6 +232,81 @@ export default function TCOSection() {
     },
   });
 
+  const atualizarTco = useMutation({
+    mutationFn: async () => {
+      if (!editingTcoId) throw new Error("Nenhum TCO selecionado");
+      const validEnvolvidos = envolvidos.filter((e) => e.nome.trim());
+      if (!natureza || !descricao.trim()) throw new Error("Preencha os campos obrigatórios");
+      if (validEnvolvidos.length === 0) throw new Error("Adicione pelo menos um envolvido");
+
+      const validLinks = links.filter((l) => l.trim());
+
+      const { error } = await supabase
+        .from("tcos")
+        .update({
+          natureza_infracao: natureza,
+          tipificacao_penal: tipificacao,
+          descricao_fatos: descricao,
+          data_fato: dataFato || null,
+          local_fato: localFato || null,
+          compromisso_jecrim: compromisso,
+          links: validLinks,
+        } as any)
+        .eq("id", editingTcoId);
+      if (error) throw error;
+
+      // Delete existing envolvidos and re-insert
+      await supabase.from("envolvidos_tco").delete().eq("tco_id", editingTcoId);
+      if (validEnvolvidos.length > 0) {
+        const { error: envErr } = await supabase.from("envolvidos_tco").insert(
+          validEnvolvidos.map((e) => ({
+            tco_id: editingTcoId,
+            nome: e.nome,
+            tipo: e.tipo,
+            id_personagem: e.id_personagem || null,
+            qualificacao: e.qualificacao || null,
+            observacoes: e.observacoes || null,
+          })) as any
+        );
+        if (envErr) throw envErr;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tcos"] });
+      queryClient.invalidateQueries({ queryKey: ["tco-detail"] });
+      toast.success("TCO atualizado com sucesso");
+      resetForm();
+      setEditingTcoId(null);
+      setSelectedTco(editingTcoId);
+      setView("detail");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const startEditing = (t: any) => {
+    setEditingTcoId(t.id);
+    setNatureza(t.natureza_infracao || "");
+    setTipificacao(t.tipificacao_penal || "");
+    setDescricao(t.descricao_fatos || "");
+    setDataFato(t.data_fato ? new Date(t.data_fato).toISOString().slice(0, 16) : "");
+    setLocalFato(t.local_fato || "");
+    setCompromisso(!!t.compromisso_jecrim);
+    setLinks(Array.isArray(t.links) && t.links.length > 0 ? t.links : [""]);
+    setEnvolvidos(
+      (t.envolvidos || []).length > 0
+        ? t.envolvidos.map((e: any) => ({
+            id: e.id,
+            nome: e.nome,
+            tipo: e.tipo,
+            id_personagem: e.id_personagem || "",
+            qualificacao: e.qualificacao || "",
+            observacoes: e.observacoes || "",
+          }))
+        : [{ ...emptyEnvolvido(), tipo: "autor_fato" }, { ...emptyEnvolvido(), tipo: "vitima" }]
+    );
+    setView("new");
+  };
+
   const resetForm = () => {
     setNatureza("");
     setTipificacao("");
@@ -243,6 +319,7 @@ export default function TCOSection() {
       { ...emptyEnvolvido(), tipo: "autor_fato" },
       { ...emptyEnvolvido(), tipo: "vitima" },
     ]);
+    setEditingTcoId(null);
   };
 
   const addEnvolvido = () => setEnvolvidos([...envolvidos, emptyEnvolvido()]);
@@ -336,6 +413,9 @@ export default function TCOSection() {
             {/* Actions */}
             {t.status === "elaborado" && (
               <div className="pt-4 border-t border-border space-y-2">
+                <Button variant="outline" className="w-full rounded-xl" onClick={() => startEditing(t)}>
+                  <Edit className="h-4 w-4 mr-2" /> Editar TCO
+                </Button>
                 <Button className="w-full rounded-xl" onClick={() => finalizarTco.mutate(t.id)} disabled={finalizarTco.isPending}>
                   Finalizar TCO
                 </Button>
@@ -359,10 +439,10 @@ export default function TCOSection() {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => { setView("list"); resetForm(); }}>
+          <Button variant="ghost" size="sm" onClick={() => { if (editingTcoId) { setSelectedTco(editingTcoId); setView("detail"); } else { setView("list"); } resetForm(); }}>
             <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
           </Button>
-          <h2 className="font-display text-2xl font-bold text-foreground">Novo TCO</h2>
+          <h2 className="font-display text-2xl font-bold text-foreground">{editingTcoId ? "Editar TCO" : "Novo TCO"}</h2>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -497,8 +577,8 @@ export default function TCOSection() {
             </div>
 
             <div className="pt-4 border-t border-border">
-              <Button className="w-full rounded-xl" onClick={() => criarTco.mutate()} disabled={criarTco.isPending}>
-                {criarTco.isPending ? "Registrando..." : "Registrar TCO"}
+              <Button className="w-full rounded-xl" onClick={() => editingTcoId ? atualizarTco.mutate() : criarTco.mutate()} disabled={criarTco.isPending || atualizarTco.isPending}>
+                {editingTcoId ? (atualizarTco.isPending ? "Salvando..." : "Salvar Alterações") : (criarTco.isPending ? "Registrando..." : "Registrar TCO")}
               </Button>
             </div>
           </motion.div>
