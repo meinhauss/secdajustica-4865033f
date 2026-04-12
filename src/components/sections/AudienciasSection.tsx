@@ -324,8 +324,8 @@ export default function AudienciasSection() {
       </div>
 
       {/* Dialog detalhes completos da audiência */}
-      <Dialog open={!!detailId} onOpenChange={o => { if (!o) setDetailId(null); }}>
-        <DialogContent className="max-w-lg">
+      <Dialog open={!!detailId} onOpenChange={o => { if (!o) { setDetailId(null); setShowAtaForm(false); setAtaText(""); } }}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Detalhes da Audiência</DialogTitle>
           </DialogHeader>
