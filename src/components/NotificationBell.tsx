@@ -127,14 +127,26 @@ export default function NotificationBell({ onNavigate }: NotificationBellProps) 
         <div className="flex flex-col overflow-hidden rounded-md">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <h3 className="font-semibold text-sm text-foreground">Notificações</h3>
-            {unreadCount > 0 && (
-              <button
-                onClick={markAllAsRead}
-                className="text-xs text-primary hover:underline"
-              >
-                Marcar todas como lidas
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              {isAdmin && notificacoes.length > 0 && (
+                <button
+                  onClick={() => clearAllMutation.mutate()}
+                  disabled={clearAllMutation.isPending}
+                  className="text-xs text-destructive hover:underline flex items-center gap-1"
+                >
+                  <Trash2 className="h-3 w-3" />
+                  Limpar todas
+                </button>
+              )}
+              {unreadCount > 0 && (
+                <button
+                  onClick={markAllAsRead}
+                  className="text-xs text-primary hover:underline"
+                >
+                  Marcar como lidas
+                </button>
+              )}
+            </div>
           </div>
           <div className="overflow-y-auto max-h-[min(60vh,24rem)]">
             {notificacoes.length === 0 ? (
