@@ -17,9 +17,22 @@ interface NotificationBellProps {
 }
 
 export default function NotificationBell({ onNavigate }: NotificationBellProps) {
-  const { user } = useAuth();
+  const { user, roles } = useAuth();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const isAdmin = roles.includes("admin");
+
+  const clearAllMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("notificacoes").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Todas as notificações foram removidas");
+      queryClient.invalidateQueries({ queryKey: ["notificacoes"] });
+    },
+    onError: () => toast.error("Erro ao limpar notificações"),
+  });
 
   const { data: notificacoes = [] } = useQuery({
     queryKey: ["notificacoes", user?.id],
