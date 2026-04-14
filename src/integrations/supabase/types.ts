@@ -2332,6 +2332,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      cleanup_read_notifications: { Args: never; Returns: number }
       get_advogado_ranking: { Args: never; Returns: Json }
       get_last_friday: { Args: never; Returns: string }
       get_magistrado_ranking: { Args: never; Returns: Json }

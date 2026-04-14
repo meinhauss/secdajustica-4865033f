@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { Bell } from "lucide-react";
+import { Bell, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   Popover,
   PopoverContent,
@@ -16,9 +17,22 @@ interface NotificationBellProps {
 }
 
 export default function NotificationBell({ onNavigate }: NotificationBellProps) {
-  const { user } = useAuth();
+  const { user, roles } = useAuth();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const isAdmin = roles.includes("admin");
+
+  const clearAllMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("notificacoes").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Todas as notificações foram removidas");
+      queryClient.invalidateQueries({ queryKey: ["notificacoes"] });
+    },
+    onError: () => toast.error("Erro ao limpar notificações"),
+  });
 
   const { data: notificacoes = [] } = useQuery({
     queryKey: ["notificacoes", user?.id],
@@ -113,14 +127,26 @@ export default function NotificationBell({ onNavigate }: NotificationBellProps) 
         <div className="flex flex-col overflow-hidden rounded-md">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <h3 className="font-semibold text-sm text-foreground">Notificações</h3>
-            {unreadCount > 0 && (
-              <button
-                onClick={markAllAsRead}
-                className="text-xs text-primary hover:underline"
-              >
-                Marcar todas como lidas
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              {isAdmin && notificacoes.length > 0 && (
+                <button
+                  onClick={() => clearAllMutation.mutate()}
+                  disabled={clearAllMutation.isPending}
+                  className="text-xs text-destructive hover:underline flex items-center gap-1"
+                >
+                  <Trash2 className="h-3 w-3" />
+                  Limpar todas
+                </button>
+              )}
+              {unreadCount > 0 && (
+                <button
+                  onClick={markAllAsRead}
+                  className="text-xs text-primary hover:underline"
+                >
+                  Marcar como lidas
+                </button>
+              )}
+            </div>
           </div>
           <div className="overflow-y-auto max-h-[min(60vh,24rem)]">
             {notificacoes.length === 0 ? (
