@@ -35,6 +35,7 @@ const menuItems = [
   { id: "concursos", label: "Concursos", icon: GraduationCap, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "procurador_estado", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal", "delegado", "hospital"] },
   { id: "cartorio", label: "Cartório Civil", icon: Stamp, roles: ["admin", "oficial_justica", "magistrado", "ministerio_publico", "procurador_geral", "procurador_estado", "advogado", "presidente_tribunal", "desembargador", "cidadao", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal", "delegado", "hospital"] },
   { id: "tco", label: "TCO", icon: ClipboardList, roles: ["admin", "policia_civil", "policia_militar", "policia_federal", "delegado"] },
+  { id: "jurados", label: "Tribunal do Júri", icon: UsersRound, roles: ["admin", "presidente_tribunal", "magistrado", "desembargador", "cidadao", "advogado", "ministerio_publico", "procurador_geral", "procurador_estado", "oficial_justica", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal", "delegado", "hospital"] },
   { id: "cargos", label: "Cargos e Hierarquia", icon: Crown, roles: ["admin"] },
   { id: "usuarios", label: "Usuários", icon: Users, roles: ["admin"] },
   { id: "estatisticas", label: "Estatísticas", icon: BarChart3, roles: ["admin", "magistrado", "presidente_tribunal"] },
