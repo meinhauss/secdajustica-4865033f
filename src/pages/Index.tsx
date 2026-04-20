@@ -59,7 +59,7 @@ const Index = () => {
       case "concursos": return <ConcursosSection />;
       case "cartorio": return <CartorarioSection />;
       case "tco": return <TCOSection />;
-      case "jurados": return <JuradosSection />;
+      case "jurados": return <JuradosSection onOpenProcesso={(id) => { setOpenProcessoId(id); setActiveSection("processos"); }} />;
       default: return <DashboardHome />;
     }
   };

@@ -16,7 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Users, Gavel, Shuffle, UserCheck, UserX, AlertTriangle } from "lucide-react";
 
-export default function JuradosSection() {
+export default function JuradosSection({ onOpenProcesso }: { onOpenProcesso?: (id: string) => void } = {}) {
   const { user, roles, profile } = useAuth();
   const qc = useQueryClient();
   const isPresidenteOrAdmin = roles.includes("admin") || roles.includes("presidente_tribunal");
@@ -375,10 +375,19 @@ export default function JuradosSection() {
           ) : convocacoes.map((c: any) => (
             <Card key={c.id}>
               <CardHeader>
-                <CardTitle className="text-base">Sessão de {new Date(c.data_sessao).toLocaleString("pt-BR")}</CardTitle>
-                <CardDescription>
-                  Processo {c.processos?.numero} — {c.processos?.assunto} • {c.local}
-                </CardDescription>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <CardTitle className="text-base">Sessão de {new Date(c.data_sessao).toLocaleString("pt-BR")}</CardTitle>
+                    <CardDescription>
+                      Processo {c.processos?.numero || "—"}{c.processos?.assunto ? ` — ${c.processos.assunto}` : ""} • {c.local}
+                    </CardDescription>
+                  </div>
+                  {onOpenProcesso && c.processo_id && (
+                    <Button size="sm" variant="outline" onClick={() => onOpenProcesso(c.processo_id)}>
+                      Acessar processo
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 <p className="text-xs text-muted-foreground mb-2">Jurados convocados ({c.jurados_convocados?.length || 0}):</p>
