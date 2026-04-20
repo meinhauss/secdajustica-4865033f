@@ -16,7 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Users, Gavel, Shuffle, UserCheck, UserX, AlertTriangle } from "lucide-react";
 
-export default function JuradosSection() {
+export default function JuradosSection({ onOpenProcesso }: { onOpenProcesso?: (id: string) => void } = {}) {
   const { user, roles, profile } = useAuth();
   const qc = useQueryClient();
   const isPresidenteOrAdmin = roles.includes("admin") || roles.includes("presidente_tribunal");
