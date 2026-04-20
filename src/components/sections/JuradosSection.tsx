@@ -51,11 +51,38 @@ export default function JuradosSection() {
   const { data: convocacoes = [] } = useQuery({
     queryKey: ["convocacoes-juri"],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data: convs, error } = await supabase
         .from("convocacoes_jurados")
-        .select("*, processos(numero, assunto), jurados_convocados(jurado_id, jurados(nome_completo, id_personagem))")
+        .select("*")
         .order("created_at", { ascending: false });
-      return data || [];
+      if (error) throw error;
+      if (!convs || convs.length === 0) return [];
+
+      const processoIds = [...new Set(convs.map((c) => c.processo_id).filter(Boolean))];
+      const convIds = convs.map((c) => c.id);
+
+      const [procRes, jcRes] = await Promise.all([
+        processoIds.length
+          ? supabase.from("processos").select("id, numero, assunto").in("id", processoIds)
+          : Promise.resolve({ data: [] as any[] }),
+        supabase.from("jurados_convocados").select("convocacao_id, jurado_id").in("convocacao_id", convIds),
+      ]);
+
+      const juradoIds = [...new Set((jcRes.data || []).map((j: any) => j.jurado_id))];
+      const juradosRes = juradoIds.length
+        ? await supabase.from("jurados").select("id, nome_completo, id_personagem").in("id", juradoIds)
+        : { data: [] as any[] };
+
+      const procMap = new Map((procRes.data || []).map((p: any) => [p.id, p]));
+      const juradoMap = new Map((juradosRes.data || []).map((j: any) => [j.id, j]));
+
+      return convs.map((c: any) => ({
+        ...c,
+        processos: procMap.get(c.processo_id) || null,
+        jurados_convocados: (jcRes.data || [])
+          .filter((j: any) => j.convocacao_id === c.id)
+          .map((j: any) => ({ jurado_id: j.jurado_id, jurados: juradoMap.get(j.jurado_id) || null })),
+      }));
     },
   });
 
