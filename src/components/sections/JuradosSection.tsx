@@ -12,8 +12,9 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Users, Gavel, Shuffle, UserCheck, UserX } from "lucide-react";
+import { Users, Gavel, Shuffle, UserCheck, UserX, AlertTriangle } from "lucide-react";
 
 export default function JuradosSection() {
   const { user, roles, profile } = useAuth();
@@ -66,6 +67,7 @@ export default function JuradosSection() {
     disponibilidade: "integral",
     observacoes: "",
   });
+  const [aceitouTermo, setAceitouTermo] = useState(false);
 
   const inscreverMutation = useMutation({
     mutationFn: async () => {
@@ -212,7 +214,40 @@ export default function JuradosSection() {
                   <Label>Observações</Label>
                   <Textarea value={form.observacoes} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} rows={3} />
                 </div>
-                <Button onClick={() => inscreverMutation.mutate()} disabled={!form.nome_completo.trim() || inscreverMutation.isPending}>
+
+                <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 space-y-3">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+                    <div className="space-y-2 text-sm">
+                      <p className="font-semibold text-foreground">Termo de Ciência e Compromisso</p>
+                      <p className="text-muted-foreground">
+                        Ao se inscrever como jurado, declaro estar ciente de que:
+                      </p>
+                      <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+                        <li>Servir como jurado é um <strong>dever cívico obrigatório</strong> nos termos da legislação processual penal.</li>
+                        <li>Posso ser <strong>sorteado a qualquer momento</strong> pelo Presidente do Tribunal de Justiça para compor o Conselho de Sentença em sessões do Tribunal do Júri.</li>
+                        <li>A convocação será feita por <strong>intimação oficial</strong> através deste sistema, devendo eu acompanhar minhas notificações.</li>
+                        <li>Devo comparecer à sessão na <strong>data, hora e local indicados</strong> na intimação, sob pena das sanções abaixo.</li>
+                        <li>
+                          O <strong>não comparecimento injustificado</strong> à sessão para a qual for convocado poderá ensejar:
+                          <ul className="list-[circle] pl-5 mt-1">
+                            <li>Responsabilização pelo <strong>crime de desobediência</strong> (art. 330 do Código Penal);</li>
+                            <li>Aplicação de <strong>multa de R$ 50.000,00 a R$ 500.000,00</strong>, conforme decisão do juízo competente.</li>
+                          </ul>
+                        </li>
+                        <li>Devo manter meu cadastro atualizado e posso desativar minha inscrição a qualquer momento, desde que não haja convocação pendente.</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <label className="flex items-start gap-2 pt-2 border-t border-destructive/20 cursor-pointer">
+                    <Checkbox checked={aceitouTermo} onCheckedChange={(v) => setAceitouTermo(v === true)} className="mt-0.5" />
+                    <span className="text-sm font-medium text-foreground">
+                      Li e aceito integralmente o Termo de Ciência e Compromisso, estando ciente das sanções aplicáveis em caso de não comparecimento.
+                    </span>
+                  </label>
+                </div>
+
+                <Button onClick={() => inscreverMutation.mutate()} disabled={!form.nome_completo.trim() || !aceitouTermo || inscreverMutation.isPending}>
                   Inscrever-se como jurado
                 </Button>
               </CardContent>
