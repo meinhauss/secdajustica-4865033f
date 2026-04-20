@@ -20,6 +20,7 @@ import ConcursosSection from "@/components/sections/ConcursosSection";
 import CartorarioSection from "@/components/sections/CartorarioSection";
 import MeuPerfilSection from "@/components/sections/MeuPerfilSection";
 import TCOSection from "@/components/sections/TCOSection";
+import JuradosSection from "@/components/sections/JuradosSection";
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -58,6 +59,7 @@ const Index = () => {
       case "concursos": return <ConcursosSection />;
       case "cartorio": return <CartorarioSection />;
       case "tco": return <TCOSection />;
+      case "jurados": return <JuradosSection />;
       default: return <DashboardHome />;
     }
   };

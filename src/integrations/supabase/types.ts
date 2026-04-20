@@ -658,6 +658,39 @@ export type Database = {
         }
         Relationships: []
       }
+      convocacoes_jurados: {
+        Row: {
+          convocado_por: string | null
+          created_at: string
+          data_sessao: string
+          id: string
+          local: string | null
+          observacoes: string | null
+          processo_id: string
+          quantidade: number
+        }
+        Insert: {
+          convocado_por?: string | null
+          created_at?: string
+          data_sessao: string
+          id?: string
+          local?: string | null
+          observacoes?: string | null
+          processo_id: string
+          quantidade?: number
+        }
+        Update: {
+          convocado_por?: string | null
+          created_at?: string
+          data_sessao?: string
+          id?: string
+          local?: string | null
+          observacoes?: string | null
+          processo_id?: string
+          quantidade?: number
+        }
+        Relationships: []
+      }
       denuncias_mp: {
         Row: {
           created_at: string
@@ -1379,6 +1412,84 @@ export type Database = {
             columns: ["processo_id"]
             isOneToOne: false
             referencedRelation: "processos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      jurados: {
+        Row: {
+          created_at: string
+          disponibilidade: string
+          id: string
+          id_personagem: string | null
+          nome_completo: string
+          observacoes: string | null
+          profissao: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          disponibilidade?: string
+          id?: string
+          id_personagem?: string | null
+          nome_completo: string
+          observacoes?: string | null
+          profissao?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          disponibilidade?: string
+          id?: string
+          id_personagem?: string | null
+          nome_completo?: string
+          observacoes?: string | null
+          profissao?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      jurados_convocados: {
+        Row: {
+          convocacao_id: string
+          created_at: string
+          id: string
+          intimacao_id: string | null
+          jurado_id: string
+        }
+        Insert: {
+          convocacao_id: string
+          created_at?: string
+          id?: string
+          intimacao_id?: string | null
+          jurado_id: string
+        }
+        Update: {
+          convocacao_id?: string
+          created_at?: string
+          id?: string
+          intimacao_id?: string | null
+          jurado_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jurados_convocados_convocacao_id_fkey"
+            columns: ["convocacao_id"]
+            isOneToOne: false
+            referencedRelation: "convocacoes_jurados"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jurados_convocados_jurado_id_fkey"
+            columns: ["jurado_id"]
+            isOneToOne: false
+            referencedRelation: "jurados"
             referencedColumns: ["id"]
           },
         ]
@@ -2362,6 +2473,16 @@ export type Database = {
           _processo_id: string
         }
         Returns: undefined
+      }
+      sortear_jurados: {
+        Args: {
+          _data_sessao: string
+          _local?: string
+          _observacoes?: string
+          _processo_id: string
+          _quantidade?: number
+        }
+        Returns: string
       }
       sortear_magistrado: { Args: never; Returns: string }
     }
