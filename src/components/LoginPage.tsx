@@ -33,6 +33,9 @@ export default function LoginPage() {
   const [unispOptIn, setUnispOptIn] = useState(false);
   const [unispAreaInteresse, setUnispAreaInteresse] = useState("juridico_publico");
   const [unispMotivacao, setUnispMotivacao] = useState("");
+  const [juradoOptIn, setJuradoOptIn] = useState(false);
+  const [juradoTermoOpen, setJuradoTermoOpen] = useState(false);
+  const [juradoTermoAceito, setJuradoTermoAceito] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
