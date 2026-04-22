@@ -292,24 +292,24 @@ function TabInicio({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
           onClick={() => onNavigate("login")}
-          className="relative overflow-hidden rounded-2xl border-2 border-institutional/30 bg-gradient-to-r from-amber-50 via-white to-amber-50 dark:from-amber-950/20 dark:via-background dark:to-amber-950/20 p-8 cursor-pointer hover:border-institutional/60 transition-all group"
+          className="relative overflow-hidden rounded-2xl border-2 border-gold/30 bg-gradient-to-r from-institutional via-institutional-dark to-institutional p-8 cursor-pointer hover:border-gold/60 transition-all group"
         >
-          <div className="absolute top-0 right-0 w-64 h-64 bg-amber-200/20 dark:bg-amber-500/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-gold/5 rounded-full -translate-y-1/2 translate-x-1/2" />
           <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
-            <div className="bg-amber-100 dark:bg-amber-900/30 rounded-2xl p-4">
-              <Users className="h-12 w-12 text-amber-600 dark:text-amber-400" />
+            <div className="bg-gold/20 rounded-2xl p-4">
+              <Users className="h-12 w-12 text-gold" />
             </div>
             <div className="flex-1 text-center md:text-left">
-              <span className="text-[10px] uppercase tracking-[0.2em] text-amber-600 dark:text-amber-400 font-bold">Inscrições Abertas</span>
-              <h3 className="font-display text-2xl font-bold text-foreground mt-1">
+              <span className="text-[10px] uppercase tracking-[0.2em] text-gold font-bold">Inscrições Abertas</span>
+              <h3 className="font-display text-2xl font-bold text-sidebar-foreground mt-1">
                 Tribunal do Júri — Cadastro de Jurados
               </h3>
-              <p className="text-muted-foreground text-sm mt-2 max-w-2xl">
-                Cidadãos maiores de 18 anos podem se cadastrar para compor o <strong className="text-amber-600 dark:text-amber-400">Conselho de Sentença</strong>. 
+              <p className="text-sidebar-foreground/60 text-sm mt-2 max-w-2xl">
+                Cidadãos maiores de 18 anos podem se cadastrar para compor o <strong className="text-gold">Conselho de Sentença</strong>. 
                 Faça parte da justiça e ajude a decidir casos importantes da Comarca.
               </p>
             </div>
-            <Button className="rounded-xl h-12 px-8 bg-amber-600 hover:bg-amber-700 text-white font-semibold whitespace-nowrap group-hover:scale-105 transition-transform">
+            <Button className="rounded-xl h-12 px-8 bg-gold hover:bg-gold-light text-institutional-dark font-semibold whitespace-nowrap group-hover:scale-105 transition-transform">
               Cadastrar-se como Jurado
               <ChevronRight className="ml-1 h-4 w-4" />
             </Button>
@@ -324,23 +324,23 @@ function TabInicio({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
           onClick={() => window.open("https://unisp.lovable.app/", "_blank")}
-          className="relative overflow-hidden rounded-2xl border-2 border-gold/30 bg-gradient-to-r from-institutional via-institutional-dark to-institutional p-8 cursor-pointer hover:border-gold/60 transition-all group"
+          className="relative overflow-hidden rounded-2xl border-2 border-accent/30 bg-gradient-to-r from-secondary via-background to-secondary p-8 cursor-pointer hover:border-accent/60 transition-all group"
         >
-          <div className="absolute top-0 right-0 w-64 h-64 bg-gold/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full -translate-y-1/2 translate-x-1/2" />
           <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
-            <div className="bg-gold/20 rounded-2xl p-4">
-              <GraduationCap className="h-12 w-12 text-gold" />
+            <div className="bg-accent/20 rounded-2xl p-4">
+              <GraduationCap className="h-12 w-12 text-accent" />
             </div>
             <div className="flex-1 text-center md:text-left">
-              <span className="text-[10px] uppercase tracking-[0.2em] text-gold font-bold">Novo Endereço</span>
-              <h3 className="font-display text-2xl font-bold text-sidebar-foreground mt-1">
+              <span className="text-[10px] uppercase tracking-[0.2em] text-accent font-bold">Novo Endereço</span>
+              <h3 className="font-display text-2xl font-bold text-foreground mt-1">
                 UNISP — Universidade de Direito do Estado de São Paulo
               </h3>
-              <p className="text-sidebar-foreground/60 text-sm mt-2 max-w-2xl">
-                <strong className="text-gold">Atenção:</strong> O portal da UNISP mudou! Acesse agora em <strong className="text-gold">unisp.lovable.app</strong> para inscrições, cursos e informações acadêmicas.
+              <p className="text-muted-foreground text-sm mt-2 max-w-2xl">
+                <strong className="text-accent">Atenção:</strong> O portal da UNISP mudou! Acesse agora em <strong className="text-accent">unisp.lovable.app</strong> para inscrições, cursos e informações acadêmicas.
               </p>
             </div>
-            <Button className="rounded-xl h-12 px-8 bg-gold hover:bg-gold-light text-institutional-dark font-semibold whitespace-nowrap group-hover:scale-105 transition-transform">
+            <Button variant="outline" className="rounded-xl h-12 px-8 border-accent text-accent hover:bg-accent hover:text-accent-foreground font-semibold whitespace-nowrap group-hover:scale-105 transition-transform">
               Acessar Novo Portal
               <ExternalLink className="ml-1 h-4 w-4" />
             </Button>
