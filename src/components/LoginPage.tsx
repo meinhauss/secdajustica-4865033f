@@ -1083,78 +1083,56 @@ function TabConcursos({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
 
 function TabUnisp({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
-      {/* Header */}
-      <div className="text-center mb-10">
-        <div className="inline-flex items-center gap-3 bg-gold/10 rounded-full px-6 py-2 mb-4">
-          <GraduationCap className="h-5 w-5 text-gold" />
-          <span className="text-sm font-bold text-gold uppercase tracking-wider">Inscrições Abertas</span>
+    <div className="max-w-4xl mx-auto px-4 py-12">
+      {/* Alerta de Redirecionamento */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-accent/10 border-2 border-accent rounded-2xl p-8 mb-8 text-center"
+      >
+        <div className="bg-accent/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+          <ExternalLink className="h-8 w-8 text-accent" />
         </div>
-        <h2 className="font-display text-3xl lg:text-4xl font-bold text-foreground mb-3">
-          UNISP — Universidade de Direito
+        <h2 className="font-display text-2xl font-bold text-foreground mb-2">
+          Portal da UNISP Mudou de Endereço
         </h2>
-        <p className="text-muted-foreground max-w-2xl mx-auto">
-          Curso prático de Direito <strong className="text-foreground">100% gratuito</strong>, oferecido pelo Estado de São Paulo. 
-          Forme-se para atuar no sistema jurídico público ou conquiste sua inscrição na OAB e advogue por conta própria.
+        <p className="text-muted-foreground mb-6 max-w-xl mx-auto">
+          A UNISP — Universidade de Direito do Estado de São Paulo agora possui 
+          um portal exclusivo. Acesse todas as informações sobre cursos, inscrições 
+          e atividades acadêmicas no novo endereço:
         </p>
-      </div>
+        <Button
+          onClick={() => window.open("https://unisp.lovable.app/", "_blank")}
+          className="h-14 px-10 rounded-xl bg-accent hover:bg-accent/90 text-accent-foreground font-semibold text-lg"
+        >
+          Acessar unisp.lovable.app
+          <ExternalLink className="ml-2 h-5 w-5" />
+        </Button>
+        <p className="text-xs text-muted-foreground mt-4">
+          O redirecionamento será automático em breve. Atualize seus favoritos.
+        </p>
+      </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Info Cards */}
-        <div className="space-y-4">
-          {[
-            { icon: Scale, title: "Carreira Pública", desc: "Prepare-se para concursos de magistratura, promotoria, delegacia e demais carreiras jurídicas do Estado." },
-            { icon: Briefcase, title: "Advocacia Privada", desc: "Obtenha os conhecimentos necessários para aprovação no Exame da OAB e atue como advogado autônomo." },
-            { icon: BookOpen, title: "100% Gratuito", desc: "O curso é inteiramente custeado pelo Estado de São Paulo, sem qualquer cobrança aos alunos." },
-          ].map((item, i) => (
-            <motion.div
-              key={item.title}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.1 }}
-              className="bg-card rounded-xl p-5 border border-border shadow-institutional"
-            >
-              <div className="flex items-start gap-3">
-                <div className="bg-gold/10 rounded-lg p-2 flex-shrink-0">
-                  <item.icon className="h-5 w-5 text-gold" />
-                </div>
-                <div>
-                  <h4 className="font-display text-sm font-semibold text-foreground mb-1">{item.title}</h4>
-                  <p className="text-xs text-muted-foreground">{item.desc}</p>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* CTA to Register */}
-        <div className="lg:col-span-2">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-card rounded-2xl p-10 border border-border shadow-institutional text-center space-y-6"
-          >
-            <div className="bg-gold/10 rounded-full w-20 h-20 flex items-center justify-center mx-auto">
-              <GraduationCap className="h-10 w-10 text-gold" />
-            </div>
-            <h3 className="font-display text-2xl font-bold text-foreground">Como se inscrever?</h3>
-            <p className="text-muted-foreground max-w-md mx-auto">
-              A inscrição na UNISP é feita automaticamente ao criar sua conta no sistema. 
-              Basta se registrar e preencher os dados de inscrição no formulário de cadastro.
-            </p>
-            <div className="space-y-3">
-              <Button
-                onClick={() => onNavigate("login")}
-                className="h-12 px-8 rounded-xl bg-gold hover:bg-gold-light text-institutional-dark font-semibold text-base"
-              >
-                Criar Conta e Inscrever-se
-                <ChevronRight className="ml-2 h-5 w-5" />
-              </Button>
-              <p className="text-[11px] text-muted-foreground">
-                Já possui conta? <button type="button" onClick={() => onNavigate("login")} className="text-gold hover:underline font-medium">Faça login</button>.
-              </p>
-            </div>
-          </motion.div>
+      {/* Informações Legado */}
+      <div className="bg-card rounded-xl p-6 border border-border shadow-institutional">
+        <h3 className="font-display text-lg font-semibold text-foreground mb-4">Sobre a UNISP</h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          A UNISP oferece curso prático de Direito <strong className="text-foreground">100% gratuito</strong>, 
+          preparando alunos para atuar no sistema jurídico público ou conquistar a inscrição na OAB.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-muted-foreground">
+          <div className="flex items-start gap-2">
+            <Scale className="h-4 w-4 text-accent flex-shrink-0 mt-0.5" />
+            <span>Carreira Pública: magistratura, promotoria, delegacia</span>
+          </div>
+          <div className="flex items-start gap-2">
+            <Briefcase className="h-4 w-4 text-accent flex-shrink-0 mt-0.5" />
+            <span>Advocacia Privada: exame da OAB e atuação autônoma</span>
+          </div>
+          <div className="flex items-start gap-2">
+            <BookOpen className="h-4 w-4 text-accent flex-shrink-0 mt-0.5" />
+            <span>100% Gratuito: custeado pelo Estado de São Paulo</span>
+          </div>
         </div>
       </div>
     </div>
