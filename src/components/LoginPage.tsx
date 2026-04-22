@@ -935,8 +935,116 @@ function TabLogin(props: LoginProps) {
                 </div>
               </div>
 
+              {/* Opção de cadastro como Jurado Voluntário */}
+              <div className="rounded-lg border border-border bg-secondary/30 p-3 space-y-2">
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={juradoOptIn}
+                    onCheckedChange={(v) => {
+                      const checked = v === true;
+                      if (checked) {
+                        setJuradoTermoOpen(true);
+                      } else {
+                        setJuradoOptIn(false);
+                        setJuradoTermoAceito(false);
+                      }
+                    }}
+                    className="mt-0.5"
+                  />
+                  <div className="space-y-1">
+                    <span className="text-sm font-semibold text-foreground flex items-center gap-2">
+                      <Gavel className="h-4 w-4 text-accent" />
+                      Desejo me cadastrar também como Jurado Voluntário
+                    </span>
+                    <p className="text-[11px] text-muted-foreground">
+                      Você poderá ser sorteado para compor o Conselho de Sentença em sessões do Tribunal do Júri.
+                      {juradoOptIn && juradoTermoAceito && (
+                        <span className="block text-emerald-600 dark:text-emerald-400 font-medium mt-1">
+                          ✓ Termo de Ciência aceito
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </label>
+              </div>
+
             </motion.div>
           }
+
+          {/* Dialog do Termo de Ciência do Jurado */}
+          <Dialog open={juradoTermoOpen} onOpenChange={(open) => {
+            setJuradoTermoOpen(open);
+            if (!open && !juradoTermoAceito) {
+              setJuradoOptIn(false);
+            }
+          }}>
+            <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-destructive">
+                  <AlertTriangle className="h-5 w-5" />
+                  Termo de Ciência e Compromisso — Jurado Voluntário
+                </DialogTitle>
+                <DialogDescription>
+                  Leia atentamente antes de aceitar. Este termo possui validade legal.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-3 text-sm">
+                <p className="text-muted-foreground">
+                  Ao se inscrever como jurado voluntário, declaro estar ciente de que:
+                </p>
+                <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
+                  <li>Servir como jurado é um <strong className="text-foreground">dever cívico obrigatório</strong> nos termos da legislação processual penal.</li>
+                  <li>Posso ser <strong className="text-foreground">sorteado a qualquer momento</strong> pelo Presidente do Tribunal de Justiça para compor o Conselho de Sentença em sessões do Tribunal do Júri.</li>
+                  <li>A convocação será feita por <strong className="text-foreground">intimação oficial</strong> através deste sistema, devendo eu acompanhar minhas notificações.</li>
+                  <li>Devo comparecer à sessão na <strong className="text-foreground">data, hora e local indicados</strong> na intimação, sob pena das sanções abaixo.</li>
+                  <li>
+                    O <strong className="text-foreground">não comparecimento injustificado</strong> à sessão para a qual for convocado poderá ensejar:
+                    <ul className="list-[circle] pl-5 mt-1 space-y-1">
+                      <li>Responsabilização pelo <strong className="text-destructive">crime de desobediência</strong> (art. 330 do Código Penal);</li>
+                      <li>Aplicação de <strong className="text-destructive">multa de R$ 50.000,00 a R$ 500.000,00</strong>, conforme decisão do juízo competente.</li>
+                    </ul>
+                  </li>
+                  <li>Posso desativar minha inscrição a qualquer momento, desde que não haja convocação pendente.</li>
+                </ul>
+
+                <label className="flex items-start gap-2 pt-3 mt-3 border-t border-border cursor-pointer">
+                  <Checkbox
+                    checked={juradoTermoAceito}
+                    onCheckedChange={(v) => setJuradoTermoAceito(v === true)}
+                    className="mt-0.5"
+                  />
+                  <span className="text-sm font-medium text-foreground">
+                    Li e aceito integralmente o Termo de Ciência e Compromisso, estando ciente das sanções aplicáveis em caso de não comparecimento.
+                  </span>
+                </label>
+              </div>
+
+              <DialogFooter className="gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setJuradoTermoOpen(false);
+                    setJuradoOptIn(false);
+                    setJuradoTermoAceito(false);
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="button"
+                  disabled={!juradoTermoAceito}
+                  onClick={() => {
+                    setJuradoOptIn(true);
+                    setJuradoTermoOpen(false);
+                  }}
+                >
+                  Confirmar Inscrição
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           <div>
             <label className="text-[11px] uppercase tracking-widest font-semibold text-muted-foreground mb-1 block">
