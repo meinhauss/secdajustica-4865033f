@@ -13,6 +13,21 @@ import { CURRENT_VERSION } from "@/lib/version";
 
 const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
   {
+    version: "2.13.0",
+    date: "22/04/2026",
+    changes: [
+      "Portal do Tribunal do Júri: cidadãos podem se cadastrar como jurados voluntários",
+      "Termo de Ciência e Compromisso obrigatório com sanções legais (crime de desobediência e multa de R$ 50 mil a R$ 500 mil)",
+      "Sorteio automático de jurados pelo Presidente do Tribunal de Justiça",
+      "Convocações de jurados via intimação oficial vinculadas a processos",
+      "Notificação de convocação encaminha para a aba 'Convocações' com acesso ao processo (respeitando sigilos)",
+      "Opção de cadastro como Jurado Voluntário no formulário de criação de conta com confirmação do termo",
+      "Página pública: novo banner anunciando inscrições abertas para jurados",
+      "Portal da UNISP migrado para endereço próprio (unisp.lovable.app) com redirecionamento automático",
+      "Limpeza global de notificações de todos os usuários (administradores)",
+    ],
+  },
+  {
     version: "2.12.0",
     date: "09/04/2026",
     changes: [
