@@ -872,6 +872,12 @@ interface LoginProps {
   setUnispAreaInteresse: (v: string) => void;
   unispMotivacao: string;
   setUnispMotivacao: (v: string) => void;
+  juradoOptIn: boolean;
+  setJuradoOptIn: (v: boolean) => void;
+  juradoTermoOpen: boolean;
+  setJuradoTermoOpen: (v: boolean) => void;
+  juradoTermoAceito: boolean;
+  setJuradoTermoAceito: (v: boolean) => void;
 }
 
 function TabLogin(props: LoginProps) {
