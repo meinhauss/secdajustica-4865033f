@@ -47,6 +47,11 @@ export default function LoginPage() {
           setLoading(false);
           return;
         }
+        if (juradoOptIn && !juradoTermoAceito) {
+          toast.error("Você marcou inscrição como jurado mas não confirmou o Termo de Ciência.");
+          setLoading(false);
+          return;
+        }
         const { data, error } = await signUp(email, password, nome, {
           discord,
           id_personagem: idPersonagem,
@@ -64,7 +69,19 @@ export default function LoginPage() {
             area_interesse: unispAreaInteresse,
           });
         }
-        toast.success(unispOptIn ? "Conta criada e inscrição na UNISP realizada com sucesso!" : "Conta criada com sucesso!");
+        if (data?.user && juradoOptIn && juradoTermoAceito) {
+          await supabase.from("jurados").insert({
+            user_id: data.user.id,
+            nome_completo: nome.trim(),
+            id_personagem: idPersonagem.trim() || null,
+            disponibilidade: "integral",
+            status: "ativo",
+          });
+        }
+        const msgs: string[] = ["Conta criada com sucesso!"];
+        if (unispOptIn) msgs.push("Inscrição UNISP enviada.");
+        if (juradoOptIn) msgs.push("Cadastro como jurado realizado.");
+        toast.success(msgs.join(" "));
       } else {
         const { error } = await signIn(email, password);
         if (error) throw error;
