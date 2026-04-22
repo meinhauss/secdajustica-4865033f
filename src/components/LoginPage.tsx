@@ -887,7 +887,8 @@ function TabLogin(props: LoginProps) {
     isSignUp, setIsSignUp, email, setEmail, password, setPassword,
     nome, setNome, discord, setDiscord, idPersonagem, setIdPersonagem,
     telefoneIngame, setTelefoneIngame, loading, handleSubmit,
-    unispOptIn, setUnispOptIn, unispAreaInteresse, setUnispAreaInteresse, unispMotivacao, setUnispMotivacao
+    unispOptIn, setUnispOptIn, unispAreaInteresse, setUnispAreaInteresse, unispMotivacao, setUnispMotivacao,
+    juradoOptIn, setJuradoOptIn, juradoTermoOpen, setJuradoTermoOpen, juradoTermoAceito, setJuradoTermoAceito
   } = props;
 
   return (
