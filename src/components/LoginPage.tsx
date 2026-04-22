@@ -197,7 +197,13 @@ export default function LoginPage() {
               unispAreaInteresse={unispAreaInteresse}
               setUnispAreaInteresse={setUnispAreaInteresse}
               unispMotivacao={unispMotivacao}
-              setUnispMotivacao={setUnispMotivacao} />
+              setUnispMotivacao={setUnispMotivacao}
+              juradoOptIn={juradoOptIn}
+              setJuradoOptIn={setJuradoOptIn}
+              juradoTermoOpen={juradoTermoOpen}
+              setJuradoTermoOpen={setJuradoTermoOpen}
+              juradoTermoAceito={juradoTermoAceito}
+              setJuradoTermoAceito={setJuradoTermoAceito} />
 
             }
           </motion.div>
