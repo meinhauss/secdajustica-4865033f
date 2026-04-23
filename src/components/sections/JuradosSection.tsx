@@ -128,6 +128,23 @@ export default function JuradosSection({ onOpenProcesso }: { onOpenProcesso?: (i
     },
   });
 
+  // Editar disponibilidade
+  const [editandoDisp, setEditandoDisp] = useState(false);
+  const [novaDisponibilidade, setNovaDisponibilidade] = useState(meuRegistro?.disponibilidade || "integral");
+
+  const atualizarDisponibilidadeMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("jurados").update({ disponibilidade: novaDisponibilidade }).eq("user_id", user!.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Disponibilidade atualizada");
+      setEditandoDisp(false);
+      qc.invalidateQueries({ queryKey: ["jurado-meu"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   // Sorteio
   const [sorteio, setSorteio] = useState({ processo_id: "", data_sessao: "", quantidade: 7, local: "Plenário do Tribunal do Júri", observacoes: "" });
   const [openSorteio, setOpenSorteio] = useState(false);
