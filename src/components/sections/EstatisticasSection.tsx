@@ -238,7 +238,7 @@ export default function EstatisticasSection() {
       const { data: processos } = await supabase.from("processos").select("juiz_id, status");
       return (profiles || []).map(p => {
         const total = processos?.filter(pr => pr.juiz_id === p.user_id).length || 0;
-        const ativos = processos?.filter(pr => pr.juiz_id === p.user_id && !["arquivado", "sentenciado"].includes(pr.status)).length || 0;
+        const ativos = processos?.filter(pr => pr.juiz_id === p.user_id && !["arquivado", "sentenciado", "suspenso"].includes(pr.status)).length || 0;
         return { ...p, total, ativos, role: roles.find(r => r.user_id === p.user_id)?.role };
       }).sort((a, b) => a.ativos - b.ativos);
     },
