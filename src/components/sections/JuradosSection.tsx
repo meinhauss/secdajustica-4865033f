@@ -128,6 +128,23 @@ export default function JuradosSection({ onOpenProcesso }: { onOpenProcesso?: (i
     },
   });
 
+  // Editar disponibilidade
+  const [editandoDisp, setEditandoDisp] = useState(false);
+  const [novaDisponibilidade, setNovaDisponibilidade] = useState(meuRegistro?.disponibilidade || "integral");
+
+  const atualizarDisponibilidadeMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("jurados").update({ disponibilidade: novaDisponibilidade }).eq("user_id", user!.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Disponibilidade atualizada");
+      setEditandoDisp(false);
+      qc.invalidateQueries({ queryKey: ["jurado-meu"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   // Sorteio
   const [sorteio, setSorteio] = useState({ processo_id: "", data_sessao: "", quantidade: 7, local: "Plenário do Tribunal do Júri", observacoes: "" });
   const [openSorteio, setOpenSorteio] = useState(false);
@@ -188,7 +205,36 @@ export default function JuradosSection({ onOpenProcesso }: { onOpenProcesso?: (i
                 <p><strong>Nome:</strong> {meuRegistro.nome_completo}</p>
                 {meuRegistro.id_personagem && <p><strong>ID Personagem:</strong> {meuRegistro.id_personagem}</p>}
                 {meuRegistro.profissao && <p><strong>Profissão:</strong> {meuRegistro.profissao}</p>}
-                <p><strong>Disponibilidade:</strong> {meuRegistro.disponibilidade}</p>
+                <div className="flex items-center gap-2">
+                  <strong>Disponibilidade:</strong>
+                  {editandoDisp ? (
+                    <div className="flex items-center gap-2">
+                      <Select value={novaDisponibilidade} onValueChange={setNovaDisponibilidade}>
+                        <SelectTrigger className="w-[180px] h-8 text-sm"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="integral">Integral</SelectItem>
+                          <SelectItem value="manha">Apenas manhã</SelectItem>
+                          <SelectItem value="tarde">Apenas tarde</SelectItem>
+                          <SelectItem value="noite">Apenas noite</SelectItem>
+                          <SelectItem value="finais_semana">Finais de semana</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button size="sm" variant="ghost" onClick={() => atualizarDisponibilidadeMutation.mutate()} disabled={atualizarDisponibilidadeMutation.isPending}>
+                        Salvar
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => { setEditandoDisp(false); setNovaDisponibilidade(meuRegistro.disponibilidade); }}>
+                        Cancelar
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span className="capitalize">{meuRegistro.disponibilidade?.replace(/_/g, " ")}</span>
+                      <Button size="sm" variant="ghost" className="h-6 px-2 text-xs" onClick={() => { setEditandoDisp(true); setNovaDisponibilidade(meuRegistro.disponibilidade); }}>
+                        Alterar
+                      </Button>
+                    </div>
+                  )}
+                </div>
                 {meuRegistro.observacoes && <p><strong>Observações:</strong> {meuRegistro.observacoes}</p>}
                 <div className="pt-3">
                   {meuRegistro.status === "ativo" ? (
