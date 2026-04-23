@@ -145,6 +145,23 @@ export default function JuradosSection({ onOpenProcesso }: { onOpenProcesso?: (i
     onError: (e: any) => toast.error(e.message),
   });
 
+  // Editar profissão
+  const [editandoProf, setEditandoProf] = useState(false);
+  const [novaProfissao, setNovaProfissao] = useState(meuRegistro?.profissao || "");
+
+  const atualizarProfissaoMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("jurados").update({ profissao: novaProfissao.trim() || null }).eq("user_id", user!.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Profissão atualizada");
+      setEditandoProf(false);
+      qc.invalidateQueries({ queryKey: ["jurado-meu"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   // Sorteio
   const [sorteio, setSorteio] = useState({ processo_id: "", data_sessao: "", quantidade: 7, local: "Plenário do Tribunal do Júri", observacoes: "" });
   const [openSorteio, setOpenSorteio] = useState(false);
@@ -204,7 +221,61 @@ export default function JuradosSection({ onOpenProcesso }: { onOpenProcesso?: (i
               <CardContent className="space-y-2 text-sm">
                 <p><strong>Nome:</strong> {meuRegistro.nome_completo}</p>
                 {meuRegistro.id_personagem && <p><strong>ID Personagem:</strong> {meuRegistro.id_personagem}</p>}
-                {meuRegistro.profissao && <p><strong>Profissão:</strong> {meuRegistro.profissao}</p>}
+                {meuRegistro.profissao ? (
+                  <div className="flex items-center gap-2">
+                    <strong>Profissão:</strong>
+                    {editandoProf ? (
+                      <div className="flex items-center gap-2">
+                        <Input 
+                          value={novaProfissao} 
+                          onChange={(e) => setNovaProfissao(e.target.value)} 
+                          className="w-[200px] h-8 text-sm"
+                          placeholder="Digite sua profissão"
+                        />
+                        <Button size="sm" variant="ghost" onClick={() => atualizarProfissaoMutation.mutate()} disabled={atualizarProfissaoMutation.isPending}>
+                          Salvar
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => { setEditandoProf(false); setNovaProfissao(meuRegistro.profissao || ""); }}>
+                          Cancelar
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span>{meuRegistro.profissao}</span>
+                        <Button size="sm" variant="ghost" className="h-6 px-2 text-xs" onClick={() => { setEditandoProf(true); setNovaProfissao(meuRegistro.profissao || ""); }}>
+                          Alterar
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <strong>Profissão:</strong>
+                    {editandoProf ? (
+                      <div className="flex items-center gap-2">
+                        <Input 
+                          value={novaProfissao} 
+                          onChange={(e) => setNovaProfissao(e.target.value)} 
+                          className="w-[200px] h-8 text-sm"
+                          placeholder="Digite sua profissão"
+                        />
+                        <Button size="sm" variant="ghost" onClick={() => atualizarProfissaoMutation.mutate()} disabled={atualizarProfissaoMutation.isPending}>
+                          Salvar
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => { setEditandoProf(false); setNovaProfissao(""); }}>
+                          Cancelar
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground italic">Não informada</span>
+                        <Button size="sm" variant="ghost" className="h-6 px-2 text-xs" onClick={() => { setEditandoProf(true); setNovaProfissao(""); }}>
+                          Adicionar
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
                 <div className="flex items-center gap-2">
                   <strong>Disponibilidade:</strong>
                   {editandoDisp ? (
