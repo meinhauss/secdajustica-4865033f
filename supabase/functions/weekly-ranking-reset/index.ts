@@ -14,16 +14,28 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, serviceKey);
 
     const now = new Date();
-    // Calculate last Friday (start of current week) — Brasília time
+    // Brasília time
     const brt = new Date(now.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
     const dow = brt.getDay();
-    const daysBack = dow >= 5 ? dow - 5 : dow + 2;
-    const lastFriday = new Date(brt);
-    lastFriday.setDate(brt.getDate() - daysBack);
-    lastFriday.setHours(0, 0, 0, 0);
+    // Friday that just ended (start of the week being closed = previous Friday from "now")
+    // When invoked at Fri 00:00 BRT, this returns the Friday 7 days ago.
+    const daysBackToPrevFriday = dow >= 5 ? dow - 5 + 7 : dow + 2;
+    const semanaInicioDate = new Date(brt);
+    semanaInicioDate.setDate(brt.getDate() - daysBackToPrevFriday);
+    semanaInicioDate.setHours(0, 0, 0, 0);
 
-    const semanaInicio = lastFriday.toISOString();
+    const semanaInicio = semanaInicioDate.toISOString();
     const semanaFim = now.toISOString();
+
+    // 1) Cleanup destaques older than 7 days (keep only 1 week of backup)
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const { error: cleanupError } = await supabase
+      .from("ranking_destaques")
+      .delete()
+      .lt("created_at", sevenDaysAgo);
+    if (cleanupError) {
+      console.error("Cleanup error:", cleanupError.message);
+    }
 
     const rankings = [
       { tipo: "magistrado", rpc: "get_magistrado_ranking" },
@@ -59,7 +71,7 @@ Deno.serve(async (req) => {
       results.push(`${r.tipo}: top ${rows.length} salvos`);
     }
 
-    return new Response(JSON.stringify({ success: true, destaques: results }), {
+    return new Response(JSON.stringify({ success: true, destaques: results, semanaInicio, semanaFim }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
