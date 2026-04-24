@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { PodiumDestaque } from "@/components/PodiumDestaque";
 
 /* ─── Status configs ─── */
 const INSCRICAO_STATUS: Record<string, { label: string; color: string; icon: any }> = {
