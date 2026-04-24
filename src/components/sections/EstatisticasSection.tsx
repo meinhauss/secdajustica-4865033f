@@ -13,6 +13,17 @@ import { CURRENT_VERSION } from "@/lib/version";
 
 const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
   {
+    version: "2.14.0",
+    date: "24/04/2026",
+    changes: [
+      "Rankings: novo bloco com o pódio (Top 3) da semana anterior, exibindo 1º, 2º e 3º colocados com medalhas",
+      "Edge function de reset semanal agora salva os 3 primeiros de cada ranking (magistrados, promotores e advogados)",
+      "Correção de fuso horário no cálculo do reset semanal (agora respeita o horário de Brasília)",
+      "Painel de distribuição: processos suspensos não são mais contabilizados como ativos",
+      "Tribunal do Júri: jurados podem alterar profissão e disponibilidade na aba 'Minha Inscrição'",
+    ],
+  },
+  {
     version: "2.13.0",
     date: "22/04/2026",
     changes: [
