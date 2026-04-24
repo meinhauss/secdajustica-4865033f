@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { PodiumDestaque } from "@/components/PodiumDestaque";
 
 /* ─── Status configs ─── */
 const IP_STATUS: Record<string, { label: string; color: string }> = {
@@ -338,20 +339,6 @@ function PromotorRanking() {
     },
   });
 
-  const { data: destaque } = useQuery({
-    queryKey: ["ranking-destaque-promotor"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("ranking_destaques")
-        .select("*")
-        .eq("tipo_ranking", "promotor")
-        .order("semana_fim", { ascending: false })
-        .limit(1);
-      if (error) throw error;
-      return data?.[0] || null;
-    },
-  });
-
   const CARGO_LABELS: Record<string, string> = {
     ministerio_publico: "Promotor(a) de Justiça",
     procurador_geral: "Procurador(a)-Geral",
@@ -362,30 +349,7 @@ function PromotorRanking() {
 
   return (
     <div className="space-y-4">
-      {destaque && (
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-          className="bg-gradient-to-r from-gold/20 via-gold/10 to-transparent rounded-xl p-4 border-2 border-gold shadow-lg">
-          <div className="flex items-center gap-3">
-            <div className="text-3xl">🏆</div>
-            {destaque.avatar_url ? (
-              <img src={destaque.avatar_url} alt="" className="w-12 h-12 rounded-full object-cover border-2 border-gold" />
-            ) : (
-              <div className="w-12 h-12 rounded-full bg-gold/20 flex items-center justify-center">
-                <Scale className="h-6 w-6 text-gold-dark" />
-              </div>
-            )}
-            <div className="flex-1">
-              <p className="text-[10px] uppercase tracking-wider font-bold text-gold-dark">⭐ Servidor Destaque da Semana</p>
-              <p className="text-base font-bold text-foreground">{destaque.nome_completo}</p>
-              {destaque.id_personagem && <p className="text-[10px] text-muted-foreground">ID: {destaque.id_personagem}</p>}
-            </div>
-            <div className="text-right">
-              <span className="text-xl font-bold text-gold-dark">{destaque.score}</span>
-              <p className="text-[10px] text-muted-foreground uppercase">pontos</p>
-            </div>
-          </div>
-        </motion.div>
-      )}
+      <PodiumDestaque tipoRanking="promotor" fallbackIcon={<Scale className="h-6 w-6 text-gold-dark" />} />
 
       <div className="bg-card rounded-xl p-4 border border-border shadow-institutional">
         <h3 className="font-display text-lg font-bold text-foreground mb-1">Sistema de Pontuação</h3>

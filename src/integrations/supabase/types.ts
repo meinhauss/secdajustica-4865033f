@@ -2115,6 +2115,7 @@ export type Database = {
           id: string
           id_personagem: string | null
           nome_completo: string
+          posicao: number
           score: number
           semana_fim: string
           semana_inicio: string
@@ -2127,6 +2128,7 @@ export type Database = {
           id?: string
           id_personagem?: string | null
           nome_completo: string
+          posicao?: number
           score?: number
           semana_fim: string
           semana_inicio: string
@@ -2139,6 +2141,7 @@ export type Database = {
           id?: string
           id_personagem?: string | null
           nome_completo?: string
+          posicao?: number
           score?: number
           semana_fim?: string
           semana_inicio?: string

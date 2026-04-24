@@ -14,17 +14,17 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, serviceKey);
 
     const now = new Date();
-    // Calculate last Friday (start of current week)
-    const dow = now.getUTCDay();
+    // Calculate last Friday (start of current week) — Brasília time
+    const brt = new Date(now.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+    const dow = brt.getDay();
     const daysBack = dow >= 5 ? dow - 5 : dow + 2;
-    const lastFriday = new Date(now);
-    lastFriday.setUTCDate(now.getUTCDate() - daysBack);
-    lastFriday.setUTCHours(0, 0, 0, 0);
+    const lastFriday = new Date(brt);
+    lastFriday.setDate(brt.getDate() - daysBack);
+    lastFriday.setHours(0, 0, 0, 0);
 
     const semanaInicio = lastFriday.toISOString();
     const semanaFim = now.toISOString();
 
-    // Get current rankings before they reset (next call to get_last_friday will return today = new friday)
     const rankings = [
       { tipo: "magistrado", rpc: "get_magistrado_ranking" },
       { tipo: "promotor", rpc: "get_promotor_ranking" },
@@ -39,23 +39,24 @@ Deno.serve(async (req) => {
         results.push(`${r.tipo}: error - ${error.message}`);
         continue;
       }
-      const list = (data as any[]) || [];
-      if (list.length > 0 && Number(list[0].score) > 0) {
-        const top = list[0];
-        await supabase.from("ranking_destaques").insert({
-          tipo_ranking: r.tipo,
-          user_id: top.user_id,
-          nome_completo: top.nome_completo,
-          avatar_url: top.avatar_url || null,
-          id_personagem: top.id_personagem || null,
-          score: Number(top.score),
-          semana_inicio: semanaInicio,
-          semana_fim: semanaFim,
-        });
-        results.push(`${r.tipo}: ${top.nome_completo} (${top.score} pts)`);
-      } else {
+      const list = ((data as any[]) || []).filter((x) => Number(x.score) > 0).slice(0, 3);
+      if (list.length === 0) {
         results.push(`${r.tipo}: nenhum destaque (sem pontuação)`);
+        continue;
       }
+      const rows = list.map((top, idx) => ({
+        tipo_ranking: r.tipo,
+        user_id: top.user_id,
+        nome_completo: top.nome_completo,
+        avatar_url: top.avatar_url || top.foto_url || null,
+        id_personagem: top.id_personagem || null,
+        score: Number(top.score),
+        posicao: idx + 1,
+        semana_inicio: semanaInicio,
+        semana_fim: semanaFim,
+      }));
+      await supabase.from("ranking_destaques").insert(rows);
+      results.push(`${r.tipo}: top ${rows.length} salvos`);
     }
 
     return new Response(JSON.stringify({ success: true, destaques: results }), {
