@@ -367,12 +367,17 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
   });
 
   const filtered = processos?.filter((p) => {
-    const autorDisplay = formatPartesShort(p.autor_nome);
-    const reuDisplay = formatPartesShort(p.reu_nome);
-    const matchSearch = !search || p.numero?.toLowerCase().includes(search.toLowerCase()) ||
-      p.assunto?.toLowerCase().includes(search.toLowerCase()) ||
-      autorDisplay.toLowerCase().includes(search.toLowerCase()) ||
-      reuDisplay.toLowerCase().includes(search.toLowerCase());
+    const term = search.trim().toLowerCase();
+    const autorPartes = parsePartesFromString(p.autor_nome);
+    const reuPartes = parsePartesFromString(p.reu_nome);
+    const partesText = [...autorPartes, ...reuPartes]
+      .map(x => `${x.nome || ""} ${x.id_personagem || ""}`)
+      .join(" ")
+      .toLowerCase();
+    const matchSearch = !term ||
+      p.numero?.toLowerCase().includes(term) ||
+      p.assunto?.toLowerCase().includes(term) ||
+      partesText.includes(term);
     const matchStatus = statusFilter === "all" || p.status === statusFilter;
     return matchSearch && matchStatus;
   });
