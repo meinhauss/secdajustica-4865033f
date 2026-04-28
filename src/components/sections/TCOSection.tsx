@@ -337,6 +337,7 @@ export default function TCOSection() {
     setDataFato("");
     setLocalFato("");
     setCompromisso(false);
+    setRelatoBo("");
     setLinks([""]);
     setEnvolvidos([
       { ...emptyEnvolvido(), tipo: "autor_fato" },
