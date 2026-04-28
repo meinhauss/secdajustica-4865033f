@@ -2207,6 +2207,51 @@ export type Database = {
         }
         Relationships: []
       }
+      renuncias_prazo: {
+        Row: {
+          created_at: string
+          id: string
+          parte_tipo: string
+          processo_id: string
+          sentenca_id: string
+          user_id: string
+          user_nome: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          parte_tipo: string
+          processo_id: string
+          sentenca_id: string
+          user_id: string
+          user_nome: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          parte_tipo?: string
+          processo_id?: string
+          sentenca_id?: string
+          user_id?: string
+          user_nome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "renuncias_prazo_processo_id_fkey"
+            columns: ["processo_id"]
+            isOneToOne: false
+            referencedRelation: "processos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "renuncias_prazo_sentenca_id_fkey"
+            columns: ["sentenca_id"]
+            isOneToOne: false
+            referencedRelation: "sentencas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       requisicoes_diligencia_mp: {
         Row: {
           created_at: string
