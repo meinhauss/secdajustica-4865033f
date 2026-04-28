@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/hooks/useTheme";
 import {
   Scale, Gavel, BookOpen, FileText, Users, BarChart3,
-  LogOut, Menu, X, Home, Briefcase, Calendar, Crown, GraduationCap, Stamp, ClipboardList, UsersRound
+  LogOut, Menu, X, Home, Briefcase, Calendar, Crown, GraduationCap, Stamp, ClipboardList, UsersRound,
+  Sun, Moon
  } from "lucide-react";
 import logoSjc from "@/assets/logo-sjc.jpg";
 import logoMpsp from "@/assets/logo-mpsp.png";
@@ -43,6 +45,7 @@ const menuItems = [
 
 export default function DashboardLayout({ children, activeSection, onSectionChange, onNavigateToProcesso }: DashboardLayoutProps) {
   const { signOut, profile, roles } = useAuth();
+  const { theme, toggle: toggleTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const filteredItems = roles.length === 0
@@ -163,6 +166,14 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
             {filteredItems.find((i) => i.id === activeSection)?.label || "Painel"}
           </h1>
           <div className="ml-auto flex items-center gap-2">
+            <button
+              onClick={toggleTheme}
+              aria-label={theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"}
+              title={theme === "dark" ? "Modo claro" : "Modo escuro"}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+            >
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
             <NotificationBell onNavigate={(section, processoId) => {
               if (processoId && section === "processos") {
                 onNavigateToProcesso?.(processoId);
