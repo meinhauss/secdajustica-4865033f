@@ -705,6 +705,8 @@ export function generateMovimentacaoPDF(params: {
     data: string; // ISO
     attachments?: { nome: string; url: string }[];
     link?: string;
+    numero?: number;
+    total?: number;
   };
   logoBase64: string;
   baixadoPor?: string;
@@ -743,7 +745,10 @@ export function generateMovimentacaoPDF(params: {
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(25, 55, 85);
-  doc.text("CERTIDAO DE MOVIMENTACAO PROCESSUAL", PAGE_W / 2, y, { align: "center" });
+  const numLabel = movimentacao.numero
+    ? ` #${movimentacao.numero}${movimentacao.total ? `/${movimentacao.total}` : ""}`
+    : "";
+  doc.text(sanitize(`CERTIDAO DE MOVIMENTACAO PROCESSUAL${numLabel}`), PAGE_W / 2, y, { align: "center" });
   y += 6;
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
