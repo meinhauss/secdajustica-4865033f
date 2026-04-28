@@ -15,7 +15,7 @@ import {
   File, Scale, Timer, ChevronRight, X, ExternalLink, ScrollText,
   ShieldCheck, ShieldOff, UserCheck, Lock, Trash2, Download, Edit
 } from "lucide-react";
-import { generateProcessoPDF, imageToBase64 } from "@/lib/pdfGenerator";
+import { generateProcessoPDF, generateMovimentacaoPDF, imageToBase64 } from "@/lib/pdfGenerator";
 import logoTjsp from "@/assets/tjsp-logo.png";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -1771,6 +1771,37 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${item.badge_color}`}>{item.tipo.replace(/_/g, ' ')}</span>
                         <span className="text-[10px] text-muted-foreground ml-auto">{format(new Date(item.date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 px-2 rounded-lg text-[10px]"
+                          title="Baixar movimentação em PDF timbrado"
+                          onClick={async () => {
+                            const logo64 = await imageToBase64(logoTjsp);
+                            generateMovimentacaoPDF({
+                              processo: {
+                                numero: processo.numero,
+                                classe: processo.classe,
+                                assunto: processo.assunto,
+                                vara: processo.vara,
+                                autor_nome: processo.autor_nome,
+                                reu_nome: processo.reu_nome,
+                              },
+                              movimentacao: {
+                                tipo: item.tipo,
+                                titulo: item.titulo,
+                                descricao: item.descricao,
+                                autor: item.autor,
+                                data: item.date,
+                                attachments: item.attachments,
+                                link: item.link,
+                              },
+                              logoBase64: logo64,
+                            });
+                          }}
+                        >
+                          <Download className="h-3 w-3 mr-1" /> PDF
+                        </Button>
                       </div>
                       {item.titulo && <p className="text-sm font-semibold text-foreground mb-1">{item.titulo}</p>}
                       <p className="text-sm text-foreground whitespace-pre-wrap">{item.descricao.split(/(https?:\/\/[^\s<>]+)/gi).map((part, i) =>
