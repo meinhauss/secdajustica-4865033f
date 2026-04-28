@@ -415,12 +415,20 @@ export function generateProcessoPDF(params: {
   if (movimentacoes?.length) {
     y += 4;
     y = drawSectionHeader(doc, "MOVIMENTACOES PROCESSUAIS", y);
-    for (const m of movimentacoes) {
+    // Numera sequencialmente: #1 = mais antiga, #N = mais recente (igual à UI)
+    const movsOrdenadas = [...movimentacoes].sort(
+      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    );
+    const totalMovs = movsOrdenadas.length;
+    // Exibe da mais recente para a mais antiga, mas com numeração estável
+    const movsExibidas = [...movsOrdenadas].reverse();
+    for (const m of movsExibidas) {
+      const numero = movsOrdenadas.indexOf(m) + 1;
       y = checkPage(doc, y, 14);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(7.5);
       doc.setTextColor(25, 55, 85);
-      doc.text(sanitize(`${new Date(m.created_at).toLocaleString("pt-BR")} - ${m.tipo?.toUpperCase()}`), MARGIN + 2, y);
+      doc.text(sanitize(`MOV #${numero}/${totalMovs} - ${new Date(m.created_at).toLocaleString("pt-BR")} - ${m.tipo?.toUpperCase()}`), MARGIN + 2, y);
       y += 3.5;
       doc.setFont("helvetica", "normal");
       doc.setFontSize(7);
@@ -697,6 +705,8 @@ export function generateMovimentacaoPDF(params: {
     data: string; // ISO
     attachments?: { nome: string; url: string }[];
     link?: string;
+    numero?: number;
+    total?: number;
   };
   logoBase64: string;
   baixadoPor?: string;
@@ -735,7 +745,10 @@ export function generateMovimentacaoPDF(params: {
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(25, 55, 85);
-  doc.text("CERTIDAO DE MOVIMENTACAO PROCESSUAL", PAGE_W / 2, y, { align: "center" });
+  const numLabel = movimentacao.numero
+    ? ` #${movimentacao.numero}${movimentacao.total ? `/${movimentacao.total}` : ""}`
+    : "";
+  doc.text(sanitize(`CERTIDAO DE MOVIMENTACAO PROCESSUAL${numLabel}`), PAGE_W / 2, y, { align: "center" });
   y += 6;
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
@@ -758,6 +771,10 @@ export function generateMovimentacaoPDF(params: {
   y = drawSectionHeader(doc, "MOVIMENTACAO", y);
 
   y = drawInfoRow(doc, "Tipo:", (movimentacao.tipo || "").toUpperCase(), MARGIN + 2, y);
+  if (movimentacao.numero) {
+    const numTxt = movimentacao.total ? `${movimentacao.numero} de ${movimentacao.total}` : String(movimentacao.numero);
+    y = drawInfoRow(doc, "Movimentacao no:", numTxt, MARGIN + 2, y);
+  }
   y = drawInfoRow(doc, "Data/Hora:", new Date(movimentacao.data).toLocaleString("pt-BR"), MARGIN + 2, y);
   if (movimentacao.autor) y = drawInfoRow(doc, "Responsavel:", movimentacao.autor, MARGIN + 2, y);
   if (movimentacao.titulo) y = drawInfoRow(doc, "Titulo:", movimentacao.titulo, MARGIN + 2, y);
@@ -829,5 +846,6 @@ export function generateMovimentacaoPDF(params: {
   const safeNum = processo.numero.replace(/\W/g, "_");
   const safeTipo = (movimentacao.tipo || "movimentacao").replace(/\W/g, "_");
   const dt = new Date(movimentacao.data).toISOString().slice(0, 10);
-  doc.save(`Movimentacao_${safeNum}_${safeTipo}_${dt}.pdf`);
+  const numPart = movimentacao.numero ? `_n${movimentacao.numero}` : "";
+  doc.save(`Movimentacao${numPart}_${safeNum}_${safeTipo}_${dt}.pdf`);
 }
