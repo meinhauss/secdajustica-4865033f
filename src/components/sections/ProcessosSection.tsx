@@ -1245,6 +1245,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                   apelacoes: apelacoesProc || [],
                   embargos: embargosProc || [],
                   logoBase64: logo64,
+                  baixadoPor: profile?.nome_completo || "Usuario nao identificado",
                 });
               }}>
               <Download className="h-3.5 w-3.5 mr-1" /> Baixar Íntegra
@@ -1800,6 +1801,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                                 link: item.link,
                               },
                               logoBase64: logo64,
+                              baixadoPor: profile?.nome_completo || "Usuario nao identificado",
                             });
                           }}
                         >

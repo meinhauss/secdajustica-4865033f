@@ -102,17 +102,24 @@ function drawLightSeparator(doc: jsPDF, y: number): number {
   return y + 3;
 }
 
-function addFooter(doc: jsPDF, text: string) {
+function addFooter(doc: jsPDF, text: string, baixadoPor?: string) {
   const pages = doc.getNumberOfPages();
+  const stamp = new Date().toLocaleString("pt-BR");
+  const downloader = baixadoPor ? `Baixado por: ${baixadoPor} em ${stamp}` : "";
   for (let i = 1; i <= pages; i++) {
     doc.setPage(i);
     doc.setDrawColor(25, 55, 85);
     doc.setLineWidth(0.4);
-    doc.line(MARGIN, 284, PAGE_W - MARGIN, 284);
+    doc.line(MARGIN, 282, PAGE_W - MARGIN, 282);
     doc.setFontSize(6.5);
     doc.setTextColor(120);
-    doc.text(sanitize(text), MARGIN, 289);
-    doc.text(sanitize(`Pagina ${i} de ${pages}`), PAGE_W - MARGIN, 289, { align: "right" });
+    doc.text(sanitize(text), MARGIN, 286);
+    doc.text(sanitize(`Pagina ${i} de ${pages}`), PAGE_W - MARGIN, 286, { align: "right" });
+    if (downloader) {
+      doc.setFontSize(6);
+      doc.setTextColor(140);
+      doc.text(sanitize(downloader), MARGIN, 290);
+    }
   }
 }
 
@@ -142,8 +149,9 @@ export function generateProcessoPDF(params: {
   apelacoes?: any[];
   embargos?: any[];
   logoBase64: string;
+  baixadoPor?: string;
 }) {
-  const { processo, juizNome, movimentacoes, atos, audiencias, sentencas, procuracoes, interessados, apelacoes, embargos, logoBase64 } = params;
+  const { processo, juizNome, movimentacoes, atos, audiencias, sentencas, procuracoes, interessados, apelacoes, embargos, logoBase64, baixadoPor } = params;
   const doc = new jsPDF();
 
   // ─── HEADER ───
@@ -438,7 +446,7 @@ export function generateProcessoPDF(params: {
     }
   }
 
-  addFooter(doc, `Processo no ${processo.numero} - Tribunal de Justica do Estado de Sao Paulo - Sistema Judiciario vBETA`);
+  addFooter(doc, `Processo no ${processo.numero} - Tribunal de Justica do Estado de Sao Paulo - Sistema Judiciario vBETA`, baixadoPor);
 
   doc.save(`Processo_${processo.numero.replace(/\W/g, "_")}.pdf`);
 }
@@ -691,8 +699,9 @@ export function generateMovimentacaoPDF(params: {
     link?: string;
   };
   logoBase64: string;
+  baixadoPor?: string;
 }) {
-  const { processo, movimentacao, logoBase64 } = params;
+  const { processo, movimentacao, logoBase64, baixadoPor } = params;
   const doc = new jsPDF();
 
   // ─── HEADER TIMBRADO ───
@@ -815,7 +824,7 @@ export function generateMovimentacaoPDF(params: {
   const certText = `Documento emitido eletronicamente pelo Sistema Judiciario em ${new Date().toLocaleString("pt-BR")}. A autenticidade pode ser verificada consultando o processo no 0${processo.numero} no sistema.`;
   y = addWrappedText(doc, certText, MARGIN, y, CONTENT_W, 3.8);
 
-  addFooter(doc, `Processo no ${processo.numero} - Movimentacao individual - Tribunal de Justica do Estado de Sao Paulo`);
+  addFooter(doc, `Processo no ${processo.numero} - Movimentacao individual - Tribunal de Justica do Estado de Sao Paulo`, baixadoPor);
 
   const safeNum = processo.numero.replace(/\W/g, "_");
   const safeTipo = (movimentacao.tipo || "movimentacao").replace(/\W/g, "_");
