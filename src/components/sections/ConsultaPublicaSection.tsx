@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, IdCard, Phone, MessageCircle } from "lucide-react";
+import { Search, IdCard, Phone } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   Dialog,
@@ -100,11 +100,11 @@ export default function ConsultaPublicaSection() {
 
       const [profilesByIdRes, profilesByNameRes, carteirasRes] = await Promise.all([
         supabase.from("profiles")
-          .select("user_id, nome_completo, id_personagem, cargo, oab_numero, avatar_url, telefone_ingame, discord")
+          .select("user_id, nome_completo, id_personagem, cargo, oab_numero, avatar_url, telefone_ingame")
           .eq("id_personagem", term)
           .limit(50),
         supabase.from("profiles")
-          .select("user_id, nome_completo, id_personagem, cargo, oab_numero, avatar_url, telefone_ingame, discord")
+          .select("user_id, nome_completo, id_personagem, cargo, oab_numero, avatar_url, telefone_ingame")
           .ilike("nome_completo", `%${term}%`)
           .limit(50),
         supabase.from("carteiras_oab")
@@ -145,7 +145,7 @@ export default function ConsultaPublicaSection() {
       if (missingProfiles.length) {
         const { data: extraProfiles } = await supabase
           .from("profiles")
-          .select("user_id, nome_completo, id_personagem, cargo, avatar_url, telefone_ingame, discord")
+          .select("user_id, nome_completo, id_personagem, cargo, avatar_url, telefone_ingame")
           .in("user_id", missingProfiles);
         extraProfiles?.forEach((p) => {
           userMap[p.user_id] = { ...userMap[p.user_id], ...p };
@@ -310,21 +310,6 @@ export default function ConsultaPublicaSection() {
                       <div className="flex items-center gap-1.5">
                         <Phone className="h-3 w-3 text-muted-foreground" />
                         <p className="text-xs font-mono text-foreground">{p.telefone_ingame}</p>
-                      </div>
-                    )}
-
-                    {p.discord && (
-                      <div className="flex items-center gap-1.5">
-                        <MessageCircle className="h-3 w-3 text-[#5865F2]" />
-                        <a
-                          href={`https://discord.com/users/${encodeURIComponent(p.discord)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-[#5865F2] hover:underline font-medium"
-                          title={`Abrir perfil do Discord: ${p.discord}`}
-                        >
-                          Contato via Discord
-                        </a>
                       </div>
                     )}
 
