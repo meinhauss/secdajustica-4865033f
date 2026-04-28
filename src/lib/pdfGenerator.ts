@@ -102,17 +102,24 @@ function drawLightSeparator(doc: jsPDF, y: number): number {
   return y + 3;
 }
 
-function addFooter(doc: jsPDF, text: string) {
+function addFooter(doc: jsPDF, text: string, baixadoPor?: string) {
   const pages = doc.getNumberOfPages();
+  const stamp = new Date().toLocaleString("pt-BR");
+  const downloader = baixadoPor ? `Baixado por: ${baixadoPor} em ${stamp}` : "";
   for (let i = 1; i <= pages; i++) {
     doc.setPage(i);
     doc.setDrawColor(25, 55, 85);
     doc.setLineWidth(0.4);
-    doc.line(MARGIN, 284, PAGE_W - MARGIN, 284);
+    doc.line(MARGIN, 282, PAGE_W - MARGIN, 282);
     doc.setFontSize(6.5);
     doc.setTextColor(120);
-    doc.text(sanitize(text), MARGIN, 289);
-    doc.text(sanitize(`Pagina ${i} de ${pages}`), PAGE_W - MARGIN, 289, { align: "right" });
+    doc.text(sanitize(text), MARGIN, 286);
+    doc.text(sanitize(`Pagina ${i} de ${pages}`), PAGE_W - MARGIN, 286, { align: "right" });
+    if (downloader) {
+      doc.setFontSize(6);
+      doc.setTextColor(140);
+      doc.text(sanitize(downloader), MARGIN, 290);
+    }
   }
 }
 
