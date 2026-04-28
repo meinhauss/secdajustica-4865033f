@@ -1764,11 +1764,14 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
 
             return (
               <div className="relative pl-6 border-l-2 border-border space-y-4">
-                {items.map((item) => (
+                {items.map((item, idx) => {
+                  const numero = items.length - idx; // #1 = mais antiga, #N = mais recente
+                  return (
                   <motion.div key={item.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="relative">
                     <div className="absolute -left-[25px] top-1 w-3 h-3 rounded-full bg-institutional border-2 border-background" />
                     <div className="bg-card rounded-xl p-3 border border-border">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span className="text-[10px] font-mono font-bold text-institutional bg-institutional/10 px-2 py-0.5 rounded-full">#{numero}</span>
                         <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${item.badge_color}`}>{item.tipo.replace(/_/g, ' ')}</span>
                         <span className="text-[10px] text-muted-foreground ml-auto">{format(new Date(item.date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
                         <Button
@@ -1836,7 +1839,8 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                       )}
                     </div>
                   </motion.div>
-                ))}
+                  );
+                })}
               </div>
             );
           })()}
