@@ -13,6 +13,14 @@ import { CURRENT_VERSION } from "@/lib/version";
 
 const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
   {
+    version: "2.23.2",
+    date: "28/04/2026",
+    changes: [
+      "Portal do Magistrado: movimentações e atos com texto formatado agora renderizam corretamente (sem exibir tags HTML)",
+      "Exportação em PDF: conteúdo de movimentações, atos e despachos é convertido para texto limpo, preservando quebras de linha",
+    ],
+  },
+  {
     version: "2.23.1",
     date: "28/04/2026",
     changes: [
