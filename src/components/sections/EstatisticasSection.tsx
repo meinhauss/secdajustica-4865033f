@@ -13,6 +13,15 @@ import { CURRENT_VERSION } from "@/lib/version";
 
 const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
   {
+    version: "2.23.1",
+    date: "28/04/2026",
+    changes: [
+      "TCO: novo campo para colar o relato do Boletim de Ocorrência, lançado automaticamente como movimentação de informação policial",
+      "Editor de texto rico: cores e fundos forçados são removidos ao colar, garantindo legibilidade no modo escuro",
+      "Detalhe do TCO: 'Processo vinculado' agora exibe o número do processo em vez do ID interno",
+    ],
+  },
+  {
     version: "2.14.0",
     date: "24/04/2026",
     changes: [
