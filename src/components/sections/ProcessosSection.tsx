@@ -1125,8 +1125,9 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const minhaParteTipo: "autor" | "reu" | "mp" | null = (() => {
     if (isMP && isCriminal) return "mp";
     if (isAdvogado && advogadoTemProcuracao) {
-      const procAutor = procuracoes?.some((p: any) => p.advogado_id === user?.id && (p.outorgante_tipo === "autor" || p.parte_tipo === "autor"));
-      const procReu = procuracoes?.some((p: any) => p.advogado_id === user?.id && (p.outorgante_tipo === "reu" || p.parte_tipo === "reu"));
+      const procs = procuracoes?.filter((p: any) => p.advogado_id === user?.id && p.status === "ativa") || [];
+      const procAutor = procs.some((p: any) => (p.parte || "").startsWith("autor"));
+      const procReu = procs.some((p: any) => (p.parte || "").startsWith("reu"));
       if (procAutor) return "autor";
       if (procReu) return "reu";
     }
