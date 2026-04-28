@@ -7,7 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import { RichTextEditor, RichTextView } from "@/components/ui/rich-text-editor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -1602,13 +1602,17 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                     <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-institutional/10 text-institutional">{m.tipo?.replace(/_/g, " ")}</span>
                     <span className="text-[10px] text-muted-foreground ml-auto">{format(new Date(m.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
                   </div>
-                  <p className="text-sm text-foreground whitespace-pre-wrap">
-                    {m.descricao.split(/(https?:\/\/[^\s]+)/g).map((part, i) =>
-                      /^https?:\/\//.test(part) ? (
-                        <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80 break-all">{part}</a>
-                      ) : part
-                    )}
-                  </p>
+                  {/<\/(p|strong|em|u|s|ul|ol|li|h[1-4]|blockquote|span|div)>/i.test(m.descricao || "") ? (
+                    <RichTextView html={m.descricao} className="text-sm text-foreground" />
+                  ) : (
+                    <p className="text-sm text-foreground whitespace-pre-wrap">
+                      {m.descricao.split(/(https?:\/\/[^\s]+)/g).map((part, i) =>
+                        /^https?:\/\//.test(part) ? (
+                          <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80 break-all">{part}</a>
+                        ) : part
+                      )}
+                    </p>
+                  )}
                   <div className="mt-2 pt-2 border-t border-border/50">
                     <p className="text-[10px] text-muted-foreground italic flex items-center gap-1">
                       <PenTool className="h-3 w-3" />
@@ -1632,7 +1636,11 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                     <span className="text-[10px] text-muted-foreground ml-auto">{format(new Date(a.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</span>
                   </div>
                   <p className="text-sm font-medium text-foreground">{a.titulo}</p>
-                  <p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">{a.conteudo}</p>
+                  {/<\/(p|strong|em|u|s|ul|ol|li|h[1-4]|blockquote|span|div)>/i.test(a.conteudo || "") ? (
+                    <RichTextView html={a.conteudo} className="text-xs text-muted-foreground mt-1" />
+                  ) : (
+                    <p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">{a.conteudo}</p>
+                  )}
                   {a.autor_nome && <p className="text-[10px] text-muted-foreground mt-1 italic">Por: {a.autor_nome}</p>}
                 </div>
               ))}
