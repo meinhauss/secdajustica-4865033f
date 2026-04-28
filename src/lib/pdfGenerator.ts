@@ -415,12 +415,20 @@ export function generateProcessoPDF(params: {
   if (movimentacoes?.length) {
     y += 4;
     y = drawSectionHeader(doc, "MOVIMENTACOES PROCESSUAIS", y);
-    for (const m of movimentacoes) {
+    // Numera sequencialmente: #1 = mais antiga, #N = mais recente (igual à UI)
+    const movsOrdenadas = [...movimentacoes].sort(
+      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    );
+    const totalMovs = movsOrdenadas.length;
+    // Exibe da mais recente para a mais antiga, mas com numeração estável
+    const movsExibidas = [...movsOrdenadas].reverse();
+    for (const m of movsExibidas) {
+      const numero = movsOrdenadas.indexOf(m) + 1;
       y = checkPage(doc, y, 14);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(7.5);
       doc.setTextColor(25, 55, 85);
-      doc.text(sanitize(`${new Date(m.created_at).toLocaleString("pt-BR")} - ${m.tipo?.toUpperCase()}`), MARGIN + 2, y);
+      doc.text(sanitize(`MOV #${numero}/${totalMovs} - ${new Date(m.created_at).toLocaleString("pt-BR")} - ${m.tipo?.toUpperCase()}`), MARGIN + 2, y);
       y += 3.5;
       doc.setFont("helvetica", "normal");
       doc.setFontSize(7);
