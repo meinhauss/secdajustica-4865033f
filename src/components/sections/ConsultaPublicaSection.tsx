@@ -100,11 +100,11 @@ export default function ConsultaPublicaSection() {
 
       const [profilesByIdRes, profilesByNameRes, carteirasRes] = await Promise.all([
         supabase.from("profiles")
-          .select("user_id, nome_completo, id_personagem, cargo, oab_numero, avatar_url, telefone_ingame")
+          .select("user_id, nome_completo, id_personagem, cargo, oab_numero, avatar_url, telefone_ingame, discord")
           .eq("id_personagem", term)
           .limit(50),
         supabase.from("profiles")
-          .select("user_id, nome_completo, id_personagem, cargo, oab_numero, avatar_url, telefone_ingame")
+          .select("user_id, nome_completo, id_personagem, cargo, oab_numero, avatar_url, telefone_ingame, discord")
           .ilike("nome_completo", `%${term}%`)
           .limit(50),
         supabase.from("carteiras_oab")
