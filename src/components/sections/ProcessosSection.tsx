@@ -1645,6 +1645,36 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               Processo sentenciado. Novas movimentações não são permitidas — recursos de apelação e embargos de declaração podem ser interpostos em até 72 horas.
             </div>
           )}
+          {isSentenciado && !prazoApelacaoExpirado && latestSentenca && (
+            <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div>
+                  <p className="text-sm font-semibold">Renúncia ao prazo recursal</p>
+                  <p className="text-xs text-muted-foreground">Manifeste desinteresse em recorrer da sentença. Quando todas as partes renunciarem, o trânsito em julgado será certificado e os autos arquivados.</p>
+                </div>
+                {podeRenunciar && (
+                  <Button size="sm" variant="outline" onClick={() => renunciarPrazo.mutate()} disabled={renunciarPrazo.isPending}>
+                    <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
+                    Renunciar ao prazo
+                  </Button>
+                )}
+                {!!minhaParteTipo && minhaRenuncia && (
+                  <span className="text-xs px-2 py-1 rounded-md bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400">Você já renunciou</span>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {partesNecessarias.map(p => {
+                  const r = renunciaPorParte(p);
+                  const label = p === "mp" ? "Ministério Público" : p === "autor" ? "Autor" : "Réu";
+                  return (
+                    <span key={p} className={`text-xs px-2 py-1 rounded-md border ${r ? "bg-green-50 border-green-300 text-green-800 dark:bg-green-950/20 dark:text-green-400" : "bg-muted border-border text-muted-foreground"}`}>
+                      {r ? "✓" : "○"} {label}{r && r.user_nome ? ` — ${r.user_nome}` : ""}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           {isSentenciado && prazoApelacaoExpirado && (
             <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-xl p-4 text-sm text-amber-800 dark:text-amber-300 flex items-center gap-2">
               <CheckCircle className="h-4 w-4" />
