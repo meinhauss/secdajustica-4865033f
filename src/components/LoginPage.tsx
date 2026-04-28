@@ -44,6 +44,17 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (isSignUp) {
+        const discordLimpo = discord.replace(/\D/g, "");
+        if (!discordLimpo) {
+          toast.error("Informe o ID do Discord.");
+          setLoading(false);
+          return;
+        }
+        if (discordLimpo.length < 17 || discordLimpo.length > 20) {
+          toast.error("ID do Discord inválido. Deve conter entre 17 e 20 dígitos numéricos.");
+          setLoading(false);
+          return;
+        }
         if (unispOptIn && !unispMotivacao.trim()) {
           toast.error("Preencha a motivação para inscrição na UNISP.");
           setLoading(false);
@@ -55,7 +66,7 @@ export default function LoginPage() {
           return;
         }
         const { data, error } = await signUp(email, password, nome, {
-          discord,
+          discord: discordLimpo,
           id_personagem: idPersonagem,
           telefone_ingame: telefoneIngame
         });
@@ -920,13 +931,19 @@ function TabLogin(props: LoginProps) {
                 </label>
                 <Input
                   value={discord}
-                  onChange={(e) => setDiscord(e.target.value.replace(/\D/g, ""))}
+                  onChange={(e) => setDiscord(e.target.value.replace(/\D/g, "").slice(0, 20))}
                   inputMode="numeric"
-                  pattern="[0-9]*"
+                  pattern="[0-9]{17,20}"
+                  minLength={17}
+                  maxLength={20}
+                  title="O ID do Discord deve conter entre 17 e 20 dígitos numéricos."
                   placeholder="Apenas números (ex.: 123456789012345678)"
                   required
                   className="rounded-lg h-11"
                 />
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  17 a 20 dígitos. Ative o Modo Desenvolvedor no Discord e copie seu ID.
+                </p>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
