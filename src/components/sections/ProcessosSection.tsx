@@ -1099,12 +1099,84 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   });
 
   // Check if appeal deadline (3 days after latest sentença) has passed
+  const latestSentenca = sentencasProc?.length
+    ? sentencasProc.reduce((a: any, b: any) => new Date(a.created_at) > new Date(b.created_at) ? a : b)
+    : null;
   const prazoApelacaoExpirado = (() => {
-    if (!isSentenciado || !sentencasProc?.length) return false;
-    const latest = sentencasProc.reduce((a: any, b: any) => new Date(a.created_at) > new Date(b.created_at) ? a : b);
-    const deadline = new Date(new Date(latest.created_at).getTime() + 3 * 24 * 60 * 60 * 1000);
+    if (!isSentenciado || !latestSentenca) return false;
+    const deadline = new Date(new Date(latestSentenca.created_at).getTime() + 3 * 24 * 60 * 60 * 1000);
     return new Date() > deadline;
   })();
+
+  // Renúncias de prazo recursal sobre a última sentença
+  const { data: renunciasProc } = useQuery({
+    queryKey: ["renuncias-prazo", latestSentenca?.id],
+    queryFn: async () => {
+      if (!latestSentenca?.id) return [] as any[];
+      const { data, error } = await supabase.from("renuncias_prazo" as any).select("*").eq("sentenca_id", latestSentenca.id);
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+    enabled: !!latestSentenca?.id,
+  });
+
+  const isCriminal = processo?.classe === "criminal";
+  // Determinar tipo de parte do usuário atual
+  const minhaParteTipo: "autor" | "reu" | "mp" | null = (() => {
+    if (isMP && isCriminal) return "mp";
+    if (isAdvogado && advogadoTemProcuracao) {
+      const procAutor = procuracoes?.some((p: any) => p.advogado_id === user?.id && (p.outorgante_tipo === "autor" || p.parte_tipo === "autor"));
+      const procReu = procuracoes?.some((p: any) => p.advogado_id === user?.id && (p.outorgante_tipo === "reu" || p.parte_tipo === "reu"));
+      if (procAutor) return "autor";
+      if (procReu) return "reu";
+    }
+    return null;
+  })();
+
+  const partesNecessarias: Array<"autor" | "reu" | "mp"> = isCriminal ? ["autor", "reu", "mp"] : ["autor", "reu"];
+  const renunciaPorParte = (tipo: string) => renunciasProc?.find((r: any) => r.parte_tipo === tipo);
+  const minhaRenuncia = minhaParteTipo ? renunciaPorParte(minhaParteTipo) : null;
+  const podeRenunciar = !!minhaParteTipo && isSentenciado && !prazoApelacaoExpirado && !minhaRenuncia && (apelacoesProc?.length ?? 0) === 0;
+
+  const renunciarPrazo = useMutation({
+    mutationFn: async () => {
+      if (!minhaParteTipo || !latestSentenca?.id) throw new Error("Não é possível renunciar.");
+      const labelParte = minhaParteTipo === "mp" ? "Ministério Público" : minhaParteTipo === "autor" ? "Autor" : "Réu";
+      const { error } = await supabase.from("renuncias_prazo" as any).insert({
+        processo_id: processoId,
+        sentenca_id: latestSentenca.id,
+        parte_tipo: minhaParteTipo,
+        user_id: user?.id,
+        user_nome: profile?.nome_completo || labelParte,
+      } as any);
+      if (error) throw error;
+      await addMovimentacao.mutateAsync({
+        tipo: "renuncia_prazo",
+        descricao: `${labelParte} (${profile?.nome_completo || "—"}) renunciou ao prazo recursal manifestando desinteresse em recorrer da sentença.`,
+      });
+
+      // Verificar se todas as partes renunciaram → trânsito em julgado + arquivamento
+      const { data: todas } = await supabase.from("renuncias_prazo" as any).select("parte_tipo").eq("sentenca_id", latestSentenca.id);
+      const tipos = new Set((todas || []).map((r: any) => r.parte_tipo));
+      tipos.add(minhaParteTipo);
+      const todasRenunciaram = partesNecessarias.every(p => tipos.has(p));
+      if (todasRenunciaram) {
+        await addMovimentacao.mutateAsync({
+          tipo: "transito_julgado",
+          descricao: "Trânsito em julgado certificado — todas as partes renunciaram ao prazo recursal. Autos arquivados.",
+        });
+        const { error: upErr } = await supabase.from("processos").update({ status: "arquivado" as any }).eq("id", processoId);
+        if (upErr) throw upErr;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["renuncias-prazo", latestSentenca?.id] });
+      queryClient.invalidateQueries({ queryKey: ["processo", processoId] });
+      queryClient.invalidateQueries({ queryKey: ["movimentacoes", processoId] });
+      toast.success("Renúncia ao prazo registrada!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
 
   // Interpor apelação
   const [showApelacao, setShowApelacao] = useState(false);
