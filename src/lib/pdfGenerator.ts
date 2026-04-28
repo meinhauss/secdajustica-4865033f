@@ -14,9 +14,34 @@ function formatPartesForPdf(value: string): string {
 
 /* ─── Shared PDF helpers ─── */
 
+/** Convert simple HTML (from rich text editor) to plain text preserving block breaks */
+function htmlToPlain(input: string): string {
+  if (!input) return "";
+  let s = String(input);
+  if (!/<\/?[a-z][^>]*>/i.test(s)) return s;
+  // Block-level breaks
+  s = s.replace(/<\s*br\s*\/?>/gi, "\n");
+  s = s.replace(/<\/(p|div|h[1-6]|li|blockquote|tr)>/gi, "\n");
+  s = s.replace(/<li[^>]*>/gi, "- ");
+  // Strip remaining tags
+  s = s.replace(/<[^>]+>/g, "");
+  // Decode common entities
+  s = s.replace(/&nbsp;/g, " ")
+       .replace(/&amp;/g, "&")
+       .replace(/&lt;/g, "<")
+       .replace(/&gt;/g, ">")
+       .replace(/&quot;/g, '"')
+       .replace(/&#39;|&apos;/g, "'")
+       .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+       .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(parseInt(d, 10)));
+  // Collapse 3+ newlines
+  s = s.replace(/\n{3,}/g, "\n\n").trim();
+  return s;
+}
+
 /** Sanitize text for jsPDF standard fonts (Latin1 only) */
 function sanitize(text: string): string {
-  let s = String(text || "");
+  let s = htmlToPlain(String(text || ""));
   s = s.replace(/\u2713|\u2714/g, "(OK)");
   s = s.replace(/\u2022|\u2023|\u25CF|\u25CB/g, "-");
   s = s.replace(/\u2014|\u2015/g, "-");
