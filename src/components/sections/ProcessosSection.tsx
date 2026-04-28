@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor, RichTextView } from "@/components/ui/rich-text-editor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -1914,13 +1915,17 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                         </Button>
                       </div>
                       {item.titulo && <p className="text-sm font-semibold text-foreground mb-1">{item.titulo}</p>}
-                      <p className="text-sm text-foreground whitespace-pre-wrap">{item.descricao.split(/(https?:\/\/[^\s<>]+)/gi).map((part, i) =>
-                        /^https?:\/\//i.test(part) ? (
-                          <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80 break-all inline-flex items-center gap-1">
-                            <ExternalLink className="h-3 w-3 inline flex-shrink-0" />{part}
-                          </a>
-                        ) : part
-                      )}</p>
+                      {/^<.*>/.test((item.descricao || "").trim()) || /<\/(p|strong|em|u|s|ul|ol|li|h[1-4]|blockquote|span|div)>/i.test(item.descricao || "") ? (
+                        <RichTextView html={item.descricao} className="text-sm text-foreground" />
+                      ) : (
+                        <p className="text-sm text-foreground whitespace-pre-wrap">{item.descricao.split(/(https?:\/\/[^\s<>]+)/gi).map((part, i) =>
+                          /^https?:\/\//i.test(part) ? (
+                            <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80 break-all inline-flex items-center gap-1">
+                              <ExternalLink className="h-3 w-3 inline flex-shrink-0" />{part}
+                            </a>
+                          ) : part
+                        )}</p>
+                      )}
                       {item.link && (
                         <a href={item.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-2 text-xs text-primary hover:underline">
                           <ExternalLink className="h-3 w-3" /> Abrir documento
@@ -1977,7 +1982,9 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                       <span className="ml-auto text-[10px] text-muted-foreground">Pendente de assinatura</span>
                     )}
                   </div>
-                  <pre className="text-xs text-muted-foreground whitespace-pre-wrap font-sans bg-secondary/30 rounded-lg p-3 max-h-48 overflow-y-auto">{a.conteudo}</pre>
+                  <div className="text-xs text-muted-foreground bg-secondary/30 rounded-lg p-3 max-h-64 overflow-y-auto">
+                    <RichTextView html={a.conteudo} />
+                  </div>
                   <p className="text-[10px] text-muted-foreground mt-2">{a.autor_nome} — {format(new Date(a.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
                 </div>
               ))}
@@ -2063,7 +2070,9 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                         <span className="ml-auto text-[10px] text-muted-foreground">Pendente de assinatura</span>
                       )}
                     </div>
-                    <pre className="text-xs text-muted-foreground whitespace-pre-wrap font-sans bg-secondary/30 rounded-lg p-3 max-h-48 overflow-y-auto">{c.conteudo}</pre>
+                    <div className="text-xs text-muted-foreground bg-secondary/30 rounded-lg p-3 max-h-64 overflow-y-auto">
+                      <RichTextView html={c.conteudo} />
+                    </div>
                     <p className="text-[10px] text-muted-foreground mt-2">{c.emitido_por_nome} — {format(new Date(c.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
                   </div>
                 ))}
@@ -2115,11 +2124,11 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                     </div>
                     <div>
                       <label className="text-sm font-medium text-foreground">Fundamentação do Recurso</label>
-                      <Textarea value={apelacaoForm.fundamentacao} onChange={(e) => setApelacaoForm({ ...apelacaoForm, fundamentacao: e.target.value })} placeholder="Razões da apelação e fundamentos jurídicos..." rows={6} className="mt-1" />
+                      <RichTextEditor value={apelacaoForm.fundamentacao} onChange={(html) => setApelacaoForm({ ...apelacaoForm, fundamentacao: html })} placeholder="Razões da apelação e fundamentos jurídicos..." minHeight="200px" className="mt-1" />
                     </div>
                     <div>
                       <label className="text-sm font-medium text-foreground">Pedido</label>
-                      <Textarea value={apelacaoForm.pedido} onChange={(e) => setApelacaoForm({ ...apelacaoForm, pedido: e.target.value })} placeholder="O que se requer ao Tribunal..." rows={4} className="mt-1" />
+                      <RichTextEditor value={apelacaoForm.pedido} onChange={(html) => setApelacaoForm({ ...apelacaoForm, pedido: html })} placeholder="O que se requer ao Tribunal..." minHeight="140px" className="mt-1" />
                     </div>
                     <Button type="submit" disabled={interporApelacao.isPending} className="w-full gap-2">
                       <Scale className="h-4 w-4" /> Interpor Apelação
@@ -2209,11 +2218,11 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                     </div>
                     <div>
                       <label className="text-sm font-medium text-foreground">Fundamentação</label>
-                      <Textarea value={embargosForm.fundamentacao} onChange={(e) => setEmbargosForm({ ...embargosForm, fundamentacao: e.target.value })} placeholder="Indique o ponto omisso, contraditório ou obscuro da sentença..." rows={6} className="mt-1" />
+                      <RichTextEditor value={embargosForm.fundamentacao} onChange={(html) => setEmbargosForm({ ...embargosForm, fundamentacao: html })} placeholder="Indique o ponto omisso, contraditório ou obscuro da sentença..." minHeight="200px" className="mt-1" />
                     </div>
                     <div>
                       <label className="text-sm font-medium text-foreground">Pedido</label>
-                      <Textarea value={embargosForm.pedido} onChange={(e) => setEmbargosForm({ ...embargosForm, pedido: e.target.value })} placeholder="O que se requer ao Juízo..." rows={4} className="mt-1" />
+                      <RichTextEditor value={embargosForm.pedido} onChange={(html) => setEmbargosForm({ ...embargosForm, pedido: html })} placeholder="O que se requer ao Juízo..." minHeight="140px" className="mt-1" />
                     </div>
                     <Button type="submit" disabled={oporEmbargos.isPending} className="w-full gap-2">
                       <FileText className="h-4 w-4" /> Opor Embargos
@@ -2410,7 +2419,7 @@ function AddMovimentacao({ roles, onAdd }: { roles: string[]; onAdd: (tipo: stri
               ))}
             </SelectContent>
           </Select>
-          <Textarea placeholder="Descrição da movimentação..." value={desc} onChange={(e) => setDesc(e.target.value)} required className="rounded-xl min-h-[120px]" />
+          <RichTextEditor placeholder="Descrição da movimentação..." value={desc} onChange={setDesc} minHeight="160px" />
 
           {/* Seção de Anexos */}
           <div className="space-y-3 border border-border rounded-xl p-3 bg-muted/30">
@@ -2552,7 +2561,7 @@ function AddAto({ onAdd }: { onAdd: (ato: { tipo: string; titulo: string; conteu
             </SelectContent>
           </Select>
           <Input placeholder="Título do ato" value={titulo} onChange={(e) => setTitulo(e.target.value)} required className="rounded-xl" />
-          <Textarea placeholder="Conteúdo do ato judicial..." value={conteudo} onChange={(e) => setConteudo(e.target.value)} required rows={12} className="rounded-xl font-mono text-xs" />
+          <RichTextEditor placeholder="Conteúdo do ato judicial..." value={conteudo} onChange={setConteudo} minHeight="280px" />
           <Button type="submit" className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">Registrar Ato</Button>
         </form>
       </DialogContent>
@@ -2756,7 +2765,7 @@ function AddCertidao({ onAdd, isPending }: { onAdd: (cert: { tipo: string; conte
               {CERTIDAO_TIPOS.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Textarea placeholder="Conteúdo da certidão..." value={conteudo} onChange={(e) => setConteudo(e.target.value)} required className="rounded-xl min-h-[200px] font-mono text-xs" />
+          <RichTextEditor placeholder="Conteúdo da certidão..." value={conteudo} onChange={setConteudo} minHeight="240px" />
           <Button type="submit" disabled={isPending} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
             {isPending ? "Juntando..." : "Juntar Certidão"}
           </Button>
@@ -2802,7 +2811,7 @@ function AddAtoCartorio({ onAdd, isPending }: { onAdd: (ato: { tipo: string; tit
             </SelectContent>
           </Select>
           <Input placeholder="Título (ex: Juntada de petição inicial)" value={titulo} onChange={(e) => setTitulo(e.target.value)} required className="rounded-xl" />
-          <Textarea placeholder="Conteúdo do ato..." value={conteudo} onChange={(e) => setConteudo(e.target.value)} required rows={6} className="rounded-xl font-mono text-xs" />
+          <RichTextEditor placeholder="Conteúdo do ato..." value={conteudo} onChange={setConteudo} minHeight="180px" />
           <div className="space-y-2">
             <label className="text-xs font-medium text-foreground">Anexos (links opcionais)</label>
             {anexoUrls.map((url, idx) => (

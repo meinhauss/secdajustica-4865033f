@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -1321,7 +1322,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               </SelectContent>
             </Select>
             <Input placeholder="Título do despacho" value={despachoForm.titulo} onChange={(e) => setDespachoForm({ ...despachoForm, titulo: e.target.value })} className="rounded-xl" required />
-            <Textarea placeholder="Conteúdo do despacho..." value={despachoForm.conteudo} onChange={(e) => setDespachoForm({ ...despachoForm, conteudo: e.target.value })} rows={5} className="rounded-xl" required />
+            <RichTextEditor placeholder="Conteúdo do despacho..." value={despachoForm.conteudo} onChange={(html) => setDespachoForm({ ...despachoForm, conteudo: html })} minHeight="160px" />
             <Button type="submit" disabled={criarDespacho.isPending} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
               {criarDespacho.isPending ? "Processando..." : "Proferir e Assinar Despacho"}
             </Button>
@@ -1417,7 +1418,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                 </div>
               ))}
             </div>
-            <Textarea placeholder="Descrição e determinações do mandado..." value={mandadoForm.descricao} onChange={(e) => setMandadoForm({ ...mandadoForm, descricao: e.target.value })} rows={4} className="rounded-xl" required />
+            <RichTextEditor placeholder="Descrição e determinações do mandado..." value={mandadoForm.descricao} onChange={(html) => setMandadoForm({ ...mandadoForm, descricao: html })} minHeight="140px" />
             <Button type="submit" disabled={expedirMandado.isPending} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
               {expedirMandado.isPending ? "Processando..." : "Expedir Mandado"}
             </Button>
@@ -1441,13 +1442,11 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                 {CARGOS_INTIMAVEIS.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Textarea
+            <RichTextEditor
               placeholder="Conteúdo da intimação..."
               value={cargoIntForm.conteudo}
-              onChange={(e) => setCargoIntForm({ ...cargoIntForm, conteudo: e.target.value })}
-              rows={5}
-              className="rounded-xl"
-              required
+              onChange={(html) => setCargoIntForm({ ...cargoIntForm, conteudo: html })}
+              minHeight="160px"
             />
             <Input
               type="number"
@@ -1479,8 +1478,8 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               </SelectContent>
             </Select>
             <Input placeholder="Ementa (opcional)" value={sentencaForm.ementa} onChange={(e) => setSentencaForm({ ...sentencaForm, ementa: e.target.value })} className="rounded-xl" />
-            <Textarea placeholder="Fundamentação jurídica..." value={sentencaForm.fundamentacao} onChange={(e) => setSentencaForm({ ...sentencaForm, fundamentacao: e.target.value })} rows={6} className="rounded-xl" required />
-            <Textarea placeholder="Dispositivo (decisão)..." value={sentencaForm.dispositivo} onChange={(e) => setSentencaForm({ ...sentencaForm, dispositivo: e.target.value })} rows={4} className="rounded-xl" required />
+            <RichTextEditor placeholder="Fundamentação jurídica..." value={sentencaForm.fundamentacao} onChange={(html) => setSentencaForm({ ...sentencaForm, fundamentacao: html })} minHeight="200px" />
+            <RichTextEditor placeholder="Dispositivo (decisão)..." value={sentencaForm.dispositivo} onChange={(html) => setSentencaForm({ ...sentencaForm, dispositivo: html })} minHeight="140px" />
             <Button type="submit" disabled={proferirSentenca.isPending} className="rounded-xl bg-gold hover:bg-gold/90 text-foreground">
               {proferirSentenca.isPending ? "Processando..." : "Proferir e Publicar Sentença"}
             </Button>
@@ -1516,7 +1515,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               </SelectContent>
             </Select>
             <Input placeholder="Título do ato" value={cartorioForm.titulo} onChange={(e) => setCartorioForm({ ...cartorioForm, titulo: e.target.value })} className="rounded-xl" required />
-            <Textarea placeholder="Conteúdo..." value={cartorioForm.conteudo} onChange={(e) => setCartorioForm({ ...cartorioForm, conteudo: e.target.value })} rows={5} className="rounded-xl" required />
+            <RichTextEditor placeholder="Conteúdo..." value={cartorioForm.conteudo} onChange={(html) => setCartorioForm({ ...cartorioForm, conteudo: html })} minHeight="160px" />
             <div className="space-y-2">
               <label className="text-xs font-medium text-foreground">Anexos (links opcionais)</label>
               {cartorioForm.anexo_urls.map((url, idx) => (
@@ -1926,7 +1925,7 @@ function EmbargosCard({ emb, tipoLabels, statusCfg, canDecide, processoId, userI
               <SelectItem value="parcialmente_acolhidos">Acolher Parcialmente</SelectItem>
             </SelectContent>
           </Select>
-          <Textarea placeholder="Fundamentação da decisão..." value={decisao} onChange={(e) => setDecisao(e.target.value)} rows={4} className="rounded-xl" />
+          <RichTextEditor placeholder="Fundamentação da decisão..." value={decisao} onChange={setDecisao} minHeight="120px" />
           <div className="flex gap-2">
             <Button size="sm" className="rounded-lg text-xs" onClick={() => decidirEmbargos.mutate()} disabled={decidirEmbargos.isPending}>Confirmar</Button>
             <Button size="sm" variant="ghost" className="rounded-lg text-xs" onClick={() => setDeciding(false)}>Cancelar</Button>
