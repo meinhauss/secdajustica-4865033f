@@ -499,6 +499,17 @@ export default function TCOSection() {
               <Input value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Ex: BO-000001/2026" className="rounded-xl mt-1" />
             </div>
 
+            <div>
+              <label className="text-sm font-medium">Relato do Boletim de Ocorrência</label>
+              <p className="text-xs text-muted-foreground mb-1">Cole aqui o relato do BO. Ao encaminhar ao JECrim, será publicado automaticamente como movimentação de informação policial no processo.</p>
+              <RichTextEditor
+                value={relatoBo}
+                onChange={setRelatoBo}
+                placeholder="Cole o relato do Boletim de Ocorrência..."
+                minHeight="160px"
+              />
+            </div>
+
             {/* Compromisso JECrim */}
             <div>
               <label className="flex items-center gap-2">
