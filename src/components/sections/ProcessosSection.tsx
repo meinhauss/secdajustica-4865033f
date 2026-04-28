@@ -1915,13 +1915,17 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                         </Button>
                       </div>
                       {item.titulo && <p className="text-sm font-semibold text-foreground mb-1">{item.titulo}</p>}
-                      <p className="text-sm text-foreground whitespace-pre-wrap">{item.descricao.split(/(https?:\/\/[^\s<>]+)/gi).map((part, i) =>
-                        /^https?:\/\//i.test(part) ? (
-                          <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80 break-all inline-flex items-center gap-1">
-                            <ExternalLink className="h-3 w-3 inline flex-shrink-0" />{part}
-                          </a>
-                        ) : part
-                      )}</p>
+                      {/^<.*>/.test((item.descricao || "").trim()) || /<\/(p|strong|em|u|s|ul|ol|li|h[1-4]|blockquote|span|div)>/i.test(item.descricao || "") ? (
+                        <RichTextView html={item.descricao} className="text-sm text-foreground" />
+                      ) : (
+                        <p className="text-sm text-foreground whitespace-pre-wrap">{item.descricao.split(/(https?:\/\/[^\s<>]+)/gi).map((part, i) =>
+                          /^https?:\/\//i.test(part) ? (
+                            <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80 break-all inline-flex items-center gap-1">
+                              <ExternalLink className="h-3 w-3 inline flex-shrink-0" />{part}
+                            </a>
+                          ) : part
+                        )}</p>
+                      )}
                       {item.link && (
                         <a href={item.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-2 text-xs text-primary hover:underline">
                           <ExternalLink className="h-3 w-3" /> Abrir documento
@@ -1978,7 +1982,9 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                       <span className="ml-auto text-[10px] text-muted-foreground">Pendente de assinatura</span>
                     )}
                   </div>
-                  <pre className="text-xs text-muted-foreground whitespace-pre-wrap font-sans bg-secondary/30 rounded-lg p-3 max-h-48 overflow-y-auto">{a.conteudo}</pre>
+                  <div className="text-xs text-muted-foreground bg-secondary/30 rounded-lg p-3 max-h-64 overflow-y-auto">
+                    <RichTextView html={a.conteudo} />
+                  </div>
                   <p className="text-[10px] text-muted-foreground mt-2">{a.autor_nome} — {format(new Date(a.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
                 </div>
               ))}
@@ -2064,7 +2070,9 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                         <span className="ml-auto text-[10px] text-muted-foreground">Pendente de assinatura</span>
                       )}
                     </div>
-                    <pre className="text-xs text-muted-foreground whitespace-pre-wrap font-sans bg-secondary/30 rounded-lg p-3 max-h-48 overflow-y-auto">{c.conteudo}</pre>
+                    <div className="text-xs text-muted-foreground bg-secondary/30 rounded-lg p-3 max-h-64 overflow-y-auto">
+                      <RichTextView html={c.conteudo} />
+                    </div>
                     <p className="text-[10px] text-muted-foreground mt-2">{c.emitido_por_nome} — {format(new Date(c.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
                   </div>
                 ))}
