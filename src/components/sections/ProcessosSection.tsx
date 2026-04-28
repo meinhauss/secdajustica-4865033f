@@ -1799,6 +1799,8 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                                 data: item.date,
                                 attachments: item.attachments,
                                 link: item.link,
+                                numero: numero,
+                                total: items.length,
                               },
                               logoBase64: logo64,
                               baixadoPor: profile?.nome_completo || "Usuario nao identificado",
