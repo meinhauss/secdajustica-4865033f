@@ -313,6 +313,21 @@ export default function ConsultaPublicaSection() {
                       </div>
                     )}
 
+                    {p.discord && (
+                      <div className="flex items-center gap-1.5">
+                        <MessageCircle className="h-3 w-3 text-muted-foreground" />
+                        <a
+                          href={`https://discord.com/users/${p.discord}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs font-medium text-primary hover:underline"
+                          title={`Abrir perfil no Discord`}
+                        >
+                          Perfil no Discord
+                        </a>
+                      </div>
+                    )}
+
                     {/* Single highest role badge */}
                     {primaryRole !== "cidadao" && (
                       <div className="flex flex-wrap gap-1 pt-1">
