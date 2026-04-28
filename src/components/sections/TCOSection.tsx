@@ -209,6 +209,16 @@ export default function TCOSection() {
         autor_id: user!.id,
       });
 
+      // Relato do BO sobe automaticamente como movimentação de informação policial
+      if ((tco as any).relato_bo && (tco as any).relato_bo.trim()) {
+        await supabase.from("movimentacoes").insert({
+          processo_id: processo.id,
+          tipo: "informacao_policial",
+          descricao: (tco as any).relato_bo,
+          autor_id: user!.id,
+        });
+      }
+
       // Registrar policial como interessado no processo
       await supabase.from("interessados_processo").insert({
         processo_id: processo.id,
