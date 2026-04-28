@@ -66,7 +66,7 @@ export default function LoginPage() {
           return;
         }
         const { data, error } = await signUp(email, password, nome, {
-          discord,
+          discord: discordLimpo,
           id_personagem: idPersonagem,
           telefone_ingame: telefoneIngame
         });
