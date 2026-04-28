@@ -1636,7 +1636,11 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                     <span className="text-[10px] text-muted-foreground ml-auto">{format(new Date(a.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</span>
                   </div>
                   <p className="text-sm font-medium text-foreground">{a.titulo}</p>
-                  <p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">{a.conteudo}</p>
+                  {/<\/(p|strong|em|u|s|ul|ol|li|h[1-4]|blockquote|span|div)>/i.test(a.conteudo || "") ? (
+                    <RichTextView html={a.conteudo} className="text-xs text-muted-foreground mt-1" />
+                  ) : (
+                    <p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">{a.conteudo}</p>
+                  )}
                   {a.autor_nome && <p className="text-[10px] text-muted-foreground mt-1 italic">Por: {a.autor_nome}</p>}
                 </div>
               ))}
