@@ -44,6 +44,17 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (isSignUp) {
+        const discordLimpo = discord.replace(/\D/g, "");
+        if (!discordLimpo) {
+          toast.error("Informe o ID do Discord.");
+          setLoading(false);
+          return;
+        }
+        if (discordLimpo.length < 17 || discordLimpo.length > 20) {
+          toast.error("ID do Discord inválido. Deve conter entre 17 e 20 dígitos numéricos.");
+          setLoading(false);
+          return;
+        }
         if (unispOptIn && !unispMotivacao.trim()) {
           toast.error("Preencha a motivação para inscrição na UNISP.");
           setLoading(false);
