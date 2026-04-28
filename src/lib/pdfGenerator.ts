@@ -771,6 +771,10 @@ export function generateMovimentacaoPDF(params: {
   y = drawSectionHeader(doc, "MOVIMENTACAO", y);
 
   y = drawInfoRow(doc, "Tipo:", (movimentacao.tipo || "").toUpperCase(), MARGIN + 2, y);
+  if (movimentacao.numero) {
+    const numTxt = movimentacao.total ? `${movimentacao.numero} de ${movimentacao.total}` : String(movimentacao.numero);
+    y = drawInfoRow(doc, "Movimentacao no:", numTxt, MARGIN + 2, y);
+  }
   y = drawInfoRow(doc, "Data/Hora:", new Date(movimentacao.data).toLocaleString("pt-BR"), MARGIN + 2, y);
   if (movimentacao.autor) y = drawInfoRow(doc, "Responsavel:", movimentacao.autor, MARGIN + 2, y);
   if (movimentacao.titulo) y = drawInfoRow(doc, "Titulo:", movimentacao.titulo, MARGIN + 2, y);
@@ -842,5 +846,6 @@ export function generateMovimentacaoPDF(params: {
   const safeNum = processo.numero.replace(/\W/g, "_");
   const safeTipo = (movimentacao.tipo || "movimentacao").replace(/\W/g, "_");
   const dt = new Date(movimentacao.data).toISOString().slice(0, 10);
-  doc.save(`Movimentacao_${safeNum}_${safeTipo}_${dt}.pdf`);
+  const numPart = movimentacao.numero ? `_n${movimentacao.numero}` : "";
+  doc.save(`Movimentacao${numPart}_${safeNum}_${safeTipo}_${dt}.pdf`);
 }
