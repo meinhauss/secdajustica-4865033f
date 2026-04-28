@@ -145,7 +145,7 @@ export default function ConsultaPublicaSection() {
       if (missingProfiles.length) {
         const { data: extraProfiles } = await supabase
           .from("profiles")
-          .select("user_id, nome_completo, id_personagem, cargo, avatar_url, telefone_ingame")
+          .select("user_id, nome_completo, id_personagem, cargo, avatar_url, telefone_ingame, discord")
           .in("user_id", missingProfiles);
         extraProfiles?.forEach((p) => {
           userMap[p.user_id] = { ...userMap[p.user_id], ...p };
