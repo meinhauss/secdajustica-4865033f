@@ -677,3 +677,148 @@ export function imageToBase64(src: string): Promise<string> {
     img.src = src;
   });
 }
+
+/* ─── MOVIMENTAÇÃO INDIVIDUAL — PDF TIMBRADO ─── */
+export function generateMovimentacaoPDF(params: {
+  processo: { numero: string; classe?: string; assunto?: string; vara?: string; autor_nome?: string; reu_nome?: string };
+  movimentacao: {
+    tipo: string;
+    titulo?: string;
+    descricao: string;
+    autor?: string;
+    data: string; // ISO
+    attachments?: { nome: string; url: string }[];
+    link?: string;
+  };
+  logoBase64: string;
+}) {
+  const { processo, movimentacao, logoBase64 } = params;
+  const doc = new jsPDF();
+
+  // ─── HEADER TIMBRADO ───
+  doc.setFillColor(25, 55, 85);
+  doc.rect(0, 0, PAGE_W, 3, "F");
+
+  if (logoBase64) {
+    try { doc.addImage(logoBase64, "PNG", MARGIN, 6, 20, 20); } catch {}
+  }
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(25, 55, 85);
+  doc.text("PODER JUDICIARIO", PAGE_W / 2, 13, { align: "center" });
+  doc.setFontSize(9);
+  doc.text("TRIBUNAL DE JUSTICA DO ESTADO DE SAO PAULO", PAGE_W / 2, 18, { align: "center" });
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.5);
+  doc.setTextColor(100);
+  doc.text("Comarca de Sao Paulo - Jaguare RP", PAGE_W / 2, 23, { align: "center" });
+
+  doc.setDrawColor(25, 55, 85);
+  doc.setLineWidth(0.6);
+  doc.line(MARGIN, 28, PAGE_W - MARGIN, 28);
+  doc.setDrawColor(180, 140, 50);
+  doc.setLineWidth(0.3);
+  doc.line(MARGIN, 29, PAGE_W - MARGIN, 29);
+
+  let y = 36;
+
+  // Title
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(25, 55, 85);
+  doc.text("CERTIDAO DE MOVIMENTACAO PROCESSUAL", PAGE_W / 2, y, { align: "center" });
+  y += 6;
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(80);
+  doc.text(sanitize(`Processo no ${processo.numero}`), PAGE_W / 2, y, { align: "center" });
+  y += 8;
+
+  // ─── DADOS DO PROCESSO ───
+  y = drawSectionHeader(doc, "DADOS DO PROCESSO", y);
+  y = drawInfoRow(doc, "No Processo:", processo.numero, MARGIN + 2, y);
+  if (processo.classe) y = drawInfoRow(doc, "Classe:", processo.classe.toUpperCase(), MARGIN + 2, y);
+  if (processo.assunto) y = drawInfoRow(doc, "Assunto:", processo.assunto, MARGIN + 2, y);
+  if (processo.vara) y = drawInfoRow(doc, "Vara:", processo.vara, MARGIN + 2, y);
+  if (processo.autor_nome) y = drawInfoRow(doc, "Autor(es):", formatPartesForPdf(processo.autor_nome), MARGIN + 2, y);
+  if (processo.reu_nome) y = drawInfoRow(doc, "Reu(s):", formatPartesForPdf(processo.reu_nome), MARGIN + 2, y);
+
+  y += 4;
+
+  // ─── MOVIMENTAÇÃO ───
+  y = drawSectionHeader(doc, "MOVIMENTACAO", y);
+
+  y = drawInfoRow(doc, "Tipo:", (movimentacao.tipo || "").toUpperCase(), MARGIN + 2, y);
+  y = drawInfoRow(doc, "Data/Hora:", new Date(movimentacao.data).toLocaleString("pt-BR"), MARGIN + 2, y);
+  if (movimentacao.autor) y = drawInfoRow(doc, "Responsavel:", movimentacao.autor, MARGIN + 2, y);
+  if (movimentacao.titulo) y = drawInfoRow(doc, "Titulo:", movimentacao.titulo, MARGIN + 2, y);
+
+  y += 3;
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8.5);
+  doc.setTextColor(25, 55, 85);
+  doc.text("Descricao:", MARGIN + 2, y);
+  y += 4;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.setTextColor(50);
+
+  const descParts = splitTextAndUrls(movimentacao.descricao || "");
+  for (const part of descParts) {
+    y = checkPage(doc, y, 5);
+    if (part.isUrl) {
+      doc.setTextColor(0, 50, 150);
+      const urlText = part.text.length > 90 ? part.text.substring(0, 87) + "..." : part.text;
+      doc.textWithLink(urlText, MARGIN + 2, y, { url: part.text });
+      doc.setTextColor(50);
+      y += 5;
+    } else {
+      y = addWrappedText(doc, part.text, MARGIN + 2, y, CONTENT_W - 4, 4.5);
+    }
+  }
+
+  // ─── ANEXOS / LINKS ───
+  if (movimentacao.attachments?.length || movimentacao.link) {
+    y += 4;
+    y = drawSectionHeader(doc, "ANEXOS", y);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    if (movimentacao.link) {
+      y = checkPage(doc, y, 5);
+      doc.setTextColor(0, 50, 150);
+      doc.textWithLink(sanitize("- Documento principal: " + movimentacao.link), MARGIN + 2, y, { url: movimentacao.link });
+      doc.setTextColor(50);
+      y += 5;
+    }
+    for (const att of movimentacao.attachments || []) {
+      y = checkPage(doc, y, 5);
+      doc.setTextColor(50);
+      doc.text(sanitize(`- ${att.nome}: `), MARGIN + 2, y);
+      const labelW = doc.getTextWidth(sanitize(`- ${att.nome}: `));
+      doc.setTextColor(0, 50, 150);
+      doc.textWithLink(sanitize(att.url), MARGIN + 2 + labelW, y, { url: att.url });
+      doc.setTextColor(50);
+      y += 5;
+    }
+  }
+
+  // ─── RODAPÉ DE CERTIFICAÇÃO ───
+  y += 6;
+  y = checkPage(doc, y, 18);
+  doc.setDrawColor(180, 180, 180);
+  doc.setLineWidth(0.2);
+  doc.line(MARGIN, y, PAGE_W - MARGIN, y);
+  y += 4;
+  doc.setFont("helvetica", "italic");
+  doc.setFontSize(7.5);
+  doc.setTextColor(100);
+  const certText = `Documento emitido eletronicamente pelo Sistema Judiciario em ${new Date().toLocaleString("pt-BR")}. A autenticidade pode ser verificada consultando o processo no 0${processo.numero} no sistema.`;
+  y = addWrappedText(doc, certText, MARGIN, y, CONTENT_W, 3.8);
+
+  addFooter(doc, `Processo no ${processo.numero} - Movimentacao individual - Tribunal de Justica do Estado de Sao Paulo`);
+
+  const safeNum = processo.numero.replace(/\W/g, "_");
+  const safeTipo = (movimentacao.tipo || "movimentacao").replace(/\W/g, "_");
+  const dt = new Date(movimentacao.data).toISOString().slice(0, 10);
+  doc.save(`Movimentacao_${safeNum}_${safeTipo}_${dt}.pdf`);
+}
