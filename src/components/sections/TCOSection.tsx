@@ -391,6 +391,14 @@ export default function TCOSection() {
                 <p className="text-xs text-muted-foreground">A audiência será agendada pelo juiz.</p>
               </div>
             )}
+            {t.relato_bo && (
+              <div>
+                <p className="text-muted-foreground text-sm mb-1">Relato do Boletim de Ocorrência</p>
+                <div className="bg-muted/40 border border-border rounded-lg p-3">
+                  <RichTextView html={t.relato_bo} />
+                </div>
+              </div>
+            )}
             {Array.isArray(t.links) && t.links.length > 0 && (
               <div>
                 <p className="text-muted-foreground text-sm mb-1">Anexos / Links</p>
