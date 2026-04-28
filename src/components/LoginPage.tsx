@@ -916,9 +916,17 @@ function TabLogin(props: LoginProps) {
               </div>
               <div>
                 <label className="text-[11px] uppercase tracking-widest font-semibold text-muted-foreground mb-1 block">
-                  Discord (ID ou Usuário)
+                  ID do Discord
                 </label>
-                <Input value={discord} onChange={(e) => setDiscord(e.target.value)} placeholder="usuario#1234 ou ID" required className="rounded-lg h-11" />
+                <Input
+                  value={discord}
+                  onChange={(e) => setDiscord(e.target.value.replace(/\D/g, ""))}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  placeholder="Apenas números (ex.: 123456789012345678)"
+                  required
+                  className="rounded-lg h-11"
+                />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
