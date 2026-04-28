@@ -98,7 +98,16 @@ export default function TCOSection() {
         supabase.from("tcos").select("*").eq("id", selectedTco!).single(),
         supabase.from("envolvidos_tco").select("*").eq("tco_id", selectedTco!).order("tipo"),
       ]);
-      return { ...tco, envolvidos: envs || [] };
+      let processoNumero: string | null = null;
+      if ((tco as any)?.processo_id) {
+        const { data: processo } = await supabase
+          .from("processos")
+          .select("numero")
+          .eq("id", (tco as any).processo_id)
+          .maybeSingle();
+        processoNumero = processo?.numero || null;
+      }
+      return { ...tco, envolvidos: envs || [], processo_numero: processoNumero };
     },
     enabled: !!selectedTco && view === "detail",
   });
@@ -411,7 +420,7 @@ export default function TCOSection() {
             )}
             {t.processo_id && (
               <div className="bg-institutional/5 border border-institutional/20 rounded-lg p-3">
-                <p className="text-sm font-medium">Processo vinculado: <span className="font-mono text-institutional">{t.processo_id.slice(0, 8)}...</span></p>
+                <p className="text-sm font-medium">Processo vinculado: <span className="font-mono text-institutional">{t.processo_numero || "número indisponível"}</span></p>
               </div>
             )}
           </motion.div>
