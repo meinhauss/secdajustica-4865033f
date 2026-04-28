@@ -149,8 +149,9 @@ export function generateProcessoPDF(params: {
   apelacoes?: any[];
   embargos?: any[];
   logoBase64: string;
+  baixadoPor?: string;
 }) {
-  const { processo, juizNome, movimentacoes, atos, audiencias, sentencas, procuracoes, interessados, apelacoes, embargos, logoBase64 } = params;
+  const { processo, juizNome, movimentacoes, atos, audiencias, sentencas, procuracoes, interessados, apelacoes, embargos, logoBase64, baixadoPor } = params;
   const doc = new jsPDF();
 
   // ─── HEADER ───
