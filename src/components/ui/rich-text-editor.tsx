@@ -45,8 +45,9 @@ export function RichTextEditor({
     editorProps: {
       attributes: {
         class: cn(
-          "prose prose-sm max-w-none focus:outline-none px-3 py-2 dark:prose-invert",
+          "prose prose-sm max-w-none focus:outline-none px-3 py-2 text-foreground caret-foreground dark:prose-invert",
           "prose-headings:font-semibold prose-p:my-1 prose-ul:my-1 prose-ol:my-1",
+          "[&_.ProseMirror]:text-foreground [&_.ProseMirror_*]:text-foreground dark:[&_.ProseMirror_*]:!text-foreground",
         ),
         style: `min-height: ${minHeight}`,
       },
@@ -73,7 +74,7 @@ export function RichTextEditor({
   return (
     <div
       className={cn(
-        "rounded-xl border border-input bg-background overflow-hidden",
+        "rounded-xl border border-input bg-background text-foreground overflow-hidden",
         "focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
         className,
       )}
@@ -184,8 +185,9 @@ export function RichTextView({ html, className }: RichTextViewProps) {
   return (
     <div
       className={cn(
-        "prose prose-sm max-w-none break-words dark:prose-invert",
+        "prose prose-sm max-w-none break-words text-foreground dark:prose-invert",
         "prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1",
+        "[&_*]:text-foreground dark:[&_*]:!text-foreground",
         className,
       )}
       dangerouslySetInnerHTML={{ __html: clean }}
