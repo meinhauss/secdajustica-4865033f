@@ -119,6 +119,7 @@ export default function TCOSection() {
           natureza_infracao: natureza,
           tipificacao_penal: tipificacao,
           descricao_fatos: descricao,
+          relato_bo: relatoBo || null,
           data_fato: dataFato || null,
           local_fato: localFato || null,
           compromisso_jecrim: compromisso,
