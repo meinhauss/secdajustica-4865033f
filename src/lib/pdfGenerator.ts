@@ -699,8 +699,9 @@ export function generateMovimentacaoPDF(params: {
     link?: string;
   };
   logoBase64: string;
+  baixadoPor?: string;
 }) {
-  const { processo, movimentacao, logoBase64 } = params;
+  const { processo, movimentacao, logoBase64, baixadoPor } = params;
   const doc = new jsPDF();
 
   // ─── HEADER TIMBRADO ───
