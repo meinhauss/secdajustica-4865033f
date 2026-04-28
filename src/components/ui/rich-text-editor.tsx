@@ -2,7 +2,7 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
-import TextStyle from "@tiptap/extension-text-style";
+import { TextStyle } from "@tiptap/extension-text-style";
 import { Color } from "@tiptap/extension-color";
 import {
   Bold, Italic, Underline as UnderlineIcon, Strikethrough,
@@ -138,8 +138,7 @@ export function RichTextEditor({
           }
           onChange={(e) => {
             const map: Record<string, string> = { sm: "0.875rem", base: "1rem", lg: "1.125rem", xl: "1.5rem" };
-            // @ts-expect-error TextStyle accepts arbitrary marks via setMark
-            editor.chain().focus().setMark("textStyle", { fontSize: map[e.target.value] }).run();
+            (editor.chain().focus() as any).setMark("textStyle", { fontSize: map[e.target.value] }).run();
           }}
           aria-label="Tamanho da fonte"
         >
