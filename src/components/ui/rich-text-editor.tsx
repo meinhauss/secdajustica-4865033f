@@ -40,9 +40,10 @@ export function RichTextEditor({
       Color,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
     ],
-    content: value || "",
+    content: sanitizeRichHtml(value) || "",
     editable: !disabled,
     editorProps: {
+      transformPastedHTML: (html) => sanitizeRichHtml(html),
       attributes: {
         class: cn(
           "prose prose-sm max-w-none focus:outline-none px-3 py-2 text-foreground caret-foreground dark:prose-invert",
@@ -53,7 +54,7 @@ export function RichTextEditor({
       },
     },
     onUpdate: ({ editor }) => {
-      const html = editor.getHTML();
+      const html = sanitizeRichHtml(editor.getHTML());
       // Treat empty editor (just <p></p>) as empty string
       onChange(html === "<p></p>" ? "" : html);
     },
@@ -63,7 +64,7 @@ export function RichTextEditor({
   useEffect(() => {
     if (!editor) return;
     const current = editor.getHTML();
-    const next = value || "";
+    const next = sanitizeRichHtml(value) || "";
     if (next !== current && next !== (current === "<p></p>" ? "" : current)) {
       editor.commands.setContent(next, { emitUpdate: false });
     }
