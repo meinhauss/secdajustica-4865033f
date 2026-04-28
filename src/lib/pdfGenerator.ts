@@ -824,7 +824,7 @@ export function generateMovimentacaoPDF(params: {
   const certText = `Documento emitido eletronicamente pelo Sistema Judiciario em ${new Date().toLocaleString("pt-BR")}. A autenticidade pode ser verificada consultando o processo no 0${processo.numero} no sistema.`;
   y = addWrappedText(doc, certText, MARGIN, y, CONTENT_W, 3.8);
 
-  addFooter(doc, `Processo no ${processo.numero} - Movimentacao individual - Tribunal de Justica do Estado de Sao Paulo`);
+  addFooter(doc, `Processo no ${processo.numero} - Movimentacao individual - Tribunal de Justica do Estado de Sao Paulo`, baixadoPor);
 
   const safeNum = processo.numero.replace(/\W/g, "_");
   const safeTipo = (movimentacao.tipo || "movimentacao").replace(/\W/g, "_");
