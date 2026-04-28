@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor, RichTextView } from "@/components/ui/rich-text-editor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileText, Plus, ArrowLeft, Trash2, Send, Eye, Search, Edit } from "lucide-react";
 import { format } from "date-fns";
@@ -71,6 +72,7 @@ export default function TCOSection() {
   const [dataFato, setDataFato] = useState("");
   const [localFato, setLocalFato] = useState("");
   const [compromisso, setCompromisso] = useState(false);
+  const [relatoBo, setRelatoBo] = useState("");
   const [links, setLinks] = useState<string[]>([""]);
   const [envolvidos, setEnvolvidos] = useState<Envolvido[]>([
     { ...emptyEnvolvido(), tipo: "autor_fato" },
@@ -117,6 +119,7 @@ export default function TCOSection() {
           natureza_infracao: natureza,
           tipificacao_penal: tipificacao,
           descricao_fatos: descricao,
+          relato_bo: relatoBo || null,
           data_fato: dataFato || null,
           local_fato: localFato || null,
           compromisso_jecrim: compromisso,
@@ -206,6 +209,16 @@ export default function TCOSection() {
         autor_id: user!.id,
       });
 
+      // Relato do BO sobe automaticamente como movimentação de informação policial
+      if ((tco as any).relato_bo && (tco as any).relato_bo.trim()) {
+        await supabase.from("movimentacoes").insert({
+          processo_id: processo.id,
+          tipo: "informacao_policial",
+          descricao: (tco as any).relato_bo,
+          autor_id: user!.id,
+        });
+      }
+
       // Registrar policial como interessado no processo
       await supabase.from("interessados_processo").insert({
         processo_id: processo.id,
@@ -255,6 +268,7 @@ export default function TCOSection() {
           natureza_infracao: natureza,
           tipificacao_penal: tipificacao,
           descricao_fatos: descricao,
+          relato_bo: relatoBo || null,
           data_fato: dataFato || null,
           local_fato: localFato || null,
           compromisso_jecrim: compromisso,
@@ -299,6 +313,7 @@ export default function TCOSection() {
     setDataFato(t.data_fato ? new Date(t.data_fato).toISOString().slice(0, 16) : "");
     setLocalFato(t.local_fato || "");
     setCompromisso(!!t.compromisso_jecrim);
+    setRelatoBo(t.relato_bo || "");
     setLinks(Array.isArray(t.links) && t.links.length > 0 ? t.links : [""]);
     setEnvolvidos(
       (t.envolvidos || []).length > 0
@@ -322,6 +337,7 @@ export default function TCOSection() {
     setDataFato("");
     setLocalFato("");
     setCompromisso(false);
+    setRelatoBo("");
     setLinks([""]);
     setEnvolvidos([
       { ...emptyEnvolvido(), tipo: "autor_fato" },
@@ -373,6 +389,14 @@ export default function TCOSection() {
               <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 text-sm">
                 <p className="font-semibold text-blue-700">Compromisso de comparecimento ao JECrim registrado</p>
                 <p className="text-xs text-muted-foreground">A audiência será agendada pelo juiz.</p>
+              </div>
+            )}
+            {t.relato_bo && (
+              <div>
+                <p className="text-muted-foreground text-sm mb-1">Relato do Boletim de Ocorrência</p>
+                <div className="bg-muted/40 border border-border rounded-lg p-3">
+                  <RichTextView html={t.relato_bo} />
+                </div>
               </div>
             )}
             {Array.isArray(t.links) && t.links.length > 0 && (
@@ -481,6 +505,17 @@ export default function TCOSection() {
             <div>
               <label className="text-sm font-medium">Número do Boletim de Ocorrência *</label>
               <Input value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Ex: BO-000001/2026" className="rounded-xl mt-1" />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Relato do Boletim de Ocorrência</label>
+              <p className="text-xs text-muted-foreground mb-1">Cole aqui o relato do BO. Ao encaminhar ao JECrim, será publicado automaticamente como movimentação de informação policial no processo.</p>
+              <RichTextEditor
+                value={relatoBo}
+                onChange={setRelatoBo}
+                placeholder="Cole o relato do Boletim de Ocorrência..."
+                minHeight="160px"
+              />
             </div>
 
             {/* Compromisso JECrim */}

@@ -2404,6 +2404,7 @@ export type Database = {
           natureza_infracao: string
           numero: string
           processo_id: string | null
+          relato_bo: string | null
           status: string
           tipificacao_penal: string
           updated_at: string
@@ -2423,6 +2424,7 @@ export type Database = {
           natureza_infracao: string
           numero?: string
           processo_id?: string | null
+          relato_bo?: string | null
           status?: string
           tipificacao_penal?: string
           updated_at?: string
@@ -2442,6 +2444,7 @@ export type Database = {
           natureza_infracao?: string
           numero?: string
           processo_id?: string | null
+          relato_bo?: string | null
           status?: string
           tipificacao_penal?: string
           updated_at?: string
