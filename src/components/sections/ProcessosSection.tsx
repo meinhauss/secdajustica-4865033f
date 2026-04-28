@@ -1839,7 +1839,8 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                       )}
                     </div>
                   </motion.div>
-                ))}
+                  );
+                })}
               </div>
             );
           })()}
