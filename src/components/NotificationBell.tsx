@@ -185,7 +185,7 @@ export default function NotificationBell({ onNavigate }: NotificationBellProps) 
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
-                          {notif.mensagem}
+                          {stripHtml(notif.mensagem)}
                         </p>
                         <p className="text-[10px] text-muted-foreground/60 mt-1">
                           {format(new Date(notif.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
