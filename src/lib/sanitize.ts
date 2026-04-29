@@ -2,10 +2,10 @@ import DOMPurify from "dompurify";
 
 const ALLOWED_TAGS = [
   "p", "br", "strong", "b", "em", "i", "u", "s", "ul", "ol", "li",
-  "h1", "h2", "h3", "h4", "blockquote", "code", "pre", "span", "div",
+  "h1", "h2", "h3", "h4", "blockquote", "code", "pre", "span", "div", "a",
 ];
 
-const ALLOWED_ATTR = ["style", "class"];
+const ALLOWED_ATTR = ["style", "class", "href", "target", "rel"];
 
 const DISALLOWED_STYLE_PROPERTIES = ["color", "background", "background-color", "caret-color", "text-shadow"];
 
@@ -42,9 +42,20 @@ export function sanitizeRichHtml(html: string | null | undefined): string {
   const sanitized = DOMPurify.sanitize(html, {
     ALLOWED_TAGS,
     ALLOWED_ATTR,
-    ALLOWED_URI_REGEXP: /^$/, // disallow links/URIs
+    ALLOWED_URI_REGEXP: /^(?:https?:|mailto:|tel:)/i,
   });
-  return removeVisibilityBreakingStyles(sanitized);
+  const withTargets = typeof document !== "undefined"
+    ? (() => {
+        const wrapper = document.createElement("div");
+        wrapper.innerHTML = sanitized;
+        wrapper.querySelectorAll("a[href]").forEach((a) => {
+          a.setAttribute("target", "_blank");
+          a.setAttribute("rel", "noopener noreferrer nofollow");
+        });
+        return wrapper.innerHTML;
+      })()
+    : sanitized.replace(/<a\s+([^>]*?)>/gi, (_m, attrs) => `<a ${attrs} target="_blank" rel="noopener noreferrer nofollow">`);
+  return removeVisibilityBreakingStyles(withTargets);
 }
 
 /**

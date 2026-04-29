@@ -176,19 +176,52 @@ export interface RichTextViewProps {
  * Safe renderer for rich text content. Sanitizes HTML before rendering.
  * If the content is plain text, renders it as-is preserving line breaks.
  */
+const URL_REGEX = /(https?:\/\/[^\s<>"')]+)/g;
+
+function linkifyPlain(text: string): string {
+  const escaped = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  return escaped.replace(URL_REGEX, (url) => `<a href="${url}">${url}</a>`);
+}
+
+function linkifyHtml(html: string): string {
+  // Only linkify text nodes that are not already inside an <a> tag.
+  if (typeof document === "undefined") return html;
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = html;
+  const walker = document.createTreeWalker(wrapper, NodeFilter.SHOW_TEXT, null);
+  const textNodes: Text[] = [];
+  let node = walker.nextNode() as Text | null;
+  while (node) {
+    if (!node.parentElement?.closest("a")) textNodes.push(node);
+    node = walker.nextNode() as Text | null;
+  }
+  textNodes.forEach((tn) => {
+    const text = tn.nodeValue || "";
+    if (!URL_REGEX.test(text)) return;
+    URL_REGEX.lastIndex = 0;
+    const span = document.createElement("span");
+    span.innerHTML = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(URL_REGEX, (url) => `<a href="${url}">${url}</a>`);
+    tn.replaceWith(...Array.from(span.childNodes));
+  });
+  return wrapper.innerHTML;
+}
+
 export function RichTextView({ html, className }: RichTextViewProps) {
   const value = html ?? "";
   const looksLikeHtml = /<\/?[a-z][^>]*>/i.test(value);
-  if (!looksLikeHtml) {
-    return <div className={cn("whitespace-pre-wrap break-words", className)}>{value}</div>;
-  }
-  const clean = sanitizeRichHtml(value);
+  const raw = looksLikeHtml ? linkifyHtml(value) : linkifyPlain(value);
+  const clean = sanitizeRichHtml(raw);
   return (
     <div
       className={cn(
         "prose prose-sm max-w-none break-words text-foreground dark:prose-invert",
         "prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1",
         "[&_*]:text-foreground dark:[&_*]:!text-foreground",
+        "[&_a]:!text-primary [&_a]:underline [&_a]:break-all",
+        !looksLikeHtml && "whitespace-pre-wrap",
         className,
       )}
       dangerouslySetInnerHTML={{ __html: clean }}
