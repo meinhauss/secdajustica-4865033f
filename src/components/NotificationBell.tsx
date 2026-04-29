@@ -102,6 +102,16 @@ export default function NotificationBell({ onNavigate }: NotificationBellProps) 
     setOpen(false);
   };
 
+  const stripHtml = (text: string) => {
+    if (!text) return "";
+    if (!/<\/?[a-z][^>]*>/i.test(text)) return text;
+    let s = text.replace(/<br\s*\/?>/gi, " ");
+    s = s.replace(/<\/(p|div|h[1-6]|li|blockquote|tr)>/gi, " ");
+    s = s.replace(/<[^>]+>/g, "");
+    s = s.replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"');
+    return s.replace(/\s+/g, " ").trim();
+  };
+
   const getTypeIcon = (tipo: string) => {
     switch (tipo) {
       case "movimentacao": return "📋";
