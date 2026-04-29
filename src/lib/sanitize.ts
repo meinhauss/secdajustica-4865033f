@@ -42,9 +42,20 @@ export function sanitizeRichHtml(html: string | null | undefined): string {
   const sanitized = DOMPurify.sanitize(html, {
     ALLOWED_TAGS,
     ALLOWED_ATTR,
-    ALLOWED_URI_REGEXP: /^$/, // disallow links/URIs
+    ALLOWED_URI_REGEXP: /^(?:https?:|mailto:|tel:)/i,
   });
-  return removeVisibilityBreakingStyles(sanitized);
+  const withTargets = typeof document !== "undefined"
+    ? (() => {
+        const wrapper = document.createElement("div");
+        wrapper.innerHTML = sanitized;
+        wrapper.querySelectorAll("a[href]").forEach((a) => {
+          a.setAttribute("target", "_blank");
+          a.setAttribute("rel", "noopener noreferrer nofollow");
+        });
+        return wrapper.innerHTML;
+      })()
+    : sanitized.replace(/<a\s+([^>]*?)>/gi, (_m, attrs) => `<a ${attrs} target="_blank" rel="noopener noreferrer nofollow">`);
+  return removeVisibilityBreakingStyles(withTargets);
 }
 
 /**
