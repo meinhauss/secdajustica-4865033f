@@ -102,6 +102,16 @@ export default function NotificationBell({ onNavigate }: NotificationBellProps) 
     setOpen(false);
   };
 
+  const stripHtml = (text: string) => {
+    if (!text) return "";
+    if (!/<\/?[a-z][^>]*>/i.test(text)) return text;
+    let s = text.replace(/<br\s*\/?>/gi, " ");
+    s = s.replace(/<\/(p|div|h[1-6]|li|blockquote|tr)>/gi, " ");
+    s = s.replace(/<[^>]+>/g, "");
+    s = s.replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"');
+    return s.replace(/\s+/g, " ").trim();
+  };
+
   const getTypeIcon = (tipo: string) => {
     switch (tipo) {
       case "movimentacao": return "📋";
@@ -175,7 +185,7 @@ export default function NotificationBell({ onNavigate }: NotificationBellProps) 
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
-                          {notif.mensagem}
+                          {stripHtml(notif.mensagem)}
                         </p>
                         <p className="text-[10px] text-muted-foreground/60 mt-1">
                           {format(new Date(notif.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
