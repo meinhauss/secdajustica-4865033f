@@ -215,7 +215,7 @@ function PromotorRanking() {
 function OuvidoriaDetail({ denunciaId, onBack }: { denunciaId: string; onBack: () => void }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [activeAction, setActiveAction] = useState<"none" | "inquerito" | "denuncia" | "arquivamento">("none");
+  const [activeAction, setActiveAction] = useState<"none" | "arquivamento">("none");
 
   const { data: denuncia } = useQuery({
     queryKey: ["ouvidoria-detail", denunciaId],
@@ -226,76 +226,6 @@ function OuvidoriaDetail({ denunciaId, onBack }: { denunciaId: string; onBack: (
     },
   });
 
-  // ── INSTAURAR INQUÉRITO ──
-  const [inqForm, setInqForm] = useState({ tipo: "criminal", descricao: "" });
-  const instaurarInquerito = useMutation({
-    mutationFn: async () => {
-      const desc = inqForm.descricao || denuncia?.descricao || "";
-      if (!desc) throw new Error("Descrição obrigatória.");
-      const { error } = await supabase.from("inqueritos").insert({
-        numero: "",
-        tipo: inqForm.tipo,
-        descricao: desc,
-        data_instauracao: new Date().toISOString(),
-        remetido_mp: true,
-      } as any);
-      if (error) throw error;
-      await supabase.from("denuncias_ouvidoria" as any).update({ status: "encaminhada" }).eq("id", denunciaId);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["ouvidoria-detail", denunciaId] });
-      queryClient.invalidateQueries({ queryKey: ["mp-denuncias-ouvidoria"] });
-      setActiveAction("none");
-      toast.success("Inquérito instaurado com base na denúncia da ouvidoria!");
-    },
-    onError: (err: any) => toast.error(err.message),
-  });
-
-  // ── OFERECER DENÚNCIA DIRETA ──
-  const [denForm, setDenForm] = useState({ resumo: "", fundamentacao: "", tipificacao: "" });
-  const oferecerDenuncia = useMutation({
-    mutationFn: async () => {
-      if (!denForm.resumo || !denForm.fundamentacao) throw new Error("Preencha resumo e fundamentação.");
-      const envolvidos = Array.isArray(denuncia?.envolvidos) ? denuncia.envolvidos : [];
-      const reuNome = envolvidos.map((e: any) => e.nome).join(", ") || "Réu a identificar";
-      const { data: juizData } = await supabase.rpc("sortear_magistrado");
-      const juizId = juizData || null;
-      const { data: processo, error: procErr } = await supabase.from("processos").insert({
-        numero: "",
-        classe: "criminal" as const,
-        assunto: denForm.tipificacao || "Ação Penal",
-        autor_nome: "Ministério Público",
-        reu_nome: reuNome,
-        descricao: denForm.resumo,
-        sigilo: "segredo_justica",
-        juiz_id: juizId,
-      }).select("id, numero").single();
-      if (procErr) throw procErr;
-      const { error: denErr } = await supabase.from("denuncias_mp").insert({
-        promotor_id: user!.id,
-        resumo: denForm.resumo,
-        fundamentacao: denForm.fundamentacao,
-        tipificacao: denForm.tipificacao,
-        status: "oferecida",
-        processo_id: processo.id,
-      } as any);
-      if (denErr) throw denErr;
-      await supabase.from("movimentacoes").insert({
-        processo_id: processo.id,
-        tipo: "denuncia",
-        descricao: `Denúncia oferecida pelo MP com base em denúncia da ouvidoria. Processo ${processo.numero} distribuído.`,
-        autor_id: user!.id,
-      });
-      await supabase.from("denuncias_ouvidoria" as any).update({ status: "encaminhada" }).eq("id", denunciaId);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["ouvidoria-detail", denunciaId] });
-      queryClient.invalidateQueries({ queryKey: ["mp-denuncias-ouvidoria"] });
-      setActiveAction("none");
-      toast.success("Denúncia oferecida e processo criminal distribuído!");
-    },
-    onError: (err: any) => toast.error(err.message),
-  });
 
   // ── ARQUIVAR ──
   const [arquivJust, setArquivJust] = useState("");
