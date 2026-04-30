@@ -397,9 +397,6 @@ function OuvidoriaDetail({ denunciaId, onBack }: { denunciaId: string; onBack: (
         </div>
       )}
 
-        </div>
-      )}
-
       {activeAction === "arquivamento" && (
         <div className="bg-card rounded-xl p-5 border-2 border-gold/30 shadow-institutional">
           <h3 className="font-display text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
