@@ -152,7 +152,7 @@ function PromotorRanking() {
         <h3 className="font-display text-lg font-bold text-foreground mb-1">Sistema de Pontuação</h3>
         <p className="text-[10px] text-muted-foreground mb-2">Pontos zerados toda sexta-feira. O líder da semana recebe o título de Servidor Destaque.</p>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs text-muted-foreground">
-          <span>📋 Denúncia oferecida: <strong className="text-foreground">10 pts</strong></span>
+          <span>📋 Denúncia oferecida: <strong className="text-foreground">30 pts</strong></span>
           <span>📝 Parecer emitido: <strong className="text-foreground">15 pts</strong></span>
           <span>🔍 Requisição de diligência: <strong className="text-foreground">20 pts</strong></span>
           <span>⚖️ Trânsito em julgado: <strong className="text-foreground">50 pts</strong></span>
