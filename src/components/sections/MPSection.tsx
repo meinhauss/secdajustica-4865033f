@@ -215,7 +215,7 @@ function PromotorRanking() {
 function OuvidoriaDetail({ denunciaId, onBack }: { denunciaId: string; onBack: () => void }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [activeAction, setActiveAction] = useState<"none" | "arquivamento">("none");
+  const [activeAction, setActiveAction] = useState<"none" | "denuncia" | "arquivamento">("none");
 
   const { data: denuncia } = useQuery({
     queryKey: ["ouvidoria-detail", denunciaId],
@@ -226,6 +226,46 @@ function OuvidoriaDetail({ denunciaId, onBack }: { denunciaId: string; onBack: (
     },
   });
 
+  // ── OFERECER DENÚNCIA (cria processo criminal direto) ──
+  const [denForm, setDenForm] = useState({ resumo: "", fundamentacao: "", tipificacao: "" });
+  const oferecerDenuncia = useMutation({
+    mutationFn: async () => {
+      if (!denForm.resumo || !denForm.fundamentacao) throw new Error("Preencha resumo e fundamentação.");
+      const envolvidos = Array.isArray(denuncia?.envolvidos) ? denuncia.envolvidos : [];
+      const reuArr = envolvidos.length
+        ? envolvidos.map((e: any) => ({ name: e.nome, id_personagem: e.id_personagem || null }))
+        : [{ name: "Réu a identificar", id_personagem: null }];
+      const { data: juizData } = await supabase.rpc("sortear_magistrado");
+      const juizId = juizData || null;
+      const { data: processo, error: procErr } = await supabase.from("processos").insert({
+        numero: "",
+        classe: "criminal" as const,
+        assunto: denForm.tipificacao || "Ação Penal",
+        autor_nome: JSON.stringify([{ name: "Ministério Público", id_personagem: null }]),
+        reu_nome: JSON.stringify(reuArr),
+        descricao: denForm.resumo,
+        sigilo: "segredo_justica",
+        juiz_id: juizId,
+      } as any).select("id, numero").single();
+      if (procErr) throw procErr;
+      await supabase.from("movimentacoes").insert({
+        processo_id: processo.id,
+        tipo: "denuncia",
+        descricao: `DENÚNCIA OFERECIDA PELO MINISTÉRIO PÚBLICO\n\nTipificação: ${denForm.tipificacao || "Não informada"}\n\nResumo: ${denForm.resumo}\n\nFundamentação: ${denForm.fundamentacao}\n\nProcesso ${processo.numero} distribuído a partir de denúncia da ouvidoria.`,
+        autor_id: user!.id,
+        autor_nome: "Ministério Público",
+      } as any);
+      await supabase.from("denuncias_ouvidoria" as any).update({ status: "encaminhada" }).eq("id", denunciaId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ouvidoria-detail", denunciaId] });
+      queryClient.invalidateQueries({ queryKey: ["mp-denuncias-ouvidoria"] });
+      setActiveAction("none");
+      setDenForm({ resumo: "", fundamentacao: "", tipificacao: "" });
+      toast.success("Denúncia oferecida e processo criminal distribuído!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
 
   // ── ARQUIVAR ──
   const [arquivJust, setArquivJust] = useState("");
@@ -242,6 +282,7 @@ function OuvidoriaDetail({ denunciaId, onBack }: { denunciaId: string; onBack: (
     },
     onError: (err: any) => toast.error(err.message),
   });
+
 
   if (!denuncia) return <div className="text-center py-12 text-muted-foreground">Carregando...</div>;
 
@@ -318,6 +359,9 @@ function OuvidoriaDetail({ denunciaId, onBack }: { denunciaId: string; onBack: (
         <div className="bg-card rounded-xl p-5 border border-border shadow-institutional">
           <h3 className="font-display text-sm font-semibold text-foreground mb-4">Decisão Ministerial</h3>
           <div className="flex flex-wrap gap-3">
+            <Button onClick={() => setActiveAction("denuncia")} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
+              <Gavel className="h-4 w-4 mr-2" /> Oferecer Denúncia
+            </Button>
             <Button onClick={async () => {
               await supabase.from("denuncias_ouvidoria" as any).update({ status: "em_analise" }).eq("id", denunciaId);
               queryClient.invalidateQueries({ queryKey: ["ouvidoria-detail", denunciaId] });
@@ -330,6 +374,26 @@ function OuvidoriaDetail({ denunciaId, onBack }: { denunciaId: string; onBack: (
               <Archive className="h-4 w-4 mr-2" /> Arquivar
             </Button>
           </div>
+        </div>
+      )}
+
+      {activeAction === "denuncia" && (
+        <div className="bg-card rounded-xl p-5 border-2 border-institutional/30 shadow-institutional">
+          <h3 className="font-display text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Gavel className="h-4 w-4 text-institutional" /> Oferecimento de Denúncia
+          </h3>
+          <p className="text-xs text-muted-foreground mb-3">Será criado um processo criminal em segredo de justiça, com sorteio automático de magistrado.</p>
+          <form onSubmit={(e) => { e.preventDefault(); oferecerDenuncia.mutate(); }} className="space-y-4">
+            <Input placeholder="Tipificação penal (ex: Art. 155, CP — Furto)" value={denForm.tipificacao} onChange={(e) => setDenForm({ ...denForm, tipificacao: e.target.value })} className="rounded-xl" />
+            <Textarea placeholder="Resumo da denúncia..." value={denForm.resumo} onChange={(e) => setDenForm({ ...denForm, resumo: e.target.value })} required rows={3} className="rounded-xl" />
+            <Textarea placeholder="Fundamentação jurídica..." value={denForm.fundamentacao} onChange={(e) => setDenForm({ ...denForm, fundamentacao: e.target.value })} required rows={5} className="rounded-xl" />
+            <div className="flex gap-2">
+              <Button type="submit" disabled={oferecerDenuncia.isPending} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
+                {oferecerDenuncia.isPending ? "Processando..." : "Oferecer Denúncia e Distribuir Processo"}
+              </Button>
+              <Button type="button" variant="ghost" onClick={() => setActiveAction("none")} className="rounded-xl">Cancelar</Button>
+            </div>
+          </form>
         </div>
       )}
 
