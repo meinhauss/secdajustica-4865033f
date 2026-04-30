@@ -215,7 +215,7 @@ function PromotorRanking() {
 function OuvidoriaDetail({ denunciaId, onBack }: { denunciaId: string; onBack: () => void }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [activeAction, setActiveAction] = useState<"none" | "arquivamento">("none");
+  const [activeAction, setActiveAction] = useState<"none" | "denuncia" | "arquivamento">("none");
 
   const { data: denuncia } = useQuery({
     queryKey: ["ouvidoria-detail", denunciaId],
@@ -226,6 +226,46 @@ function OuvidoriaDetail({ denunciaId, onBack }: { denunciaId: string; onBack: (
     },
   });
 
+  // ── OFERECER DENÚNCIA (cria processo criminal direto) ──
+  const [denForm, setDenForm] = useState({ resumo: "", fundamentacao: "", tipificacao: "" });
+  const oferecerDenuncia = useMutation({
+    mutationFn: async () => {
+      if (!denForm.resumo || !denForm.fundamentacao) throw new Error("Preencha resumo e fundamentação.");
+      const envolvidos = Array.isArray(denuncia?.envolvidos) ? denuncia.envolvidos : [];
+      const reuArr = envolvidos.length
+        ? envolvidos.map((e: any) => ({ name: e.nome, id_personagem: e.id_personagem || null }))
+        : [{ name: "Réu a identificar", id_personagem: null }];
+      const { data: juizData } = await supabase.rpc("sortear_magistrado");
+      const juizId = juizData || null;
+      const { data: processo, error: procErr } = await supabase.from("processos").insert({
+        numero: "",
+        classe: "criminal" as const,
+        assunto: denForm.tipificacao || "Ação Penal",
+        autor_nome: JSON.stringify([{ name: "Ministério Público", id_personagem: null }]),
+        reu_nome: JSON.stringify(reuArr),
+        descricao: denForm.resumo,
+        sigilo: "segredo_justica",
+        juiz_id: juizId,
+      } as any).select("id, numero").single();
+      if (procErr) throw procErr;
+      await supabase.from("movimentacoes").insert({
+        processo_id: processo.id,
+        tipo: "denuncia",
+        descricao: `DENÚNCIA OFERECIDA PELO MINISTÉRIO PÚBLICO\n\nTipificação: ${denForm.tipificacao || "Não informada"}\n\nResumo: ${denForm.resumo}\n\nFundamentação: ${denForm.fundamentacao}\n\nProcesso ${processo.numero} distribuído a partir de denúncia da ouvidoria.`,
+        autor_id: user!.id,
+        autor_nome: "Ministério Público",
+      } as any);
+      await supabase.from("denuncias_ouvidoria" as any).update({ status: "encaminhada" }).eq("id", denunciaId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ouvidoria-detail", denunciaId] });
+      queryClient.invalidateQueries({ queryKey: ["mp-denuncias-ouvidoria"] });
+      setActiveAction("none");
+      setDenForm({ resumo: "", fundamentacao: "", tipificacao: "" });
+      toast.success("Denúncia oferecida e processo criminal distribuído!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
 
   // ── ARQUIVAR ──
   const [arquivJust, setArquivJust] = useState("");
@@ -242,6 +282,7 @@ function OuvidoriaDetail({ denunciaId, onBack }: { denunciaId: string; onBack: (
     },
     onError: (err: any) => toast.error(err.message),
   });
+
 
   if (!denuncia) return <div className="text-center py-12 text-muted-foreground">Carregando...</div>;
 
