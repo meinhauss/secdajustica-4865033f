@@ -318,12 +318,6 @@ function OuvidoriaDetail({ denunciaId, onBack }: { denunciaId: string; onBack: (
         <div className="bg-card rounded-xl p-5 border border-border shadow-institutional">
           <h3 className="font-display text-sm font-semibold text-foreground mb-4">Decisão Ministerial</h3>
           <div className="flex flex-wrap gap-3">
-            <Button onClick={() => setActiveAction("inquerito")} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
-              <Shield className="h-4 w-4 mr-2" /> Instaurar Inquérito
-            </Button>
-            <Button onClick={() => setActiveAction("denuncia")} variant="outline" className="rounded-xl">
-              <Gavel className="h-4 w-4 mr-2" /> Oferecer Denúncia Direta
-            </Button>
             <Button onClick={async () => {
               await supabase.from("denuncias_ouvidoria" as any).update({ status: "em_analise" }).eq("id", denunciaId);
               queryClient.invalidateQueries({ queryKey: ["ouvidoria-detail", denunciaId] });
@@ -336,50 +330,6 @@ function OuvidoriaDetail({ denunciaId, onBack }: { denunciaId: string; onBack: (
               <Archive className="h-4 w-4 mr-2" /> Arquivar
             </Button>
           </div>
-        </div>
-      )}
-
-      {activeAction === "inquerito" && (
-        <div className="bg-card rounded-xl p-5 border-2 border-institutional/30 shadow-institutional">
-          <h3 className="font-display text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
-            <Shield className="h-4 w-4 text-institutional" /> Instaurar Inquérito Policial
-          </h3>
-          <form onSubmit={(e) => { e.preventDefault(); instaurarInquerito.mutate(); }} className="space-y-4">
-            <Select value={inqForm.tipo} onValueChange={(v) => setInqForm({ ...inqForm, tipo: v })}>
-              <SelectTrigger className="rounded-xl"><SelectValue placeholder="Tipo" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="criminal">Criminal</SelectItem>
-                <SelectItem value="civil">Civil</SelectItem>
-                <SelectItem value="administrativo">Administrativo</SelectItem>
-              </SelectContent>
-            </Select>
-            <Textarea placeholder="Descrição (pré-preenchida com o relato da denúncia)..." value={inqForm.descricao || denuncia.descricao} onChange={(e) => setInqForm({ ...inqForm, descricao: e.target.value })} required rows={5} className="rounded-xl" />
-            <div className="flex gap-2">
-              <Button type="submit" disabled={instaurarInquerito.isPending} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
-                {instaurarInquerito.isPending ? "Processando..." : "Instaurar Inquérito"}
-              </Button>
-              <Button type="button" variant="ghost" onClick={() => setActiveAction("none")} className="rounded-xl">Cancelar</Button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {activeAction === "denuncia" && (
-        <div className="bg-card rounded-xl p-5 border-2 border-institutional/30 shadow-institutional">
-          <h3 className="font-display text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
-            <Gavel className="h-4 w-4 text-institutional" /> Oferecimento de Denúncia
-          </h3>
-          <form onSubmit={(e) => { e.preventDefault(); oferecerDenuncia.mutate(); }} className="space-y-4">
-            <Input placeholder="Tipificação penal (ex: Art. 155, CP — Furto)" value={denForm.tipificacao} onChange={(e) => setDenForm({ ...denForm, tipificacao: e.target.value })} className="rounded-xl" />
-            <Textarea placeholder="Resumo da denúncia..." value={denForm.resumo} onChange={(e) => setDenForm({ ...denForm, resumo: e.target.value })} required rows={3} className="rounded-xl" />
-            <Textarea placeholder="Fundamentação jurídica..." value={denForm.fundamentacao} onChange={(e) => setDenForm({ ...denForm, fundamentacao: e.target.value })} required rows={5} className="rounded-xl" />
-            <div className="flex gap-2">
-              <Button type="submit" disabled={oferecerDenuncia.isPending} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
-                {oferecerDenuncia.isPending ? "Processando..." : "Oferecer Denúncia"}
-              </Button>
-              <Button type="button" variant="ghost" onClick={() => setActiveAction("none")} className="rounded-xl">Cancelar</Button>
-            </div>
-          </form>
         </div>
       )}
 
