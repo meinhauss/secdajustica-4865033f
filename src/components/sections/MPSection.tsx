@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor, RichTextView } from "@/components/ui/rich-text-editor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -322,7 +323,7 @@ function OuvidoriaDetail({ denunciaId, onBack }: { denunciaId: string; onBack: (
 
       <div className="bg-card rounded-xl p-5 border border-border shadow-institutional">
         <h3 className="font-display text-sm font-semibold text-foreground mb-3">Relato da Denúncia</h3>
-        <p className="text-sm text-foreground whitespace-pre-wrap">{denuncia.descricao}</p>
+        <RichTextView html={denuncia.descricao} className="text-sm text-foreground" />
       </div>
 
       {envolvidos.length > 0 && (
@@ -385,8 +386,8 @@ function OuvidoriaDetail({ denunciaId, onBack }: { denunciaId: string; onBack: (
           <p className="text-xs text-muted-foreground mb-3">Será criado um processo criminal em segredo de justiça, com sorteio automático de magistrado.</p>
           <form onSubmit={(e) => { e.preventDefault(); oferecerDenuncia.mutate(); }} className="space-y-4">
             <Input placeholder="Tipificação penal (ex: Art. 155, CP — Furto)" value={denForm.tipificacao} onChange={(e) => setDenForm({ ...denForm, tipificacao: e.target.value })} className="rounded-xl" />
-            <Textarea placeholder="Resumo da denúncia..." value={denForm.resumo} onChange={(e) => setDenForm({ ...denForm, resumo: e.target.value })} required rows={3} className="rounded-xl" />
-            <Textarea placeholder="Fundamentação jurídica..." value={denForm.fundamentacao} onChange={(e) => setDenForm({ ...denForm, fundamentacao: e.target.value })} required rows={5} className="rounded-xl" />
+            <RichTextEditor placeholder="Resumo da denúncia..." value={denForm.resumo} onChange={(html) => setDenForm({ ...denForm, resumo: html })} minHeight="100px" />
+            <RichTextEditor placeholder="Fundamentação jurídica..." value={denForm.fundamentacao} onChange={(html) => setDenForm({ ...denForm, fundamentacao: html })} minHeight="160px" />
             <div className="flex gap-2">
               <Button type="submit" disabled={oferecerDenuncia.isPending} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
                 {oferecerDenuncia.isPending ? "Processando..." : "Oferecer Denúncia e Distribuir Processo"}
@@ -403,7 +404,7 @@ function OuvidoriaDetail({ denunciaId, onBack }: { denunciaId: string; onBack: (
             <Archive className="h-4 w-4 text-gold-dark" /> Arquivamento da Denúncia
           </h3>
           <form onSubmit={(e) => { e.preventDefault(); arquivarDenuncia.mutate(); }} className="space-y-4">
-            <Textarea placeholder="Justificativa para o arquivamento..." value={arquivJust} onChange={(e) => setArquivJust(e.target.value)} required rows={5} className="rounded-xl" />
+            <RichTextEditor placeholder="Justificativa para o arquivamento..." value={arquivJust} onChange={(html) => setArquivJust(html)} minHeight="160px" />
             <div className="flex gap-2">
               <Button type="submit" disabled={arquivarDenuncia.isPending} className="rounded-xl bg-gold hover:bg-gold/90 text-foreground">
                 {arquivarDenuncia.isPending ? "Processando..." : "Arquivar Denúncia"}
