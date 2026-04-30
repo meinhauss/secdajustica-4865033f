@@ -107,32 +107,6 @@
   h1, h2, h3 {
     font-family: var(--font-display);
   }
-
-  /* No modo escuro, nenhuma fonte deve ser preta */
-  .dark body,
-  .dark p,
-  .dark span,
-  .dark h1,
-  .dark h2,
-  .dark h3,
-  .dark h4,
-  .dark h5,
-  .dark h6,
-  .dark li,
-  .dark td,
-  .dark th,
-  .dark label,
-  .dark a {
-    color: inherit;
-  }
-
-  .dark [class*="text-black"],
-  .dark [style*="color: #000"],
-  .dark [style*="color:#000"],
-  .dark [style*="color: rgb(0, 0, 0)"],
-  .dark [style*="color:rgb(0,0,0)"] {
-    color: hsl(var(--foreground)) !important;
-  }
 }
 
 @layer utilities {
