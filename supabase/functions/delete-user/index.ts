@@ -55,8 +55,6 @@ Deno.serve(async (req) => {
     await supabaseAdmin.from("processos").update({ juiz_id: null }).eq("juiz_id", user_id);
     await supabaseAdmin.from("processos").update({ advogado_autor_id: null }).eq("advogado_autor_id", user_id);
     await supabaseAdmin.from("processos").update({ advogado_reu_id: null }).eq("advogado_reu_id", user_id);
-    await supabaseAdmin.from("boletins_ocorrencia").update({ vitima_id: null }).eq("vitima_id", user_id);
-    await supabaseAdmin.from("boletins_ocorrencia").update({ delegado_id: null }).eq("delegado_id", user_id);
     await supabaseAdmin.from("cargo_historico").update({ nomeado_por: null }).eq("nomeado_por", user_id);
     // Nullify non-FK references (no constraint but good cleanup)
     await supabaseAdmin.from("atos_judiciais").update({ autor_id: null }).eq("autor_id", user_id);
@@ -65,13 +63,8 @@ Deno.serve(async (req) => {
     await supabaseAdmin.from("intimacoes").update({ destinatario_id: null }).eq("destinatario_id", user_id);
     await supabaseAdmin.from("procuracoes").update({ advogado_id: null }).eq("advogado_id", user_id);
     await supabaseAdmin.from("documentos_processo").update({ autor_id: null }).eq("autor_id", user_id);
-    await supabaseAdmin.from("protocolos").update({ remetente_id: null }).eq("remetente_id", user_id);
     await supabaseAdmin.from("prazos_processuais").update({ responsavel_id: null }).eq("responsavel_id", user_id);
     await supabaseAdmin.from("certificacoes").update({ emitido_por: null }).eq("emitido_por", user_id);
-    await supabaseAdmin.from("pareceres_mp").update({ promotor_id: null }).eq("promotor_id", user_id);
-    await supabaseAdmin.from("denuncias_mp").update({ promotor_id: null }).eq("promotor_id", user_id);
-    await supabaseAdmin.from("requisicoes_diligencia_mp").update({ promotor_id: null }).eq("promotor_id", user_id);
-    await supabaseAdmin.from("arquivamentos_mp").update({ promotor_id: null }).eq("promotor_id", user_id);
     await supabaseAdmin.from("procedimentos_disciplinares").update({ advogado_user_id: null }).eq("advogado_user_id", user_id);
     await supabaseAdmin.from("procedimentos_disciplinares").update({ denunciante_id: null }).eq("denunciante_id", user_id);
     await supabaseAdmin.from("notificacoes").delete().eq("user_id", user_id);

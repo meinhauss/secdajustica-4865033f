@@ -568,14 +568,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     },
   });
 
-  const { data: pareceres } = useQuery({
-    queryKey: ["mag-proc-pareceres", processoId],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("pareceres_mp").select("*").eq("processo_id", processoId).order("created_at", { ascending: false });
-      if (error) throw error;
-      return data as any[];
-    },
-  });
+  const pareceres: any[] = [];
 
   // Procuracoes
   const { data: procuracoes } = useQuery({
@@ -1586,7 +1579,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
           <TabsTrigger value="audiencias_proc" className="rounded-lg text-xs">Audiências ({audiencias?.length || 0})</TabsTrigger>
           <TabsTrigger value="prazos" className="rounded-lg text-xs">Prazos ({prazos?.length || 0})</TabsTrigger>
           <TabsTrigger value="documentos" className="rounded-lg text-xs">Documentos ({docs?.length || 0})</TabsTrigger>
-          <TabsTrigger value="pareceres_mp" className="rounded-lg text-xs">Pareceres MP ({pareceres?.length || 0})</TabsTrigger>
+          
           <TabsTrigger value="certidoes" className="rounded-lg text-xs">Certidões ({certidoes?.length || 0})</TabsTrigger>
           {sentencasProc && sentencasProc.length > 0 && <TabsTrigger value="sentencas" className="rounded-lg text-xs">Sentenças ({sentencasProc.length})</TabsTrigger>}
           {apelacoesProc && apelacoesProc.length > 0 && <TabsTrigger value="apelacoes" className="rounded-lg text-xs">Apelações ({apelacoesProc.length})</TabsTrigger>}
@@ -1704,19 +1697,6 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
           )}
         </TabsContent>
 
-        <TabsContent value="pareceres_mp" className="mt-4">
-          {!pareceres?.length ? <p className="text-sm text-muted-foreground text-center py-8">Nenhum parecer do MP.</p> : (
-            <div className="space-y-2">
-              {pareceres.map((p: any) => (
-                <div key={p.id} className="bg-secondary/30 rounded-lg p-3">
-                  <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-institutional/10 text-institutional">{p.tipo}</span>
-                  <p className="text-sm text-foreground mt-1 whitespace-pre-wrap">{p.conteudo}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{format(new Date(p.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </TabsContent>
 
         <TabsContent value="certidoes" className="mt-4">
           {!certidoes?.length ? <p className="text-sm text-muted-foreground text-center py-8">Nenhuma certidão.</p> : (

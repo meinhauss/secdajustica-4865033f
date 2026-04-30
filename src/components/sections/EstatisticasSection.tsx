@@ -279,10 +279,6 @@ export default function EstatisticasSection() {
         mandados_cumpridos: number;
         sentencas_total: number;
         apelacoes_total: number;
-        inqueritos_total: number;
-        inqueritos_abertos: number;
-        boletins_total: number;
-        denuncias_mp_total: number;
         jurisprudencias_total: number;
       } | null;
     },
@@ -416,9 +412,6 @@ export default function EstatisticasSection() {
             { label: "Mandados", value: stats?.mandados_total ?? 0, icon: Shield, sub: `${stats?.mandados_pendentes ?? 0} pendentes · ${stats?.mandados_cumpridos ?? 0} cumpridos` },
             { label: "Sentenças", value: stats?.sentencas_total ?? 0, icon: Gavel },
             { label: "Apelações", value: stats?.apelacoes_total ?? 0, icon: Scale },
-            { label: "Inquéritos", value: stats?.inqueritos_total ?? 0, icon: AlertTriangle, sub: `${stats?.inqueritos_abertos ?? 0} em andamento` },
-            { label: "Boletins de Ocorrência", value: stats?.boletins_total ?? 0, icon: FileText },
-            { label: "Denúncias (MP)", value: stats?.denuncias_mp_total ?? 0, icon: AlertTriangle },
             { label: "Jurisprudências", value: stats?.jurisprudencias_total ?? 0, icon: BookOpen },
           ].map((item) => (
             <div key={item.label} className="bg-secondary/50 rounded-lg p-4 text-center space-y-1">
