@@ -13,6 +13,16 @@ import { CURRENT_VERSION } from "@/lib/version";
 
 const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
   {
+    version: "2.24.0",
+    date: "30/04/2026",
+    changes: [
+      "Notificações: conteúdo do editor rico é exibido como texto limpo, sem tags HTML",
+      "Links em movimentações e atos agora são detectados automaticamente e abrem em nova aba (Processos e Portal do Magistrado)",
+      "Página pública (login): paleta repaginada priorizando o preto, com melhor contraste no cabeçalho institucional",
+      "Modo escuro: garantida a ausência de fontes pretas — todos os textos respeitam o token de foreground",
+    ],
+  },
+  {
     version: "2.23.2",
     date: "28/04/2026",
     changes: [
