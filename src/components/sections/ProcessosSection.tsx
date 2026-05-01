@@ -2439,6 +2439,14 @@ function AddMovimentacao({ roles, onAdd }: { roles: string[]; onAdd: (tipo: stri
       { value: "informacao_hospitalar", label: "Informação Hospitalar" },
     );
   }
+  if (isDetran) {
+    tiposPermitidos.push(
+      { value: "informacao_detran", label: "Informação do DETRAN" },
+      { value: "certidao_veicular", label: "Certidão Veicular" },
+      { value: "relatorio_transito", label: "Relatório de Trânsito" },
+      { value: "manifestacao", label: "Manifestação" },
+    );
+  }
   if (!tiposPermitidos.length) {
     tiposPermitidos.push(
       { value: "peticao", label: "Petição" },
