@@ -992,6 +992,19 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     },
   });
 
+  // Ciência tácita: ao abrir o processo, marca como lidas as intimações pendentes
+  // dirigidas ao usuário (destinatário direto, cargo intimado, ou advogado da parte/procuração).
+  useEffect(() => {
+    if (!processoId) return;
+    (async () => {
+      const { data: updated } = await supabase.rpc("marcar_intimacoes_lidas", { _processo_id: processoId });
+      if (updated && (updated as number) > 0) {
+        queryClient.invalidateQueries({ queryKey: ["intimacoes-processo", processoId] });
+        queryClient.invalidateQueries({ queryKey: ["notificacoes"] });
+      }
+    })();
+  }, [processoId, queryClient]);
+
   // Interessados no processo (opt-in)
   const { data: interessadosData } = useQuery({
     queryKey: ["interessados", processoId],
