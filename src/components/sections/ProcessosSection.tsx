@@ -14,7 +14,7 @@ import {
   Plus, FileText, Search, Eye, User, ArrowLeft, Clock, Gavel,
   Upload, Calendar, AlertTriangle, CheckCircle, PenTool, History,
   File, Scale, Timer, ChevronRight, X, ExternalLink, ScrollText,
-  ShieldCheck, ShieldOff, UserCheck, Lock, Trash2, Download, Edit
+  ShieldCheck, ShieldOff, UserCheck, Lock, Trash2, Download, Edit, Stamp, XCircle
 } from "lucide-react";
 import { generateProcessoPDF, generateMovimentacaoPDF, imageToBase64 } from "@/lib/pdfGenerator";
 import logoTjsp from "@/assets/tjsp-logo.png";
@@ -992,6 +992,49 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     },
   });
 
+  const { data: mandadosProc } = useQuery({
+    queryKey: ["mandados-processo", processoId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("mandados").select("*").eq("processo_id", processoId).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const cumprirMandado = useMutation({
+    mutationFn: async ({ id, observacoes, devolvido }: { id: string; observacoes: string; devolvido?: boolean }) => {
+      const novoStatus = devolvido ? "devolvido" : "cumprido";
+      const { error } = await supabase
+        .from("mandados")
+        .update({
+          status: novoStatus,
+          cumprido_por: user!.id,
+          cumprido_em: new Date().toISOString(),
+          observacoes,
+        })
+        .eq("id", id);
+      if (error) throw error;
+
+      const mandado = mandadosProc?.find((m: any) => m.id === id);
+      const tipoLabel = mandado?.tipo || "mandado";
+      const acao = devolvido ? "DEVOLVIDO SEM CUMPRIMENTO" : "CUMPRIDO";
+      const desc = `MANDADO ${acao} — ${tipoLabel.toUpperCase()} | Destinatário: ${mandado?.destinatario_nome || "—"} | Por: ${profile?.nome_completo || "—"}${observacoes ? ` | Relato: ${observacoes}` : ""}`;
+      await supabase.from("movimentacoes").insert({
+        processo_id: processoId,
+        tipo: devolvido ? "mandado_devolvido" : "mandado_cumprido",
+        descricao: desc,
+        autor_id: user!.id,
+      });
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["mandados-processo", processoId] });
+      queryClient.invalidateQueries({ queryKey: ["movimentacoes", processoId] });
+      queryClient.invalidateQueries({ queryKey: ["mag-mandados"] });
+      toast.success(vars.devolvido ? "Mandado devolvido sem cumprimento." : "Mandado cumprido com sucesso.");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
   // Ciência tácita: ao abrir o processo, marca como lidas as intimações pendentes
   // dirigidas ao usuário (destinatário direto, cargo intimado, ou advogado da parte/procuração).
   useEffect(() => {
@@ -1643,6 +1686,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
           
           <TabsTrigger value="prazos" className="rounded-lg text-xs"><Timer className="h-3 w-3 mr-1" /> Prazos</TabsTrigger>
           <TabsTrigger value="audiencias" className="rounded-lg text-xs"><Calendar className="h-3 w-3 mr-1" /> Audiências</TabsTrigger>
+          <TabsTrigger value="mandados" className="rounded-lg text-xs"><Stamp className="h-3 w-3 mr-1" /> Mandados{mandadosProc?.length ? ` (${mandadosProc.length})` : ""}</TabsTrigger>
           {(isOficialJustica || isJudicialReadOnly) && <TabsTrigger value="certidoes" className="rounded-lg text-xs"><ScrollText className="h-3 w-3 mr-1" /> Certidões</TabsTrigger>}
           {(isSentenciado || isArquivado) && <TabsTrigger value="apelacoes" className="rounded-lg text-xs"><Scale className="h-3 w-3 mr-1" /> Apelações</TabsTrigger>}
           {(isSentenciado || isArquivado) && <TabsTrigger value="embargos" className="rounded-lg text-xs"><FileText className="h-3 w-3 mr-1" /> Embargos</TabsTrigger>}
@@ -2095,7 +2139,24 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
           </TabsContent>
         )}
 
-        {/* APELAÇÕES */}
+        {/* MANDADOS */}
+        <TabsContent value="mandados" className="mt-4 space-y-3">
+          {!mandadosProc?.length ? (
+            <p className="text-center py-8 text-sm text-muted-foreground">Nenhum mandado expedido neste processo.</p>
+          ) : (
+            mandadosProc.map((m: any) => (
+              <MandadoCard
+                key={m.id}
+                mandado={m}
+                podeAgir={(isOficialJustica || isPolicia || isAdmin) && m.status === "expedido"}
+                onCumprir={(observacoes, devolvido) => cumprirMandado.mutate({ id: m.id, observacoes, devolvido })}
+                isPending={cumprirMandado.isPending}
+              />
+            ))
+          )}
+        </TabsContent>
+
+
         {(isSentenciado || isArquivado) && (
           <TabsContent value="apelacoes" className="mt-4 space-y-4">
             {/* Botão para interpor apelação */}
@@ -2848,5 +2909,120 @@ function AddAtoCartorio({ onAdd, isPending }: { onAdd: (ato: { tipo: string; tit
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/* ═══════════════════════════════════════════ */
+/*  MANDADO CARD — exibição + cumprimento      */
+/* ═══════════════════════════════════════════ */
+const MANDADO_TIPO_LABELS: Record<string, string> = {
+  prisao: "Mandado de Prisão",
+  busca_apreensao: "Busca e Apreensão",
+  conducao_coercitiva: "Condução Coercitiva",
+  cautelar: "Medida Cautelar",
+  intimacao: "Intimação",
+  citacao: "Citação",
+  determinacao: "Determinação Administrativa",
+  generico: "Mandado",
+};
+
+const MANDADO_STATUS: Record<string, { label: string; color: string }> = {
+  expedido: { label: "Expedido", color: "bg-gold/10 text-gold-dark" },
+  cumprido: { label: "Cumprido", color: "bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400" },
+  devolvido: { label: "Devolvido", color: "bg-muted text-muted-foreground" },
+  revogado: { label: "Revogado", color: "bg-destructive/10 text-destructive" },
+};
+
+function MandadoCard({
+  mandado,
+  podeAgir,
+  onCumprir,
+  isPending,
+}: {
+  mandado: any;
+  podeAgir: boolean;
+  onCumprir: (observacoes: string, devolvido?: boolean) => void;
+  isPending: boolean;
+}) {
+  const [openCumprir, setOpenCumprir] = useState(false);
+  const [openDevolver, setOpenDevolver] = useState(false);
+  const [observacoes, setObservacoes] = useState("");
+
+  const tipoLabel = mandado.tipo?.includes("+")
+    ? mandado.tipo.split("+").map((t: string) => MANDADO_TIPO_LABELS[t] || t).join(" + ")
+    : (MANDADO_TIPO_LABELS[mandado.tipo] || mandado.tipo);
+
+  const st = MANDADO_STATUS[mandado.status] || { label: mandado.status, color: "bg-muted text-muted-foreground" };
+
+  return (
+    <div className="bg-card rounded-xl p-4 border border-border shadow-institutional">
+      <div className="flex items-center gap-2 flex-wrap mb-2">
+        <Stamp className="h-4 w-4 text-institutional" />
+        <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-institutional/10 text-institutional">
+          {tipoLabel}
+        </span>
+        <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${st.color}`}>
+          {st.label}
+        </span>
+        <span className="ml-auto text-[10px] text-muted-foreground">
+          {format(new Date(mandado.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+        </span>
+      </div>
+      <p className="text-sm text-foreground"><strong>Destinatário:</strong> {mandado.destinatario_nome}</p>
+      <p className="text-xs text-muted-foreground whitespace-pre-wrap mt-1">{mandado.descricao}</p>
+
+      {mandado.cumprido_em && (
+        <div className="mt-2 text-[11px] text-muted-foreground border-t border-border pt-2">
+          {mandado.status === "cumprido" ? "Cumprido" : "Devolvido"} em {format(new Date(mandado.cumprido_em), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+          {mandado.observacoes && <p className="mt-1 italic">"{mandado.observacoes}"</p>}
+        </div>
+      )}
+
+      {podeAgir && (
+        <div className="flex gap-2 mt-3 pt-3 border-t border-border">
+          <Button size="sm" variant="default" className="rounded-lg text-xs" onClick={() => { setObservacoes(""); setOpenCumprir(true); }}>
+            <CheckCircle className="h-3 w-3 mr-1" /> Cumprir Mandado
+          </Button>
+          <Button size="sm" variant="outline" className="rounded-lg text-xs" onClick={() => { setObservacoes(""); setOpenDevolver(true); }}>
+            <XCircle className="h-3 w-3 mr-1" /> Devolver sem cumprimento
+          </Button>
+        </div>
+      )}
+
+      <Dialog open={openCumprir} onOpenChange={setOpenCumprir}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Cumprir Mandado</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">Descreva as circunstâncias do cumprimento (data, local, pessoa atingida, etc).</p>
+          <Textarea value={observacoes} onChange={(e) => setObservacoes(e.target.value)} rows={6} placeholder="Relato do cumprimento..." />
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setOpenCumprir(false)}>Cancelar</Button>
+            <Button
+              disabled={isPending || !observacoes.trim()}
+              onClick={() => { onCumprir(observacoes.trim(), false); setOpenCumprir(false); }}
+            >
+              <CheckCircle className="h-4 w-4 mr-1" /> Confirmar Cumprimento
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={openDevolver} onOpenChange={setOpenDevolver}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Devolver Mandado sem Cumprimento</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">Justifique o motivo da devolução (ex: endereço não localizado, pessoa não encontrada).</p>
+          <Textarea value={observacoes} onChange={(e) => setObservacoes(e.target.value)} rows={6} placeholder="Justificativa da devolução..." />
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setOpenDevolver(false)}>Cancelar</Button>
+            <Button
+              variant="destructive"
+              disabled={isPending || !observacoes.trim()}
+              onClick={() => { onCumprir(observacoes.trim(), true); setOpenDevolver(false); }}
+            >
+              <XCircle className="h-4 w-4 mr-1" /> Confirmar Devolução
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
