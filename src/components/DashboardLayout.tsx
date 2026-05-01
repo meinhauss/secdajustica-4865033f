@@ -70,6 +70,7 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
       policia_militar: "Polícia Militar",
       policia_federal: "Polícia Federal",
       hospital: "Hospital",
+      detran: "DETRAN",
       procurador_estado: "Procurador(a) Geral do Estado",
     };
     return labels[role] || role;
