@@ -773,6 +773,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     { value: "policia_militar", label: "Polícia Militar" },
     { value: "policia_federal", label: "Polícia Federal" },
     { value: "hospital", label: "Hospital" },
+    { value: "detran", label: "DETRAN" },
     { value: "presidente_oab", label: "Presidente da OAB" },
     { value: "procurador_geral", label: "Procurador(a)-Geral" },
     { value: "procurador_estado", label: "Procurador(a) Geral do Estado" },
