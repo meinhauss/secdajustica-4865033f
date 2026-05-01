@@ -223,11 +223,15 @@ function renderRichText(doc: jsPDF, input: string, x: number, y: number, maxWidt
     }
     if (line.length || !lines.length) pushLine();
 
-    for (const renderedLine of lines) {
+    for (const [lineIndex, renderedLine] of lines.entries()) {
       y = checkPage(doc, y, lineHeight + 2);
       let cursorX = x;
       if (block.align === "center") cursorX = x + (maxWidth - renderedLine.width) / 2;
       if (block.align === "right") cursorX = x + maxWidth - renderedLine.width;
+      const justifyGaps = block.align === "justify" && lineIndex < lines.length - 1
+        ? renderedLine.segments.filter((seg) => /^\s+$/.test(seg.text)).length
+        : 0;
+      const justifyExtra = justifyGaps ? Math.max(0, maxWidth - renderedLine.width) / justifyGaps : 0;
       for (const seg of renderedLine.segments) {
         const txt = sanitize(seg.text);
         if (!txt) continue;
@@ -239,7 +243,7 @@ function renderRichText(doc: jsPDF, input: string, x: number, y: number, maxWidt
           const w = doc.getTextWidth(txt);
           doc.line(cursorX, y + 0.6, cursorX + w, y + 0.6);
         }
-        cursorX += doc.getTextWidth(txt);
+        cursorX += doc.getTextWidth(txt) + (/^\s+$/.test(seg.text) ? justifyExtra : 0);
       }
       y += block.heading ? lineHeight + 1 : lineHeight;
     }
