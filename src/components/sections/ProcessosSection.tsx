@@ -1686,6 +1686,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
           
           <TabsTrigger value="prazos" className="rounded-lg text-xs"><Timer className="h-3 w-3 mr-1" /> Prazos</TabsTrigger>
           <TabsTrigger value="audiencias" className="rounded-lg text-xs"><Calendar className="h-3 w-3 mr-1" /> Audiências</TabsTrigger>
+          <TabsTrigger value="mandados" className="rounded-lg text-xs"><Stamp className="h-3 w-3 mr-1" /> Mandados{mandadosProc?.length ? ` (${mandadosProc.length})` : ""}</TabsTrigger>
           {(isOficialJustica || isJudicialReadOnly) && <TabsTrigger value="certidoes" className="rounded-lg text-xs"><ScrollText className="h-3 w-3 mr-1" /> Certidões</TabsTrigger>}
           {(isSentenciado || isArquivado) && <TabsTrigger value="apelacoes" className="rounded-lg text-xs"><Scale className="h-3 w-3 mr-1" /> Apelações</TabsTrigger>}
           {(isSentenciado || isArquivado) && <TabsTrigger value="embargos" className="rounded-lg text-xs"><FileText className="h-3 w-3 mr-1" /> Embargos</TabsTrigger>}
