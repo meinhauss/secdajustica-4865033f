@@ -107,6 +107,151 @@ function addWrappedText(doc: jsPDF, text: string, x: number, y: number, maxWidth
   return y;
 }
 
+type RichSegment = { text: string; bold?: boolean; italic?: boolean; underline?: boolean; href?: string };
+type RichBlock = { segments: RichSegment[]; align?: "left" | "center" | "right" | "justify"; heading?: boolean; bullet?: string };
+
+function hasHtml(input: string): boolean {
+  return /<\/?[a-z][^>]*>/i.test(input || "");
+}
+
+function getAlign(el: HTMLElement): RichBlock["align"] {
+  const raw = el.style.textAlign || /text-align\s*:\s*(left|center|right|justify)/i.exec(el.getAttribute("style") || "")?.[1] || "left";
+  return ["left", "center", "right", "justify"].includes(raw) ? raw as RichBlock["align"] : "left";
+}
+
+function parseInline(node: Node, inherited: Omit<RichSegment, "text"> = {}): RichSegment[] {
+  if (node.nodeType === Node.TEXT_NODE) return [{ ...inherited, text: node.textContent || "" }];
+  if (!(node instanceof HTMLElement)) return [];
+  if (node.tagName === "BR") return [{ ...inherited, text: "\n" }];
+  const tag = node.tagName.toLowerCase();
+  const next = {
+    ...inherited,
+    bold: inherited.bold || tag === "strong" || tag === "b",
+    italic: inherited.italic || tag === "em" || tag === "i",
+    underline: inherited.underline || tag === "u",
+    href: inherited.href || (tag === "a" ? node.getAttribute("href") || undefined : undefined),
+  };
+  return Array.from(node.childNodes).flatMap((child) => parseInline(child, next));
+}
+
+function parseRichBlocks(input: string): RichBlock[] {
+  if (!input) return [];
+  if (typeof document === "undefined" || !hasHtml(input)) {
+    return String(input).split("\n").map((line) => ({ segments: [{ text: line }] }));
+  }
+
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = input;
+  const blocks: RichBlock[] = [];
+  const blockTags = new Set(["p", "div", "h1", "h2", "h3", "h4", "blockquote", "li"]);
+
+  const visit = (node: Node, listType?: "ul" | "ol", index?: number) => {
+    if (node.nodeType === Node.TEXT_NODE && node.textContent?.trim()) {
+      blocks.push({ segments: [{ text: node.textContent }] });
+      return;
+    }
+    if (!(node instanceof HTMLElement)) return;
+    const tag = node.tagName.toLowerCase();
+    if (tag === "ul" || tag === "ol") {
+      Array.from(node.children).forEach((child, idx) => visit(child, tag as "ul" | "ol", idx + 1));
+      return;
+    }
+    if (blockTags.has(tag)) {
+      blocks.push({
+        segments: parseInline(node),
+        align: getAlign(node),
+        heading: /^h[1-4]$/.test(tag),
+        bullet: tag === "li" ? (listType === "ol" ? `${index}.` : "•") : undefined,
+      });
+      return;
+    }
+    Array.from(node.childNodes).forEach((child) => visit(child));
+  };
+
+  Array.from(wrapper.childNodes).forEach((child) => visit(child));
+  return blocks.length ? blocks : [{ segments: parseInline(wrapper) }];
+}
+
+function expandLineBreaks(blocks: RichBlock[]): RichBlock[] {
+  const expanded: RichBlock[] = [];
+  for (const block of blocks) {
+    let current: RichSegment[] = [];
+    const push = () => { expanded.push({ ...block, segments: current }); current = []; };
+    for (const seg of block.segments) {
+      const parts = seg.text.split("\n");
+      parts.forEach((part, idx) => {
+        if (idx > 0) push();
+        if (part) current.push({ ...seg, text: part });
+      });
+    }
+    push();
+  }
+  return expanded;
+}
+
+function setRichFont(doc: jsPDF, seg: RichSegment, size: number) {
+  doc.setFontSize(size);
+  doc.setFont("helvetica", seg.bold && seg.italic ? "bolditalic" : seg.bold ? "bold" : seg.italic ? "italic" : "normal");
+}
+
+function segmentWidth(doc: jsPDF, seg: RichSegment, size: number): number {
+  setRichFont(doc, seg, size);
+  return doc.getTextWidth(sanitize(seg.text));
+}
+
+function renderRichText(doc: jsPDF, input: string, x: number, y: number, maxWidth: number, lineHeight = 4, fontSize = 8, textColor: [number, number, number] = [50, 50, 50]): number {
+  const blocks = expandLineBreaks(parseRichBlocks(input));
+  for (const block of blocks) {
+    const size = block.heading ? fontSize + 1.5 : fontSize;
+    const prefix = block.bullet ? `${block.bullet} ` : "";
+    const lines: { segments: RichSegment[]; width: number }[] = [];
+    let line: RichSegment[] = prefix ? [{ text: prefix, bold: true }] : [];
+    let width = prefix ? segmentWidth(doc, line[0], size) : 0;
+
+    const pushLine = () => { lines.push({ segments: line, width }); line = []; width = 0; };
+    for (const source of block.segments) {
+      const tokens = source.text.split(/(\s+)/).filter((token) => token.length > 0);
+      for (const token of tokens) {
+        const text = /^\s+$/.test(token) ? " " : token;
+        if (!line.length && text === " ") continue;
+        const seg = { ...source, text };
+        const tokenWidth = segmentWidth(doc, seg, size);
+        if (line.length && width + tokenWidth > maxWidth) pushLine();
+        line.push(seg);
+        width += tokenWidth;
+      }
+    }
+    if (line.length || !lines.length) pushLine();
+
+    for (const renderedLine of lines) {
+      y = checkPage(doc, y, lineHeight + 2);
+      let cursorX = x;
+      if (block.align === "center") cursorX = x + (maxWidth - renderedLine.width) / 2;
+      if (block.align === "right") cursorX = x + maxWidth - renderedLine.width;
+      for (const seg of renderedLine.segments) {
+        const txt = sanitize(seg.text);
+        if (!txt) continue;
+        setRichFont(doc, { ...seg, bold: block.heading || seg.bold }, size);
+        const link = seg.href || (/^https?:\/\//i.test(txt) ? txt : undefined);
+        if (link) doc.setTextColor(0, 50, 150); else doc.setTextColor(...textColor);
+        doc.text(txt, cursorX, y);
+        if (seg.underline || link) {
+          const w = doc.getTextWidth(txt);
+          doc.line(cursorX, y + 0.6, cursorX + w, y + 0.6);
+        }
+        if (link) doc.textWithLink("", cursorX, y, { url: link });
+        cursorX += doc.getTextWidth(txt);
+      }
+      y += block.heading ? lineHeight + 1 : lineHeight;
+    }
+    y += 1;
+  }
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(fontSize);
+  doc.setTextColor(...textColor);
+  return y;
+}
+
 function drawSectionHeader(doc: jsPDF, title: string, y: number): number {
   y = checkPage(doc, y, 14);
   // Colored bar
