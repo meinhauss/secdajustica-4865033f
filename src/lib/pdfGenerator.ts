@@ -951,19 +951,7 @@ export function generateMovimentacaoPDF(params: {
   doc.setFontSize(9);
   doc.setTextColor(50);
 
-  const descParts = splitTextAndUrls(movimentacao.descricao || "");
-  for (const part of descParts) {
-    y = checkPage(doc, y, 5);
-    if (part.isUrl) {
-      doc.setTextColor(0, 50, 150);
-      const urlText = part.text.length > 90 ? part.text.substring(0, 87) + "..." : part.text;
-      doc.textWithLink(urlText, MARGIN + 2, y, { url: part.text });
-      doc.setTextColor(50);
-      y += 5;
-    } else {
-      y = addWrappedText(doc, part.text, MARGIN + 2, y, CONTENT_W - 4, 4.5);
-    }
-  }
+  y = renderRichText(doc, movimentacao.descricao || "", MARGIN + 2, y, CONTENT_W - 4, 4.5, 9, [50, 50, 50]);
 
   // ─── ANEXOS / LINKS ───
   if (movimentacao.attachments?.length || movimentacao.link) {
