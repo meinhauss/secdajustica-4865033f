@@ -1874,6 +1874,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      marcar_intimacoes_lidas: {
+        Args: { _processo_id: string }
+        Returns: number
+      }
       notify_cargo_intimacao: {
         Args: {
           _autor_id: string
