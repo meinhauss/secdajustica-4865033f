@@ -2379,6 +2379,7 @@ function AddMovimentacao({ roles, onAdd }: { roles: string[]; onAdd: (tipo: stri
   const isOficialJustica = roles.includes("oficial_justica");
   const isPolicia = roles.some(r => ["policia_civil", "policia_militar", "policia_federal"].includes(r));
   const isHospital = roles.includes("hospital");
+  const isDetran = roles.includes("detran");
 
   const tiposPermitidos: { value: string; label: string }[] = [];
 
