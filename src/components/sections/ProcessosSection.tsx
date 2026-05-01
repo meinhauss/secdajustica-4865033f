@@ -992,6 +992,49 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     },
   });
 
+  const { data: mandadosProc } = useQuery({
+    queryKey: ["mandados-processo", processoId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("mandados").select("*").eq("processo_id", processoId).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const cumprirMandado = useMutation({
+    mutationFn: async ({ id, observacoes, devolvido }: { id: string; observacoes: string; devolvido?: boolean }) => {
+      const novoStatus = devolvido ? "devolvido" : "cumprido";
+      const { error } = await supabase
+        .from("mandados")
+        .update({
+          status: novoStatus,
+          cumprido_por: user!.id,
+          cumprido_em: new Date().toISOString(),
+          observacoes,
+        })
+        .eq("id", id);
+      if (error) throw error;
+
+      const mandado = mandadosProc?.find((m: any) => m.id === id);
+      const tipoLabel = mandado?.tipo || "mandado";
+      const acao = devolvido ? "DEVOLVIDO SEM CUMPRIMENTO" : "CUMPRIDO";
+      const desc = `MANDADO ${acao} — ${tipoLabel.toUpperCase()} | Destinatário: ${mandado?.destinatario_nome || "—"} | Por: ${profile?.nome_completo || "—"}${observacoes ? ` | Relato: ${observacoes}` : ""}`;
+      await supabase.from("movimentacoes").insert({
+        processo_id: processoId,
+        tipo: devolvido ? "mandado_devolvido" : "mandado_cumprido",
+        descricao: desc,
+        autor_id: user!.id,
+      });
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["mandados-processo", processoId] });
+      queryClient.invalidateQueries({ queryKey: ["movimentacoes", processoId] });
+      queryClient.invalidateQueries({ queryKey: ["mag-mandados"] });
+      toast.success(vars.devolvido ? "Mandado devolvido sem cumprimento." : "Mandado cumprido com sucesso.");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
   // Ciência tácita: ao abrir o processo, marca como lidas as intimações pendentes
   // dirigidas ao usuário (destinatário direto, cargo intimado, ou advogado da parte/procuração).
   useEffect(() => {
