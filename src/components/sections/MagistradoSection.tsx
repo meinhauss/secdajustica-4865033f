@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { PodiumDestaque } from "@/components/PodiumDestaque";
+import { normalizeRichText } from "@/lib/sanitize";
 
 /* ─── Profile Lookup Hook ─── */
 function useProfileLookup() {
@@ -872,13 +873,15 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const proferirSentenca = useMutation({
     mutationFn: async () => {
       if (!sentencaForm.fundamentacao || !sentencaForm.dispositivo) throw new Error("Fundamentação e dispositivo obrigatórios.");
+      const fundamentacaoHtml = normalizeRichText(sentencaForm.fundamentacao);
+      const dispositivoHtml = normalizeRichText(sentencaForm.dispositivo);
       const { error } = await supabase.from("sentencas").insert({
         processo_id: processoId,
         magistrado_id: user!.id,
         tipo: sentencaForm.tipo,
         ementa: sentencaForm.ementa || null,
-        fundamentacao: sentencaForm.fundamentacao,
-        dispositivo: sentencaForm.dispositivo,
+        fundamentacao: fundamentacaoHtml,
+        dispositivo: dispositivoHtml,
         assinado: true,
         data_publicacao: new Date().toISOString(),
       } as any);
@@ -887,7 +890,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
       await supabase.from("movimentacoes").insert({
         processo_id: processoId,
         tipo: "sentenca",
-        descricao: `SENTENÇA\n\n${sentencaForm.ementa ? `Ementa: ${sentencaForm.ementa}\n\n` : ""}Fundamentação:\n${sentencaForm.fundamentacao}\n\nDispositivo:\n${sentencaForm.dispositivo}`,
+        descricao: `<h2>SENTENÇA</h2>${sentencaForm.ementa ? `<p><strong>Ementa:</strong> ${normalizeRichText(sentencaForm.ementa)}</p>` : ""}<p><strong>Fundamentação:</strong></p>${fundamentacaoHtml}<p><strong>Dispositivo:</strong></p>${dispositivoHtml}`,
         autor_id: user!.id,
       });
     },
@@ -1730,11 +1733,11 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                   <div className="space-y-2">
                     <div>
                       <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Fundamentação</p>
-                      <p className="text-xs text-foreground whitespace-pre-wrap mt-1">{s.fundamentacao}</p>
+                      <RichTextView html={s.fundamentacao} className="text-xs text-foreground mt-1" />
                     </div>
                     <div>
                       <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Dispositivo</p>
-                      <p className="text-xs text-foreground whitespace-pre-wrap mt-1">{s.dispositivo}</p>
+                      <RichTextView html={s.dispositivo} className="text-xs text-foreground mt-1" />
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground mt-2">{format(new Date(s.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
