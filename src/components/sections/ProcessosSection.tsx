@@ -2911,3 +2911,118 @@ function AddAtoCartorio({ onAdd, isPending }: { onAdd: (ato: { tipo: string; tit
     </Dialog>
   );
 }
+
+/* ═══════════════════════════════════════════ */
+/*  MANDADO CARD — exibição + cumprimento      */
+/* ═══════════════════════════════════════════ */
+const MANDADO_TIPO_LABELS: Record<string, string> = {
+  prisao: "Mandado de Prisão",
+  busca_apreensao: "Busca e Apreensão",
+  conducao_coercitiva: "Condução Coercitiva",
+  cautelar: "Medida Cautelar",
+  intimacao: "Intimação",
+  citacao: "Citação",
+  determinacao: "Determinação Administrativa",
+  generico: "Mandado",
+};
+
+const MANDADO_STATUS: Record<string, { label: string; color: string }> = {
+  expedido: { label: "Expedido", color: "bg-gold/10 text-gold-dark" },
+  cumprido: { label: "Cumprido", color: "bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400" },
+  devolvido: { label: "Devolvido", color: "bg-muted text-muted-foreground" },
+  revogado: { label: "Revogado", color: "bg-destructive/10 text-destructive" },
+};
+
+function MandadoCard({
+  mandado,
+  podeAgir,
+  onCumprir,
+  isPending,
+}: {
+  mandado: any;
+  podeAgir: boolean;
+  onCumprir: (observacoes: string, devolvido?: boolean) => void;
+  isPending: boolean;
+}) {
+  const [openCumprir, setOpenCumprir] = useState(false);
+  const [openDevolver, setOpenDevolver] = useState(false);
+  const [observacoes, setObservacoes] = useState("");
+
+  const tipoLabel = mandado.tipo?.includes("+")
+    ? mandado.tipo.split("+").map((t: string) => MANDADO_TIPO_LABELS[t] || t).join(" + ")
+    : (MANDADO_TIPO_LABELS[mandado.tipo] || mandado.tipo);
+
+  const st = MANDADO_STATUS[mandado.status] || { label: mandado.status, color: "bg-muted text-muted-foreground" };
+
+  return (
+    <div className="bg-card rounded-xl p-4 border border-border shadow-institutional">
+      <div className="flex items-center gap-2 flex-wrap mb-2">
+        <Stamp className="h-4 w-4 text-institutional" />
+        <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-institutional/10 text-institutional">
+          {tipoLabel}
+        </span>
+        <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${st.color}`}>
+          {st.label}
+        </span>
+        <span className="ml-auto text-[10px] text-muted-foreground">
+          {format(new Date(mandado.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+        </span>
+      </div>
+      <p className="text-sm text-foreground"><strong>Destinatário:</strong> {mandado.destinatario_nome}</p>
+      <p className="text-xs text-muted-foreground whitespace-pre-wrap mt-1">{mandado.descricao}</p>
+
+      {mandado.cumprido_em && (
+        <div className="mt-2 text-[11px] text-muted-foreground border-t border-border pt-2">
+          {mandado.status === "cumprido" ? "Cumprido" : "Devolvido"} em {format(new Date(mandado.cumprido_em), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+          {mandado.observacoes && <p className="mt-1 italic">"{mandado.observacoes}"</p>}
+        </div>
+      )}
+
+      {podeAgir && (
+        <div className="flex gap-2 mt-3 pt-3 border-t border-border">
+          <Button size="sm" variant="default" className="rounded-lg text-xs" onClick={() => { setObservacoes(""); setOpenCumprir(true); }}>
+            <CheckCircle className="h-3 w-3 mr-1" /> Cumprir Mandado
+          </Button>
+          <Button size="sm" variant="outline" className="rounded-lg text-xs" onClick={() => { setObservacoes(""); setOpenDevolver(true); }}>
+            <XCircle className="h-3 w-3 mr-1" /> Devolver sem cumprimento
+          </Button>
+        </div>
+      )}
+
+      <Dialog open={openCumprir} onOpenChange={setOpenCumprir}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Cumprir Mandado</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">Descreva as circunstâncias do cumprimento (data, local, pessoa atingida, etc).</p>
+          <Textarea value={observacoes} onChange={(e) => setObservacoes(e.target.value)} rows={6} placeholder="Relato do cumprimento..." />
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setOpenCumprir(false)}>Cancelar</Button>
+            <Button
+              disabled={isPending || !observacoes.trim()}
+              onClick={() => { onCumprir(observacoes.trim(), false); setOpenCumprir(false); }}
+            >
+              <CheckCircle className="h-4 w-4 mr-1" /> Confirmar Cumprimento
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={openDevolver} onOpenChange={setOpenDevolver}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Devolver Mandado sem Cumprimento</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">Justifique o motivo da devolução (ex: endereço não localizado, pessoa não encontrada).</p>
+          <Textarea value={observacoes} onChange={(e) => setObservacoes(e.target.value)} rows={6} placeholder="Justificativa da devolução..." />
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setOpenDevolver(false)}>Cancelar</Button>
+            <Button
+              variant="destructive"
+              disabled={isPending || !observacoes.trim()}
+              onClick={() => { onCumprir(observacoes.trim(), true); setOpenDevolver(false); }}
+            >
+              <XCircle className="h-4 w-4 mr-1" /> Confirmar Devolução
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
