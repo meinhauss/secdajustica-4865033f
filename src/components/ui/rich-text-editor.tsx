@@ -221,7 +221,7 @@ export function RichTextView({ html, className }: RichTextViewProps) {
         "prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1",
         "[&_*]:text-foreground dark:[&_*]:!text-foreground",
         "[&_a]:!text-primary [&_a]:underline [&_a]:break-all",
-        !looksLikeHtml && "whitespace-pre-wrap",
+        "whitespace-pre-wrap",
         className,
       )}
       dangerouslySetInnerHTML={{ __html: clean }}

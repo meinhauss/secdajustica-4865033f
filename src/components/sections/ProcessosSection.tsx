@@ -21,6 +21,7 @@ import logoTjsp from "@/assets/tjsp-logo.png";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { normalizeRichText } from "@/lib/sanitize";
 
 /* ─── Currency helpers ─── */
 const formatCurrency = (value: string) => {
@@ -1776,7 +1777,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             sentencasProc?.forEach((s: any) => items.push({
               id: `sent-${s.id}`, date: s.created_at, tipo: `sentença — ${s.tipo}`,
               titulo: s.ementa || "Sentença",
-              descricao: `Fundamentação: ${s.fundamentacao}\n\nDispositivo: ${s.dispositivo}`,
+              descricao: `<p><strong>Fundamentação:</strong></p>${normalizeRichText(s.fundamentacao)}<p><strong>Dispositivo:</strong></p>${normalizeRichText(s.dispositivo)}`,
               autor: "Juiz de Direito",
               badge_color: "bg-purple-100 text-purple-800 dark:bg-purple-950/30 dark:text-purple-400",
             }));

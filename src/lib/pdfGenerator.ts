@@ -107,6 +107,154 @@ function addWrappedText(doc: jsPDF, text: string, x: number, y: number, maxWidth
   return y;
 }
 
+type RichSegment = { text: string; bold?: boolean; italic?: boolean; underline?: boolean; href?: string };
+type RichBlock = { segments: RichSegment[]; align?: "left" | "center" | "right" | "justify"; heading?: boolean; bullet?: string };
+
+function hasHtml(input: string): boolean {
+  return /<\/?[a-z][^>]*>/i.test(input || "");
+}
+
+function getAlign(el: HTMLElement): RichBlock["align"] {
+  const raw = el.style.textAlign || /text-align\s*:\s*(left|center|right|justify)/i.exec(el.getAttribute("style") || "")?.[1] || "left";
+  return ["left", "center", "right", "justify"].includes(raw) ? raw as RichBlock["align"] : "left";
+}
+
+function parseInline(node: Node, inherited: Omit<RichSegment, "text"> = {}): RichSegment[] {
+  if (node.nodeType === Node.TEXT_NODE) return [{ ...inherited, text: node.textContent || "" }];
+  if (!(node instanceof HTMLElement)) return [];
+  if (node.tagName === "BR") return [{ ...inherited, text: "\n" }];
+  const tag = node.tagName.toLowerCase();
+  const next = {
+    ...inherited,
+    bold: inherited.bold || tag === "strong" || tag === "b",
+    italic: inherited.italic || tag === "em" || tag === "i",
+    underline: inherited.underline || tag === "u",
+    href: inherited.href || (tag === "a" ? node.getAttribute("href") || undefined : undefined),
+  };
+  return Array.from(node.childNodes).flatMap((child) => parseInline(child, next));
+}
+
+function parseRichBlocks(input: string): RichBlock[] {
+  if (!input) return [];
+  if (typeof document === "undefined" || !hasHtml(input)) {
+    return String(input).split("\n").map((line) => ({ segments: [{ text: line }] }));
+  }
+
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = input;
+  const blocks: RichBlock[] = [];
+  const blockTags = new Set(["p", "div", "h1", "h2", "h3", "h4", "blockquote", "li"]);
+
+  const visit = (node: Node, listType?: "ul" | "ol", index?: number) => {
+    if (node.nodeType === Node.TEXT_NODE && node.textContent?.trim()) {
+      blocks.push({ segments: [{ text: node.textContent }] });
+      return;
+    }
+    if (!(node instanceof HTMLElement)) return;
+    const tag = node.tagName.toLowerCase();
+    if (tag === "ul" || tag === "ol") {
+      Array.from(node.children).forEach((child, idx) => visit(child, tag as "ul" | "ol", idx + 1));
+      return;
+    }
+    if (blockTags.has(tag)) {
+      blocks.push({
+        segments: parseInline(node),
+        align: getAlign(node),
+        heading: /^h[1-4]$/.test(tag),
+        bullet: tag === "li" ? (listType === "ol" ? `${index}.` : "•") : undefined,
+      });
+      return;
+    }
+    Array.from(node.childNodes).forEach((child) => visit(child));
+  };
+
+  Array.from(wrapper.childNodes).forEach((child) => visit(child));
+  return blocks.length ? blocks : [{ segments: parseInline(wrapper) }];
+}
+
+function expandLineBreaks(blocks: RichBlock[]): RichBlock[] {
+  const expanded: RichBlock[] = [];
+  for (const block of blocks) {
+    let current: RichSegment[] = [];
+    const push = () => { expanded.push({ ...block, segments: current }); current = []; };
+    for (const seg of block.segments) {
+      const parts = seg.text.split("\n");
+      parts.forEach((part, idx) => {
+        if (idx > 0) push();
+        if (part) current.push({ ...seg, text: part });
+      });
+    }
+    push();
+  }
+  return expanded;
+}
+
+function setRichFont(doc: jsPDF, seg: RichSegment, size: number) {
+  doc.setFontSize(size);
+  doc.setFont("helvetica", seg.bold && seg.italic ? "bolditalic" : seg.bold ? "bold" : seg.italic ? "italic" : "normal");
+}
+
+function segmentWidth(doc: jsPDF, seg: RichSegment, size: number): number {
+  setRichFont(doc, seg, size);
+  return doc.getTextWidth(sanitize(seg.text));
+}
+
+function renderRichText(doc: jsPDF, input: string, x: number, y: number, maxWidth: number, lineHeight = 4, fontSize = 8, textColor: [number, number, number] = [50, 50, 50]): number {
+  const blocks = expandLineBreaks(parseRichBlocks(input));
+  for (const block of blocks) {
+    const size = block.heading ? fontSize + 1.5 : fontSize;
+    const prefix = block.bullet ? `${block.bullet} ` : "";
+    const lines: { segments: RichSegment[]; width: number }[] = [];
+    let line: RichSegment[] = prefix ? [{ text: prefix, bold: true }] : [];
+    let width = prefix ? segmentWidth(doc, line[0], size) : 0;
+
+    const pushLine = () => { lines.push({ segments: line, width }); line = []; width = 0; };
+    for (const source of block.segments) {
+      const tokens = source.text.split(/(\s+)/).filter((token) => token.length > 0);
+      for (const token of tokens) {
+        const text = /^\s+$/.test(token) ? " " : token;
+        if (!line.length && text === " ") continue;
+        const seg = { ...source, text };
+        const tokenWidth = segmentWidth(doc, seg, size);
+        if (line.length && width + tokenWidth > maxWidth) pushLine();
+        line.push(seg);
+        width += tokenWidth;
+      }
+    }
+    if (line.length || !lines.length) pushLine();
+
+    for (const [lineIndex, renderedLine] of lines.entries()) {
+      y = checkPage(doc, y, lineHeight + 2);
+      let cursorX = x;
+      if (block.align === "center") cursorX = x + (maxWidth - renderedLine.width) / 2;
+      if (block.align === "right") cursorX = x + maxWidth - renderedLine.width;
+      const justifyGaps = block.align === "justify" && lineIndex < lines.length - 1
+        ? renderedLine.segments.filter((seg) => /^\s+$/.test(seg.text)).length
+        : 0;
+      const justifyExtra = justifyGaps ? Math.max(0, maxWidth - renderedLine.width) / justifyGaps : 0;
+      for (const seg of renderedLine.segments) {
+        const txt = sanitize(seg.text);
+        if (!txt) continue;
+        setRichFont(doc, { ...seg, bold: block.heading || seg.bold }, size);
+        const link = seg.href || (/^https?:\/\//i.test(txt) ? txt : undefined);
+        if (link) doc.setTextColor(0, 50, 150); else doc.setTextColor(...textColor);
+        if (link) doc.textWithLink(txt, cursorX, y, { url: link }); else doc.text(txt, cursorX, y);
+        if (seg.underline || link) {
+          const w = doc.getTextWidth(txt);
+          doc.line(cursorX, y + 0.6, cursorX + w, y + 0.6);
+        }
+        cursorX += doc.getTextWidth(txt) + (/^\s+$/.test(seg.text) ? justifyExtra : 0);
+      }
+      y += block.heading ? lineHeight + 1 : lineHeight;
+    }
+    y += 1;
+  }
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(fontSize);
+  doc.setTextColor(...textColor);
+  return y;
+}
+
 function drawSectionHeader(doc: jsPDF, title: string, y: number): number {
   y = checkPage(doc, y, 14);
   // Colored bar
@@ -346,9 +494,15 @@ export function generateProcessoPDF(params: {
         y += 1;
       }
       doc.setFont("helvetica", "normal");
-      y = addWrappedText(doc, `Fundamentacao: ${s.fundamentacao || "-"}`, MARGIN + 2, y, CONTENT_W - 4, 3.5);
+      doc.setFont("helvetica", "bold");
+      doc.text("Fundamentacao:", MARGIN + 2, y);
+      y += 4;
+      y = renderRichText(doc, s.fundamentacao || "-", MARGIN + 2, y, CONTENT_W - 4, 3.5, 8);
       y += 1;
-      y = addWrappedText(doc, `Dispositivo: ${s.dispositivo || "-"}`, MARGIN + 2, y, CONTENT_W - 4, 3.5);
+      doc.setFont("helvetica", "bold");
+      doc.text("Dispositivo:", MARGIN + 2, y);
+      y += 4;
+      y = renderRichText(doc, s.dispositivo || "-", MARGIN + 2, y, CONTENT_W - 4, 3.5, 8);
       y = drawLightSeparator(doc, y + 2);
     }
   }
@@ -458,23 +612,10 @@ export function generateProcessoPDF(params: {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(7);
       doc.setTextColor(80);
-      const descParts = splitTextAndUrls(m.descricao || "");
       const authorLine = sanitize(`${m.autor_nome || "Sistema"}:`);
       doc.text(authorLine, MARGIN + 4, y);
       y += 3;
-      for (const part of descParts) {
-        y = checkPage(doc, y, 4);
-        if (part.isUrl) {
-          doc.setTextColor(0, 50, 150);
-          const urlText = part.text.length > 80 ? part.text.substring(0, 77) + "..." : part.text;
-          doc.textWithLink(urlText, MARGIN + 4, y, { url: part.text });
-          doc.setTextColor(80);
-          y += 3;
-        } else {
-          doc.setTextColor(50);
-          y = addWrappedText(doc, part.text, MARGIN + 4, y, CONTENT_W - 8, 3.2);
-        }
-      }
+      y = renderRichText(doc, m.descricao || "", MARGIN + 4, y, CONTENT_W - 8, 3.2, 7, [50, 50, 50]);
       y += 2;
     }
   }
@@ -814,19 +955,7 @@ export function generateMovimentacaoPDF(params: {
   doc.setFontSize(9);
   doc.setTextColor(50);
 
-  const descParts = splitTextAndUrls(movimentacao.descricao || "");
-  for (const part of descParts) {
-    y = checkPage(doc, y, 5);
-    if (part.isUrl) {
-      doc.setTextColor(0, 50, 150);
-      const urlText = part.text.length > 90 ? part.text.substring(0, 87) + "..." : part.text;
-      doc.textWithLink(urlText, MARGIN + 2, y, { url: part.text });
-      doc.setTextColor(50);
-      y += 5;
-    } else {
-      y = addWrappedText(doc, part.text, MARGIN + 2, y, CONTENT_W - 4, 4.5);
-    }
-  }
+  y = renderRichText(doc, movimentacao.descricao || "", MARGIN + 2, y, CONTENT_W - 4, 4.5, 9, [50, 50, 50]);
 
   // ─── ANEXOS / LINKS ───
   if (movimentacao.attachments?.length || movimentacao.link) {

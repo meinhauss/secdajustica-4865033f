@@ -66,3 +66,17 @@ export function isRichHtml(value: string | null | undefined): boolean {
   if (!value) return false;
   return /<\/?(p|br|strong|em|u|s|ul|ol|li|h[1-4]|blockquote|span|div)\b/i.test(value);
 }
+
+export function plainTextToRichHtml(value: string | null | undefined): string {
+  if (!value) return "";
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\r\n|\r|\n/g, "<br>");
+}
+
+export function normalizeRichText(value: string | null | undefined): string {
+  if (!value) return "";
+  return isRichHtml(value) ? sanitizeRichHtml(value) : plainTextToRichHtml(value);
+}
