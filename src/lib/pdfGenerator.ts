@@ -490,9 +490,15 @@ export function generateProcessoPDF(params: {
         y += 1;
       }
       doc.setFont("helvetica", "normal");
-      y = addWrappedText(doc, `Fundamentacao: ${s.fundamentacao || "-"}`, MARGIN + 2, y, CONTENT_W - 4, 3.5);
+      doc.setFont("helvetica", "bold");
+      doc.text("Fundamentacao:", MARGIN + 2, y);
+      y += 4;
+      y = renderRichText(doc, s.fundamentacao || "-", MARGIN + 2, y, CONTENT_W - 4, 3.5, 8);
       y += 1;
-      y = addWrappedText(doc, `Dispositivo: ${s.dispositivo || "-"}`, MARGIN + 2, y, CONTENT_W - 4, 3.5);
+      doc.setFont("helvetica", "bold");
+      doc.text("Dispositivo:", MARGIN + 2, y);
+      y += 4;
+      y = renderRichText(doc, s.dispositivo || "-", MARGIN + 2, y, CONTENT_W - 4, 3.5, 8);
       y = drawLightSeparator(doc, y + 2);
     }
   }
@@ -602,23 +608,10 @@ export function generateProcessoPDF(params: {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(7);
       doc.setTextColor(80);
-      const descParts = splitTextAndUrls(m.descricao || "");
       const authorLine = sanitize(`${m.autor_nome || "Sistema"}:`);
       doc.text(authorLine, MARGIN + 4, y);
       y += 3;
-      for (const part of descParts) {
-        y = checkPage(doc, y, 4);
-        if (part.isUrl) {
-          doc.setTextColor(0, 50, 150);
-          const urlText = part.text.length > 80 ? part.text.substring(0, 77) + "..." : part.text;
-          doc.textWithLink(urlText, MARGIN + 4, y, { url: part.text });
-          doc.setTextColor(80);
-          y += 3;
-        } else {
-          doc.setTextColor(50);
-          y = addWrappedText(doc, part.text, MARGIN + 4, y, CONTENT_W - 8, 3.2);
-        }
-      }
+      y = renderRichText(doc, m.descricao || "", MARGIN + 4, y, CONTENT_W - 8, 3.2, 7, [50, 50, 50]);
       y += 2;
     }
   }
