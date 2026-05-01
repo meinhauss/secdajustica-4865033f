@@ -1083,6 +1083,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     { role: "policia_militar", label: "Polícia Militar" },
     { role: "policia_federal", label: "Polícia Federal" },
     { role: "hospital", label: "Hospital" },
+    { role: "detran", label: "DETRAN" },
   ];
 
   const ROLES_NAO_MANIFESTAM = ["cidadao", "bacharel_direito"];
