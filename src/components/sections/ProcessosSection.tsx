@@ -646,9 +646,10 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const isOficialJustica = roles.includes("oficial_justica");
   const isPolicia = roles.some(r => ["policia_civil", "policia_militar", "policia_federal"].includes(r));
   const isHospital = roles.includes("hospital");
+  const isDetran = roles.includes("detran");
   const isProcuradorGeral = roles.includes("procurador_geral");
   const isProcuradorEstado = roles.includes("procurador_estado");
-  const isInstitucional = isMP || isProcuradorGeral || isProcuradorEstado || isPolicia || isHospital;
+  const isInstitucional = isMP || isProcuradorGeral || isProcuradorEstado || isPolicia || isHospital || isDetran;
   // Move processo query up so we can compute permissions based on juiz_id
   const { data: processo } = useQuery({
     queryKey: ["processo", processoId],
@@ -1082,6 +1083,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     { role: "policia_militar", label: "Polícia Militar" },
     { role: "policia_federal", label: "Polícia Federal" },
     { role: "hospital", label: "Hospital" },
+    { role: "detran", label: "DETRAN" },
   ];
 
   const ROLES_NAO_MANIFESTAM = ["cidadao", "bacharel_direito"];
@@ -2377,6 +2379,7 @@ function AddMovimentacao({ roles, onAdd }: { roles: string[]; onAdd: (tipo: stri
   const isOficialJustica = roles.includes("oficial_justica");
   const isPolicia = roles.some(r => ["policia_civil", "policia_militar", "policia_federal"].includes(r));
   const isHospital = roles.includes("hospital");
+  const isDetran = roles.includes("detran");
 
   const tiposPermitidos: { value: string; label: string }[] = [];
 
@@ -2434,6 +2437,14 @@ function AddMovimentacao({ roles, onAdd }: { roles: string[]; onAdd: (tipo: stri
       { value: "relatorio_hospitalar", label: "Relatório Hospitalar" },
       { value: "atestado_medico", label: "Atestado Médico" },
       { value: "informacao_hospitalar", label: "Informação Hospitalar" },
+    );
+  }
+  if (isDetran) {
+    tiposPermitidos.push(
+      { value: "informacao_detran", label: "Informação do DETRAN" },
+      { value: "certidao_veicular", label: "Certidão Veicular" },
+      { value: "relatorio_transito", label: "Relatório de Trânsito" },
+      { value: "manifestacao", label: "Manifestação" },
     );
   }
   if (!tiposPermitidos.length) {

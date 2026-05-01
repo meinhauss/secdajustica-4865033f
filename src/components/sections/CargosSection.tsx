@@ -128,6 +128,16 @@ const ROLE_HIERARCHY = [
     permissions: ["consulta_publica", "manifestar_interesse"],
   },
   {
+    level: 10,
+    role: "detran",
+    label: "DETRAN",
+    icon: Shield,
+    color: "text-cyan-600",
+    bgColor: "bg-cyan-600/10",
+    description: "Departamento Estadual de Trânsito. Pode manifestar interesse em processos judiciais quando pertinente.",
+    permissions: ["consulta_publica", "manifestar_interesse"],
+  },
+  {
     level: 11,
     role: "procurador_estado",
     label: "Procurador Geral do Estado",

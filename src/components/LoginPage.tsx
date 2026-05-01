@@ -734,6 +734,7 @@ function TabTransparencia() {
     policia_militar: "Polícia Militar",
     policia_federal: "Polícia Federal",
     hospital: "Hospital",
+    detran: "DETRAN",
     investigador: "Investigador(a)",
     procurador_estado: "Procurador(a) Geral do Estado",
   };
