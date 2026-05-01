@@ -14,7 +14,7 @@ import {
   Plus, FileText, Search, Eye, User, ArrowLeft, Clock, Gavel,
   Upload, Calendar, AlertTriangle, CheckCircle, PenTool, History,
   File, Scale, Timer, ChevronRight, X, ExternalLink, ScrollText,
-  ShieldCheck, ShieldOff, UserCheck, Lock, Trash2, Download, Edit
+  ShieldCheck, ShieldOff, UserCheck, Lock, Trash2, Download, Edit, Stamp, XCircle
 } from "lucide-react";
 import { generateProcessoPDF, generateMovimentacaoPDF, imageToBase64 } from "@/lib/pdfGenerator";
 import logoTjsp from "@/assets/tjsp-logo.png";
