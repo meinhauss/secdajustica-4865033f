@@ -2139,7 +2139,24 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
           </TabsContent>
         )}
 
-        {/* APELAÇÕES */}
+        {/* MANDADOS */}
+        <TabsContent value="mandados" className="mt-4 space-y-3">
+          {!mandadosProc?.length ? (
+            <p className="text-center py-8 text-sm text-muted-foreground">Nenhum mandado expedido neste processo.</p>
+          ) : (
+            mandadosProc.map((m: any) => (
+              <MandadoCard
+                key={m.id}
+                mandado={m}
+                podeAgir={(isOficialJustica || isPolicia || isAdmin) && m.status === "expedido"}
+                onCumprir={(observacoes, devolvido) => cumprirMandado.mutate({ id: m.id, observacoes, devolvido })}
+                isPending={cumprirMandado.isPending}
+              />
+            ))
+          )}
+        </TabsContent>
+
+
         {(isSentenciado || isArquivado) && (
           <TabsContent value="apelacoes" className="mt-4 space-y-4">
             {/* Botão para interpor apelação */}
