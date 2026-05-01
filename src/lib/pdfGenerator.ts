@@ -234,12 +234,11 @@ function renderRichText(doc: jsPDF, input: string, x: number, y: number, maxWidt
         setRichFont(doc, { ...seg, bold: block.heading || seg.bold }, size);
         const link = seg.href || (/^https?:\/\//i.test(txt) ? txt : undefined);
         if (link) doc.setTextColor(0, 50, 150); else doc.setTextColor(...textColor);
-        doc.text(txt, cursorX, y);
+        if (link) doc.textWithLink(txt, cursorX, y, { url: link }); else doc.text(txt, cursorX, y);
         if (seg.underline || link) {
           const w = doc.getTextWidth(txt);
           doc.line(cursorX, y + 0.6, cursorX + w, y + 0.6);
         }
-        if (link) doc.textWithLink("", cursorX, y, { url: link });
         cursorX += doc.getTextWidth(txt);
       }
       y += block.heading ? lineHeight + 1 : lineHeight;
