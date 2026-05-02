@@ -94,6 +94,18 @@ export default function UsuariosSection() {
     onError: (err: any) => toast.error(err.message),
   });
 
+  const removeRole = useMutation({
+    mutationFn: async (roleId: string) => {
+      const { error } = await supabase.rpc("delegado_remove_police_role", { p_role_id: roleId });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["all-roles"] });
+      toast.success("Cargo removido!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
   const openEdit = (profile: any) => {
     setEditingUserId(profile.id);
     setEditForm({
