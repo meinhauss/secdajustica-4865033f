@@ -29,9 +29,14 @@ const ROLE_LABELS: Record<string, string> = {
   procurador_estado: "Procurador Geral do Estado",
 };
 
+const POLICE_ROLES = ["policia_civil", "policia_militar", "policia_federal"] as const;
+
 export default function UsuariosSection() {
-  const { user } = useAuth();
+  const { user, roles } = useAuth();
   const queryClient = useQueryClient();
+  const isAdmin = roles.includes("admin");
+  const isDelegado = roles.includes("delegado");
+  const callerPoliceRoles = roles.filter((r) => (POLICE_ROLES as readonly string[]).includes(r));
   const [search, setSearch] = useState("");
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ nome_completo: "", discord: "", id_personagem: "", telefone_ingame: "" });
