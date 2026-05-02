@@ -13,6 +13,18 @@ import { CURRENT_VERSION } from "@/lib/version";
 
 const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
   {
+    version: "2.25.0",
+    date: "02/05/2026",
+    changes: [
+      "Ranking do MP: ajustes na fórmula de pontuação semanal dos Promotores",
+      "Novo cargo DETRAN com permissões equivalentes ao Hospital",
+      "Quebras de linha agora visíveis nas movimentações em Processos e no Portal do Juiz",
+      "Modo escuro mobile: corrigido fundo branco que tornava textos ilegíveis na landing page",
+      "Modo escuro: números de processos, ícones e badges institucionais agora visíveis (token --institutional-fg adaptativo)",
+      "RichTextView: parágrafos vazios e tags <br> renderizam como linhas em branco visíveis, com mais espaçamento vertical",
+    ],
+  },
+  {
     version: "2.24.0",
     date: "30/04/2026",
     changes: [
