@@ -134,7 +134,16 @@
     background-color: hsl(var(--institutional-blue-dark));
   }
   .text-institutional {
-    color: hsl(var(--institutional-blue));
+    color: hsl(var(--institutional-fg));
+  }
+  .bg-institutional\/10 {
+    background-color: hsl(var(--institutional-fg) / 0.1);
+  }
+  .bg-institutional\/5 {
+    background-color: hsl(var(--institutional-fg) / 0.05);
+  }
+  .border-institutional {
+    border-color: hsl(var(--institutional-fg));
   }
   .gradient-institutional {
     background: linear-gradient(135deg, hsl(var(--institutional-blue-dark)), hsl(var(--institutional-blue)));
