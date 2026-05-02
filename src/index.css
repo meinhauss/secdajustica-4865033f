@@ -42,6 +42,7 @@
     --institutional-blue: 0 0% 12%;
     --institutional-blue-light: 0 0% 25%;
     --institutional-blue-dark: 0 0% 6%;
+    --institutional-fg: 0 0% 12%;
 
     --sidebar-background: 0 0% 8%;
     --sidebar-foreground: 0 0% 90%;
@@ -83,6 +84,7 @@
     --institutional-blue: 0 0% 12%;
     --institutional-blue-light: 0 0% 25%;
     --institutional-blue-dark: 0 0% 6%;
+    --institutional-fg: 0 0% 92%;
 
     --sidebar-background: 0 0% 5%;
     --sidebar-foreground: 0 0% 92%;
@@ -132,7 +134,16 @@
     background-color: hsl(var(--institutional-blue-dark));
   }
   .text-institutional {
-    color: hsl(var(--institutional-blue));
+    color: hsl(var(--institutional-fg));
+  }
+  .bg-institutional\/10 {
+    background-color: hsl(var(--institutional-fg) / 0.1);
+  }
+  .bg-institutional\/5 {
+    background-color: hsl(var(--institutional-fg) / 0.05);
+  }
+  .border-institutional {
+    border-color: hsl(var(--institutional-fg));
   }
   .gradient-institutional {
     background: linear-gradient(135deg, hsl(var(--institutional-blue-dark)), hsl(var(--institutional-blue)));
