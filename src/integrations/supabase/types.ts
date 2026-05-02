@@ -278,6 +278,7 @@ export type Database = {
           emitido_por: string | null
           emitido_por_nome: string | null
           id: string
+          numero: string | null
           processo_id: string
           tipo: string
         }
@@ -289,6 +290,7 @@ export type Database = {
           emitido_por?: string | null
           emitido_por_nome?: string | null
           id?: string
+          numero?: string | null
           processo_id: string
           tipo?: string
         }
@@ -300,6 +302,7 @@ export type Database = {
           emitido_por?: string | null
           emitido_por_nome?: string | null
           id?: string
+          numero?: string | null
           processo_id?: string
           tipo?: string
         }
