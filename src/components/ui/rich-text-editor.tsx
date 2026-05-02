@@ -218,8 +218,10 @@ export function RichTextView({ html, className }: RichTextViewProps) {
     <div
       className={cn(
         "prose prose-sm max-w-none break-words text-foreground dark:prose-invert",
-        "prose-p:my-2 prose-headings:my-3 prose-ul:my-2 prose-ol:my-2",
+        "prose-p:my-3 prose-headings:my-4 prose-ul:my-3 prose-ol:my-3 prose-li:my-1",
         "[&_p]:whitespace-pre-wrap [&_li]:whitespace-pre-wrap [&_h1]:whitespace-pre-wrap [&_h2]:whitespace-pre-wrap [&_h3]:whitespace-pre-wrap [&_h4]:whitespace-pre-wrap [&_blockquote]:whitespace-pre-wrap",
+        "[&_p:empty]:min-h-[1em] [&_p:empty]:before:content-['\\00a0']",
+        "[&_br]:block [&_br]:content-['']",
         "[&_*]:text-foreground dark:[&_*]:!text-foreground",
         "[&_a]:!text-primary [&_a]:underline [&_a]:break-all",
         className,
