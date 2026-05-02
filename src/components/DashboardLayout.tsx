@@ -39,7 +39,7 @@ const menuItems = [
   { id: "tco", label: "TCO", icon: ClipboardList, roles: ["admin", "policia_civil", "policia_militar", "policia_federal", "delegado"] },
   { id: "jurados", label: "Tribunal do Júri", icon: UsersRound, roles: ["admin", "presidente_tribunal", "magistrado", "desembargador", "cidadao", "advogado", "ministerio_publico", "procurador_geral", "procurador_estado", "oficial_justica", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal", "delegado", "hospital", "detran"] },
   { id: "cargos", label: "Cargos e Hierarquia", icon: Crown, roles: ["admin"] },
-  { id: "usuarios", label: "Usuários", icon: Users, roles: ["admin"] },
+  { id: "usuarios", label: "Usuários", icon: Users, roles: ["admin", "delegado"] },
   { id: "estatisticas", label: "Estatísticas", icon: BarChart3, roles: ["admin", "magistrado", "presidente_tribunal"] },
 ];
 
