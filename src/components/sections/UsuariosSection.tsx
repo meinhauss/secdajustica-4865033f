@@ -94,6 +94,18 @@ export default function UsuariosSection() {
     onError: (err: any) => toast.error(err.message),
   });
 
+  const removeRole = useMutation({
+    mutationFn: async (roleId: string) => {
+      const { error } = await supabase.rpc("delegado_remove_police_role", { p_role_id: roleId });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["all-roles"] });
+      toast.success("Cargo removido!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
   const openEdit = (profile: any) => {
     setEditingUserId(profile.id);
     setEditForm({
@@ -120,12 +132,14 @@ export default function UsuariosSection() {
         })
       : [];
 
-  const canDeleteProfile = (p: any) => {
+  const canDeleteProfile = (_p: any) => isAdmin;
+
+  const canRemoveRole = (role: string, targetUserId: string) => {
+    if (targetUserId === user?.id) return false;
     if (isAdmin) return true;
     if (!isDelegado) return false;
-    if (p.user_id === user?.id) return false;
-    const userRolesList = allRoles?.filter((r) => r.user_id === p.user_id).map((r) => r.role) || [];
-    return userRolesList.some((r) => callerPoliceRoles.includes(r));
+    if (!["policia_civil","policia_militar","policia_federal","delegado"].includes(role)) return false;
+    return roles.includes(role);
   };
 
   return (
@@ -178,11 +192,26 @@ export default function UsuariosSection() {
                     )}
                   </div>
                 </div>
-                {/* Roles (read-only) */}
+                {/* Roles */}
                 <div className="flex items-center gap-2 flex-wrap mt-3 pt-3 border-t border-border">
                   {userRoles.map((r) => (
-                    <span key={r.id} className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-gold/10 text-gold-dark">
+                    <span key={r.id} className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-gold/10 text-gold-dark">
                       {ROLE_LABELS[r.role] || r.role}
+                      {canRemoveRole(r.role, p.user_id) && (
+                        <button
+                          type="button"
+                          aria-label="Remover cargo"
+                          className="ml-1 hover:text-destructive disabled:opacity-50"
+                          disabled={removeRole.isPending}
+                          onClick={() => {
+                            if (confirm(`Remover o cargo ${ROLE_LABELS[r.role] || r.role} de ${p.nome_completo}?`)) {
+                              removeRole.mutate(r.id);
+                            }
+                          }}
+                        >
+                          ×
+                        </button>
+                      )}
                     </span>
                   ))}
                   {userRoles.length === 0 && (
