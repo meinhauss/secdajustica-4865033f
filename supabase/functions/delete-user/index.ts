@@ -37,9 +37,6 @@ Deno.serve(async (req) => {
     const callerId = claimsData.claims.sub;
 
     const { data: isAdmin } = await supabaseAdmin.rpc("has_role", { _user_id: callerId, _role: "admin" });
-    if (!isAdmin) {
-      return new Response(JSON.stringify({ error: "Apenas administradores podem excluir usuários" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
 
     const { user_id } = await req.json();
     if (!user_id) {
@@ -48,6 +45,26 @@ Deno.serve(async (req) => {
 
     if (user_id === callerId) {
       return new Response(JSON.stringify({ error: "Você não pode excluir a si mesmo" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (!isAdmin) {
+      // Allow delegados to delete users sharing one of their police roles
+      const POLICE = ["policia_civil", "policia_militar", "policia_federal"];
+      const { data: callerRoles } = await supabaseAdmin.from("user_roles").select("role").eq("user_id", callerId);
+      const callerRoleList = (callerRoles || []).map((r: any) => r.role);
+      const isDelegado = callerRoleList.includes("delegado");
+      const callerPolice = callerRoleList.filter((r: string) => POLICE.includes(r));
+
+      if (!isDelegado || callerPolice.length === 0) {
+        return new Response(JSON.stringify({ error: "Sem permissão para excluir usuários" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const { data: targetRoles } = await supabaseAdmin.from("user_roles").select("role").eq("user_id", user_id);
+      const targetRoleList = (targetRoles || []).map((r: any) => r.role);
+      const overlap = targetRoleList.some((r: string) => callerPolice.includes(r));
+      if (!overlap) {
+        return new Response(JSON.stringify({ error: "Você só pode excluir usuários do(s) seu(s) cargo(s) policial(is)" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
     }
 
     // Nullify references in tables that have FK to auth.users

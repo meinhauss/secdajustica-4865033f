@@ -29,9 +29,14 @@ const ROLE_LABELS: Record<string, string> = {
   procurador_estado: "Procurador Geral do Estado",
 };
 
+const POLICE_ROLES = ["policia_civil", "policia_militar", "policia_federal"] as const;
+
 export default function UsuariosSection() {
-  const { user } = useAuth();
+  const { user, roles } = useAuth();
   const queryClient = useQueryClient();
+  const isAdmin = roles.includes("admin");
+  const isDelegado = roles.includes("delegado");
+  const callerPoliceRoles = roles.filter((r) => (POLICE_ROLES as readonly string[]).includes(r));
   const [search, setSearch] = useState("");
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ nome_completo: "", discord: "", id_personagem: "", telefone_ingame: "" });
@@ -99,11 +104,29 @@ export default function UsuariosSection() {
     });
   };
 
-  const filtered = profiles?.filter((p) =>
+  const filteredBase = profiles?.filter((p) =>
     p.nome_completo?.toLowerCase().includes(search.toLowerCase()) ||
     p.id_personagem?.toLowerCase().includes(search.toLowerCase()) ||
     p.discord?.toLowerCase().includes(search.toLowerCase())
   ) || [];
+
+  // Delegado (sem admin) só vê usuários que possuem algum dos cargos policiais que ele próprio detém
+  const filtered = isAdmin
+    ? filteredBase
+    : isDelegado
+      ? filteredBase.filter((p) => {
+          const userRolesList = allRoles?.filter((r) => r.user_id === p.user_id).map((r) => r.role) || [];
+          return userRolesList.some((r) => callerPoliceRoles.includes(r));
+        })
+      : [];
+
+  const canDeleteProfile = (p: any) => {
+    if (isAdmin) return true;
+    if (!isDelegado) return false;
+    if (p.user_id === user?.id) return false;
+    const userRolesList = allRoles?.filter((r) => r.user_id === p.user_id).map((r) => r.role) || [];
+    return userRolesList.some((r) => callerPoliceRoles.includes(r));
+  };
 
   return (
     <div className="space-y-6">
@@ -143,12 +166,16 @@ export default function UsuariosSection() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" className="rounded-lg h-8 text-xs" onClick={() => openEdit(p)}>
-                      <Pencil className="h-3 w-3 mr-1" /> Editar
-                    </Button>
-                    <Button variant="outline" size="sm" className="rounded-lg h-8 text-xs text-destructive hover:bg-destructive/10" onClick={() => { setDeleteUserId(p.user_id); setDeleteUserName(p.nome_completo); }}>
-                      <Trash2 className="h-3 w-3 mr-1" /> Excluir
-                    </Button>
+                    {isAdmin && (
+                      <Button variant="outline" size="sm" className="rounded-lg h-8 text-xs" onClick={() => openEdit(p)}>
+                        <Pencil className="h-3 w-3 mr-1" /> Editar
+                      </Button>
+                    )}
+                    {canDeleteProfile(p) && (
+                      <Button variant="outline" size="sm" className="rounded-lg h-8 text-xs text-destructive hover:bg-destructive/10" onClick={() => { setDeleteUserId(p.user_id); setDeleteUserName(p.nome_completo); }}>
+                        <Trash2 className="h-3 w-3 mr-1" /> Excluir
+                      </Button>
+                    )}
                   </div>
                 </div>
                 {/* Roles (read-only) */}
