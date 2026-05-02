@@ -1853,6 +1853,10 @@ export type Database = {
         Returns: boolean
       }
       cleanup_read_notifications: { Args: never; Returns: number }
+      delegado_remove_police_role: {
+        Args: { p_role_id: string }
+        Returns: undefined
+      }
       get_advogado_ranking: { Args: never; Returns: Json }
       get_last_friday: { Args: never; Returns: string }
       get_magistrado_ranking: { Args: never; Returns: Json }
