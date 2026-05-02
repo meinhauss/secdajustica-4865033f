@@ -132,12 +132,14 @@ export default function UsuariosSection() {
         })
       : [];
 
-  const canDeleteProfile = (p: any) => {
+  const canDeleteProfile = (_p: any) => isAdmin;
+
+  const canRemoveRole = (role: string, targetUserId: string) => {
+    if (targetUserId === user?.id) return false;
     if (isAdmin) return true;
     if (!isDelegado) return false;
-    if (p.user_id === user?.id) return false;
-    const userRolesList = allRoles?.filter((r) => r.user_id === p.user_id).map((r) => r.role) || [];
-    return userRolesList.some((r) => callerPoliceRoles.includes(r));
+    if (!["policia_civil","policia_militar","policia_federal","delegado"].includes(role)) return false;
+    return roles.includes(role);
   };
 
   return (
