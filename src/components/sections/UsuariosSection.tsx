@@ -192,11 +192,26 @@ export default function UsuariosSection() {
                     )}
                   </div>
                 </div>
-                {/* Roles (read-only) */}
+                {/* Roles */}
                 <div className="flex items-center gap-2 flex-wrap mt-3 pt-3 border-t border-border">
                   {userRoles.map((r) => (
-                    <span key={r.id} className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-gold/10 text-gold-dark">
+                    <span key={r.id} className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-gold/10 text-gold-dark">
                       {ROLE_LABELS[r.role] || r.role}
+                      {canRemoveRole(r.role, p.user_id) && (
+                        <button
+                          type="button"
+                          aria-label="Remover cargo"
+                          className="ml-1 hover:text-destructive disabled:opacity-50"
+                          disabled={removeRole.isPending}
+                          onClick={() => {
+                            if (confirm(`Remover o cargo ${ROLE_LABELS[r.role] || r.role} de ${p.nome_completo}?`)) {
+                              removeRole.mutate(r.id);
+                            }
+                          }}
+                        >
+                          ×
+                        </button>
+                      )}
                     </span>
                   ))}
                   {userRoles.length === 0 && (
