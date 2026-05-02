@@ -104,11 +104,29 @@ export default function UsuariosSection() {
     });
   };
 
-  const filtered = profiles?.filter((p) =>
+  const filteredBase = profiles?.filter((p) =>
     p.nome_completo?.toLowerCase().includes(search.toLowerCase()) ||
     p.id_personagem?.toLowerCase().includes(search.toLowerCase()) ||
     p.discord?.toLowerCase().includes(search.toLowerCase())
   ) || [];
+
+  // Delegado (sem admin) só vê usuários que possuem algum dos cargos policiais que ele próprio detém
+  const filtered = isAdmin
+    ? filteredBase
+    : isDelegado
+      ? filteredBase.filter((p) => {
+          const userRolesList = allRoles?.filter((r) => r.user_id === p.user_id).map((r) => r.role) || [];
+          return userRolesList.some((r) => callerPoliceRoles.includes(r));
+        })
+      : [];
+
+  const canDeleteProfile = (p: any) => {
+    if (isAdmin) return true;
+    if (!isDelegado) return false;
+    if (p.user_id === user?.id) return false;
+    const userRolesList = allRoles?.filter((r) => r.user_id === p.user_id).map((r) => r.role) || [];
+    return userRolesList.some((r) => callerPoliceRoles.includes(r));
+  };
 
   return (
     <div className="space-y-6">
