@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Calendar, Plus, UserPlus, Trash2 } from "lucide-react";
+import { Calendar, Plus, UserPlus, Trash2, Gavel, FileText } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -17,6 +17,13 @@ import { PersonLookupInput } from "@/components/PersonLookupInput";
 
 const TIPOS_AUDIENCIA = ["instrução", "conciliação", "julgamento", "custódia", "justificação", "admonitória"];
 const TIPOS_ENVOLVIDO = ["participante", "testemunha", "perito", "outro"];
+const DECISOES_CUSTODIA = [
+  { value: "relaxamento", label: "Relaxamento da prisão (ilegal)" },
+  { value: "preventiva", label: "Conversão em prisão preventiva" },
+  { value: "liberdade_provisoria", label: "Liberdade provisória (com ou sem fiança)" },
+  { value: "liberdade_medidas", label: "Liberdade com medidas cautelares diversas" },
+];
+
 
 interface EnvolvidoLocal {
   nome: string;
@@ -207,15 +214,150 @@ export default function AudienciasSection() {
     onError: (e: any) => toast.error("Erro: " + e.message),
   });
 
+  // ===== AUDIÊNCIA DE CUSTÓDIA =====
+  const canCustodia = isMagistrado || isOficialJustica;
+  const [openCustodia, setOpenCustodia] = useState(false);
+  const [custForm, setCustForm] = useState({
+    data_hora: "",
+    local: "Sala de Custódia",
+    preso_nome: "",
+    preso_id_personagem: "",
+    autoridade_prisao: "",
+    data_prisao: "",
+    tipificacao: "",
+    relato_fatos: "",
+    alegacoes_preso: "",
+    decisao: "preventiva",
+    fundamentacao: "",
+    observacoes: "",
+  });
+  const [openProcessoCustodia, setOpenProcessoCustodia] = useState<string | null>(null);
+
+  const resetCustForm = () => setCustForm({
+    data_hora: "", local: "Sala de Custódia", preso_nome: "", preso_id_personagem: "",
+    autoridade_prisao: "", data_prisao: "", tipificacao: "", relato_fatos: "",
+    alegacoes_preso: "", decisao: "preventiva", fundamentacao: "", observacoes: "",
+  });
+
+  const createCustodiaMutation = useMutation({
+    mutationFn: async () => {
+      if (!custForm.data_hora) throw new Error("Informe a data e hora da audiência");
+      if (!custForm.preso_nome.trim()) throw new Error("Informe o nome do preso");
+      if (!custForm.relato_fatos.trim()) throw new Error("Informe o relato dos fatos");
+
+      const decisaoLabel = DECISOES_CUSTODIA.find(d => d.value === custForm.decisao)?.label || custForm.decisao;
+      const dataHoraISO = new Date(custForm.data_hora).toISOString();
+      const dataPrisaoISO = custForm.data_prisao ? new Date(custForm.data_prisao).toISOString() : null;
+
+      const ata = `AUDIÊNCIA DE CUSTÓDIA — Art. 310 do CPP\n\n`
+        + `Preso: ${custForm.preso_nome}${custForm.preso_id_personagem ? ` (RG: ${custForm.preso_id_personagem})` : ""}\n`
+        + `Autoridade que efetuou a prisão: ${custForm.autoridade_prisao || "Não informado"}\n`
+        + (dataPrisaoISO ? `Data/hora da prisão: ${format(new Date(dataPrisaoISO), "dd/MM/yyyy HH:mm", { locale: ptBR })}\n` : "")
+        + (custForm.tipificacao ? `Tipificação: ${custForm.tipificacao}\n` : "")
+        + `\n=== RELATO DOS FATOS ===\n${custForm.relato_fatos}\n`
+        + (custForm.alegacoes_preso ? `\n=== ALEGAÇÕES DO PRESO ===\n${custForm.alegacoes_preso}\n` : "")
+        + `\n=== DECISÃO ===\n${decisaoLabel}\n`
+        + (custForm.fundamentacao ? `\nFUNDAMENTAÇÃO:\n${custForm.fundamentacao}\n` : "")
+        + (custForm.observacoes ? `\nOBSERVAÇÕES:\n${custForm.observacoes}` : "");
+
+      const { data: inserted, error } = await supabase.from("audiencias").insert({
+        tipo: "custódia",
+        data_hora: dataHoraISO,
+        local: custForm.local || null,
+        observacoes: `Custódia — Preso: ${custForm.preso_nome}. Decisão: ${decisaoLabel}.`,
+        status: "realizada",
+        ata,
+      }).select("id").single();
+      if (error) throw error;
+
+      if (custForm.preso_nome.trim()) {
+        await supabase.from("envolvidos_audiencia").insert({
+          audiencia_id: inserted.id,
+          nome: custForm.preso_nome,
+          tipo: "participante",
+          id_personagem: custForm.preso_id_personagem || null,
+          observacoes: "Preso (audiência de custódia)",
+        });
+      }
+
+      return inserted.id as string;
+    },
+    onSuccess: (id) => {
+      toast.success("Audiência de custódia registrada!");
+      queryClient.invalidateQueries({ queryKey: ["audiencias"] });
+      setOpenCustodia(false);
+      // Oferecer abertura de processo criminal
+      setOpenProcessoCustodia(id);
+    },
+    onError: (e: any) => toast.error("Erro: " + e.message),
+  });
+
+  const abrirProcessoCriminal = useMutation({
+    mutationFn: async (audienciaId: string) => {
+      // Buscar dados da audiência criada
+      const { data: aud, error: errAud } = await supabase.from("audiencias").select("*").eq("id", audienciaId).single();
+      if (errAud) throw errAud;
+      const { data: envs } = await supabase.from("envolvidos_audiencia").select("*").eq("audiencia_id", audienciaId);
+      const preso = envs?.[0];
+
+      const reuArr = preso ? [{ nome: preso.nome, ...(preso.id_personagem ? { id_personagem: preso.id_personagem } : {}) }] : [];
+      const autorArr = [{ nome: "Ministério Público" }];
+
+      const { data: sorteioData } = await supabase.rpc("sortear_magistrado");
+      const juizId = sorteioData || null;
+
+      const processoId = crypto.randomUUID();
+      const { error } = await supabase.from("processos").insert({
+        id: processoId,
+        numero: "",
+        classe: "criminal" as any,
+        assunto: `Ação penal — origem: Audiência de Custódia (${format(new Date(aud.data_hora), "dd/MM/yyyy", { locale: ptBR })})`,
+        descricao: aud.ata || "",
+        autor_nome: JSON.stringify(autorArr),
+        reu_nome: JSON.stringify(reuArr),
+        juiz_id: juizId,
+        sigilo: "publico",
+      });
+      if (error) throw error;
+
+      // Vincular audiência ao processo recém-criado
+      await supabase.from("audiencias").update({ processo_id: processoId }).eq("id", audienciaId);
+
+      // Movimentação
+      await supabase.from("movimentacoes").insert({
+        processo_id: processoId,
+        tipo: "origem_custodia",
+        descricao: `Processo criminal aberto a partir de audiência de custódia realizada em ${format(new Date(aud.data_hora), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}.`,
+        autor_id: user?.id,
+      });
+
+      return processoId;
+    },
+    onSuccess: () => {
+      toast.success("Processo criminal aberto e vinculado!");
+      queryClient.invalidateQueries({ queryKey: ["audiencias"] });
+      queryClient.invalidateQueries({ queryKey: ["processos"] });
+      setOpenProcessoCustodia(null);
+      resetCustForm();
+    },
+    onError: (e: any) => toast.error("Erro ao abrir processo: " + e.message),
+  });
+
   const showEnvolvidos = !form.processo_id;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
           <h2 className="font-display text-2xl font-bold text-foreground">Audiências</h2>
           <p className="text-sm text-muted-foreground">Pauta de audiências da Comarca</p>
         </div>
+        <div className="flex gap-2 flex-wrap">
+        {canCustodia && (
+          <Button size="sm" variant="outline" className="gap-2" onClick={() => setOpenCustodia(true)}>
+            <Gavel className="h-4 w-4" /> Audiência de Custódia
+          </Button>
+        )}
         {isMagistrado && (
           <Dialog open={open} onOpenChange={o => { setOpen(o); if (!o) { setEnvolvidos([]); setEnvForm({ nome: "", tipo: "participante", id_personagem: "", observacoes: "" }); } }}>
             <DialogTrigger asChild>
@@ -321,7 +463,110 @@ export default function AudienciasSection() {
             </DialogContent>
           </Dialog>
         )}
+        </div>
       </div>
+
+      {/* Dialog: Audiência de Custódia */}
+      <Dialog open={openCustodia} onOpenChange={o => { setOpenCustodia(o); if (!o) resetCustForm(); }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Gavel className="h-5 w-5" /> Registrar Audiência de Custódia</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Data e hora da audiência *</Label>
+                <Input type="datetime-local" value={custForm.data_hora} onChange={e => setCustForm(f => ({ ...f, data_hora: e.target.value }))} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Local</Label>
+                <Input value={custForm.local} onChange={e => setCustForm(f => ({ ...f, local: e.target.value }))} />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Preso *</Label>
+              <PersonLookupInput
+                nomeValue={custForm.preso_nome}
+                onNomeChange={n => setCustForm(f => ({ ...f, preso_nome: n }))}
+                onLookupResult={p => { if (p) setCustForm(f => ({ ...f, preso_nome: p.nome_completo, preso_id_personagem: p.id_personagem || "" })); }}
+                idValue={custForm.preso_id_personagem}
+                onIdChange={id => setCustForm(f => ({ ...f, preso_id_personagem: id }))}
+                compact
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Autoridade da prisão</Label>
+                <Input value={custForm.autoridade_prisao} onChange={e => setCustForm(f => ({ ...f, autoridade_prisao: e.target.value }))} placeholder="Ex.: Polícia Civil — Delegado X" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Data/hora da prisão</Label>
+                <Input type="datetime-local" value={custForm.data_prisao} onChange={e => setCustForm(f => ({ ...f, data_prisao: e.target.value }))} />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Tipificação penal</Label>
+              <Input value={custForm.tipificacao} onChange={e => setCustForm(f => ({ ...f, tipificacao: e.target.value }))} placeholder="Ex.: Art. 157 do CP — Roubo" />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Relato dos fatos *</Label>
+              <Textarea rows={4} value={custForm.relato_fatos} onChange={e => setCustForm(f => ({ ...f, relato_fatos: e.target.value }))} placeholder="Circunstâncias da prisão em flagrante..." />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Alegações do preso</Label>
+              <Textarea rows={3} value={custForm.alegacoes_preso} onChange={e => setCustForm(f => ({ ...f, alegacoes_preso: e.target.value }))} placeholder="Versão e alegações apresentadas..." />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Decisão (Art. 310 do CPP)</Label>
+              <Select value={custForm.decisao} onValueChange={v => setCustForm(f => ({ ...f, decisao: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {DECISOES_CUSTODIA.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Fundamentação</Label>
+              <Textarea rows={3} value={custForm.fundamentacao} onChange={e => setCustForm(f => ({ ...f, fundamentacao: e.target.value }))} placeholder="Fundamentos jurídicos da decisão..." />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Observações</Label>
+              <Textarea rows={2} value={custForm.observacoes} onChange={e => setCustForm(f => ({ ...f, observacoes: e.target.value }))} />
+            </div>
+
+            <Button className="w-full" disabled={createCustodiaMutation.isPending} onClick={() => createCustodiaMutation.mutate()}>
+              {createCustodiaMutation.isPending ? "Registrando..." : "Registrar Audiência de Custódia"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog: Abrir processo criminal a partir da custódia */}
+      <Dialog open={!!openProcessoCustodia} onOpenChange={o => { if (!o) setOpenProcessoCustodia(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><FileText className="h-5 w-5" /> Abrir processo criminal?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            A audiência de custódia foi registrada com sucesso. Deseja abrir um processo criminal para dar continuidade ao caso?
+            O processo será distribuído por sorteio e vinculado à audiência.
+          </p>
+          <div className="flex gap-2 pt-2">
+            <Button variant="outline" className="flex-1" onClick={() => { setOpenProcessoCustodia(null); resetCustForm(); }}>Agora não</Button>
+            <Button className="flex-1" disabled={abrirProcessoCriminal.isPending} onClick={() => openProcessoCustodia && abrirProcessoCriminal.mutate(openProcessoCustodia)}>
+              {abrirProcessoCriminal.isPending ? "Abrindo..." : "Abrir processo"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog detalhes completos da audiência */}
       <Dialog open={!!detailId} onOpenChange={o => { if (!o) { setDetailId(null); setShowAtaForm(false); setAtaText(""); } }}>
