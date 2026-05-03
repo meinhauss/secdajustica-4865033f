@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -532,22 +533,22 @@ export default function AudienciasSection() {
 
             <div className="space-y-1.5">
               <Label>Termo de assentada</Label>
-              <Textarea rows={3} value={custForm.termo_assentada} onChange={e => setCustForm(f => ({ ...f, termo_assentada: e.target.value }))} placeholder="Abertura, presentes, formalidades..." />
+              <RichTextEditor value={custForm.termo_assentada} onChange={(v) => setCustForm(f => ({ ...f, termo_assentada: v }))} placeholder="Abertura, presentes, formalidades..." />
             </div>
 
             <div className="space-y-1.5">
               <Label>1. Qualificação e entrevista</Label>
-              <Textarea rows={3} value={custForm.qualificacao_entrevista} onChange={e => setCustForm(f => ({ ...f, qualificacao_entrevista: e.target.value }))} placeholder="Qualificação do custodiado e relato em entrevista..." />
+              <RichTextEditor value={custForm.qualificacao_entrevista} onChange={(v) => setCustForm(f => ({ ...f, qualificacao_entrevista: v }))} placeholder="Qualificação do custodiado e relato em entrevista..." />
             </div>
 
             <div className="space-y-1.5">
               <Label>2. Manifestação do Ministério Público</Label>
-              <Textarea rows={3} value={custForm.manifestacao_mp} onChange={e => setCustForm(f => ({ ...f, manifestacao_mp: e.target.value }))} />
+              <RichTextEditor value={custForm.manifestacao_mp} onChange={(v) => setCustForm(f => ({ ...f, manifestacao_mp: v }))} />
             </div>
 
             <div className="space-y-1.5">
               <Label>3. Manifestação da Defesa</Label>
-              <Textarea rows={3} value={custForm.manifestacao_defesa} onChange={e => setCustForm(f => ({ ...f, manifestacao_defesa: e.target.value }))} />
+              <RichTextEditor value={custForm.manifestacao_defesa} onChange={(v) => setCustForm(f => ({ ...f, manifestacao_defesa: v }))} />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -568,12 +569,12 @@ export default function AudienciasSection() {
 
             <div className="space-y-1.5">
               <Label>Decisão — fundamentação e dispositivo *</Label>
-              <Textarea rows={4} value={custForm.decisao_texto} onChange={e => setCustForm(f => ({ ...f, decisao_texto: e.target.value }))} placeholder="Fundamentação e dispositivo da decisão..." />
+              <RichTextEditor value={custForm.decisao_texto} onChange={(v) => setCustForm(f => ({ ...f, decisao_texto: v }))} placeholder="Fundamentação e dispositivo da decisão..." minHeight="160px" />
             </div>
 
             <div className="space-y-1.5">
               <Label>OBS</Label>
-              <Textarea rows={2} value={custForm.observacoes} onChange={e => setCustForm(f => ({ ...f, observacoes: e.target.value }))} />
+              <RichTextEditor value={custForm.observacoes} onChange={(v) => setCustForm(f => ({ ...f, observacoes: v }))} />
             </div>
 
             <Button className="w-full" disabled={createCustodiaMutation.isPending} onClick={() => createCustodiaMutation.mutate()}>
