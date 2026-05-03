@@ -347,11 +347,17 @@ export default function AudienciasSection() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
           <h2 className="font-display text-2xl font-bold text-foreground">Audiências</h2>
           <p className="text-sm text-muted-foreground">Pauta de audiências da Comarca</p>
         </div>
+        <div className="flex gap-2 flex-wrap">
+        {canCustodia && (
+          <Button size="sm" variant="outline" className="gap-2" onClick={() => setOpenCustodia(true)}>
+            <Gavel className="h-4 w-4" /> Audiência de Custódia
+          </Button>
+        )}
         {isMagistrado && (
           <Dialog open={open} onOpenChange={o => { setOpen(o); if (!o) { setEnvolvidos([]); setEnvForm({ nome: "", tipo: "participante", id_personagem: "", observacoes: "" }); } }}>
             <DialogTrigger asChild>
