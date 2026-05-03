@@ -488,17 +488,17 @@ export default function AudienciasSection() {
           <div className="space-y-4 pt-2">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>Data e hora da audiência *</Label>
-                <Input type="datetime-local" value={custForm.data_hora} onChange={e => setCustForm(f => ({ ...f, data_hora: e.target.value }))} />
+                <Label>Autos / BOPM nº *</Label>
+                <Input value={custForm.autos_bopm} onChange={e => setCustForm(f => ({ ...f, autos_bopm: e.target.value }))} placeholder="Ex.: 12345/2026" />
               </div>
               <div className="space-y-1.5">
-                <Label>Local</Label>
-                <Input value={custForm.local} onChange={e => setCustForm(f => ({ ...f, local: e.target.value }))} />
+                <Label>Data e hora de abertura *</Label>
+                <Input type="datetime-local" value={custForm.data_hora_abertura} onChange={e => setCustForm(f => ({ ...f, data_hora_abertura: e.target.value }))} />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label>Preso *</Label>
+              <Label>Custodiado *</Label>
               <PersonLookupInput
                 nomeValue={custForm.preso_nome}
                 onNomeChange={n => setCustForm(f => ({ ...f, preso_nome: n }))}
@@ -509,49 +509,70 @@ export default function AudienciasSection() {
               />
             </div>
 
+            <div className="space-y-1.5">
+              <Label>Capitulação provisória</Label>
+              <Input value={custForm.capitulacao_provisoria} onChange={e => setCustForm(f => ({ ...f, capitulacao_provisoria: e.target.value }))} placeholder="Ex.: Art. 157 do CP" />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Local</Label>
+              <Input value={custForm.local} onChange={e => setCustForm(f => ({ ...f, local: e.target.value }))} />
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label>Autoridade da prisão</Label>
-                <Input value={custForm.autoridade_prisao} onChange={e => setCustForm(f => ({ ...f, autoridade_prisao: e.target.value }))} placeholder="Ex.: Polícia Civil — Delegado X" />
+                <Input value={custForm.autoridade_prisao} onChange={e => setCustForm(f => ({ ...f, autoridade_prisao: e.target.value }))} placeholder="Ex.: Delegado X — Polícia Civil" />
               </div>
               <div className="space-y-1.5">
-                <Label>Data/hora da prisão</Label>
+                <Label>Data e hora da prisão</Label>
                 <Input type="datetime-local" value={custForm.data_prisao} onChange={e => setCustForm(f => ({ ...f, data_prisao: e.target.value }))} />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label>Tipificação penal</Label>
-              <Input value={custForm.tipificacao} onChange={e => setCustForm(f => ({ ...f, tipificacao: e.target.value }))} placeholder="Ex.: Art. 157 do CP — Roubo" />
+              <Label>Termo de assentada</Label>
+              <Textarea rows={3} value={custForm.termo_assentada} onChange={e => setCustForm(f => ({ ...f, termo_assentada: e.target.value }))} placeholder="Abertura, presentes, formalidades..." />
             </div>
 
             <div className="space-y-1.5">
-              <Label>Relato dos fatos *</Label>
-              <Textarea rows={4} value={custForm.relato_fatos} onChange={e => setCustForm(f => ({ ...f, relato_fatos: e.target.value }))} placeholder="Circunstâncias da prisão em flagrante..." />
+              <Label>1. Qualificação e entrevista</Label>
+              <Textarea rows={3} value={custForm.qualificacao_entrevista} onChange={e => setCustForm(f => ({ ...f, qualificacao_entrevista: e.target.value }))} placeholder="Qualificação do custodiado e relato em entrevista..." />
             </div>
 
             <div className="space-y-1.5">
-              <Label>Alegações do preso</Label>
-              <Textarea rows={3} value={custForm.alegacoes_preso} onChange={e => setCustForm(f => ({ ...f, alegacoes_preso: e.target.value }))} placeholder="Versão e alegações apresentadas..." />
+              <Label>2. Manifestação do Ministério Público</Label>
+              <Textarea rows={3} value={custForm.manifestacao_mp} onChange={e => setCustForm(f => ({ ...f, manifestacao_mp: e.target.value }))} />
             </div>
 
             <div className="space-y-1.5">
-              <Label>Decisão (Art. 310 do CPP)</Label>
-              <Select value={custForm.decisao} onValueChange={v => setCustForm(f => ({ ...f, decisao: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {DECISOES_CUSTODIA.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <Label>3. Manifestação da Defesa</Label>
+              <Textarea rows={3} value={custForm.manifestacao_defesa} onChange={e => setCustForm(f => ({ ...f, manifestacao_defesa: e.target.value }))} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>5. Decisão — tipo (Art. 310 CPP)</Label>
+                <Select value={custForm.decisao_tipo} onValueChange={v => setCustForm(f => ({ ...f, decisao_tipo: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {DECISOES_CUSTODIA.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Data e hora de encerramento</Label>
+                <Input type="datetime-local" value={custForm.data_hora_encerramento} onChange={e => setCustForm(f => ({ ...f, data_hora_encerramento: e.target.value }))} />
+              </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label>Fundamentação</Label>
-              <Textarea rows={3} value={custForm.fundamentacao} onChange={e => setCustForm(f => ({ ...f, fundamentacao: e.target.value }))} placeholder="Fundamentos jurídicos da decisão..." />
+              <Label>Decisão — fundamentação e dispositivo *</Label>
+              <Textarea rows={4} value={custForm.decisao_texto} onChange={e => setCustForm(f => ({ ...f, decisao_texto: e.target.value }))} placeholder="Fundamentação e dispositivo da decisão..." />
             </div>
 
             <div className="space-y-1.5">
-              <Label>Observações</Label>
+              <Label>OBS</Label>
               <Textarea rows={2} value={custForm.observacoes} onChange={e => setCustForm(f => ({ ...f, observacoes: e.target.value }))} />
             </div>
 
