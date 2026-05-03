@@ -214,6 +214,135 @@ export default function AudienciasSection() {
     onError: (e: any) => toast.error("Erro: " + e.message),
   });
 
+  // ===== AUDIÊNCIA DE CUSTÓDIA =====
+  const canCustodia = isMagistrado || isOficialJustica;
+  const [openCustodia, setOpenCustodia] = useState(false);
+  const [custForm, setCustForm] = useState({
+    data_hora: "",
+    local: "Sala de Custódia",
+    preso_nome: "",
+    preso_id_personagem: "",
+    autoridade_prisao: "",
+    data_prisao: "",
+    tipificacao: "",
+    relato_fatos: "",
+    alegacoes_preso: "",
+    decisao: "preventiva",
+    fundamentacao: "",
+    observacoes: "",
+  });
+  const [openProcessoCustodia, setOpenProcessoCustodia] = useState<string | null>(null);
+
+  const resetCustForm = () => setCustForm({
+    data_hora: "", local: "Sala de Custódia", preso_nome: "", preso_id_personagem: "",
+    autoridade_prisao: "", data_prisao: "", tipificacao: "", relato_fatos: "",
+    alegacoes_preso: "", decisao: "preventiva", fundamentacao: "", observacoes: "",
+  });
+
+  const createCustodiaMutation = useMutation({
+    mutationFn: async () => {
+      if (!custForm.data_hora) throw new Error("Informe a data e hora da audiência");
+      if (!custForm.preso_nome.trim()) throw new Error("Informe o nome do preso");
+      if (!custForm.relato_fatos.trim()) throw new Error("Informe o relato dos fatos");
+
+      const decisaoLabel = DECISOES_CUSTODIA.find(d => d.value === custForm.decisao)?.label || custForm.decisao;
+      const dataHoraISO = new Date(custForm.data_hora).toISOString();
+      const dataPrisaoISO = custForm.data_prisao ? new Date(custForm.data_prisao).toISOString() : null;
+
+      const ata = `AUDIÊNCIA DE CUSTÓDIA — Art. 310 do CPP\n\n`
+        + `Preso: ${custForm.preso_nome}${custForm.preso_id_personagem ? ` (RG: ${custForm.preso_id_personagem})` : ""}\n`
+        + `Autoridade que efetuou a prisão: ${custForm.autoridade_prisao || "Não informado"}\n`
+        + (dataPrisaoISO ? `Data/hora da prisão: ${format(new Date(dataPrisaoISO), "dd/MM/yyyy HH:mm", { locale: ptBR })}\n` : "")
+        + (custForm.tipificacao ? `Tipificação: ${custForm.tipificacao}\n` : "")
+        + `\n=== RELATO DOS FATOS ===\n${custForm.relato_fatos}\n`
+        + (custForm.alegacoes_preso ? `\n=== ALEGAÇÕES DO PRESO ===\n${custForm.alegacoes_preso}\n` : "")
+        + `\n=== DECISÃO ===\n${decisaoLabel}\n`
+        + (custForm.fundamentacao ? `\nFUNDAMENTAÇÃO:\n${custForm.fundamentacao}\n` : "")
+        + (custForm.observacoes ? `\nOBSERVAÇÕES:\n${custForm.observacoes}` : "");
+
+      const { data: inserted, error } = await supabase.from("audiencias").insert({
+        tipo: "custódia",
+        data_hora: dataHoraISO,
+        local: custForm.local || null,
+        observacoes: `Custódia — Preso: ${custForm.preso_nome}. Decisão: ${decisaoLabel}.`,
+        status: "realizada",
+        ata,
+      }).select("id").single();
+      if (error) throw error;
+
+      if (custForm.preso_nome.trim()) {
+        await supabase.from("envolvidos_audiencia").insert({
+          audiencia_id: inserted.id,
+          nome: custForm.preso_nome,
+          tipo: "participante",
+          id_personagem: custForm.preso_id_personagem || null,
+          observacoes: "Preso (audiência de custódia)",
+        });
+      }
+
+      return inserted.id as string;
+    },
+    onSuccess: (id) => {
+      toast.success("Audiência de custódia registrada!");
+      queryClient.invalidateQueries({ queryKey: ["audiencias"] });
+      setOpenCustodia(false);
+      // Oferecer abertura de processo criminal
+      setOpenProcessoCustodia(id);
+    },
+    onError: (e: any) => toast.error("Erro: " + e.message),
+  });
+
+  const abrirProcessoCriminal = useMutation({
+    mutationFn: async (audienciaId: string) => {
+      // Buscar dados da audiência criada
+      const { data: aud, error: errAud } = await supabase.from("audiencias").select("*").eq("id", audienciaId).single();
+      if (errAud) throw errAud;
+      const { data: envs } = await supabase.from("envolvidos_audiencia").select("*").eq("audiencia_id", audienciaId);
+      const preso = envs?.[0];
+
+      const reuArr = preso ? [{ nome: preso.nome, ...(preso.id_personagem ? { id_personagem: preso.id_personagem } : {}) }] : [];
+      const autorArr = [{ nome: "Ministério Público" }];
+
+      const { data: sorteioData } = await supabase.rpc("sortear_magistrado");
+      const juizId = sorteioData || null;
+
+      const processoId = crypto.randomUUID();
+      const { error } = await supabase.from("processos").insert({
+        id: processoId,
+        numero: "",
+        classe: "criminal" as any,
+        assunto: `Ação penal — origem: Audiência de Custódia (${format(new Date(aud.data_hora), "dd/MM/yyyy", { locale: ptBR })})`,
+        descricao: aud.ata || "",
+        autor_nome: JSON.stringify(autorArr),
+        reu_nome: JSON.stringify(reuArr),
+        juiz_id: juizId,
+        sigilo: "publico",
+      });
+      if (error) throw error;
+
+      // Vincular audiência ao processo recém-criado
+      await supabase.from("audiencias").update({ processo_id: processoId }).eq("id", audienciaId);
+
+      // Movimentação
+      await supabase.from("movimentacoes").insert({
+        processo_id: processoId,
+        tipo: "origem_custodia",
+        descricao: `Processo criminal aberto a partir de audiência de custódia realizada em ${format(new Date(aud.data_hora), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}.`,
+        autor_id: user?.id,
+      });
+
+      return processoId;
+    },
+    onSuccess: () => {
+      toast.success("Processo criminal aberto e vinculado!");
+      queryClient.invalidateQueries({ queryKey: ["audiencias"] });
+      queryClient.invalidateQueries({ queryKey: ["processos"] });
+      setOpenProcessoCustodia(null);
+      resetCustForm();
+    },
+    onError: (e: any) => toast.error("Erro ao abrir processo: " + e.message),
+  });
+
   const showEnvolvidos = !form.processo_id;
 
   return (
