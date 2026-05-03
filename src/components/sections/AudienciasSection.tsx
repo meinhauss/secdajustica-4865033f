@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Calendar, Plus, UserPlus, Trash2 } from "lucide-react";
+import { Calendar, Plus, UserPlus, Trash2, Gavel, FileText } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -17,6 +17,13 @@ import { PersonLookupInput } from "@/components/PersonLookupInput";
 
 const TIPOS_AUDIENCIA = ["instrução", "conciliação", "julgamento", "custódia", "justificação", "admonitória"];
 const TIPOS_ENVOLVIDO = ["participante", "testemunha", "perito", "outro"];
+const DECISOES_CUSTODIA = [
+  { value: "relaxamento", label: "Relaxamento da prisão (ilegal)" },
+  { value: "preventiva", label: "Conversão em prisão preventiva" },
+  { value: "liberdade_provisoria", label: "Liberdade provisória (com ou sem fiança)" },
+  { value: "liberdade_medidas", label: "Liberdade com medidas cautelares diversas" },
+];
+
 
 interface EnvolvidoLocal {
   nome: string;
