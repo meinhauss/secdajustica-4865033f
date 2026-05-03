@@ -218,47 +218,60 @@ export default function AudienciasSection() {
   const canCustodia = isMagistrado || isOficialJustica;
   const [openCustodia, setOpenCustodia] = useState(false);
   const [custForm, setCustForm] = useState({
-    data_hora: "",
-    local: "Sala de Custódia",
+    autos_bopm: "",
+    data_hora_abertura: "",
     preso_nome: "",
     preso_id_personagem: "",
+    capitulacao_provisoria: "",
+    local: "Fórum da Comarca de São Paulo",
     autoridade_prisao: "",
     data_prisao: "",
-    tipificacao: "",
-    relato_fatos: "",
-    alegacoes_preso: "",
-    decisao: "preventiva",
-    fundamentacao: "",
+    termo_assentada: "",
+    qualificacao_entrevista: "",
+    manifestacao_mp: "",
+    manifestacao_defesa: "",
+    decisao_tipo: "preventiva",
+    decisao_texto: "",
     observacoes: "",
+    data_hora_encerramento: "",
   });
   const [openProcessoCustodia, setOpenProcessoCustodia] = useState<string | null>(null);
 
   const resetCustForm = () => setCustForm({
-    data_hora: "", local: "Sala de Custódia", preso_nome: "", preso_id_personagem: "",
-    autoridade_prisao: "", data_prisao: "", tipificacao: "", relato_fatos: "",
-    alegacoes_preso: "", decisao: "preventiva", fundamentacao: "", observacoes: "",
+    autos_bopm: "", data_hora_abertura: "", preso_nome: "", preso_id_personagem: "",
+    capitulacao_provisoria: "", local: "Fórum da Comarca de São Paulo",
+    autoridade_prisao: "", data_prisao: "", termo_assentada: "",
+    qualificacao_entrevista: "", manifestacao_mp: "", manifestacao_defesa: "",
+    decisao_tipo: "preventiva", decisao_texto: "", observacoes: "", data_hora_encerramento: "",
   });
 
   const createCustodiaMutation = useMutation({
     mutationFn: async () => {
-      if (!custForm.data_hora) throw new Error("Informe a data e hora da audiência");
-      if (!custForm.preso_nome.trim()) throw new Error("Informe o nome do preso");
-      if (!custForm.relato_fatos.trim()) throw new Error("Informe o relato dos fatos");
+      if (!custForm.data_hora_abertura) throw new Error("Informe a data e hora de abertura");
+      if (!custForm.preso_nome.trim()) throw new Error("Informe o custodiado");
+      if (!custForm.decisao_texto.trim()) throw new Error("Informe a decisão");
 
-      const decisaoLabel = DECISOES_CUSTODIA.find(d => d.value === custForm.decisao)?.label || custForm.decisao;
-      const dataHoraISO = new Date(custForm.data_hora).toISOString();
+      const decisaoLabel = DECISOES_CUSTODIA.find(d => d.value === custForm.decisao_tipo)?.label || custForm.decisao_tipo;
+      const dataHoraISO = new Date(custForm.data_hora_abertura).toISOString();
       const dataPrisaoISO = custForm.data_prisao ? new Date(custForm.data_prisao).toISOString() : null;
+      const dataEncerramentoISO = custForm.data_hora_encerramento ? new Date(custForm.data_hora_encerramento).toISOString() : null;
+      const fmt = (iso: string) => format(new Date(iso), "dd/MM/yyyy HH:mm", { locale: ptBR });
 
-      const ata = `AUDIÊNCIA DE CUSTÓDIA — Art. 310 do CPP\n\n`
-        + `Preso: ${custForm.preso_nome}${custForm.preso_id_personagem ? ` (RG: ${custForm.preso_id_personagem})` : ""}\n`
-        + `Autoridade que efetuou a prisão: ${custForm.autoridade_prisao || "Não informado"}\n`
-        + (dataPrisaoISO ? `Data/hora da prisão: ${format(new Date(dataPrisaoISO), "dd/MM/yyyy HH:mm", { locale: ptBR })}\n` : "")
-        + (custForm.tipificacao ? `Tipificação: ${custForm.tipificacao}\n` : "")
-        + `\n=== RELATO DOS FATOS ===\n${custForm.relato_fatos}\n`
-        + (custForm.alegacoes_preso ? `\n=== ALEGAÇÕES DO PRESO ===\n${custForm.alegacoes_preso}\n` : "")
-        + `\n=== DECISÃO ===\n${decisaoLabel}\n`
-        + (custForm.fundamentacao ? `\nFUNDAMENTAÇÃO:\n${custForm.fundamentacao}\n` : "")
-        + (custForm.observacoes ? `\nOBSERVAÇÕES:\n${custForm.observacoes}` : "");
+      const ata =
+        `AUTOS / BOPM Nº: ${custForm.autos_bopm || "—"}\n`
+        + `DATA E HORA DE ABERTURA: ${fmt(dataHoraISO)}\n`
+        + `CUSTODIADO: ${custForm.preso_nome}${custForm.preso_id_personagem ? `, RG nº ${custForm.preso_id_personagem}` : ""}.\n`
+        + `CAPITULAÇÃO PROVISÓRIA: ${custForm.capitulacao_provisoria || "—"}.\n`
+        + `LOCAL: ${custForm.local || "—"}\n`
+        + `AUTORIDADE DA PRISÃO: ${custForm.autoridade_prisao || "—"}\n`
+        + `DATA E HORA DA PRISÃO: ${dataPrisaoISO ? fmt(dataPrisaoISO) : "—"}\n\n`
+        + `TERMO DE ASSENTADA:\n${custForm.termo_assentada || "—"}\n\n`
+        + `1. QUALIFICAÇÃO E ENTREVISTA:\n${custForm.qualificacao_entrevista || "—"}\n\n`
+        + `2. MANIFESTAÇÃO DO MINISTÉRIO PÚBLICO:\n${custForm.manifestacao_mp || "—"}\n\n`
+        + `3. MANIFESTAÇÃO DA DEFESA:\n${custForm.manifestacao_defesa || "—"}\n\n`
+        + `5. DECISÃO:\n${decisaoLabel}\n${custForm.decisao_texto}\n\n`
+        + `OBS: ${custForm.observacoes || "—"}\n\n`
+        + `DATA E HORA DE ENCERRAMENTO: ${dataEncerramentoISO ? fmt(dataEncerramentoISO) : "—"}`;
 
       const { data: inserted, error } = await supabase.from("audiencias").insert({
         tipo: "custódia",
