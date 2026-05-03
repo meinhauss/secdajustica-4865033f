@@ -320,13 +320,23 @@ export default function AudienciasSection() {
       const { data: sorteioData } = await supabase.rpc("sortear_magistrado");
       const juizId = sorteioData || null;
 
+      // Síntese dos fatos — apenas dados objetivos da prisão
+      const presoNome = custForm.preso_nome || preso?.nome || "—";
+      const presoRG = custForm.preso_id_personagem || preso?.id_personagem || "—";
+      const sintese =
+        `AUTOS / BOPM Nº: ${custForm.autos_bopm || "—"}\n`
+        + `CUSTODIADO: ${presoNome}, RG nº ${presoRG}.\n`
+        + `CAPITULAÇÃO PROVISÓRIA: ${custForm.capitulacao_provisoria || "—"}.\n`
+        + `LOCAL: ${custForm.local || "—"}\n`
+        + `AUTORIDADE DA PRISÃO: ${custForm.autoridade_prisao || "—"}`;
+
       const processoId = crypto.randomUUID();
       const { error } = await supabase.from("processos").insert({
         id: processoId,
         numero: "",
         classe: "criminal" as any,
         assunto: `Ação penal — origem: Audiência de Custódia (${format(new Date(aud.data_hora), "dd/MM/yyyy", { locale: ptBR })})`,
-        descricao: aud.ata || "",
+        descricao: sintese,
         autor_nome: JSON.stringify(autorArr),
         reu_nome: JSON.stringify(reuArr),
         juiz_id: juizId,
@@ -337,11 +347,12 @@ export default function AudienciasSection() {
       // Vincular audiência ao processo recém-criado
       await supabase.from("audiencias").update({ processo_id: processoId }).eq("id", audienciaId);
 
-      // Movimentação
+      // Movimentação única formatada com o termo completo da audiência
+      const termo = `TERMO DE AUDIÊNCIA DE CUSTÓDIA\n\n${aud.ata || ""}`;
       await supabase.from("movimentacoes").insert({
         processo_id: processoId,
-        tipo: "origem_custodia",
-        descricao: `Processo criminal aberto a partir de audiência de custódia realizada em ${format(new Date(aud.data_hora), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}.`,
+        tipo: "termo_audiencia_custodia",
+        descricao: termo,
         autor_id: user?.id,
       });
 
