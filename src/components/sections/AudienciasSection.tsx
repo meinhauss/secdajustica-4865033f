@@ -221,8 +221,7 @@ export default function AudienciasSection() {
   const [custForm, setCustForm] = useState({
     autos_bopm: "",
     data_hora_abertura: "",
-    preso_nome: "",
-    preso_id_personagem: "",
+    custodiados: [{ nome: "", id_personagem: "" }] as { nome: string; id_personagem: string }[],
     capitulacao_provisoria: "",
     local: "Fórum da Comarca de São Paulo",
     autoridade_prisao: "",
@@ -239,7 +238,8 @@ export default function AudienciasSection() {
   const [openProcessoCustodia, setOpenProcessoCustodia] = useState<string | null>(null);
 
   const resetCustForm = () => setCustForm({
-    autos_bopm: "", data_hora_abertura: "", preso_nome: "", preso_id_personagem: "",
+    autos_bopm: "", data_hora_abertura: "",
+    custodiados: [{ nome: "", id_personagem: "" }],
     capitulacao_provisoria: "", local: "Fórum da Comarca de São Paulo",
     autoridade_prisao: "", data_prisao: "", termo_assentada: "",
     qualificacao_entrevista: "", manifestacao_mp: "", manifestacao_defesa: "",
@@ -249,7 +249,8 @@ export default function AudienciasSection() {
   const createCustodiaMutation = useMutation({
     mutationFn: async () => {
       if (!custForm.data_hora_abertura) throw new Error("Informe a data e hora de abertura");
-      if (!custForm.preso_nome.trim()) throw new Error("Informe o custodiado");
+      const custodiadosValidos = custForm.custodiados.filter(c => c.nome.trim());
+      if (custodiadosValidos.length === 0) throw new Error("Informe ao menos um custodiado");
       if (!custForm.decisao_texto.trim()) throw new Error("Informe a decisão");
 
       const decisaoLabel = DECISOES_CUSTODIA.find(d => d.value === custForm.decisao_tipo)?.label || custForm.decisao_tipo;
@@ -258,10 +259,14 @@ export default function AudienciasSection() {
       const dataEncerramentoISO = custForm.data_hora_encerramento ? new Date(custForm.data_hora_encerramento).toISOString() : null;
       const fmt = (iso: string) => format(new Date(iso), "dd/MM/yyyy HH:mm", { locale: ptBR });
 
+      const custodiadosTxt = custodiadosValidos
+        .map(c => `${c.nome}${c.id_personagem ? `, RG nº ${c.id_personagem}` : ""}`)
+        .join("; ");
+
       const ata =
         `AUTOS / BOPM Nº: ${custForm.autos_bopm || "—"}\n`
         + `DATA E HORA DE ABERTURA: ${fmt(dataHoraISO)}\n`
-        + `CUSTODIADO: ${custForm.preso_nome}${custForm.preso_id_personagem ? `, RG nº ${custForm.preso_id_personagem}` : ""}.\n`
+        + `CUSTODIADO${custodiadosValidos.length > 1 ? "S" : ""}: ${custodiadosTxt}.\n`
         + `CAPITULAÇÃO PROVISÓRIA: ${custForm.capitulacao_provisoria || "—"}.\n`
         + `LOCAL: ${custForm.local || "—"}\n`
         + `AUTORIDADE DA PRISÃO: ${custForm.autoridade_prisao || "—"}\n`
@@ -278,20 +283,22 @@ export default function AudienciasSection() {
         tipo: "custódia",
         data_hora: dataHoraISO,
         local: custForm.local || null,
-        observacoes: `Custódia — Preso: ${custForm.preso_nome}. Decisão: ${decisaoLabel}.`,
+        observacoes: `Custódia — ${custodiadosTxt}. Decisão: ${decisaoLabel}.`,
         status: "realizada",
         ata,
+        criado_por: user?.id,
       }).select("id").single();
       if (error) throw error;
 
-      if (custForm.preso_nome.trim()) {
-        await supabase.from("envolvidos_audiencia").insert({
-          audiencia_id: inserted.id,
-          nome: custForm.preso_nome,
-          tipo: "participante",
-          id_personagem: custForm.preso_id_personagem || null,
-          observacoes: "Preso (audiência de custódia)",
-        });
+      const envolvidos = custodiadosValidos.map(c => ({
+        audiencia_id: inserted.id,
+        nome: c.nome,
+        tipo: "participante",
+        id_personagem: c.id_personagem || null,
+        observacoes: "Preso (audiência de custódia)",
+      }));
+      if (envolvidos.length > 0) {
+        await supabase.from("envolvidos_audiencia").insert(envolvidos);
       }
 
       return inserted.id as string;
@@ -299,8 +306,8 @@ export default function AudienciasSection() {
     onSuccess: (id) => {
       toast.success("Audiência de custódia registrada!");
       queryClient.invalidateQueries({ queryKey: ["audiencias"] });
+      queryClient.invalidateQueries({ queryKey: ["magistrado-ranking"] });
       setOpenCustodia(false);
-      // Oferecer abertura de processo criminal
       setOpenProcessoCustodia(id);
     },
     onError: (e: any) => toast.error("Erro: " + e.message),
@@ -314,18 +321,21 @@ export default function AudienciasSection() {
       const { data: envs } = await supabase.from("envolvidos_audiencia").select("*").eq("audiencia_id", audienciaId);
       const preso = envs?.[0];
 
-      const reuArr = preso ? [{ nome: preso.nome, ...(preso.id_personagem ? { id_personagem: preso.id_personagem } : {}) }] : [];
+      const reuArr = (envs && envs.length > 0)
+        ? envs.map((e: any) => ({ nome: e.nome, ...(e.id_personagem ? { id_personagem: e.id_personagem } : {}) }))
+        : custForm.custodiados.filter(c => c.nome.trim()).map(c => ({ nome: c.nome, ...(c.id_personagem ? { id_personagem: c.id_personagem } : {}) }));
       const autorArr = [{ nome: "Ministério Público" }];
 
       const { data: sorteioData } = await supabase.rpc("sortear_magistrado");
       const juizId = sorteioData || null;
 
       // Síntese dos fatos — apenas dados objetivos da prisão
-      const presoNome = custForm.preso_nome || preso?.nome || "—";
-      const presoRG = custForm.preso_id_personagem || preso?.id_personagem || "—";
+      const custodiadosTxt = reuArr
+        .map((c: any) => `${c.nome}${c.id_personagem ? `, RG nº ${c.id_personagem}` : ""}`)
+        .join("; ") || "—";
       const sintese =
         `AUTOS / BOPM Nº: ${custForm.autos_bopm || "—"}\n`
-        + `CUSTODIADO: ${presoNome}, RG nº ${presoRG}.\n`
+        + `CUSTODIADO${reuArr.length > 1 ? "S" : ""}: ${custodiadosTxt}.\n`
         + `CAPITULAÇÃO PROVISÓRIA: ${custForm.capitulacao_provisoria || "—"}.\n`
         + `LOCAL: ${custForm.local || "—"}\n`
         + `AUTORIDADE DA PRISÃO: ${custForm.autoridade_prisao || "—"}`;
@@ -509,16 +519,33 @@ export default function AudienciasSection() {
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label>Custodiado *</Label>
-              <PersonLookupInput
-                nomeValue={custForm.preso_nome}
-                onNomeChange={n => setCustForm(f => ({ ...f, preso_nome: n }))}
-                onLookupResult={p => { if (p) setCustForm(f => ({ ...f, preso_nome: p.nome_completo, preso_id_personagem: p.id_personagem || "" })); }}
-                idValue={custForm.preso_id_personagem}
-                onIdChange={id => setCustForm(f => ({ ...f, preso_id_personagem: id }))}
-                compact
-              />
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Custodiado(s) *</Label>
+                <Button type="button" size="sm" variant="outline" onClick={() => setCustForm(f => ({ ...f, custodiados: [...f.custodiados, { nome: "", id_personagem: "" }] }))}>
+                  <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar réu
+                </Button>
+              </div>
+              {custForm.custodiados.map((c, idx) => (
+                <div key={idx} className="rounded-md border p-2 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Réu {idx + 1}</span>
+                    {custForm.custodiados.length > 1 && (
+                      <Button type="button" size="icon" variant="ghost" className="h-6 w-6" onClick={() => setCustForm(f => ({ ...f, custodiados: f.custodiados.filter((_, i) => i !== idx) }))}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                  <PersonLookupInput
+                    nomeValue={c.nome}
+                    onNomeChange={n => setCustForm(f => ({ ...f, custodiados: f.custodiados.map((x, i) => i === idx ? { ...x, nome: n } : x) }))}
+                    onLookupResult={p => { if (p) setCustForm(f => ({ ...f, custodiados: f.custodiados.map((x, i) => i === idx ? { nome: p.nome_completo, id_personagem: p.id_personagem || "" } : x) })); }}
+                    idValue={c.id_personagem}
+                    onIdChange={id => setCustForm(f => ({ ...f, custodiados: f.custodiados.map((x, i) => i === idx ? { ...x, id_personagem: id } : x) }))}
+                    compact
+                  />
+                </div>
+              ))}
             </div>
 
             <div className="space-y-1.5">
