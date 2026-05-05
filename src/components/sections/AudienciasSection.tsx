@@ -221,8 +221,7 @@ export default function AudienciasSection() {
   const [custForm, setCustForm] = useState({
     autos_bopm: "",
     data_hora_abertura: "",
-    preso_nome: "",
-    preso_id_personagem: "",
+    custodiados: [{ nome: "", id_personagem: "" }] as { nome: string; id_personagem: string }[],
     capitulacao_provisoria: "",
     local: "Fórum da Comarca de São Paulo",
     autoridade_prisao: "",
@@ -239,7 +238,8 @@ export default function AudienciasSection() {
   const [openProcessoCustodia, setOpenProcessoCustodia] = useState<string | null>(null);
 
   const resetCustForm = () => setCustForm({
-    autos_bopm: "", data_hora_abertura: "", preso_nome: "", preso_id_personagem: "",
+    autos_bopm: "", data_hora_abertura: "",
+    custodiados: [{ nome: "", id_personagem: "" }],
     capitulacao_provisoria: "", local: "Fórum da Comarca de São Paulo",
     autoridade_prisao: "", data_prisao: "", termo_assentada: "",
     qualificacao_entrevista: "", manifestacao_mp: "", manifestacao_defesa: "",
