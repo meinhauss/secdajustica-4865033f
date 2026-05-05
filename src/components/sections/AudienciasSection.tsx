@@ -249,7 +249,8 @@ export default function AudienciasSection() {
   const createCustodiaMutation = useMutation({
     mutationFn: async () => {
       if (!custForm.data_hora_abertura) throw new Error("Informe a data e hora de abertura");
-      if (!custForm.preso_nome.trim()) throw new Error("Informe o custodiado");
+      const custodiadosValidos = custForm.custodiados.filter(c => c.nome.trim());
+      if (custodiadosValidos.length === 0) throw new Error("Informe ao menos um custodiado");
       if (!custForm.decisao_texto.trim()) throw new Error("Informe a decisão");
 
       const decisaoLabel = DECISOES_CUSTODIA.find(d => d.value === custForm.decisao_tipo)?.label || custForm.decisao_tipo;
@@ -258,10 +259,14 @@ export default function AudienciasSection() {
       const dataEncerramentoISO = custForm.data_hora_encerramento ? new Date(custForm.data_hora_encerramento).toISOString() : null;
       const fmt = (iso: string) => format(new Date(iso), "dd/MM/yyyy HH:mm", { locale: ptBR });
 
+      const custodiadosTxt = custodiadosValidos
+        .map(c => `${c.nome}${c.id_personagem ? `, RG nº ${c.id_personagem}` : ""}`)
+        .join("; ");
+
       const ata =
         `AUTOS / BOPM Nº: ${custForm.autos_bopm || "—"}\n`
         + `DATA E HORA DE ABERTURA: ${fmt(dataHoraISO)}\n`
-        + `CUSTODIADO: ${custForm.preso_nome}${custForm.preso_id_personagem ? `, RG nº ${custForm.preso_id_personagem}` : ""}.\n`
+        + `CUSTODIADO${custodiadosValidos.length > 1 ? "S" : ""}: ${custodiadosTxt}.\n`
         + `CAPITULAÇÃO PROVISÓRIA: ${custForm.capitulacao_provisoria || "—"}.\n`
         + `LOCAL: ${custForm.local || "—"}\n`
         + `AUTORIDADE DA PRISÃO: ${custForm.autoridade_prisao || "—"}\n`
@@ -278,20 +283,22 @@ export default function AudienciasSection() {
         tipo: "custódia",
         data_hora: dataHoraISO,
         local: custForm.local || null,
-        observacoes: `Custódia — Preso: ${custForm.preso_nome}. Decisão: ${decisaoLabel}.`,
+        observacoes: `Custódia — ${custodiadosTxt}. Decisão: ${decisaoLabel}.`,
         status: "realizada",
         ata,
+        criado_por: user?.id,
       }).select("id").single();
       if (error) throw error;
 
-      if (custForm.preso_nome.trim()) {
-        await supabase.from("envolvidos_audiencia").insert({
-          audiencia_id: inserted.id,
-          nome: custForm.preso_nome,
-          tipo: "participante",
-          id_personagem: custForm.preso_id_personagem || null,
-          observacoes: "Preso (audiência de custódia)",
-        });
+      const envolvidos = custodiadosValidos.map(c => ({
+        audiencia_id: inserted.id,
+        nome: c.nome,
+        tipo: "participante",
+        id_personagem: c.id_personagem || null,
+        observacoes: "Preso (audiência de custódia)",
+      }));
+      if (envolvidos.length > 0) {
+        await supabase.from("envolvidos_audiencia").insert(envolvidos);
       }
 
       return inserted.id as string;
@@ -299,8 +306,8 @@ export default function AudienciasSection() {
     onSuccess: (id) => {
       toast.success("Audiência de custódia registrada!");
       queryClient.invalidateQueries({ queryKey: ["audiencias"] });
+      queryClient.invalidateQueries({ queryKey: ["magistrado-ranking"] });
       setOpenCustodia(false);
-      // Oferecer abertura de processo criminal
       setOpenProcessoCustodia(id);
     },
     onError: (e: any) => toast.error("Erro: " + e.message),
