@@ -321,18 +321,21 @@ export default function AudienciasSection() {
       const { data: envs } = await supabase.from("envolvidos_audiencia").select("*").eq("audiencia_id", audienciaId);
       const preso = envs?.[0];
 
-      const reuArr = preso ? [{ nome: preso.nome, ...(preso.id_personagem ? { id_personagem: preso.id_personagem } : {}) }] : [];
+      const reuArr = (envs && envs.length > 0)
+        ? envs.map((e: any) => ({ nome: e.nome, ...(e.id_personagem ? { id_personagem: e.id_personagem } : {}) }))
+        : custForm.custodiados.filter(c => c.nome.trim()).map(c => ({ nome: c.nome, ...(c.id_personagem ? { id_personagem: c.id_personagem } : {}) }));
       const autorArr = [{ nome: "Ministério Público" }];
 
       const { data: sorteioData } = await supabase.rpc("sortear_magistrado");
       const juizId = sorteioData || null;
 
       // Síntese dos fatos — apenas dados objetivos da prisão
-      const presoNome = custForm.preso_nome || preso?.nome || "—";
-      const presoRG = custForm.preso_id_personagem || preso?.id_personagem || "—";
+      const custodiadosTxt = reuArr
+        .map((c: any) => `${c.nome}${c.id_personagem ? `, RG nº ${c.id_personagem}` : ""}`)
+        .join("; ") || "—";
       const sintese =
         `AUTOS / BOPM Nº: ${custForm.autos_bopm || "—"}\n`
-        + `CUSTODIADO: ${presoNome}, RG nº ${presoRG}.\n`
+        + `CUSTODIADO${reuArr.length > 1 ? "S" : ""}: ${custodiadosTxt}.\n`
         + `CAPITULAÇÃO PROVISÓRIA: ${custForm.capitulacao_provisoria || "—"}.\n`
         + `LOCAL: ${custForm.local || "—"}\n`
         + `AUTORIDADE DA PRISÃO: ${custForm.autoridade_prisao || "—"}`;
