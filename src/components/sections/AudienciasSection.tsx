@@ -519,16 +519,33 @@ export default function AudienciasSection() {
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label>Custodiado *</Label>
-              <PersonLookupInput
-                nomeValue={custForm.preso_nome}
-                onNomeChange={n => setCustForm(f => ({ ...f, preso_nome: n }))}
-                onLookupResult={p => { if (p) setCustForm(f => ({ ...f, preso_nome: p.nome_completo, preso_id_personagem: p.id_personagem || "" })); }}
-                idValue={custForm.preso_id_personagem}
-                onIdChange={id => setCustForm(f => ({ ...f, preso_id_personagem: id }))}
-                compact
-              />
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Custodiado(s) *</Label>
+                <Button type="button" size="sm" variant="outline" onClick={() => setCustForm(f => ({ ...f, custodiados: [...f.custodiados, { nome: "", id_personagem: "" }] }))}>
+                  <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar réu
+                </Button>
+              </div>
+              {custForm.custodiados.map((c, idx) => (
+                <div key={idx} className="rounded-md border p-2 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Réu {idx + 1}</span>
+                    {custForm.custodiados.length > 1 && (
+                      <Button type="button" size="icon" variant="ghost" className="h-6 w-6" onClick={() => setCustForm(f => ({ ...f, custodiados: f.custodiados.filter((_, i) => i !== idx) }))}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                  <PersonLookupInput
+                    nomeValue={c.nome}
+                    onNomeChange={n => setCustForm(f => ({ ...f, custodiados: f.custodiados.map((x, i) => i === idx ? { ...x, nome: n } : x) }))}
+                    onLookupResult={p => { if (p) setCustForm(f => ({ ...f, custodiados: f.custodiados.map((x, i) => i === idx ? { nome: p.nome_completo, id_personagem: p.id_personagem || "" } : x) })); }}
+                    idValue={c.id_personagem}
+                    onIdChange={id => setCustForm(f => ({ ...f, custodiados: f.custodiados.map((x, i) => i === idx ? { ...x, id_personagem: id } : x) }))}
+                    compact
+                  />
+                </div>
+              ))}
             </div>
 
             <div className="space-y-1.5">
