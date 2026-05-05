@@ -143,6 +143,7 @@ export type Database = {
         Row: {
           ata: string | null
           created_at: string
+          criado_por: string | null
           data_hora: string
           id: string
           local: string | null
@@ -154,6 +155,7 @@ export type Database = {
         Insert: {
           ata?: string | null
           created_at?: string
+          criado_por?: string | null
           data_hora: string
           id?: string
           local?: string | null
@@ -165,6 +167,7 @@ export type Database = {
         Update: {
           ata?: string | null
           created_at?: string
+          criado_por?: string | null
           data_hora?: string
           id?: string
           local?: string | null
