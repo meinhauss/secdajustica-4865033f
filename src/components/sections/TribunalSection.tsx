@@ -60,7 +60,7 @@ export default function TribunalSection({ onOpenProcesso }: { onOpenProcesso?: (
 /* ═══════════════════════════════════════ */
 /*  DASHBOARD                              */
 /* ═══════════════════════════════════════ */
-function TribunalDashboard({ onSelect }: { onSelect: (id: string) => void }) {
+function TribunalDashboard({ onSelect, onOpenProcesso }: { onSelect: (id: string) => void; onOpenProcesso?: (id: string) => void }) {
   const { user, roles } = useAuth();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
