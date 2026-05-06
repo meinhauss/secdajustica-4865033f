@@ -92,13 +92,17 @@ export default function CodigoPenalPage() {
       {/* Tabs: Código Penal / Calculadora */}
       <Tabs value={aba} onValueChange={setAba} className="flex-1 flex flex-col">
         <div className="border-b border-border bg-card sticky top-0 z-10">
-          <div className="max-w-7xl mx-auto px-4">
-            <TabsList className="h-12 bg-transparent gap-1">
-              <TabsTrigger value="codigo" className="data-[state=active]:bg-gold/10 data-[state=active]:text-gold gap-2">
-                <BookOpen className="h-4 w-4" /> Código Penal
+          <div className="max-w-7xl mx-auto px-2 sm:px-4">
+            <TabsList className="h-11 sm:h-12 bg-transparent gap-1 w-full sm:w-auto justify-start">
+              <TabsTrigger value="codigo" className="data-[state=active]:bg-gold/10 data-[state=active]:text-gold gap-1.5 sm:gap-2 text-xs sm:text-sm flex-1 sm:flex-none">
+                <BookOpen className="h-4 w-4" />
+                <span className="hidden xs:inline sm:inline">Código Penal</span>
+                <span className="xs:hidden sm:hidden">Código</span>
               </TabsTrigger>
-              <TabsTrigger value="calculadora" className="data-[state=active]:bg-gold/10 data-[state=active]:text-gold gap-2">
-                <Calculator className="h-4 w-4" /> Calculadora Penal
+              <TabsTrigger value="calculadora" className="data-[state=active]:bg-gold/10 data-[state=active]:text-gold gap-1.5 sm:gap-2 text-xs sm:text-sm flex-1 sm:flex-none">
+                <Calculator className="h-4 w-4" />
+                <span className="hidden xs:inline sm:inline">Calculadora Penal</span>
+                <span className="xs:hidden sm:hidden">Calculadora</span>
               </TabsTrigger>
             </TabsList>
           </div>
