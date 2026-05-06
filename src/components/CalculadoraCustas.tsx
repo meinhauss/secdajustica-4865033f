@@ -170,6 +170,18 @@ export default function CalculadoraCustas() {
     setCrimesLimpeza(crimesLimpeza.map(c => c.id === id ? { ...c, typeIndex } : c));
   };
 
+  const addOutraCusta = () => {
+    setOutrasCustas([...outrasCustas, { id: Math.random().toString(), description: "", value: 0 }]);
+  };
+
+  const removeOutraCusta = (id: string) => {
+    setOutrasCustas(outrasCustas.filter(c => c.id !== id));
+  };
+
+  const updateOutraCusta = (id: string, field: "description" | "value", val: string | number) => {
+    setOutrasCustas(outrasCustas.map(c => c.id === id ? { ...c, [field]: val } : c));
+  };
+
   const calculations = useMemo(() => {
     let custas = 0;
     let honorarios = 0;
