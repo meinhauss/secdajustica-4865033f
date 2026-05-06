@@ -346,7 +346,7 @@ export default function CalculadoraCustas() {
     if (hasDesembargador) extras += 120000;
     outrasCustas.forEach(c => { extras += c.value; });
 
-    const custasTotal = itemizedDetails.filter(i => (i.type === 'custa' || i.type === 'despesa') && includeCustas).reduce((acc, curr) => acc + curr.value, 0);
+    const custasTotal = includeCustas ? itemizedDetails.filter(i => (i.type === 'custa' || i.type === 'despesa')).reduce((acc, curr) => acc + curr.value, 0) : 0;
     const honorariosTotal = includeHonorarios ? itemizedDetails.filter(i => i.type === 'honorario').reduce((acc, curr) => acc + curr.value, 0) : 0;
     const finalExtras = includeExtras ? extras : 0;
 
@@ -355,7 +355,10 @@ export default function CalculadoraCustas() {
       honorarios: honorariosTotal,
       extras: finalExtras,
       total: custasTotal + honorariosTotal + finalExtras,
-      itemizedDetails: itemizedDetails.map(i => ({ ...i, required: (selectedProcess?.items?.find(orig => orig.label === i.label)?.required) }))
+      itemizedDetails: itemizedDetails.filter(i => {
+        if (i.type === 'honorario') return includeHonorarios;
+        return includeCustas;
+      }).map(i => ({ ...i, required: (selectedProcess?.items?.find(orig => orig.label === i.label)?.required) }))
     };
   }, [selectedProcess, diligencias, hasJuiz, hasPromotor, hasDesembargador, valorCivel, hasAlteracaoNome, includeCustas, includeHonorarios, includeExtras, customCustas, customHonorarios, honorarioType, customPercentage, outrasCustas, selectedItems, crimesLimpeza]);
 
