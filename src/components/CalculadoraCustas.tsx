@@ -576,7 +576,7 @@ export default function CalculadoraCustas() {
                     <SelectValue placeholder="Selecione o tipo de processo judicial..." />
                   </SelectTrigger>
                   <SelectContent className="max-h-[300px]">
-                    {PROCESS_TYPES.map(p => (
+                    {sortedProcessTypes.map(p => (
                       <SelectItem key={p.id} value={p.id} className="py-3">{p.name}</SelectItem>
                     ))}
                   </SelectContent>
