@@ -150,6 +150,9 @@ export default function CalculadoraCustas() {
   const [includeHonorarios, setIncludeHonorarios] = useState(true);
   const [includeExtras, setIncludeExtras] = useState(true);
 
+  // Other costs
+  const [outrasCustas, setOutrasCustas] = useState<{ id: string; description: string; value: number }[]>([]);
+
   const selectedProcess = useMemo(() => 
     PROCESS_TYPES.find(p => p.id === selectedProcessId), 
     [selectedProcessId]
