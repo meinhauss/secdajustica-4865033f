@@ -230,14 +230,34 @@ export default function CalculadoraCustas() {
       setHasAlteracaoNome(false);
 
       // Valores iniciais para personalização
-      const honorarioItem = selectedProcess.items.find(i => i.type === 'honorario');
-      if (honorarioItem) {
-        setCustomHonorarios(honorarioItem.value);
+      // Honorários agora são exclusivamente controlados pela seção de personalização
+      if (selectedProcess.id === 'recursos') {
+        setCustomHonorarios(75000);
         setHonorarioType("fixed");
-        setCustomPercentage(20);
-      } else if (selectedProcessId === 'acoes_civeis') {
+      } else if (selectedProcess.id === 'defesa_detido') {
+        setCustomHonorarios(30000);
+        setHonorarioType("fixed");
+      } else if (selectedProcess.id === 'acoes_civeis') {
         setHonorarioType("percentage");
         setCustomPercentage(20);
+      } else if (selectedProcess.id === 'porte_arma') {
+        setCustomHonorarios(110000);
+        setHonorarioType("fixed");
+      } else if (selectedProcess.id === 'limpeza_ficha') {
+        setCustomHonorarios(110000);
+        setHonorarioType("fixed");
+      } else if (selectedProcess.id === 'divorcio') {
+        setCustomHonorarios(115000);
+        setHonorarioType("fixed");
+      } else if (selectedProcess.id === 'alvara') {
+        setCustomHonorarios(35000);
+        setHonorarioType("fixed");
+      } else if (selectedProcess.id === 'casamento') {
+        setCustomHonorarios(80000);
+        setHonorarioType("fixed");
+      } else {
+        setCustomHonorarios(0);
+        setHonorarioType("fixed");
       }
       
       const custaItem = selectedProcess.items.find(i => i.type === 'custa');
