@@ -24,99 +24,125 @@ const formatBRL = (value: number) => {
   }).format(value);
 };
 
+interface ProcessItem {
+  label: string;
+  value: number;
+  type: 'custa' | 'honorario' | 'despesa';
+  required?: boolean;
+}
+
 interface ProcessType {
   id: string;
   name: string;
-  custas: number | "base_plus" | "special" | "vide_decreto" | "custom";
-  honorarios: number | "percentage" | "special" | "none" | "custom";
-  description?: string;
+  items: ProcessItem[];
   obs?: string;
-  baseCustas?: number;
-  baseHonorarios?: number;
 }
 
 const PROCESS_TYPES: ProcessType[] = [
   { 
     id: "peticao_inicial", 
     name: "Petição Inicial (Geral)", 
-    custas: 25000, 
-    honorarios: "none", 
+    items: [
+      { label: "Taxa Judiciária (Inicial)", value: 25000, type: 'custa', required: true }
+    ],
     obs: "Valor fixo somado à respectiva ação." 
   },
   { 
     id: "recursos", 
     name: "Recursos (Apelação e/ou Recurso)", 
-    custas: 50000, 
-    honorarios: 75000 
+    items: [
+      { label: "Taxa de Preparo Recursal", value: 50000, type: 'custa', required: true },
+      { label: "Honorários de Sucumbência Recursal", value: 75000, type: 'honorario' }
+    ]
   },
   { 
     id: "mandados", 
     name: "MS, Habeas Corpus e Habeas Data", 
-    custas: 50000, 
-    honorarios: "none" 
+    items: [
+      { label: "Custas de Impetração", value: 50000, type: 'custa', required: true }
+    ]
   },
   { 
     id: "defesa_detido", 
     name: "Defesa de Acusado Detido/Preso", 
-    custas: 0, 
-    honorarios: "special",
-    obs: "R$ 30.000,00 (até 10 min) ou R$ 35.000,00 (> 10 min)" 
+    items: [
+      { label: "Honorários Atendimento (até 10 min)", value: 30000, type: 'honorario' },
+      { label: "Honorários Atendimento (> 10 min)", value: 35000, type: 'honorario' }
+    ],
+    obs: "Escolha o valor baseado no tempo de atendimento." 
   },
   { 
     id: "acoes_civeis", 
     name: "Ações Cíveis (Danos Morais/Materiais)", 
-    custas: 25000, 
-    honorarios: "percentage",
-    obs: "20% sobre o valor total. Danos morais: R$ 40k a R$ 2M."
+    items: [
+      { label: "Taxa Judiciária", value: 25000, type: 'custa', required: true },
+      { label: "Honorários Ad Exitum (20%)", value: 0, type: 'honorario' }
+    ],
+    obs: "Danos morais: R$ 40k a R$ 2M."
   },
   { 
     id: "porte_arma", 
     name: "Porte de Arma de Fogo (Uso Permitido)", 
-    custas: 475000, 
-    honorarios: 110000,
-    obs: "Inclui Inicial, Psicológico, Armamento, Munições e Verbas (Promotor/Juiz)."
+    items: [
+      { label: "Taxa de Protocolo (Inicial)", value: 25000, type: 'custa', required: true },
+      { label: "Laudo Psicológico Profissional", value: 150000, type: 'despesa' },
+      { label: "Curso de Armamento e Tiro", value: 200000, type: 'despesa' },
+      { label: "Munições de Treinamento", value: 100000, type: 'despesa' },
+      { label: "Honorários Administrativos", value: 110000, type: 'honorario' }
+    ],
+    obs: "Discriminação completa para o cliente."
   },
   { 
     id: "limpeza_ficha", 
     name: "Exclusão de Antecedentes (Limpeza)", 
-    custas: "base_plus", 
-    honorarios: 110000,
-    baseCustas: 50000,
-    obs: "Base de R$ 50.000,00 + valor por gravidade do crime + Verbas."
+    items: [
+      { label: "Taxa de Processamento Base", value: 50000, type: 'custa', required: true },
+      { label: "Honorários Advocatícios", value: 110000, type: 'honorario' }
+    ],
+    obs: "Base de R$ 50.000,00 + valor por gravidade do crime."
   },
   { 
     id: "divorcio", 
     name: "Divórcio", 
-    custas: "vide_decreto", 
-    honorarios: 115000 
+    items: [
+      { label: "Taxa de Averbação", value: 35000, type: 'custa', required: true },
+      { label: "Honorários Advocatícios", value: 115000, type: 'honorario' }
+    ]
   },
   { 
     id: "alvara", 
     name: "Alvará de Funcionamento", 
-    custas: 150000, 
-    honorarios: 35000,
-    obs: "Inclui Inicial. Obrigatório Taxa AVCB à parte."
+    items: [
+      { label: "Taxa de Vistoria Inicial", value: 150000, type: 'custa', required: true },
+      { label: "Taxa AVCB (Bombeiros)", value: 50000, type: 'custa' },
+      { label: "Honorários Advocatícios", value: 35000, type: 'honorario' }
+    ]
   },
   { 
     id: "casamento", 
     name: "Casamento (Certidão e Ação)", 
-    custas: 875000, 
-    honorarios: 80000,
-    obs: "Inclui Inicial, Certidão e Ação."
+    items: [
+      { label: "Taxa Cartorária", value: 875000, type: 'custa', required: true },
+      { label: "Alteração de Sobrenome", value: 2000000, type: 'custa' },
+      { label: "Honorários Processuais", value: 80000, type: 'honorario' }
+    ]
   },
   { 
     id: "adocao", 
     name: "Adoção", 
-    custas: 1225000, 
-    honorarios: "none",
-    obs: "Inclui Inicial, Certidão atualizada e Ação."
+    items: [
+      { label: "Taxa Processual de Adoção", value: 1225000, type: 'custa', required: true },
+      { label: "Estudo Psicossocial Judiciário", value: 0, type: 'custa' },
+      { label: "Honorários Advocatícios", value: 0, type: 'honorario' }
+    ]
   },
   {
     id: "outros",
     name: "Outros (Personalizado)",
-    custas: "custom",
-    honorarios: "custom",
-    obs: "Defina valores personalizados para custas e honorários."
+    items: [
+      { label: "Custa Personalizada", value: 0, type: 'custa' },
+      { label: "Honorário Personalizado", value: 0, type: 'honorario' }
+    ]
   }
 ];
 
@@ -160,27 +186,38 @@ export default function CalculadoraCustas() {
     [selectedProcessId]
   );
 
+  // Seleção de itens específicos do processo
+  const [selectedItems, setSelectedItems] = useState<Record<string, boolean>>({});
+
   useEffect(() => {
     if (selectedProcess) {
-      if (typeof selectedProcess.custas === 'number') {
-        setCustomCustas(selectedProcess.custas);
-      } else if (selectedProcess.custas === 'base_plus' && selectedProcess.baseCustas) {
-        setCustomCustas(selectedProcess.baseCustas);
-      } else {
-        setCustomCustas(0);
-      }
+      const initial: Record<string, boolean> = {};
+      selectedProcess.items.forEach(item => {
+        initial[item.label] = true;
+      });
+      setSelectedItems(initial);
 
-      if (typeof selectedProcess.honorarios === 'number') {
-        setCustomHonorarios(selectedProcess.honorarios);
+      // Reset specific inputs
+      setDiligencias(0);
+      setCrimesLimpeza([]);
+      setHasAlteracaoNome(false);
+
+      // Valores iniciais para personalização
+      const honorarioItem = selectedProcess.items.find(i => i.type === 'honorario');
+      if (honorarioItem) {
+        setCustomHonorarios(honorarioItem.value);
         setHonorarioType("fixed");
-      } else if (selectedProcess.honorarios === 'percentage') {
+        setCustomPercentage(20);
+      } else if (selectedProcessId === 'acoes_civeis') {
         setHonorarioType("percentage");
         setCustomPercentage(20);
-      } else if (selectedProcess.honorarios === 'special') {
-        if (selectedProcess.id === 'defesa_detido') {
-          setCustomHonorarios(30000);
-          setHonorarioType("fixed");
-        }
+      }
+      
+      const custaItem = selectedProcess.items.find(i => i.type === 'custa');
+      if (custaItem) {
+        setCustomCustas(custaItem.value);
+      } else {
+        setCustomCustas(0);
       }
     }
   }, [selectedProcessId]);
@@ -210,68 +247,72 @@ export default function CalculadoraCustas() {
   };
 
   const calculations = useMemo(() => {
-    let custas = 0;
-    let honorarios = 0;
+    const itemizedDetails: { label: string; value: number; type: 'custa' | 'honorario' | 'despesa' }[] = [];
     let extras = 0;
 
     if (selectedProcess) {
-      // Base Custas
       if (selectedProcess.id === 'outros') {
-        custas = customCustas;
-      } else if (selectedProcess.custas === 'base_plus' && selectedProcess.baseCustas) {
-        custas = selectedProcess.baseCustas;
-        crimesLimpeza.forEach(c => {
-          custas += GRAVIDADE_CRIMES[c.typeIndex].value;
+        itemizedDetails.push({ label: "Custas (Personalizado)", value: customCustas, type: 'custa' });
+        if (honorarioType === "fixed") {
+          itemizedDetails.push({ label: "Honorários (Personalizado)", value: customHonorarios, type: 'honorario' });
+        } else {
+          itemizedDetails.push({ label: `Honorários (${customPercentage}%)`, value: (valorCivel || 0) * (customPercentage / 100), type: 'honorario' });
+        }
+      } else {
+        selectedProcess.items.forEach(item => {
+          if (selectedItems[item.label]) {
+            let val = item.value;
+            // Se for honorário e estiver em modo percentual, recalcula
+            if (item.type === 'honorario' && honorarioType === 'percentage') {
+              val = (valorCivel || 0) * (customPercentage / 100);
+            } else if (item.type === 'honorario' && customHonorarios !== item.value && customHonorarios !== 0) {
+              val = customHonorarios;
+            }
+            
+            // Lógica especial para Limpeza de Ficha
+            if (selectedProcess.id === 'limpeza_ficha' && item.label === 'Taxa de Processamento Base') {
+              crimesLimpeza.forEach(c => {
+                val += GRAVIDADE_CRIMES[c.typeIndex].value;
+              });
+            }
+
+            itemizedDetails.push({ ...item, value: val });
+          }
         });
-      } else {
-        custas = typeof selectedProcess.custas === 'number' ? selectedProcess.custas : customCustas;
       }
 
-      // Base Honorarios
-      if (honorarioType === "fixed") {
-        honorarios = customHonorarios;
-      } else {
-        honorarios = (valorCivel || 0) * (customPercentage / 100);
-      }
-
-      // Adicionais especiais baseados no tipo (sobrescrevendo se necessário)
-      if (selectedProcess.id === 'defesa_detido' && honorarioType === "fixed" && customHonorarios === 0) {
-        honorarios = detidoMais10Min ? 35000 : 30000;
-      }
-
-      // Adicionais de nome (Adoção ou Casamento)
+      // Adicionais de nome
       if (hasAlteracaoNome && (selectedProcess.id === 'adocao' || selectedProcess.id === 'casamento')) {
-        custas += 2000000;
-        if (selectedProcess.id === 'casamento') {
-          honorarios += 80000;
+        if (!itemizedDetails.find(i => i.label === "Alteração de Sobrenome")) {
+          itemizedDetails.push({ label: "Alteração de Sobrenome", value: 2000000, type: 'custa' });
+          if (selectedProcess.id === 'casamento') {
+             itemizedDetails.push({ label: "Honorários p/ Alteração de Nome", value: 80000, type: 'honorario' });
+          }
         }
       }
     }
 
-    // Diligências
-    extras += diligencias * 20000;
-
-    // Verbas Indenizatórias
+    if (diligencias > 0) extras += diligencias * 20000;
     if (hasJuiz) extras += 60000;
     if (hasPromotor) extras += 80000;
     if (hasDesembargador) extras += 120000;
+    outrasCustas.forEach(c => { extras += c.value; });
 
-    // Outras Custas
-    outrasCustas.forEach(c => {
-      extras += c.value;
-    });
-
-    const finalCustas = includeCustas ? custas : 0;
-    const finalHonorarios = includeHonorarios ? honorarios : 0;
+    const custasTotal = itemizedDetails.filter(i => (i.type === 'custa' || i.type === 'despesa') && includeCustas).reduce((acc, curr) => acc + curr.value, 0);
+    const honorariosTotal = itemizedDetails.filter(i => i.type === 'honorario' && includeHonorarios).reduce((acc, curr) => acc + curr.value, 0);
     const finalExtras = includeExtras ? extras : 0;
 
     return {
-      custas: finalCustas,
-      honorarios: finalHonorarios,
+      custas: custasTotal,
+      honorarios: honorariosTotal,
       extras: finalExtras,
-      total: finalCustas + finalHonorarios + finalExtras
+      total: custasTotal + honorariosTotal + finalExtras,
+      itemizedDetails: itemizedDetails.filter(i => {
+        if (i.type === 'honorario') return includeHonorarios;
+        return includeCustas;
+      })
     };
-  }, [selectedProcess, diligencias, hasJuiz, hasPromotor, hasDesembargador, valorCivel, hasAlteracaoNome, includeCustas, includeHonorarios, includeExtras, customCustas, customHonorarios, honorarioType, customPercentage, outrasCustas]);
+  }, [selectedProcess, diligencias, hasJuiz, hasPromotor, hasDesembargador, valorCivel, hasAlteracaoNome, includeCustas, includeHonorarios, includeExtras, customCustas, customHonorarios, honorarioType, customPercentage, outrasCustas, selectedItems, crimesLimpeza]);
 
   const copySummary = () => {
     if (!selectedProcess) return;
@@ -279,8 +320,7 @@ export default function CalculadoraCustas() {
     const summary = [
       "═══ ORÇAMENTO PROCESSUAL ═══",
       `Processo: ${selectedProcess.name}`,
-      `Custas Processuais: ${formatBRL(calculations.custas)}`,
-      `Honorários: ${formatBRL(calculations.honorarios)}`,
+      ...calculations.itemizedDetails.map(item => `• ${item.label}: ${formatBRL(item.value)}`),
       `Taxas/Diligências/Verbas: ${formatBRL(calculations.extras)}`,
       "────────────────────────",
       `TOTAL: ${formatBRL(calculations.total)}`,
@@ -313,31 +353,23 @@ export default function CalculadoraCustas() {
       startY: 48,
       body: [
         ["Tipo de Processo", selectedProcess.name],
-        ["Status", "Estimativa de Custas"],
+        ["Emissão", new Date().toLocaleString("pt-BR")],
       ],
-      theme: "striped",
+      theme: "plain",
       styles: { fontSize: 10 },
     });
 
     // Itens Discriminados
     doc.setFontSize(14);
-    doc.text("Discriminação de Valores", 14, (doc as any).lastAutoTable.finalY + 15);
+    doc.text("Detalhamento de Custas e Honorários", 14, (doc as any).lastAutoTable.finalY + 15);
     
-    const tableData = [];
-    if (includeCustas) {
-      tableData.push(["Custas Judiciais (Base)", formatBRL(calculations.custas)]);
-    }
-    if (includeHonorarios) {
-      tableData.push(["Honorários Advocatícios", formatBRL(calculations.honorarios)]);
-    }
+    const tableData = calculations.itemizedDetails.map(item => [item.label, formatBRL(item.value)]);
+    
     if (includeExtras) {
-      if (diligencias > 0) {
-        tableData.push([`Diligências (${diligencias}x)`, formatBRL(diligencias * 20000)]);
-      }
+      if (diligencias > 0) tableData.push([`Diligências (${diligencias}x)`, formatBRL(diligencias * 20000)]);
       if (hasJuiz) tableData.push(["Verba: Juiz de Direito", formatBRL(60000)]);
       if (hasPromotor) tableData.push(["Verba: Promotor de Justiça", formatBRL(80000)]);
       if (hasDesembargador) tableData.push(["Verba: Desembargador", formatBRL(120000)]);
-      
       outrasCustas.forEach(c => {
         tableData.push([`Outra: ${c.description || "Sem descrição"}`, formatBRL(c.value)]);
       });
@@ -436,7 +468,30 @@ export default function CalculadoraCustas() {
                 )}
               </div>
 
-              {/* Personalização de Custas e Honorários */}
+              {/* Seleção Detalhada de Itens do Processo */}
+              {selectedProcess && selectedProcess.id !== 'outros' && (
+                <div className="space-y-3 p-4 border rounded-lg bg-secondary/5 mb-4">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                    <CheckSquare className="h-3 w-3" />
+                    Itens Inclusos no Processo
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {selectedProcess.items.map((item) => (
+                      <div key={item.label} className="flex items-center space-x-2 p-2 border rounded bg-background hover:bg-secondary/10 transition-colors">
+                        <Checkbox 
+                          id={`item-${item.label}`} 
+                          checked={selectedItems[item.label] || false}
+                          onCheckedChange={(v) => setSelectedItems({ ...selectedItems, [item.label]: !!v })}
+                        />
+                        <Label htmlFor={`item-${item.label}`} className="text-xs cursor-pointer flex-1 flex justify-between gap-2">
+                          <span className="truncate">{item.label}</span>
+                          <span className="text-gold font-mono whitespace-nowrap">{formatBRL(item.value)}</span>
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               {selectedProcessId && (
                 <div className="space-y-4 p-4 border rounded-lg bg-secondary/10">
                   <h4 className="font-semibold text-sm flex items-center gap-2">
@@ -449,7 +504,7 @@ export default function CalculadoraCustas() {
                       <Label className="text-xs">Custas Processuais (R$)</Label>
                       <Input 
                         type="number" 
-                        value={selectedProcessId === 'outros' ? customCustas : (selectedProcess?.custas && typeof selectedProcess.custas === 'number' ? selectedProcess.custas : customCustas)} 
+                        value={selectedProcessId === 'outros' ? customCustas : (selectedProcess?.items?.find(i => i.type === 'custa')?.value ?? customCustas)} 
                         onChange={e => setCustomCustas(Number(e.target.value))}
                         disabled={selectedProcessId !== 'outros'}
                         className="bg-background h-8 text-sm"
@@ -715,75 +770,34 @@ export default function CalculadoraCustas() {
                     <Scale className={`h-4 w-4 transition-colors ${includeCustas ? 'text-gold/50' : 'text-muted-foreground/30'}`} />
                   </div>
 
-                  {includeExtras && diligencias > 0 && (
+                  {calculations.itemizedDetails.map((item, idx) => (
+                    <div key={idx} className="flex justify-between items-start pl-5 border-l border-gold/20">
+                      <div className="space-y-0.5">
+                        <p className="text-[9px] uppercase tracking-widest text-muted-foreground">{item.label}</p>
+                        <p className="text-xs font-medium">{formatBRL(item.value)}</p>
+                      </div>
+                    </div>
+                  ))}
+
+                  {includeExtras && (diligencias > 0 || hasJuiz || hasPromotor || hasDesembargador || outrasCustas.length > 0) && (
                     <div className="flex justify-between items-start">
-                      <div className="space-y-0.5 pl-5 border-l border-gold/20">
-                        <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Diligências ({diligencias}x)</p>
-                        <p className="text-xs font-medium">{formatBRL(diligencias * 20000)}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {includeExtras && (hasJuiz || hasPromotor || hasDesembargador) && (
-                    <div className="space-y-1 pl-5 border-l border-gold/20">
-                      <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Verbas Indenizatórias</p>
                       <div className="space-y-0.5">
-                        {hasJuiz && <div className="flex justify-between text-[10px]"><span className="opacity-70">Juiz:</span> <span>{formatBRL(60000)}</span></div>}
-                        {hasPromotor && <div className="flex justify-between text-[10px]"><span className="opacity-70">Promotor:</span> <span>{formatBRL(80000)}</span></div>}
-                        {hasDesembargador && <div className="flex justify-between text-[10px]"><span className="opacity-70">Desemb.:</span> <span>{formatBRL(120000)}</span></div>}
+                        <div className="flex items-center gap-2">
+                          <Checkbox 
+                            id="inc-extras" 
+                            checked={includeExtras} 
+                            onCheckedChange={(v) => setIncludeExtras(!!v)}
+                            className="h-3 w-3"
+                          />
+                          <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeExtras(!includeExtras)}>Diligências e Taxas Extras</p>
+                        </div>
+                        <p className={`font-medium transition-opacity ${!includeExtras ? 'opacity-30' : ''}`}>
+                          {formatBRL(calculations.extras)}
+                        </p>
                       </div>
+                      <Gavel className={`h-4 w-4 transition-colors ${includeExtras ? 'text-gold/50' : 'text-muted-foreground/30'}`} />
                     </div>
                   )}
-
-                  {includeExtras && outrasCustas.length > 0 && (
-                    <div className="space-y-1 pl-5 border-l border-gold/20">
-                      <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Custas Personalizadas</p>
-                      <div className="space-y-0.5">
-                        {outrasCustas.map((c) => (
-                          <div key={c.id} className="flex justify-between text-[10px]">
-                            <span className="opacity-70 truncate max-w-[120px]">{c.description || "Outra"}:</span>
-                            <span>{formatBRL(c.value)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                <div className="flex justify-between items-start">
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <Checkbox 
-                        id="inc-honorarios" 
-                        checked={includeHonorarios} 
-                        onCheckedChange={(v) => setIncludeHonorarios(!!v)}
-                        className="h-3 w-3"
-                      />
-                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeHonorarios(!includeHonorarios)}>Honorários OAB (Piso)</p>
-                    </div>
-                    <p className={`font-medium transition-opacity ${!includeHonorarios ? 'opacity-30' : ''}`}>
-                      {selectedProcess ? formatBRL(calculations.honorarios) : "—"}
-                    </p>
-                  </div>
-                  <Briefcase className={`h-4 w-4 transition-colors ${includeHonorarios ? 'text-gold/50' : 'text-muted-foreground/30'}`} />
-                </div>
-
-                <div className="flex justify-between items-start">
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <Checkbox 
-                        id="inc-extras" 
-                        checked={includeExtras} 
-                        onCheckedChange={(v) => setIncludeExtras(!!v)}
-                        className="h-3 w-3"
-                      />
-                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeExtras(!includeExtras)}>Taxas e Verbas</p>
-                    </div>
-                    <p className={`font-medium transition-opacity ${!includeExtras ? 'opacity-30' : ''}`}>
-                      {formatBRL(calculations.extras)}
-                    </p>
-                  </div>
-                  <Gavel className={`h-4 w-4 transition-colors ${includeExtras ? 'text-gold/50' : 'text-muted-foreground/30'}`} />
-                </div>
 
                 <div className="pt-2 flex justify-end">
                   <Button 
