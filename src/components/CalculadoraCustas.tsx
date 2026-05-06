@@ -178,7 +178,7 @@ const PROCESS_TYPES: ProcessType[] = [
       { label: "Valor da Ação", value: 750000, type: 'custa', required: true }
     ],
     obs: "Total das taxas soma R$ 875.000,00.",
-    pisoHonorario: 80000
+    pisoHonorario: 90000
   },
   { 
     id: "adocao", 
