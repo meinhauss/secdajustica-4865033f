@@ -220,7 +220,7 @@ export default function CalculadoraCustas() {
   
   const sortedProcessTypes = useMemo(() => {
     const regular = PROCESS_TYPES.filter(p => p.id !== 'outros')
-      .sort((a, b) => a.name.localeCompare(b.name));
+      .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
     const outros = PROCESS_TYPES.find(p => p.id === 'outros');
     
     const result = [...regular];
