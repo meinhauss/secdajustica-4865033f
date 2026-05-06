@@ -803,15 +803,15 @@ export default function CalculadoraCustas() {
                 <div className="space-y-4">
                   <div className="flex justify-between items-start group">
                     <div className="space-y-0.5">
-                      <div className="flex items-center gap-2">
-                        <Checkbox 
-                          id="inc-custas" 
-                          checked={includeCustas} 
-                          onCheckedChange={(v) => setIncludeCustas(!!v)}
-                          className="h-3 w-3"
-                        />
-                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeCustas(!includeCustas)}>Custas Judiciais (Base)</p>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <Checkbox 
+                        id="inc-custas" 
+                        checked={includeCustas} 
+                        onCheckedChange={(v) => setIncludeCustas(!!v)}
+                        className="h-3 w-3 border-gold/50 data-[state=checked]:bg-gold data-[state=checked]:text-black"
+                      />
+                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeCustas(!includeCustas)}>Custas e Despesas</p>
+                    </div>
                       <p className={`font-medium transition-opacity ${!includeCustas ? 'opacity-30' : ''}`}>
                         {selectedProcess ? formatBRL(calculations.custas) : "—"}
                       </p>
