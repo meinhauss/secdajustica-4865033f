@@ -609,7 +609,7 @@ export default function CalculadoraCustas() {
                           />
                           <p className="text-[9px] text-amber-500 font-medium flex items-center gap-1">
                             <Info className="h-2 w-2" />
-                            Piso OAB-SP: R$ 30.000,00
+                            Piso conforme tabela de processos enviada.
                           </p>
                         </div>
                       ) : (
