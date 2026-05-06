@@ -342,31 +342,23 @@ export default function CalculadoraCustas() {
       startY: 48,
       body: [
         ["Tipo de Processo", selectedProcess.name],
-        ["Status", "Estimativa de Custas"],
+        ["Emissão", new Date().toLocaleString("pt-BR")],
       ],
-      theme: "striped",
+      theme: "plain",
       styles: { fontSize: 10 },
     });
 
     // Itens Discriminados
     doc.setFontSize(14);
-    doc.text("Discriminação de Valores", 14, (doc as any).lastAutoTable.finalY + 15);
+    doc.text("Detalhamento de Custas e Honorários", 14, (doc as any).lastAutoTable.finalY + 15);
     
-    const tableData = [];
-    if (includeCustas) {
-      tableData.push(["Custas Judiciais (Base)", formatBRL(calculations.custas)]);
-    }
-    if (includeHonorarios) {
-      tableData.push(["Honorários Advocatícios", formatBRL(calculations.honorarios)]);
-    }
+    const tableData = calculations.itemizedDetails.map(item => [item.label, formatBRL(item.value)]);
+    
     if (includeExtras) {
-      if (diligencias > 0) {
-        tableData.push([`Diligências (${diligencias}x)`, formatBRL(diligencias * 20000)]);
-      }
+      if (diligencias > 0) tableData.push([`Diligências (${diligencias}x)`, formatBRL(diligencias * 20000)]);
       if (hasJuiz) tableData.push(["Verba: Juiz de Direito", formatBRL(60000)]);
       if (hasPromotor) tableData.push(["Verba: Promotor de Justiça", formatBRL(80000)]);
       if (hasDesembargador) tableData.push(["Verba: Desembargador", formatBRL(120000)]);
-      
       outrasCustas.forEach(c => {
         tableData.push([`Outra: ${c.description || "Sem descrição"}`, formatBRL(c.value)]);
       });
