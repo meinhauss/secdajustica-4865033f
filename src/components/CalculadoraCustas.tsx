@@ -42,84 +42,107 @@ const PROCESS_TYPES: ProcessType[] = [
   { 
     id: "peticao_inicial", 
     name: "Petição Inicial (Geral)", 
-    custas: 25000, 
-    honorarios: "none", 
+    items: [
+      { label: "Taxa Judiciária (Inicial)", value: 25000, type: 'custa', required: true }
+    ],
     obs: "Valor fixo somado à respectiva ação." 
   },
   { 
     id: "recursos", 
     name: "Recursos (Apelação e/ou Recurso)", 
-    custas: 50000, 
-    honorarios: 75000 
+    items: [
+      { label: "Taxa de Preparo Recursal", value: 50000, type: 'custa', required: true },
+      { label: "Honorários de Sucumbência Recursal", value: 75000, type: 'honorario' }
+    ]
   },
   { 
     id: "mandados", 
     name: "MS, Habeas Corpus e Habeas Data", 
-    custas: 50000, 
-    honorarios: "none" 
+    items: [
+      { label: "Custas de Impetração", value: 50000, type: 'custa', required: true }
+    ]
   },
   { 
     id: "defesa_detido", 
     name: "Defesa de Acusado Detido/Preso", 
-    custas: 0, 
-    honorarios: "special",
-    obs: "R$ 30.000,00 (até 10 min) ou R$ 35.000,00 (> 10 min)" 
+    items: [
+      { label: "Honorários Atendimento (até 10 min)", value: 30000, type: 'honorario' },
+      { label: "Honorários Atendimento (> 10 min)", value: 35000, type: 'honorario' }
+    ],
+    obs: "Escolha o valor baseado no tempo de atendimento." 
   },
   { 
     id: "acoes_civeis", 
     name: "Ações Cíveis (Danos Morais/Materiais)", 
-    custas: 25000, 
-    honorarios: "percentage",
-    obs: "20% sobre o valor total. Danos morais: R$ 40k a R$ 2M."
+    items: [
+      { label: "Taxa Judiciária", value: 25000, type: 'custa', required: true },
+      { label: "Honorários Ad Exitum (20%)", value: 0, type: 'honorario' }
+    ],
+    obs: "Danos morais: R$ 40k a R$ 2M."
   },
   { 
     id: "porte_arma", 
     name: "Porte de Arma de Fogo (Uso Permitido)", 
-    custas: 475000, 
-    honorarios: 110000,
-    obs: "Inclui Inicial, Psicológico, Armamento, Munições e Verbas (Promotor/Juiz)."
+    items: [
+      { label: "Taxa de Protocolo (Inicial)", value: 25000, type: 'custa', required: true },
+      { label: "Laudo Psicológico Profissional", value: 150000, type: 'despesa' },
+      { label: "Curso de Armamento e Tiro", value: 200000, type: 'despesa' },
+      { label: "Munições de Treinamento", value: 100000, type: 'despesa' },
+      { label: "Honorários Administrativos", value: 110000, type: 'honorario' }
+    ],
+    obs: "Discriminação completa para o cliente."
   },
   { 
     id: "limpeza_ficha", 
     name: "Exclusão de Antecedentes (Limpeza)", 
-    custas: "base_plus", 
-    honorarios: 110000,
-    baseCustas: 50000,
-    obs: "Base de R$ 50.000,00 + valor por gravidade do crime + Verbas."
+    items: [
+      { label: "Taxa de Processamento Base", value: 50000, type: 'custa', required: true },
+      { label: "Honorários Advocatícios", value: 110000, type: 'honorario' }
+    ],
+    obs: "Base de R$ 50.000,00 + valor por gravidade do crime."
   },
   { 
     id: "divorcio", 
     name: "Divórcio", 
-    custas: "vide_decreto", 
-    honorarios: 115000 
+    items: [
+      { label: "Taxa de Averbação", value: 35000, type: 'custa', required: true },
+      { label: "Honorários Advocatícios", value: 115000, type: 'honorario' }
+    ]
   },
   { 
     id: "alvara", 
     name: "Alvará de Funcionamento", 
-    custas: 150000, 
-    honorarios: 35000,
-    obs: "Inclui Inicial. Obrigatório Taxa AVCB à parte."
+    items: [
+      { label: "Taxa de Vistoria Inicial", value: 150000, type: 'custa', required: true },
+      { label: "Taxa AVCB (Bombeiros)", value: 50000, type: 'custa' },
+      { label: "Honorários Advocatícios", value: 35000, type: 'honorario' }
+    ]
   },
   { 
     id: "casamento", 
     name: "Casamento (Certidão e Ação)", 
-    custas: 875000, 
-    honorarios: 80000,
-    obs: "Inclui Inicial, Certidão e Ação."
+    items: [
+      { label: "Taxa Cartorária", value: 875000, type: 'custa', required: true },
+      { label: "Alteração de Sobrenome", value: 2000000, type: 'custa' },
+      { label: "Honorários Processuais", value: 80000, type: 'honorario' }
+    ]
   },
   { 
     id: "adocao", 
     name: "Adoção", 
-    custas: 1225000, 
-    honorarios: "none",
-    obs: "Inclui Inicial, Certidão atualizada e Ação."
+    items: [
+      { label: "Taxa Processual de Adoção", value: 1225000, type: 'custa', required: true },
+      { label: "Estudo Psicossocial Judiciário", value: 0, type: 'custa' },
+      { label: "Honorários Advocatícios", value: 0, type: 'honorario' }
+    ]
   },
   {
     id: "outros",
     name: "Outros (Personalizado)",
-    custas: "custom",
-    honorarios: "custom",
-    obs: "Defina valores personalizados para custas e honorários."
+    items: [
+      { label: "Custa Personalizada", value: 0, type: 'custa' },
+      { label: "Honorário Personalizado", value: 0, type: 'honorario' }
+    ]
   }
 ];
 
