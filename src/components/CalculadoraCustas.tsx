@@ -52,7 +52,7 @@ const PROCESS_TYPES: ProcessType[] = [
     name: "Recursos (Apelação e/ou Recurso)", 
     items: [
       { label: "Taxa de Preparo Recursal", value: 50000, type: 'custa', required: true },
-      { label: "Honorários de Sucumbência Recursal", value: 75000, type: 'honorario' }
+      { label: "Honorários de Sucumbência Recursal", value: 75000, type: 'honorario', required: true }
     ]
   },
   { 
@@ -66,17 +66,16 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "defesa_detido", 
     name: "Defesa de Acusado Detido/Preso", 
     items: [
-      { label: "Honorários Atendimento (até 10 min)", value: 30000, type: 'honorario' },
-      { label: "Honorários Atendimento (> 10 min)", value: 35000, type: 'honorario' }
+      { label: "Honorários Atendimento", value: 30000, type: 'honorario', required: true }
     ],
-    obs: "Escolha o valor baseado no tempo de atendimento." 
+    obs: "Valor base para atendimento inicial." 
   },
   { 
     id: "acoes_civeis", 
     name: "Ações Cíveis (Danos Morais/Materiais)", 
     items: [
       { label: "Taxa Judiciária", value: 25000, type: 'custa', required: true },
-      { label: "Honorários Ad Exitum (20%)", value: 0, type: 'honorario' }
+      { label: "Honorários Advocatícios", value: 0, type: 'honorario', required: true }
     ],
     obs: "Danos morais: R$ 40k a R$ 2M."
   },
@@ -88,16 +87,16 @@ const PROCESS_TYPES: ProcessType[] = [
       { label: "Laudo Psicológico Profissional", value: 150000, type: 'despesa' },
       { label: "Curso de Armamento e Tiro", value: 200000, type: 'despesa' },
       { label: "Munições de Treinamento", value: 100000, type: 'despesa' },
-      { label: "Honorários Administrativos", value: 110000, type: 'honorario' }
+      { label: "Honorários Advocatícios", value: 110000, type: 'honorario', required: true }
     ],
-    obs: "Discriminação completa para o cliente."
+    obs: "Taxas e despesas operacionais discriminadas."
   },
   { 
     id: "limpeza_ficha", 
     name: "Exclusão de Antecedentes (Limpeza)", 
     items: [
       { label: "Taxa de Processamento Base", value: 50000, type: 'custa', required: true },
-      { label: "Honorários Advocatícios", value: 110000, type: 'honorario' }
+      { label: "Honorários Advocatícios", value: 110000, type: 'honorario', required: true }
     ],
     obs: "Base de R$ 50.000,00 + valor por gravidade do crime."
   },
@@ -106,7 +105,7 @@ const PROCESS_TYPES: ProcessType[] = [
     name: "Divórcio", 
     items: [
       { label: "Taxa de Averbação", value: 35000, type: 'custa', required: true },
-      { label: "Honorários Advocatícios", value: 115000, type: 'honorario' }
+      { label: "Honorários Advocatícios", value: 115000, type: 'honorario', required: true }
     ]
   },
   { 
@@ -115,7 +114,7 @@ const PROCESS_TYPES: ProcessType[] = [
     items: [
       { label: "Taxa de Vistoria Inicial", value: 150000, type: 'custa', required: true },
       { label: "Taxa AVCB (Bombeiros)", value: 50000, type: 'custa' },
-      { label: "Honorários Advocatícios", value: 35000, type: 'honorario' }
+      { label: "Honorários Advocatícios", value: 35000, type: 'honorario', required: true }
     ]
   },
   { 
@@ -124,7 +123,7 @@ const PROCESS_TYPES: ProcessType[] = [
     items: [
       { label: "Taxa Cartorária", value: 875000, type: 'custa', required: true },
       { label: "Alteração de Sobrenome", value: 2000000, type: 'custa' },
-      { label: "Honorários Processuais", value: 80000, type: 'honorario' }
+      { label: "Honorários Advocatícios", value: 80000, type: 'honorario', required: true }
     ]
   },
   { 
@@ -132,16 +131,14 @@ const PROCESS_TYPES: ProcessType[] = [
     name: "Adoção", 
     items: [
       { label: "Taxa Processual de Adoção", value: 1225000, type: 'custa', required: true },
-      { label: "Estudo Psicossocial Judiciário", value: 0, type: 'custa' },
-      { label: "Honorários Advocatícios", value: 0, type: 'honorario' }
+      { label: "Honorários Advocatícios", value: 0, type: 'honorario', required: true }
     ]
   },
   {
     id: "outros",
     name: "Outros (Personalizado)",
     items: [
-      { label: "Custa Personalizada", value: 0, type: 'custa' },
-      { label: "Honorário Personalizado", value: 0, type: 'honorario' }
+      { label: "Honorários Advocatícios", value: 0, type: 'honorario', required: true }
     ]
   }
 ];
