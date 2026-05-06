@@ -519,6 +519,44 @@ export default function CalculadoraCustas() {
                   </div>
                 </div>
               </div>
+
+              <div className="space-y-4 pt-4 border-t">
+                <Label className="flex justify-between items-center">
+                  Outras Custas (Personalizadas)
+                  <Button size="sm" variant="outline" onClick={addOutraCusta} className="h-7 text-[10px]">
+                    <Plus className="h-3 w-3 mr-1" /> Add Custa
+                  </Button>
+                </Label>
+                <div className="space-y-3">
+                  {outrasCustas.map((c) => (
+                    <div key={c.id} className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center p-3 bg-secondary/20 rounded-lg border">
+                      <div className="md:col-span-7">
+                        <Input 
+                          placeholder="Descrição da custa" 
+                          value={c.description} 
+                          onChange={e => updateOutraCusta(c.id, "description", e.target.value)}
+                          className="h-9"
+                        />
+                      </div>
+                      <div className="md:col-span-4">
+                        <Input 
+                          type="number" 
+                          placeholder="Valor (R$)" 
+                          value={c.value || ""} 
+                          onChange={e => updateOutraCusta(c.id, "value", Number(e.target.value))}
+                          className="h-9"
+                        />
+                      </div>
+                      <div className="md:col-span-1 flex justify-end">
+                        <Button variant="ghost" size="icon" onClick={() => removeOutraCusta(c.id)} className="text-destructive h-9 w-9">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                  {outrasCustas.length === 0 && <p className="text-xs text-center text-muted-foreground py-2">Nenhuma custa extra adicionada.</p>}
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
