@@ -710,6 +710,22 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
         )}
       </Tabs>
 
+      {/* Pedido de destaque (qualquer parte) */}
+      {podePedirDestaque && (
+        <div className="bg-card rounded-xl p-5 border border-border space-y-3">
+          <div className="flex items-start gap-2">
+            <Megaphone className="h-4 w-4 text-gold-dark mt-0.5" />
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-foreground">Pedido de Destaque</h3>
+              <p className="text-xs text-muted-foreground">Retire este recurso do julgamento virtual e leve à sessão presencial mediante justificativa.</p>
+            </div>
+          </div>
+          <Button onClick={() => setShowDestaque(true)} variant="outline" className="gap-2">
+            <Star className="h-4 w-4" /> Solicitar destaque
+          </Button>
+        </div>
+      )}
+
       {/* Actions */}
       {isDesembargador && (
         <div className="bg-card rounded-xl p-5 border border-border space-y-3">
