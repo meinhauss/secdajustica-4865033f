@@ -25,8 +25,8 @@ const formatBRL = (value: number) => {
 interface ProcessType {
   id: string;
   name: string;
-  custas: number | "base_plus" | "special" | "vide_decreto";
-  honorarios: number | "percentage" | "special" | "none";
+  custas: number | "base_plus" | "special" | "vide_decreto" | "custom";
+  honorarios: number | "percentage" | "special" | "none" | "custom";
   description?: string;
   obs?: string;
   baseCustas?: number;
