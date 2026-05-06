@@ -454,6 +454,14 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
         dispositivo: decisaoDisp,
       });
       if (error) throw error;
+      if (apelacao?.processo_id) {
+        await supabase.from("movimentacoes").insert({
+          processo_id: apelacao.processo_id,
+          tipo: "voto_relator",
+          descricao: `Voto do Relator ${profile?.nome_completo || ""} na apelação ${apelacao.numero_acordao}: ${DECISAO_LABELS[decisaoTipo] || decisaoTipo}.\n\nFundamentação:\n${decisaoFund}\n\nDispositivo:\n${decisaoDisp}`,
+          autor_id: user!.id,
+        });
+      }
     },
     onSuccess: () => {
       toast.success("Voto do relator registrado!");
@@ -469,6 +477,7 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
   const [vDecisao, setVDecisao] = useState("mantida");
   const [vFund, setVFund] = useState("");
   const [vDisp, setVDisp] = useState("");
+  const [vRessalvas, setVRessalvas] = useState("");
 
   const registrarVotoMutation = useMutation({
     mutationFn: async () => {
