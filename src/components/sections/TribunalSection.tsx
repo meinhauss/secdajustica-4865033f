@@ -92,6 +92,7 @@ function TribunalDashboard({ onSelect, onOpenProcesso }: { onSelect: (id: string
       if (error) throw error;
       return data as any[];
     },
+  });
 
   const filtered = apelacoes?.filter((a: any) => {
     const matchSearch = !search ||
