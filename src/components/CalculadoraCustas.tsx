@@ -842,50 +842,92 @@ export default function CalculadoraCustas() {
                 <div className="space-y-4">
                   <div className="flex justify-between items-start group">
                     <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <Checkbox 
-                        id="inc-custas" 
-                        checked={includeCustas} 
-                        onCheckedChange={(v) => setIncludeCustas(!!v)}
-                        className="h-3 w-3 border-gold/50 data-[state=checked]:bg-gold data-[state=checked]:text-black"
-                      />
-                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeCustas(!includeCustas)}>Custas e Despesas</p>
-                    </div>
-                      <p className={`font-medium transition-opacity ${!includeCustas ? 'opacity-30' : ''}`}>
+                      <div className="flex items-center gap-2">
+                        <Checkbox 
+                          id="inc-custas" 
+                          checked={includeCustas} 
+                          onCheckedChange={(v) => setIncludeCustas(!!v)}
+                          className="h-4 w-4 border-gold/50 data-[state=checked]:bg-gold data-[state=checked]:text-black rounded-sm"
+                        />
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-gold/80 cursor-pointer" onClick={() => setIncludeCustas(!includeCustas)}>Custas e Despesas</p>
+                      </div>
+                      <p className={cn("text-lg font-display tracking-tight transition-opacity", !includeCustas && "opacity-30")}>
                         {selectedProcess ? formatBRL(calculations.custas) : "—"}
                       </p>
                     </div>
-                    <Scale className={`h-4 w-4 transition-colors ${includeCustas ? 'text-gold/50' : 'text-muted-foreground/30'}`} />
+                    <Scale className={cn("h-5 w-5 transition-colors", includeCustas ? "text-gold/60" : "text-muted-foreground/30")} />
                   </div>
 
-                  {calculations.itemizedDetails.map((item, idx) => (
-                    <div key={idx} className="flex justify-between items-start pl-5 border-l border-gold/20">
-                      <div className="space-y-0.5">
-                        <p className="text-[9px] uppercase tracking-widest text-muted-foreground">{item.label}</p>
-                        <p className="text-xs font-medium">{formatBRL(item.value)}</p>
-                      </div>
-                    </div>
-                  ))}
+                  <AnimatePresence>
+                    {includeCustas && (
+                      <motion.div 
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden space-y-1.5 pl-6 border-l-2 border-gold/10 ml-2"
+                      >
+                        {calculations.itemizedDetails.filter(i => i.type !== 'honorario').map((item, idx) => (
+                          <div key={idx} className="flex justify-between text-[11px] py-0.5 group">
+                            <span className="text-muted-foreground group-hover:text-foreground transition-colors">{item.label}</span>
+                            <span className="font-mono text-gold/90">{formatBRL(item.value)}</span>
+                          </div>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
-                  {includeExtras && (diligencias > 0 || hasJuiz || hasPromotor || hasDesembargador || outrasCustas.length > 0) && (
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-0.5">
-                        <div className="flex items-center gap-2">
-                          <Checkbox 
-                            id="inc-extras" 
-                            checked={includeExtras} 
-                            onCheckedChange={(v) => setIncludeExtras(!!v)}
-                            className="h-3 w-3 border-gold/50 data-[state=checked]:bg-gold data-[state=checked]:text-black"
-                          />
-                          <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeExtras(!includeExtras)}>Diligências e Verbas</p>
-                        </div>
-                        <p className={`font-medium transition-opacity ${!includeExtras ? 'opacity-30' : ''}`}>
-                          {formatBRL(calculations.extras)}
-                        </p>
+                  <div className="h-px bg-gold/10 my-2" />
+
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <Checkbox 
+                          id="inc-extras" 
+                          checked={includeExtras} 
+                          onCheckedChange={(v) => setIncludeExtras(!!v)}
+                          className="h-4 w-4 border-gold/50 data-[state=checked]:bg-gold data-[state=checked]:text-black rounded-sm"
+                        />
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-gold/80 cursor-pointer" onClick={() => setIncludeExtras(!includeExtras)}>Diligências e Verbas</p>
                       </div>
-                      <Gavel className={`h-4 w-4 transition-colors ${includeExtras ? 'text-gold/50' : 'text-muted-foreground/30'}`} />
+                      <p className={cn("text-lg font-display tracking-tight transition-opacity", !includeExtras && "opacity-30")}>
+                        {formatBRL(calculations.extras)}
+                      </p>
                     </div>
-                  )}
+                    <Gavel className={cn("h-5 w-5 transition-colors", includeExtras ? "text-gold/60" : "text-muted-foreground/30")} />
+                  </div>
+
+                  <AnimatePresence>
+                    {includeExtras && (diligencias > 0 || hasJuiz || hasPromotor || hasDesembargador || outrasCustas.length > 0) && (
+                      <motion.div 
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden space-y-1.5 pl-6 border-l-2 border-gold/10 ml-2"
+                      >
+                        {diligencias > 0 && (
+                          <div className="flex justify-between text-[11px] py-0.5">
+                            <span className="text-muted-foreground">Diligências ({diligencias}x)</span>
+                            <span className="font-mono text-gold/90">{formatBRL(diligencias * 20000)}</span>
+                          </div>
+                        )}
+                        {(hasJuiz || hasPromotor || hasDesembargador) && (
+                          <div className="space-y-1">
+                            {hasJuiz && <div className="flex justify-between text-[11px]"><span className="text-muted-foreground">Juiz:</span> <span className="font-mono">{formatBRL(60000)}</span></div>}
+                            {hasPromotor && <div className="flex justify-between text-[11px]"><span className="text-muted-foreground">Promotor:</span> <span className="font-mono">{formatBRL(80000)}</span></div>}
+                            {hasDesembargador && <div className="flex justify-between text-[11px]"><span className="text-muted-foreground">Desemb.:</span> <span className="font-mono">{formatBRL(120000)}</span></div>}
+                          </div>
+                        )}
+                        {outrasCustas.map((c) => (
+                          <div key={c.id} className="flex justify-between text-[11px] py-0.5">
+                            <span className="text-muted-foreground truncate max-w-[140px]">{c.description || "Outra"}</span>
+                            <span className="font-mono text-gold/90">{formatBRL(c.value)}</span>
+                          </div>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <div className="h-px bg-gold/10 my-2" />
 
                   <div className="flex justify-between items-start">
                     <div className="space-y-0.5">
@@ -895,29 +937,33 @@ export default function CalculadoraCustas() {
                           checked={includeHonorarios} 
                           onCheckedChange={(v) => setIncludeHonorarios(!!v)}
                           className={cn(
-                            "h-3 w-3 border-gold/50 data-[state=checked]:bg-gold data-[state=checked]:text-black",
-                            isBelowPiso && "border-destructive"
+                            "h-4 w-4 border-gold/50 data-[state=checked]:bg-gold data-[state=checked]:text-black rounded-sm",
+                            isBelowPiso && includeHonorarios && "border-destructive ring-destructive/20 ring-4"
                           )}
                         />
-                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeHonorarios(!includeHonorarios)}>Honorários Advocatícios</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-gold/80 cursor-pointer" onClick={() => setIncludeHonorarios(!includeHonorarios)}>Honorários Profissionais</p>
                       </div>
                       <p className={cn(
-                        "font-medium transition-opacity",
+                        "text-lg font-display tracking-tight transition-opacity",
                         !includeHonorarios && "opacity-30",
-                        isBelowPiso && "text-destructive"
+                        isBelowPiso && includeHonorarios && "text-destructive font-bold"
                       )}>
                         {formatBRL(calculations.honorarios)}
                       </p>
-                      {isBelowPiso && (
-                        <p className="text-[9px] text-destructive flex items-center gap-1 font-medium mt-1">
-                          <AlertTriangle className="h-3 w-3" />
-                          Abaixo do piso ({formatBRL(calculations.piso)})
-                        </p>
+                      {isBelowPiso && includeHonorarios && (
+                        <motion.p 
+                          initial={{ opacity: 0, x: -5 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className="text-[10px] text-destructive flex items-center gap-1.5 font-bold mt-1.5 bg-destructive/10 px-2 py-1 rounded shadow-sm border border-destructive/20"
+                        >
+                          <AlertTriangle className="h-3.5 w-3.5 fill-destructive text-white" />
+                          ABAIXO DO PISO ({formatBRL(calculations.piso)})
+                        </motion.p>
                       )}
                     </div>
                     <Briefcase className={cn(
-                      "h-4 w-4 transition-colors",
-                      includeHonorarios ? (isBelowPiso ? "text-destructive" : "text-gold/50") : "text-muted-foreground/30"
+                      "h-5 w-5 transition-colors",
+                      includeHonorarios ? (isBelowPiso ? "text-destructive animate-pulse" : "text-gold/60") : "text-muted-foreground/30"
                     )} />
                   </div>
 
