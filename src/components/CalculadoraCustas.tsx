@@ -413,7 +413,7 @@ export default function CalculadoraCustas() {
       if (hasPromotor) tableData.push(["Verba: Promotor de Justiça", formatBRL(80000)]);
       if (hasDesembargador) tableData.push(["Verba: Desembargador", formatBRL(120000)]);
       outrasCustas.forEach(c => {
-        tableData.push([`Outra: ${c.description || "Sem descrição"}`, formatBRL(c.value)]);
+        tableData.push([`Custa Extra: ${c.description || "Sem descrição"}`, formatBRL(c.value)]);
       });
     }
 
@@ -422,23 +422,24 @@ export default function CalculadoraCustas() {
       head: [["Descrição", "Valor"]],
       body: tableData,
       theme: "grid",
-      headStyles: { fillColor: [241, 196, 15] as any, textColor: 0 },
-      styles: { fontSize: 10 },
+      headStyles: { fillColor: [184, 134, 11] as any, textColor: 255 }, // Darker gold
+      styles: { fontSize: 9 },
     });
 
     // Total
-    const finalY = (doc as any).lastAutoTable.finalY + 10;
+    const finalY = (doc as any).lastAutoTable.finalY + 15;
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
-    doc.text(`TOTAL ESTIMADO: ${formatBRL(calculations.total)}`, 14, finalY);
+    doc.text(`VALOR TOTAL ESTIMADO: ${formatBRL(calculations.total)}`, 14, finalY);
 
     // Notas de rodapé
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
     const footerText = [
-      "* Este documento é um simulado financeiro baseado nas tabelas oficiais de 2026.",
-      "* Os valores podem sofrer alterações conforme a complexidade e tempo do processo.",
-      "* Honorários calculados respeitam o piso ético estabelecido pela seccional."
+      "* Este documento é uma estimativa financeira baseada na tabela oficial da OAB-SP e TJ-SP 2026.",
+      "* Os valores podem sofrer alterações conforme o tempo de tramitação e complexidade.",
+      "* Honorários contratuais representam o piso ético estabelecido pela seccional."
     ];
     doc.text(footerText, 14, finalY + 15);
 
