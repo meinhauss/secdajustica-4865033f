@@ -441,7 +441,7 @@ export default function CalculadoraCustas() {
 
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label>Tipo de Honorário</Label>
+                        <Label className="text-xs">Honorários</Label>
                         <RadioGroup 
                           value={honorarioType} 
                           onValueChange={(v: "fixed" | "percentage") => setHonorarioType(v)}
@@ -449,49 +449,47 @@ export default function CalculadoraCustas() {
                         >
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="fixed" id="fixed" />
-                            <Label htmlFor="fixed" className="text-xs">Fixo</Label>
+                            <Label htmlFor="fixed" className="text-[10px]">Fixo</Label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="percentage" id="percentage" />
-                            <Label htmlFor="percentage" className="text-xs">Percentual</Label>
+                            <Label htmlFor="percentage" className="text-[10px]">Percentual</Label>
                           </div>
                         </RadioGroup>
                       </div>
 
                       {honorarioType === "fixed" ? (
-                        <div className="space-y-2">
-                          <Label>Valor Honorário (R$)</Label>
+                        <div className="space-y-1">
+                          <Label className="text-[10px]">Valor (R$)</Label>
                           <Input 
                             type="number" 
                             value={customHonorarios} 
                             onChange={e => setCustomHonorarios(Number(e.target.value))}
-                            placeholder="0.00"
-                            className="bg-background"
+                            className="bg-background h-8 text-sm"
                           />
-                          <p className="text-[10px] text-amber-500 font-medium flex items-center gap-1">
-                            <Info className="h-3 w-3" />
+                          <p className="text-[9px] text-amber-500 font-medium flex items-center gap-1">
+                            <Info className="h-2 w-2" />
                             Piso OAB-SP: R$ 30.000,00
                           </p>
                         </div>
                       ) : (
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <Label>Base de Cálculo (R$)</Label>
+                        <div className="space-y-2">
+                          <div className="space-y-1">
+                            <Label className="text-[10px]">Base (R$)</Label>
                             <Input 
                               type="number" 
                               value={valorCivel || ""} 
                               onChange={e => setValorCivel(Number(e.target.value))}
-                              placeholder="Valor da causa"
-                              className="bg-background"
+                              className="bg-background h-8 text-sm"
                             />
                           </div>
-                          <div className="space-y-2">
-                            <Label>Percentual (%)</Label>
+                          <div className="space-y-1">
+                            <Label className="text-[10px]">Percentual (%)</Label>
                             <Input 
                               type="number" 
                               value={customPercentage} 
                               onChange={e => setCustomPercentage(Number(e.target.value))}
-                              className="bg-background"
+                              className="bg-background h-8 text-sm"
                             />
                           </div>
                         </div>
