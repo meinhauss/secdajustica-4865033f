@@ -469,20 +469,21 @@ export default function CalculadoraCustas() {
 
               {/* Seleção Detalhada de Itens do Processo */}
               {selectedProcess && selectedProcess.id !== 'outros' && (
-                <div className="space-y-3 p-4 border rounded-lg bg-secondary/5 mb-4">
+                <div className="space-y-3 p-4 border rounded-lg bg-secondary/5 mb-4 shadow-sm">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                     <CheckSquare className="h-3 w-3" />
                     Itens Inclusos no Processo
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {selectedProcess.items.map((item) => (
-                      <div key={item.label} className="flex items-center space-x-2 p-2 border rounded bg-background hover:bg-secondary/10 transition-colors">
+                      <div key={item.label} className={`flex items-center space-x-2 p-2 border rounded bg-background transition-colors ${item.required ? 'opacity-80 border-gold/30 bg-gold/5' : 'hover:bg-secondary/10'}`}>
                         <Checkbox 
                           id={`item-${item.label}`} 
-                          checked={selectedItems[item.label] || false}
+                          checked={item.required ? true : (selectedItems[item.label] || false)}
+                          disabled={item.required}
                           onCheckedChange={(v) => setSelectedItems({ ...selectedItems, [item.label]: !!v })}
                         />
-                        <Label htmlFor={`item-${item.label}`} className="text-xs cursor-pointer flex-1 flex justify-between gap-2">
+                        <Label htmlFor={`item-${item.label}`} className={`text-xs flex-1 flex justify-between gap-2 ${item.required ? 'cursor-default' : 'cursor-pointer'}`}>
                           <span className="truncate">{item.label}</span>
                           <span className="text-gold font-mono whitespace-nowrap">{formatBRL(item.value)}</span>
                         </Label>
