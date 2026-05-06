@@ -88,12 +88,7 @@ export default function CalculadoraPenal() {
 
   const formatPenaCompleta = (meses: number) => {
     if (meses === 0) return "Sem pena privativa de liberdade";
-    const anos = Math.floor(meses / 12);
-    const m = meses % 12;
-    const partes = [];
-    if (anos > 0) partes.push(`${anos} ${anos === 1 ? "ano" : "anos"}`);
-    if (m > 0) partes.push(`${m} ${m === 1 ? "mês" : "meses"}`);
-    return `${partes.join(" e ")} (${meses} meses)`;
+    return `${meses} ${meses === 1 ? "mês" : "meses"}`;
   };
 
   const copiarResumo = () => {
