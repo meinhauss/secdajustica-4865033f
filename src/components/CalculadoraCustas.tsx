@@ -110,7 +110,7 @@ const PROCESS_TYPES: ProcessType[] = [
   },
   { 
     id: "mandados", 
-    name: "Ação Mandamental (MS, HC, HD)", 
+    name: "Mandado de Segurança (MS, HC, HD)", 
     items: [
       { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
       { label: "Custas de Impetração", value: 50000, type: 'custa', required: true }
