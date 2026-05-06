@@ -521,23 +521,27 @@ export default function CalculadoraCustas() {
                 )}
               </div>
 
-              {/* Seleção Detalhada de Despesas e Taxas do Processo */}
+              {/* Discriminação de Despesas e Taxas do Processo */}
               {selectedProcess && selectedProcess.id !== 'outros' && selectedProcess.items.length > 0 && (
-                <div className="space-y-3 p-4 border rounded-lg bg-secondary/5 mb-4 shadow-sm">
+                <div className="space-y-3 p-4 border rounded-lg bg-secondary/5 mb-4 shadow-sm relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-2 opacity-5">
+                    <CheckSquare className="h-12 w-12" />
+                  </div>
                   <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                    <CheckSquare className="h-3 w-3" />
+                    <CheckSquare className="h-3 w-3 text-gold" />
                     Discriminação de Taxas e Despesas
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {selectedProcess.items.map((item) => (
-                      <div key={item.label} className={`flex items-center space-x-2 p-2 border rounded bg-background transition-colors ${item.required ? 'opacity-80 border-gold/30 bg-gold/5' : 'hover:bg-secondary/10'}`}>
+                      <div key={item.label} className={`flex items-center space-x-2 p-2 border rounded bg-background transition-all ${item.required ? 'border-gold/20 bg-gold/5 shadow-inner' : 'hover:border-gold/30 hover:bg-secondary/10'}`}>
                         <Checkbox 
                           id={`item-${item.label}`} 
                           checked={item.required ? true : (selectedItems[item.label] || false)}
                           disabled={item.required}
                           onCheckedChange={(v) => setSelectedItems({ ...selectedItems, [item.label]: !!v })}
+                          className={item.required ? "border-gold/50 data-[state=checked]:bg-gold data-[state=checked]:text-black" : ""}
                         />
-                        <Label htmlFor={`item-${item.label}`} className={`text-xs flex-1 flex justify-between gap-2 ${item.required ? 'cursor-default' : 'cursor-pointer'}`}>
+                        <Label htmlFor={`item-${item.label}`} className={`text-xs flex-1 flex justify-between gap-2 ${item.required ? 'cursor-default font-medium' : 'cursor-pointer'}`}>
                           <span className="truncate">{item.label}</span>
                           <span className="text-gold font-mono whitespace-nowrap">{formatBRL(item.value)}</span>
                         </Label>
