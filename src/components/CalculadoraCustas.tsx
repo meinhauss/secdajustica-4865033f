@@ -309,8 +309,7 @@ export default function CalculadoraCustas() {
     const summary = [
       "═══ ORÇAMENTO PROCESSUAL ═══",
       `Processo: ${selectedProcess.name}`,
-      `Custas Processuais: ${formatBRL(calculations.custas)}`,
-      `Honorários: ${formatBRL(calculations.honorarios)}`,
+      ...calculations.itemizedDetails.map(item => `• ${item.label}: ${formatBRL(item.value)}`),
       `Taxas/Diligências/Verbas: ${formatBRL(calculations.extras)}`,
       "────────────────────────",
       `TOTAL: ${formatBRL(calculations.total)}`,
