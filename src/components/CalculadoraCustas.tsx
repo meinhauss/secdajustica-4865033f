@@ -119,7 +119,7 @@ const PROCESS_TYPES: ProcessType[] = [
     name: "Defesa de Acusado Detido/Preso", 
     items: [],
     obs: "Honorários: R$ 30.000,00 (até 10 min) ou R$ 35.000,00 (> 10 min).",
-    pisoHonorario: 30000
+    pisoHonorario: 30000 // Valor base, o aviso é dinâmico conforme seleção de tempo
   },
   { 
     id: "acoes_civeis", 
