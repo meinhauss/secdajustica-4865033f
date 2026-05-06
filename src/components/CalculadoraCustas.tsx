@@ -190,33 +190,18 @@ export default function CalculadoraCustas() {
     let extras = 0;
 
     if (selectedProcess) {
-      // Base Custas
-      if (typeof selectedProcess.custas === 'number') {
-        custas = selectedProcess.custas;
-      } else if (selectedProcess.custas === 'base_plus' && selectedProcess.baseCustas) {
-        custas = selectedProcess.baseCustas;
-        crimesLimpeza.forEach(c => {
-          custas += GRAVIDADE_CRIMES[c.typeIndex].value;
-        });
-      } else if (selectedProcess.custas === 'custom') {
+      // Base Custas - Use custom value if user can edit it or if it's "custom" process
+      if (selectedProcess.id === 'outros') {
         custas = customCustas;
+      } else {
+        custas = typeof selectedProcess.custas === 'number' ? selectedProcess.custas : customCustas;
       }
 
-      // Base Honorarios
-      if (typeof selectedProcess.honorarios === 'number') {
-        honorarios = selectedProcess.honorarios;
-      } else if (selectedProcess.honorarios === 'percentage') {
-        honorarios = valorCivel * 0.20;
-      } else if (selectedProcess.honorarios === 'special') {
-        if (selectedProcess.id === 'defesa_detido') {
-          honorarios = detidoMais10Min ? 35000 : 30000;
-        }
-      } else if (selectedProcess.honorarios === 'custom') {
-        if (honorarioType === "fixed") {
-          honorarios = customHonorarios;
-        } else {
-          honorarios = (valorCivel || 0) * (customPercentage / 100);
-        }
+      // Base Honorarios - Always allow custom/percentage logic for any process
+      if (honorarioType === "fixed") {
+        honorarios = customHonorarios;
+      } else {
+        honorarios = (valorCivel || 0) * (customPercentage / 100);
       }
 
       // Adicionais de nome (Adoção ou Casamento)
@@ -251,7 +236,7 @@ export default function CalculadoraCustas() {
       extras: finalExtras,
       total: finalCustas + finalHonorarios + finalExtras
     };
-  }, [selectedProcess, diligencias, hasJuiz, hasPromotor, hasDesembargador, detidoMais10Min, valorCivel, crimesLimpeza, hasAlteracaoNome, includeCustas, includeHonorarios, includeExtras, customCustas, customHonorarios, honorarioType, customPercentage, outrasCustas]);
+  }, [selectedProcess, diligencias, hasJuiz, hasPromotor, hasDesembargador, valorCivel, hasAlteracaoNome, includeCustas, includeHonorarios, includeExtras, customCustas, customHonorarios, honorarioType, customPercentage, outrasCustas]);
 
   const copySummary = () => {
     if (!selectedProcess) return;
