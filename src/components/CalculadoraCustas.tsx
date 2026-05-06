@@ -220,6 +220,8 @@ const GRAVIDADE_CRIMES = [
 
 export default function CalculadoraCustas() {
   const [selectedProcessId, setSelectedProcessId] = useState<string>("");
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const previewRef = useRef<HTMLDivElement>(null);
   
   const sortedProcessTypes = useMemo(() => {
     const regular = PROCESS_TYPES.filter(p => p.id !== 'outros')
