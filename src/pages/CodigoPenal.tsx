@@ -144,7 +144,7 @@ export default function CodigoPenalPage() {
               </div>
             </div>
           </section>
-          <div className="max-w-7xl mx-auto px-4 py-8 w-full">
+          <div className="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-8 w-full">
             {filtrados.length === 0 ? (
               <div className="text-center py-20 text-muted-foreground">
                 <Scale className="h-16 w-16 mx-auto mb-4 opacity-20" />
@@ -204,7 +204,7 @@ export default function CodigoPenalPage() {
         </TabsContent>
 
         <TabsContent value="calculadora" className="flex-1 mt-0">
-          <div className="max-w-7xl mx-auto px-4 py-8 w-full">
+          <div className="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-8 w-full">
             <CalculadoraPenal />
           </div>
         </TabsContent>
