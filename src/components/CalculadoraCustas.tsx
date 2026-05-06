@@ -139,6 +139,17 @@ export default function CalculadoraCustas() {
   const [crimesLimpeza, setCrimesLimpeza] = useState<{id: string, typeIndex: number}[]>([]);
   const [hasAlteracaoNome, setHasAlteracaoNome] = useState(false);
 
+  // Custom values
+  const [customCustas, setCustomCustas] = useState<number>(0);
+  const [customHonorarios, setCustomHonorarios] = useState<number>(0);
+  const [honorarioType, setHonorarioType] = useState<"fixed" | "percentage">("fixed");
+  const [customPercentage, setCustomPercentage] = useState<number>(20);
+
+  // Toggle for specific costs
+  const [includeCustas, setIncludeCustas] = useState(true);
+  const [includeHonorarios, setIncludeHonorarios] = useState(true);
+  const [includeExtras, setIncludeExtras] = useState(true);
+
   const selectedProcess = useMemo(() => 
     PROCESS_TYPES.find(p => p.id === selectedProcessId), 
     [selectedProcessId]
