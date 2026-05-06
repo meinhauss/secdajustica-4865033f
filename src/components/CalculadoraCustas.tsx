@@ -159,10 +159,30 @@ export default function CalculadoraCustas() {
   // Other costs
   const [outrasCustas, setOutrasCustas] = useState<{ id: string; description: string; value: number }[]>([]);
 
-  const selectedProcess = useMemo(() => 
-    PROCESS_TYPES.find(p => p.id === selectedProcessId), 
-    [selectedProcessId]
-  );
+  useEffect(() => {
+    if (selectedProcess) {
+      if (typeof selectedProcess.custas === 'number') {
+        setCustomCustas(selectedProcess.custas);
+      } else if (selectedProcess.custas === 'base_plus' && selectedProcess.baseCustas) {
+        setCustomCustas(selectedProcess.baseCustas);
+      } else {
+        setCustomCustas(0);
+      }
+
+      if (typeof selectedProcess.honorarios === 'number') {
+        setCustomHonorarios(selectedProcess.honorarios);
+        setHonorarioType("fixed");
+      } else if (selectedProcess.honorarios === 'percentage') {
+        setHonorarioType("percentage");
+        setCustomPercentage(20);
+      } else if (selectedProcess.honorarios === 'special') {
+        if (selectedProcess.id === 'defesa_detido') {
+          setCustomHonorarios(30000);
+          setHonorarioType("fixed");
+        }
+      }
+    }
+  }, [selectedProcessId]);
 
   const addCrimeLimpeza = () => {
     setCrimesLimpeza([...crimesLimpeza, { id: Math.random().toString(), typeIndex: 0 }]);
