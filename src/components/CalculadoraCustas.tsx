@@ -374,6 +374,11 @@ export default function CalculadoraCustas() {
     const honorariosTotal = includeHonorarios ? itemizedDetails.filter(i => i.type === 'honorario').reduce((acc, curr) => acc + curr.value, 0) : 0;
     const finalExtras = includeExtras ? extras : 0;
 
+    let pisoCalculado = selectedProcess?.pisoHonorario || 0;
+    if (selectedProcess?.id === 'defesa_detido') {
+      pisoCalculado = detidoMais10Min ? 35000 : 30000;
+    }
+
     return {
       custas: custasTotal,
       honorarios: honorariosTotal,
@@ -383,9 +388,9 @@ export default function CalculadoraCustas() {
         if (i.type === 'honorario') return includeHonorarios;
         return includeCustas;
       }).map(i => ({ ...i, required: (selectedProcess?.items?.find(orig => orig.label === i.label)?.required) })),
-      piso: selectedProcess?.pisoHonorario || 0
+      piso: pisoCalculado
     };
-  }, [selectedProcess, diligencias, hasJuiz, hasPromotor, hasDesembargador, valorCivel, hasAlteracaoNome, includeCustas, includeHonorarios, includeExtras, customCustas, customHonorarios, honorarioType, customPercentage, outrasCustas, selectedItems, crimesLimpeza]);
+  }, [selectedProcess, diligencias, hasJuiz, hasPromotor, hasDesembargador, valorCivel, hasAlteracaoNome, includeCustas, includeHonorarios, includeExtras, customCustas, customHonorarios, honorarioType, customPercentage, outrasCustas, selectedItems, crimesLimpeza, detidoMais10Min]);
 
   const isBelowPiso = useMemo(() => {
     if (!selectedProcess) return false;
