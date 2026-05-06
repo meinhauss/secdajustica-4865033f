@@ -14,7 +14,7 @@ import {
   Plus, FileText, Search, Eye, User, ArrowLeft, Clock, Gavel,
   Upload, Calendar, AlertTriangle, CheckCircle, PenTool, History,
   File, Scale, Timer, ChevronRight, X, ExternalLink, ScrollText,
-  ShieldCheck, ShieldOff, UserCheck, Lock, Trash2, Download, Edit, Stamp, XCircle
+  ShieldCheck, ShieldOff, UserCheck, Lock, Trash2, Download, Edit, Stamp, XCircle, Star
 } from "lucide-react";
 import { generateProcessoPDF, generateMovimentacaoPDF, imageToBase64 } from "@/lib/pdfGenerator";
 import logoTjsp from "@/assets/tjsp-logo.png";
@@ -1397,7 +1397,50 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     onError: (err: any) => toast.error(err.message),
   });
 
-  // Embargos de declaração
+  // Pedido de destaque na apelação
+  const [destaqueApId, setDestaqueApId] = useState<string | null>(null);
+  const [destaqueJust, setDestaqueJust] = useState("");
+  const solicitarDestaque = useMutation({
+    mutationFn: async () => {
+      if (!destaqueApId) throw new Error("Apelação não selecionada.");
+      if (!destaqueJust || destaqueJust === "<p></p>") throw new Error("Informe a justificativa.");
+      const qualificacao = isAdvogado
+        ? "Advogado(a)"
+        : isMP
+        ? "Ministério Público"
+        : "Parte interessada";
+      const { error } = await supabase.from("apelacoes").update({
+        destaque_solicitado: true,
+        destaque_justificativa: destaqueJust,
+        destaque_solicitante_id: user!.id,
+        destaque_solicitante_nome: profile?.nome_completo || "",
+        destaque_solicitante_qualificacao: qualificacao,
+        destaque_solicitado_em: new Date().toISOString(),
+      } as any).eq("id", destaqueApId);
+      if (error) throw error;
+      await addMovimentacao.mutateAsync({
+        tipo: "pedido_destaque",
+        descricao: `Pedido de destaque (retirada do julgamento virtual e remessa à sessão presencial) formulado por ${profile?.nome_completo || ""} (${qualificacao}).\n\nJustificativa:\n${destaqueJust}`,
+      });
+      const { data: desembs } = await supabase.from("user_roles").select("user_id").in("role", ["desembargador", "presidente_tribunal"] as any);
+      const notifs = (desembs || []).map((d: any) => ({
+        user_id: d.user_id,
+        titulo: "Pedido de destaque",
+        mensagem: `${profile?.nome_completo || "Uma parte"} solicitou destaque em uma apelação.`,
+        tipo: "processo",
+        link_secao: "tribunal",
+      }));
+      if (notifs.length > 0) await supabase.from("notificacoes").insert(notifs);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["apelacoes-proc", processoId] });
+      setDestaqueApId(null);
+      setDestaqueJust("");
+      toast.success("Pedido de destaque registrado.");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   const [showEmbargos, setShowEmbargos] = useState(false);
   const [embargosForm, setEmbargosForm] = useState({ sentenca_id: "", tipo: "omissao", fundamentacao: "", pedido: "" });
   const oporEmbargos = useMutation({
@@ -2391,6 +2434,20 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                         </p>
                       )}
                       <p className="text-[10px] text-muted-foreground mt-1">{format(new Date(ap.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
+                      {ap.destaque_solicitado && (
+                        <div className="mt-2 flex items-start gap-2 rounded-lg bg-gold/10 border border-gold/40 p-2">
+                          <Star className="h-3.5 w-3.5 text-gold-dark mt-0.5" />
+                          <div className="text-xs">
+                            <p className="font-semibold text-foreground">Destaque solicitado por {ap.destaque_solicitante_nome} ({ap.destaque_solicitante_qualificacao})</p>
+                            {ap.destaque_justificativa && <div className="text-muted-foreground mt-0.5"><RichTextView html={ap.destaque_justificativa} className="text-xs" /></div>}
+                          </div>
+                        </div>
+                      )}
+                      {!ap.destaque_solicitado && ap.status !== "julgada" && ap.status !== "inadmitida" && (isAdvogado || isMP) && (
+                        <Button size="sm" variant="outline" className="mt-3 gap-2" onClick={() => { setDestaqueApId(ap.id); setDestaqueJust(""); }}>
+                          <Star className="h-3.5 w-3.5" /> Solicitar destaque
+                        </Button>
+                      )}
                     </div>
                   );
                 })}
@@ -2398,6 +2455,25 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             )}
           </TabsContent>
         )}
+
+        {/* Dialog: Pedido de destaque */}
+        <Dialog open={!!destaqueApId} onOpenChange={(o) => { if (!o) { setDestaqueApId(null); setDestaqueJust(""); } }}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader><DialogTitle>Solicitar Destaque na Apelação</DialogTitle></DialogHeader>
+            <div className="space-y-4">
+              <p className="text-xs text-muted-foreground">
+                Ao solicitar destaque, o recurso será retirado do julgamento virtual e remetido à sessão presencial. Os desembargadores serão notificados.
+              </p>
+              <div>
+                <label className="text-sm font-medium text-foreground">Justificativa</label>
+                <RichTextEditor value={destaqueJust} onChange={setDestaqueJust} placeholder="Explique o motivo do pedido de destaque..." minHeight="160px" className="mt-1" />
+              </div>
+              <Button onClick={() => solicitarDestaque.mutate()} disabled={solicitarDestaque.isPending} className="w-full gap-2">
+                <Star className="h-4 w-4" /> Confirmar pedido
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* EMBARGOS DE DECLARAÇÃO */}
         {(isSentenciado || isArquivado) && (
