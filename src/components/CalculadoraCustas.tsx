@@ -103,6 +103,7 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "recursos", 
     name: "Recursos (Apelação e/ou Recurso)", 
     items: [
+      { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
       { label: "Taxa de Preparo Recursal", value: 50000, type: 'custa', required: true }
     ],
     pisoHonorario: 75000
@@ -111,20 +112,24 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "mandados", 
     name: "MS, Habeas Corpus e Habeas Data", 
     items: [
+      { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
       { label: "Custas de Impetração", value: 50000, type: 'custa', required: true }
     ]
   },
   { 
     id: "defesa_detido", 
     name: "Defesa de Acusado Detido/Preso", 
-    items: [],
+    items: [
+      { label: "Petição Inicial", value: 25000, type: 'custa', required: true }
+    ],
     obs: "Honorários: R$ 30.000,00 (até 10 min) ou R$ 35.000,00 (> 10 min).",
-    pisoHonorario: 30000 // Valor base, o aviso é dinâmico conforme seleção de tempo
+    pisoHonorario: 30000 
   },
   { 
     id: "acoes_civeis", 
     name: "Ações Cíveis (Danos Morais/Materiais)", 
     items: [
+      { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
       { label: "Taxa Judiciária", value: 25000, type: 'custa', required: true }
     ],
     obs: "Danos morais: R$ 40k a R$ 2M. Honorários sugeridos: 20%."
@@ -145,7 +150,8 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "limpeza_ficha", 
     name: "Exclusão de Antecedentes (Limpeza)", 
     items: [
-      { label: "Taxa Processual Base (Ação + Inicial)", value: 50000, type: 'custa', required: true }
+      { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
+      { label: "Ação Judicial", value: 25000, type: 'custa', required: true }
     ],
     obs: "Soma de Petição Inicial (R$ 25.000) e Ação Judicial (R$ 25.000).",
     pisoHonorario: 110000
@@ -154,6 +160,7 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "divorcio", 
     name: "Divórcio", 
     items: [
+      { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
       { label: "Taxas Judiciais", value: 0, type: 'custa', required: true }
     ],
     obs: "Custas conforme decreto judicial vigente.",
@@ -193,7 +200,9 @@ const PROCESS_TYPES: ProcessType[] = [
   {
     id: "outros",
     name: "Outros (Personalizado)",
-    items: []
+    items: [
+      { label: "Petição Inicial", value: 25000, type: 'custa', required: true }
+    ]
   }
 ];
 
@@ -326,7 +335,7 @@ export default function CalculadoraCustas() {
         if (item.required || selectedItems[item.label]) {
           let val = item.value;
           
-          if (selectedProcess.id === 'limpeza_ficha' && item.label === 'Taxa de Processamento Base') {
+          if (selectedProcess.id === 'limpeza_ficha' && item.label === 'Ação Judicial') {
             crimesLimpeza.forEach(c => {
               val += GRAVIDADE_CRIMES[c.typeIndex].value;
             });
@@ -359,8 +368,8 @@ export default function CalculadoraCustas() {
       }
 
       // Outros Processos Customizados
-      if (selectedProcess.id === 'outros') {
-        itemizedDetails.push({ label: "Custas Processuais", value: customCustas, type: 'custa' });
+      if (selectedProcess.id === 'outros' && customCustas > 0) {
+        itemizedDetails.push({ label: "Outras Custas Judiciais", value: customCustas, type: 'custa' });
       }
     }
 
