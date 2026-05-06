@@ -967,7 +967,7 @@ export default function CalculadoraCustas() {
                           className="text-[10px] text-destructive flex items-center gap-1.5 font-bold mt-1.5 bg-destructive/10 px-2 py-1 rounded shadow-sm border border-destructive/20"
                         >
                           <AlertTriangle className="h-3.5 w-3.5 fill-destructive text-white" />
-                          ABAIXO DO PISO ({formatBRL(calculations.piso)})
+                          ABAIXO DO PISO ({formatBRL(selectedProcess?.id === 'acoes_civeis' ? (valorCivel || 0) * 0.20 : calculations.piso)})
                         </motion.p>
                       )}
                     </div>
