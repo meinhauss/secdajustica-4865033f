@@ -464,21 +464,65 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle className="font-display">Cadastrar Novo Processo</DialogTitle></DialogHeader>
             <form onSubmit={(e) => { e.preventDefault(); createProcesso.mutate(); }} className="space-y-4 mt-4">
-              <Select value={form.classe} onValueChange={(v) => setForm({ ...form, classe: v, vara: CLASSE_VARA_MAP[v] || "" })}>
-                <SelectTrigger className="rounded-xl"><SelectValue placeholder="Classe Processual" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="criminal">Criminal</SelectItem>
-                  <SelectItem value="civil">Civil</SelectItem>
-                  <SelectItem value="administrativo">Administrativo</SelectItem>
-                  <SelectItem value="constitucional">Constitucional</SelectItem>
-                </SelectContent>
-              </Select>
-              <Input placeholder="Assunto" value={form.assunto} onChange={(e) => setForm({ ...form, assunto: e.target.value })} required className="rounded-xl" />
-              <MultiPartyInput label="Autor" entries={autores} onChange={setAutores} />
-              <MultiPartyInput label="Réu" entries={reus} onChange={setReus} />
-              <Input placeholder="Vara" value={form.vara} onChange={(e) => setForm({ ...form, vara: e.target.value })} className="rounded-xl" />
-              <Input placeholder="Valor da Causa (R$)" value={form.valor_causa} onChange={(e) => { const raw = e.target.value.replace(/\D/g, ""); setForm({ ...form, valor_causa: raw ? formatCurrency(raw) : "" }); }} className="rounded-xl" />
-               <Textarea placeholder="Síntese (resumo) dos fatos" value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} className="rounded-xl" />
+              {podeAbrirSegundaInstancia && (
+                <div className="space-y-2 border border-border rounded-xl p-3 bg-muted/20">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Instância</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button type="button" onClick={() => setForm({ ...form, instancia: "1" })}
+                      className={`rounded-lg border px-3 py-2 text-xs font-medium ${form.instancia === "1" ? "border-institutional bg-institutional/10 text-institutional" : "border-border"}`}>
+                      1ª Instância
+                    </button>
+                    <button type="button" onClick={() => setForm({ ...form, instancia: "2" })}
+                      className={`rounded-lg border px-3 py-2 text-xs font-medium ${form.instancia === "2" ? "border-institutional bg-institutional/10 text-institutional" : "border-border"}`}>
+                      2ª Instância (Originário)
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {form.instancia === "2" ? (
+                <>
+                  <Select value={form.classe_originaria} onValueChange={(v) => {
+                    const c = CLASSES_ORIGINARIAS.find(x => x.value === v);
+                    setForm({ ...form, classe_originaria: v, classe: c?.classe || form.classe });
+                  }}>
+                    <SelectTrigger className="rounded-xl"><SelectValue placeholder="Classe Originária *" /></SelectTrigger>
+                    <SelectContent>
+                      {CLASSES_ORIGINARIAS.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={form.orgao_julgador} onValueChange={(v) => setForm({ ...form, orgao_julgador: v })}>
+                    <SelectTrigger className="rounded-xl"><SelectValue placeholder="Órgão Julgador *" /></SelectTrigger>
+                    <SelectContent>
+                      {ORGAOS_JULGADORES.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Input placeholder="Assunto *" value={form.assunto} onChange={(e) => setForm({ ...form, assunto: e.target.value })} required className="rounded-xl" />
+                  <MultiPartyInput label="Impetrante / Autor" entries={autores} onChange={setAutores} />
+                  <MultiPartyInput label="Autoridade Coatora / Réu" entries={reus} onChange={setReus} />
+                  <Textarea placeholder="Síntese dos fatos *" value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} required className="rounded-xl" />
+                  <Textarea placeholder="Pedido *" value={form.pedido} onChange={(e) => setForm({ ...form, pedido: e.target.value })} required className="rounded-xl" />
+                  <p className="text-[11px] text-muted-foreground px-1">O Relator será sorteado automaticamente entre os Desembargadores ativos.</p>
+                </>
+              ) : (
+                <>
+                  <Select value={form.classe} onValueChange={(v) => setForm({ ...form, classe: v, vara: CLASSE_VARA_MAP[v] || "" })}>
+                    <SelectTrigger className="rounded-xl"><SelectValue placeholder="Classe Processual" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="criminal">Criminal</SelectItem>
+                      <SelectItem value="civil">Civil</SelectItem>
+                      <SelectItem value="administrativo">Administrativo</SelectItem>
+                      <SelectItem value="constitucional">Constitucional</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input placeholder="Assunto" value={form.assunto} onChange={(e) => setForm({ ...form, assunto: e.target.value })} required className="rounded-xl" />
+                  <MultiPartyInput label="Autor" entries={autores} onChange={setAutores} />
+                  <MultiPartyInput label="Réu" entries={reus} onChange={setReus} />
+                  <Input placeholder="Vara" value={form.vara} onChange={(e) => setForm({ ...form, vara: e.target.value })} className="rounded-xl" />
+                  <Input placeholder="Valor da Causa (R$)" value={form.valor_causa} onChange={(e) => { const raw = e.target.value.replace(/\D/g, ""); setForm({ ...form, valor_causa: raw ? formatCurrency(raw) : "" }); }} className="rounded-xl" />
+                  <Textarea placeholder="Síntese (resumo) dos fatos" value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} className="rounded-xl" />
+                </>
+              )}
 
               <Select value={form.sigilo} onValueChange={(v) => setForm({ ...form, sigilo: v })}>
                 <SelectTrigger className="rounded-xl"><SelectValue placeholder="Nível de Sigilo" /></SelectTrigger>
