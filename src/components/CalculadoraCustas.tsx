@@ -598,7 +598,50 @@ export default function CalculadoraCustas() {
                   <span className="text-xs text-muted-foreground">R$ 20.000,00 por diligência</span>
                 </div>
               </div>
+              {/* Detalhes de Verbas Indenizatórias e Extras */}
+              <div className="space-y-4 p-4 border rounded-lg bg-secondary/10">
+                <h4 className="font-semibold text-sm flex items-center gap-2">
+                  <Gavel className="h-4 w-4 text-gold" />
+                  Verbas e Diligências
+                </h4>
+                
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="flex justify-between text-xs">
+                      Diligências (Oficial de Justiça)
+                      <span className="text-gold font-mono">{formatBRL(diligencias * 20000)}</span>
+                    </Label>
+                    <div className="flex items-center gap-4">
+                      <Input 
+                        type="number" 
+                        min="0" 
+                        value={diligencias} 
+                        onChange={e => setDiligencias(Math.max(0, Number(e.target.value)))}
+                        className="w-24 bg-background"
+                      />
+                      <span className="text-[10px] text-muted-foreground">R$ 20.000,00 cada</span>
+                    </div>
+                  </div>
 
+                  <div className="space-y-2">
+                    <Label className="text-xs">Verbas Indenizatórias</Label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <div className="flex items-center space-x-2 border p-2 rounded bg-background">
+                        <Checkbox id="juiz" checked={hasJuiz} onCheckedChange={(v) => setHasJuiz(!!v)} />
+                        <Label htmlFor="juiz" className="text-[10px] cursor-pointer">Juiz (60k)</Label>
+                      </div>
+                      <div className="flex items-center space-x-2 border p-2 rounded bg-background">
+                        <Checkbox id="promotor" checked={hasPromotor} onCheckedChange={(v) => setHasPromotor(!!v)} />
+                        <Label htmlFor="promotor" className="text-[10px] cursor-pointer">Promotor (80k)</Label>
+                      </div>
+                      <div className="flex items-center space-x-2 border p-2 rounded bg-background">
+                        <Checkbox id="desemb" checked={hasDesembargador} onCheckedChange={(v) => setHasDesembargador(!!v)} />
+                        <Label htmlFor="desemb" className="text-[10px] cursor-pointer">Desemb. (120k)</Label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div className="space-y-3">
                 <Label>Verbas Indenizatórias (Obrigatórias por lei)</Label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
