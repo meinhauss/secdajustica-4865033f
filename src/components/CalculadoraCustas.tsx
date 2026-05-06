@@ -159,7 +159,7 @@ const PROCESS_TYPES: ProcessType[] = [
   },
   { 
     id: "divorcio", 
-    name: "Divórcio", 
+    name: "Ação de Divórcio", 
     items: [
       { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
       { label: "Taxas Judiciais", value: 0, type: 'custa', required: true }
