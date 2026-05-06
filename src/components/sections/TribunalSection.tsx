@@ -69,11 +69,8 @@ function TribunalDashboard({ onSelect, onOpenProcesso }: { onSelect: (id: string
   const { data: apelacoes } = useQuery({
     queryKey: ["tribunal-apelacoes", user?.id, isDesembargador],
     queryFn: async () => {
-      let q = supabase.from("apelacoes").select("*, processos(numero, autor_nome, reu_nome, classe, assunto), sentencas(tipo, ementa, dispositivo)").order("created_at", { ascending: false });
-      // Desembargadores see appeals assigned to them or unassigned
-      if (isDesembargador && !roles.includes("admin")) {
-        q = q.or(`desembargador_id.eq.${user!.id},desembargador_id.is.null`);
-      }
+      // All desembargadores can see all appeals (to qualify, vote, accompany)
+      const q = supabase.from("apelacoes").select("*, processos(numero, autor_nome, reu_nome, classe, assunto), sentencas(tipo, ementa, dispositivo)").order("created_at", { ascending: false });
       const { data, error } = await q;
       if (error) throw error;
       return data as any[];
