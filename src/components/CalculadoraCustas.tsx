@@ -197,16 +197,27 @@ export default function CalculadoraCustas() {
       });
       setSelectedItems(initial);
 
-      // Valores iniciais para personalização se for processo conhecido
-      const firstHonorario = selectedProcess.items.find(i => i.type === 'honorario');
-      if (firstHonorario) {
-        setCustomHonorarios(firstHonorario.value);
+      // Reset specific inputs
+      setDiligencias(0);
+      setCrimesLimpeza([]);
+      setHasAlteracaoNome(false);
+
+      // Valores iniciais para personalização
+      const honorarioItem = selectedProcess.items.find(i => i.type === 'honorario');
+      if (honorarioItem) {
+        setCustomHonorarios(honorarioItem.value);
         setHonorarioType("fixed");
+        setCustomPercentage(20);
+      } else if (selectedProcessId === 'acoes_civeis') {
+        setHonorarioType("percentage");
+        setCustomPercentage(20);
       }
       
-      const firstCusta = selectedProcess.items.find(i => i.type === 'custa');
-      if (firstCusta) {
-        setCustomCustas(firstCusta.value);
+      const custaItem = selectedProcess.items.find(i => i.type === 'custa');
+      if (custaItem) {
+        setCustomCustas(custaItem.value);
+      } else {
+        setCustomCustas(0);
       }
     }
   }, [selectedProcessId]);
