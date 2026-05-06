@@ -216,7 +216,7 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
   const { data: apelacao } = useQuery({
     queryKey: ["tribunal-apelacao", apelacaoId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("apelacoes").select("*, processos(numero, autor_nome, reu_nome, classe, assunto, status, vara, sigilo), sentencas(tipo, ementa, fundamentacao, dispositivo, assinado, data_publicacao, magistrado_id)").eq("id", apelacaoId).single();
+      const { data, error } = await supabase.from("apelacoes").select("*, processos(numero, autor_nome, reu_nome, classe, assunto, status, vara, sigilo, advogado_autor_id, advogado_reu_id), sentencas(tipo, ementa, fundamentacao, dispositivo, assinado, data_publicacao, magistrado_id)").eq("id", apelacaoId).single();
       if (error) throw error;
       return data as any;
     },
