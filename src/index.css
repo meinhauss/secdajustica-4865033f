@@ -112,7 +112,7 @@
   }
 
   /* Prevent long words/URLs from breaking layouts on small screens */
-  p, span, h1, h2, h3, h4, h5, h6, td, th, li, div, a {
+  p, h1, h2, h3, h4, h5, h6, td, th, li {
     overflow-wrap: anywhere;
   }
 
