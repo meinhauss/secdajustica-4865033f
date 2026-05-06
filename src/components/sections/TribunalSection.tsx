@@ -234,63 +234,209 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
     enabled: !!apelacao?.sentencas?.magistrado_id,
   });
 
-  // Admitir apelação
+  // Votos
+  const { data: votos } = useQuery({
+    queryKey: ["tribunal-votos", apelacaoId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("votos_apelacao")
+        .select("*")
+        .eq("apelacao_id", apelacaoId)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
+  const meuVoto = votos?.find((v) => v.desembargador_id === user?.id);
+  const votoRelator = votos?.find((v) => v.tipo === "relator");
+
+  const notifyDesembargadores = async (titulo: string, mensagem: string) => {
+    const { data: desembs } = await supabase
+      .from("user_roles")
+      .select("user_id")
+      .in("role", ["desembargador", "presidente_tribunal"]);
+    const ids = Array.from(new Set((desembs || []).map((d: any) => d.user_id)));
+    if (!ids.length) return;
+    await supabase.from("notificacoes").insert(
+      ids.map((uid) => ({ user_id: uid, titulo, mensagem, tipo: "processo", link_secao: "tribunal" }))
+    );
+  };
+
+  // Qualificar como relator (antes de admitir)
+  const qualificarRelatorMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("apelacoes")
+        .update({ desembargador_id: user!.id })
+        .eq("id", apelacaoId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Você se qualificou como Relator desta apelação.");
+      queryClient.invalidateQueries({ queryKey: ["tribunal-apelacao"] });
+      queryClient.invalidateQueries({ queryKey: ["tribunal"] });
+    },
+  });
+
+  // Admitir / Inadmitir com razões
+  const [showAdmitir, setShowAdmitir] = useState(false);
+  const [showInadmitir, setShowInadmitir] = useState(false);
+  const [razoesAdm, setRazoesAdm] = useState("");
+  const [razoesInadm, setRazoesInadm] = useState("");
+
   const admitirMutation = useMutation({
     mutationFn: async () => {
+      if (!razoesAdm || razoesAdm === "<p></p>") throw new Error("Informe as razões da admissão.");
       const { error } = await supabase.from("apelacoes").update({
         status: "admitida",
         desembargador_id: user!.id,
         data_distribuicao: new Date().toISOString(),
+        razoes_admissao: razoesAdm,
       }).eq("id", apelacaoId);
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Apelação admitida e distribuída!");
+      toast.success("Apelação admitida!");
+      setShowAdmitir(false);
+      setRazoesAdm("");
       queryClient.invalidateQueries({ queryKey: ["tribunal"] });
       queryClient.invalidateQueries({ queryKey: ["tribunal-apelacao"] });
     },
+    onError: (e: any) => toast.error(e.message),
   });
 
   const inadmitirMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("apelacoes").update({ status: "inadmitida" }).eq("id", apelacaoId);
+      if (!razoesInadm || razoesInadm === "<p></p>") throw new Error("Informe as razões da inadmissão.");
+      const { error } = await supabase.from("apelacoes").update({
+        status: "inadmitida",
+        razoes_inadmissao: razoesInadm,
+      }).eq("id", apelacaoId);
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Apelação inadmitida.");
+      setShowInadmitir(false);
+      setRazoesInadm("");
       queryClient.invalidateQueries({ queryKey: ["tribunal"] });
+      queryClient.invalidateQueries({ queryKey: ["tribunal-apelacao"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  // Iniciar julgamento — notifica desembargadores
+  const iniciarJulgamentoMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("apelacoes").update({ status: "em_julgamento" }).eq("id", apelacaoId);
+      if (error) throw error;
+      await notifyDesembargadores(
+        "Julgamento iniciado",
+        `Apelação ${apelacao.numero_acordao} entrou em julgamento.`
+      );
+    },
+    onSuccess: () => {
+      toast.success("Julgamento iniciado e desembargadores notificados.");
       queryClient.invalidateQueries({ queryKey: ["tribunal-apelacao"] });
     },
   });
 
-  // Julgar
-  const [showJulgar, setShowJulgar] = useState(false);
+  // Voto do relator
+  const [showVotoRelator, setShowVotoRelator] = useState(false);
   const [decisaoTipo, setDecisaoTipo] = useState("mantida");
   const [decisaoFund, setDecisaoFund] = useState("");
   const [decisaoDisp, setDecisaoDisp] = useState("");
 
-  const julgarMutation = useMutation({
+  const registrarVotoRelatorMutation = useMutation({
     mutationFn: async () => {
+      if (!decisaoFund || decisaoFund === "<p></p>") throw new Error("Informe a fundamentação.");
+      if (!decisaoDisp || decisaoDisp === "<p></p>") throw new Error("Informe o dispositivo.");
+      const { error } = await supabase.from("votos_apelacao").insert({
+        apelacao_id: apelacaoId,
+        desembargador_id: user!.id,
+        desembargador_nome: profile?.nome_completo || "Relator",
+        tipo: "relator",
+        decisao_tipo: decisaoTipo,
+        fundamentacao: decisaoFund,
+        dispositivo: decisaoDisp,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Voto do relator registrado!");
+      setShowVotoRelator(false);
+      queryClient.invalidateQueries({ queryKey: ["tribunal-votos", apelacaoId] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  // Voto dos demais (acompanha ou próprio)
+  const [showVoto, setShowVoto] = useState(false);
+  const [tipoVoto, setTipoVoto] = useState<"acompanha" | "proprio">("acompanha");
+  const [vDecisao, setVDecisao] = useState("mantida");
+  const [vFund, setVFund] = useState("");
+  const [vDisp, setVDisp] = useState("");
+
+  const registrarVotoMutation = useMutation({
+    mutationFn: async () => {
+      const payload: any = {
+        apelacao_id: apelacaoId,
+        desembargador_id: user!.id,
+        desembargador_nome: profile?.nome_completo || "Desembargador(a)",
+        tipo: tipoVoto,
+      };
+      if (tipoVoto === "acompanha") {
+        if (!votoRelator) throw new Error("Voto do relator ainda não foi proferido.");
+        payload.acompanha_voto_id = votoRelator.id;
+        payload.decisao_tipo = votoRelator.decisao_tipo;
+      } else {
+        if (!vFund || vFund === "<p></p>") throw new Error("Informe a fundamentação.");
+        if (!vDisp || vDisp === "<p></p>") throw new Error("Informe o dispositivo.");
+        payload.decisao_tipo = vDecisao;
+        payload.fundamentacao = vFund;
+        payload.dispositivo = vDisp;
+      }
+      const { error } = await supabase.from("votos_apelacao").insert(payload);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Voto registrado!");
+      setShowVoto(false);
+      queryClient.invalidateQueries({ queryKey: ["tribunal-votos", apelacaoId] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  // Proclamar acórdão (consolida votos)
+  const proclamarMutation = useMutation({
+    mutationFn: async () => {
+      if (!votoRelator) throw new Error("Sem voto do relator.");
       const now = new Date().toISOString();
+      // Decisão majoritária por contagem
+      const counts: Record<string, number> = {};
+      (votos || []).forEach((v) => {
+        const t = v.decisao_tipo || votoRelator.decisao_tipo;
+        if (t) counts[t] = (counts[t] || 0) + 1;
+      });
+      const decisaoFinal = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] || votoRelator.decisao_tipo;
+
       const { error } = await supabase.from("apelacoes").update({
         status: "julgada",
-        decisao_tipo: decisaoTipo,
-        decisao_fundamentacao: decisaoFund,
-        decisao_dispositivo: decisaoDisp,
+        decisao_tipo: decisaoFinal,
+        decisao_fundamentacao: votoRelator.fundamentacao,
+        decisao_dispositivo: votoRelator.dispositivo,
         data_julgamento: now,
       }).eq("id", apelacaoId);
       if (error) throw error;
 
-      // Add movimentação to the process
       await supabase.from("movimentacoes").insert({
         processo_id: apelacao.processo_id,
         autor_id: user!.id,
         tipo: "acordao",
-        descricao: `Acórdão proferido pelo TJ (${apelacao.numero_acordao}): ${DECISAO_LABELS[decisaoTipo] || decisaoTipo}`,
+        descricao: `Acórdão proferido pelo TJ (${apelacao.numero_acordao}): ${DECISAO_LABELS[decisaoFinal] || decisaoFinal}`,
       });
 
-      // Generate jurisprudência from the acórdão
-      const ementa = `${DECISAO_LABELS[decisaoTipo] || decisaoTipo}. ${apelacao.processos?.classe ? apelacao.processos.classe.toUpperCase() + ". " : ""}${apelacao.processos?.assunto || ""}. Processo nº ${apelacao.processos?.numero || ""}.`;
+      const ementa = `${DECISAO_LABELS[decisaoFinal] || decisaoFinal}. ${apelacao.processos?.classe ? apelacao.processos.classe.toUpperCase() + ". " : ""}${apelacao.processos?.assunto || ""}. Processo nº ${apelacao.processos?.numero || ""}.`;
       await supabase.from("jurisprudencias").insert({
         apelacao_id: apelacaoId,
         processo_id: apelacao.processo_id,
@@ -298,25 +444,27 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
         classe: apelacao.processos?.classe || null,
         assunto: apelacao.processos?.assunto || null,
         ementa,
-        decisao_tipo: decisaoTipo,
-        decisao_fundamentacao: decisaoFund,
-        decisao_dispositivo: decisaoDisp,
-        desembargador_id: user!.id,
-        desembargador_nome: profile?.nome_completo || null,
+        decisao_tipo: decisaoFinal,
+        decisao_fundamentacao: votoRelator.fundamentacao,
+        decisao_dispositivo: votoRelator.dispositivo,
+        desembargador_id: votoRelator.desembargador_id,
+        desembargador_nome: votoRelator.desembargador_nome,
         data_julgamento: now,
       });
     },
     onSuccess: () => {
-      toast.success("Acórdão registrado e jurisprudência gerada!");
-      setShowJulgar(false);
+      toast.success("Acórdão proclamado!");
       queryClient.invalidateQueries({ queryKey: ["tribunal"] });
       queryClient.invalidateQueries({ queryKey: ["tribunal-apelacao"] });
     },
+    onError: (e: any) => toast.error(e.message),
   });
 
   if (!apelacao) return <div className="text-center py-16"><p className="text-sm text-muted-foreground">Carregando...</p></div>;
 
   const cfg = STATUS_CFG[apelacao.status] || STATUS_CFG.interposta;
+  const isRelator = apelacao.desembargador_id === user?.id;
+  const semRelator = !apelacao.desembargador_id;
 
   return (
     <div className="space-y-6">
@@ -328,6 +476,11 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
           <Scale className="h-6 w-6 text-institutional" />
           <h2 className="font-display text-xl font-bold text-foreground">{apelacao.numero_acordao}</h2>
           <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${cfg.color}`}>{cfg.label}</span>
+          {apelacao.desembargador_id && (
+            <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-institutional/10 text-institutional">
+              Relator definido
+            </span>
+          )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
@@ -357,7 +510,13 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
         <TabsList className="w-full justify-start rounded-xl bg-secondary/50 p-1 h-auto gap-1 flex-wrap">
           <TabsTrigger value="recurso" className="rounded-lg text-xs"><FileText className="h-3 w-3 mr-1" /> Recurso</TabsTrigger>
           <TabsTrigger value="sentenca" className="rounded-lg text-xs"><Scroll className="h-3 w-3 mr-1" /> Sentença Recorrida</TabsTrigger>
-          {apelacao.status === "julgada" && <TabsTrigger value="acordao" className="rounded-lg text-xs"><Gavel className="h-3 w-3 mr-1" /> Acórdão</TabsTrigger>}
+          {(apelacao.razoes_admissao || apelacao.razoes_inadmissao) && (
+            <TabsTrigger value="admissao" className="rounded-lg text-xs"><BookOpen className="h-3 w-3 mr-1" /> Admissibilidade</TabsTrigger>
+          )}
+          {(apelacao.status === "em_julgamento" || apelacao.status === "julgada") && (
+            <TabsTrigger value="votos" className="rounded-lg text-xs"><Gavel className="h-3 w-3 mr-1" /> Votos</TabsTrigger>
+          )}
+          {apelacao.status === "julgada" && <TabsTrigger value="acordao" className="rounded-lg text-xs"><Scroll className="h-3 w-3 mr-1" /> Acórdão</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="recurso" className="mt-4 space-y-4">
@@ -385,14 +544,64 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
             )}
             <div>
               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Fundamentação</h4>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap mt-1">{apelacao.sentencas?.fundamentacao}</p>
+              <RichTextView html={apelacao.sentencas?.fundamentacao} className="text-sm mt-1" />
             </div>
             <div>
               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Dispositivo</h4>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap mt-1">{apelacao.sentencas?.dispositivo}</p>
+              <RichTextView html={apelacao.sentencas?.dispositivo} className="text-sm mt-1" />
             </div>
           </div>
         </TabsContent>
+
+        {(apelacao.razoes_admissao || apelacao.razoes_inadmissao) && (
+          <TabsContent value="admissao" className="mt-4 space-y-4">
+            {apelacao.razoes_admissao && (
+              <div className="bg-card rounded-xl p-5 border border-border">
+                <h3 className="text-sm font-semibold text-foreground mb-2">Razões da Admissão</h3>
+                <RichTextView html={apelacao.razoes_admissao} className="text-sm" />
+              </div>
+            )}
+            {apelacao.razoes_inadmissao && (
+              <div className="bg-card rounded-xl p-5 border border-border">
+                <h3 className="text-sm font-semibold text-foreground mb-2">Razões da Inadmissão</h3>
+                <RichTextView html={apelacao.razoes_inadmissao} className="text-sm" />
+              </div>
+            )}
+          </TabsContent>
+        )}
+
+        {(apelacao.status === "em_julgamento" || apelacao.status === "julgada") && (
+          <TabsContent value="votos" className="mt-4 space-y-3">
+            {!votos?.length && <p className="text-sm text-muted-foreground">Nenhum voto registrado ainda.</p>}
+            {votos?.map((v) => (
+              <div key={v.id} className="bg-card rounded-xl p-4 border border-border">
+                <div className="flex items-center gap-2 flex-wrap mb-2">
+                  <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-institutional/10 text-institutional">
+                    {v.tipo === "relator" ? "Relator" : v.tipo === "acompanha" ? "Acompanha o Relator" : "Voto Próprio"}
+                  </span>
+                  <span className="text-sm font-medium text-foreground">{v.desembargador_nome}</span>
+                  {v.decisao_tipo && (
+                    <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
+                      {DECISAO_LABELS[v.decisao_tipo] || v.decisao_tipo}
+                    </span>
+                  )}
+                </div>
+                {v.tipo !== "acompanha" && (
+                  <>
+                    <div className="mt-2">
+                      <h5 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Fundamentação</h5>
+                      <RichTextView html={v.fundamentacao} className="text-sm" />
+                    </div>
+                    <div className="mt-2">
+                      <h5 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Dispositivo</h5>
+                      <RichTextView html={v.dispositivo} className="text-sm" />
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+          </TabsContent>
+        )}
 
         {apelacao.status === "julgada" && (
           <TabsContent value="acordao" className="mt-4 space-y-4">
@@ -405,11 +614,11 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
               </div>
               <div>
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Fundamentação</h4>
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap mt-1">{apelacao.decisao_fundamentacao}</p>
+                <RichTextView html={apelacao.decisao_fundamentacao} className="text-sm mt-1" />
               </div>
               <div>
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Dispositivo</h4>
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap mt-1">{apelacao.decisao_dispositivo}</p>
+                <RichTextView html={apelacao.decisao_dispositivo} className="text-sm mt-1" />
               </div>
               {apelacao.data_julgamento && (
                 <p className="text-xs text-muted-foreground">Julgado em: {format(new Date(apelacao.data_julgamento), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
@@ -424,68 +633,64 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
         <div className="bg-card rounded-xl p-5 border border-border space-y-3">
           <h3 className="text-sm font-semibold text-foreground">Ações do Desembargador</h3>
 
-          {apelacao.status === "interposta" && (
+          {/* Qualificar como Relator */}
+          {semRelator && apelacao.status === "interposta" && (
+            <Button onClick={() => qualificarRelatorMutation.mutate()} disabled={qualificarRelatorMutation.isPending} variant="outline" className="gap-2">
+              <Eye className="h-4 w-4" /> Qualificar-me como Relator
+            </Button>
+          )}
+
+          {apelacao.status === "interposta" && (isRelator || roles.includes("admin")) && (
             <div className="flex gap-2 flex-wrap">
-              <Button onClick={() => admitirMutation.mutate()} disabled={admitirMutation.isPending} className="gap-2">
-                <CheckCircle className="h-4 w-4" /> Admitir Apelação
+              <Button onClick={() => setShowAdmitir(true)} className="gap-2">
+                <CheckCircle className="h-4 w-4" /> Admitir
               </Button>
-              <Button variant="destructive" onClick={() => inadmitirMutation.mutate()} disabled={inadmitirMutation.isPending} className="gap-2">
+              <Button variant="destructive" onClick={() => setShowInadmitir(true)} className="gap-2">
                 <XCircle className="h-4 w-4" /> Inadmitir
               </Button>
             </div>
           )}
 
-          {apelacao.status === "admitida" && (
-            <Button onClick={async () => {
-              const { error } = await supabase.from("apelacoes").update({ status: "em_julgamento" }).eq("id", apelacaoId);
-              if (!error) {
-                toast.success("Apelação em julgamento.");
-                queryClient.invalidateQueries({ queryKey: ["tribunal-apelacao"] });
-              }
-            }} className="gap-2">
+          {apelacao.status === "interposta" && !isRelator && !semRelator && !roles.includes("admin") && (
+            <p className="text-xs text-muted-foreground flex items-center gap-2">
+              <AlertTriangle className="h-3 w-3" /> Apenas o Relator pode admitir/inadmitir esta apelação.
+            </p>
+          )}
+
+          {apelacao.status === "admitida" && (isRelator || roles.includes("admin")) && (
+            <Button onClick={() => iniciarJulgamentoMutation.mutate()} disabled={iniciarJulgamentoMutation.isPending} className="gap-2">
               <Gavel className="h-4 w-4" /> Iniciar Julgamento
             </Button>
           )}
 
           {apelacao.status === "em_julgamento" && (
-            <>
-              <Button onClick={() => setShowJulgar(true)} className="gap-2">
-                <Scroll className="h-4 w-4" /> Proferir Acórdão
-              </Button>
+            <div className="space-y-2">
+              {isRelator && !votoRelator && (
+                <Button onClick={() => setShowVotoRelator(true)} className="gap-2">
+                  <Scroll className="h-4 w-4" /> Proferir Voto do Relator
+                </Button>
+              )}
 
-              <Dialog open={showJulgar} onOpenChange={setShowJulgar}>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>Proferir Acórdão — {apelacao.numero_acordao}</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium text-foreground">Decisão</label>
-                      <Select value={decisaoTipo} onValueChange={setDecisaoTipo}>
-                        <SelectTrigger className="rounded-xl mt-1"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="mantida">Sentença Mantida</SelectItem>
-                          <SelectItem value="reformada_parcial">Reformada Parcialmente</SelectItem>
-                          <SelectItem value="reformada_total">Reformada Totalmente</SelectItem>
-                          <SelectItem value="anulada">Sentença Anulada</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-foreground">Fundamentação</label>
-                      <Textarea value={decisaoFund} onChange={(e) => setDecisaoFund(e.target.value)} placeholder="Fundamentação jurídica do acórdão..." rows={6} className="mt-1" />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-foreground">Dispositivo</label>
-                      <Textarea value={decisaoDisp} onChange={(e) => setDecisaoDisp(e.target.value)} placeholder="Parte dispositiva da decisão..." rows={4} className="mt-1" />
-                    </div>
-                    <Button onClick={() => julgarMutation.mutate()} disabled={julgarMutation.isPending || !decisaoFund || !decisaoDisp} className="w-full gap-2">
-                      <Gavel className="h-4 w-4" /> Registrar Acórdão
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </>
+              {!isRelator && votoRelator && !meuVoto && (
+                <Button onClick={() => setShowVoto(true)} className="gap-2">
+                  <Gavel className="h-4 w-4" /> Proferir meu Voto
+                </Button>
+              )}
+
+              {!votoRelator && !isRelator && (
+                <p className="text-xs text-muted-foreground flex items-center gap-2">
+                  <Clock className="h-3 w-3" /> Aguardando voto do Relator.
+                </p>
+              )}
+
+              {meuVoto && <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-2"><CheckCircle className="h-3 w-3" /> Você já votou.</p>}
+
+              {votoRelator && (votos?.length || 0) >= 1 && (isRelator || roles.includes("admin") || roles.includes("presidente_tribunal")) && (
+                <Button onClick={() => proclamarMutation.mutate()} disabled={proclamarMutation.isPending} variant="outline" className="gap-2">
+                  <BarChart3 className="h-4 w-4" /> Proclamar Acórdão
+                </Button>
+              )}
+            </div>
           )}
 
           {apelacao.status === "julgada" && (
@@ -497,6 +702,119 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
           )}
         </div>
       )}
+
+      {/* Dialog: Admitir */}
+      <Dialog open={showAdmitir} onOpenChange={setShowAdmitir}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader><DialogTitle>Admitir Apelação — Razões</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-foreground">Razões da Admissão</label>
+              <RichTextEditor value={razoesAdm} onChange={setRazoesAdm} placeholder="Fundamente a admissão da apelação..." minHeight="160px" className="mt-1" />
+            </div>
+            <Button onClick={() => admitirMutation.mutate()} disabled={admitirMutation.isPending} className="w-full gap-2">
+              <CheckCircle className="h-4 w-4" /> Admitir
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog: Inadmitir */}
+      <Dialog open={showInadmitir} onOpenChange={setShowInadmitir}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader><DialogTitle>Inadmitir Apelação — Razões</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-foreground">Razões da Inadmissão</label>
+              <RichTextEditor value={razoesInadm} onChange={setRazoesInadm} placeholder="Fundamente a inadmissão da apelação..." minHeight="160px" className="mt-1" />
+            </div>
+            <Button variant="destructive" onClick={() => inadmitirMutation.mutate()} disabled={inadmitirMutation.isPending} className="w-full gap-2">
+              <XCircle className="h-4 w-4" /> Inadmitir
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog: Voto do Relator */}
+      <Dialog open={showVotoRelator} onOpenChange={setShowVotoRelator}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader><DialogTitle>Voto do Relator — {apelacao.numero_acordao}</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-foreground">Decisão</label>
+              <Select value={decisaoTipo} onValueChange={setDecisaoTipo}>
+                <SelectTrigger className="rounded-xl mt-1"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="mantida">Sentença Mantida</SelectItem>
+                  <SelectItem value="reformada_parcial">Reformada Parcialmente</SelectItem>
+                  <SelectItem value="reformada_total">Reformada Totalmente</SelectItem>
+                  <SelectItem value="anulada">Sentença Anulada</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground">Fundamentação</label>
+              <RichTextEditor value={decisaoFund} onChange={setDecisaoFund} placeholder="Fundamentação jurídica do voto..." minHeight="180px" className="mt-1" />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground">Dispositivo</label>
+              <RichTextEditor value={decisaoDisp} onChange={setDecisaoDisp} placeholder="Parte dispositiva do voto..." minHeight="120px" className="mt-1" />
+            </div>
+            <Button onClick={() => registrarVotoRelatorMutation.mutate()} disabled={registrarVotoRelatorMutation.isPending} className="w-full gap-2">
+              <Gavel className="h-4 w-4" /> Registrar Voto
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog: Voto dos demais */}
+      <Dialog open={showVoto} onOpenChange={setShowVoto}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader><DialogTitle>Meu Voto — {apelacao.numero_acordao}</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-foreground">Como deseja votar?</label>
+              <Select value={tipoVoto} onValueChange={(v: any) => setTipoVoto(v)}>
+                <SelectTrigger className="rounded-xl mt-1"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="acompanha">Acompanhar o voto do Relator</SelectItem>
+                  <SelectItem value="proprio">Proferir voto próprio (divergir)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {tipoVoto === "proprio" && (
+              <>
+                <div>
+                  <label className="text-sm font-medium text-foreground">Decisão</label>
+                  <Select value={vDecisao} onValueChange={setVDecisao}>
+                    <SelectTrigger className="rounded-xl mt-1"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="mantida">Sentença Mantida</SelectItem>
+                      <SelectItem value="reformada_parcial">Reformada Parcialmente</SelectItem>
+                      <SelectItem value="reformada_total">Reformada Totalmente</SelectItem>
+                      <SelectItem value="anulada">Sentença Anulada</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-foreground">Fundamentação</label>
+                  <RichTextEditor value={vFund} onChange={setVFund} placeholder="Fundamentação do seu voto..." minHeight="160px" className="mt-1" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-foreground">Dispositivo</label>
+                  <RichTextEditor value={vDisp} onChange={setVDisp} placeholder="Parte dispositiva..." minHeight="100px" className="mt-1" />
+                </div>
+              </>
+            )}
+
+            <Button onClick={() => registrarVotoMutation.mutate()} disabled={registrarVotoMutation.isPending} className="w-full gap-2">
+              <Gavel className="h-4 w-4" /> Registrar Voto
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
