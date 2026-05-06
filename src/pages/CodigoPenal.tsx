@@ -14,10 +14,13 @@ import {
   type ArtigoPenal,
 } from "@/data/codigoPenal";
 import logoSjc from "@/assets/logo-sjc.jpg";
+import CalculadoraPenal from "@/components/CalculadoraPenal";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function CodigoPenalPage() {
   const [busca, setBusca] = useState("");
   const [categoria, setCategoria] = useState<string>("Todas");
+  const [aba, setAba] = useState<string>("codigo");
 
   const filtrados = useMemo(() => {
     const termo = busca.trim().toLowerCase();
