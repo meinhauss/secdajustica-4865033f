@@ -219,9 +219,16 @@ export default function CalculadoraCustas() {
   const [selectedProcessId, setSelectedProcessId] = useState<string>("");
   
   const sortedProcessTypes = useMemo(() => {
-    const regular = PROCESS_TYPES.filter(p => p.id !== 'outros').sort((a, b) => a.name.localeCompare(b.name));
+    const pInicial = PROCESS_TYPES.find(p => p.id === 'peticao_inicial');
     const outros = PROCESS_TYPES.find(p => p.id === 'outros');
-    return outros ? [...regular, outros] : regular;
+    const regular = PROCESS_TYPES.filter(p => p.id !== 'outros' && p.id !== 'peticao_inicial')
+      .sort((a, b) => a.name.localeCompare(b.name));
+    
+    const result = [];
+    if (pInicial) result.push(pInicial);
+    result.push(...regular);
+    if (outros) result.push(outros);
+    return result;
   }, []);
 
   const [diligencias, setDiligencias] = useState<number>(0);
