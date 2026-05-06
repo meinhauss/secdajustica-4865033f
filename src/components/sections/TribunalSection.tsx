@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Scale, FileText, Search, ArrowLeft, ChevronRight,
   Gavel, CheckCircle, Clock, XCircle, BarChart3, Eye,
-  BookOpen, AlertTriangle, Scroll
+  BookOpen, AlertTriangle, Scroll, Megaphone, Star
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
