@@ -540,19 +540,15 @@ export default function CalculadoraCustas() {
                   </h4>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-xs">Custas Processuais (R$)</Label>
-                      <Input 
-                        type="number" 
-                        value={selectedProcessId === 'outros' ? customCustas : (selectedProcess?.items?.find(i => i.type === 'custa')?.value ?? customCustas)} 
-                        onChange={e => setCustomCustas(Number(e.target.value))}
-                        disabled={selectedProcessId !== 'outros'}
-                        className="bg-background h-8 text-sm"
-                      />
-                      {selectedProcessId !== 'outros' && (
-                        <p className="text-[10px] text-muted-foreground italic">Valor padrão da tabela.</p>
-                      )}
-                    </div>
+                    <CurrencyInput 
+                      label="Custas Processuais"
+                      value={selectedProcessId === 'outros' ? customCustas : (selectedProcess?.items?.find(i => i.type === 'custa')?.value ?? customCustas)} 
+                      onChange={setCustomCustas}
+                      disabled={selectedProcessId !== 'outros'}
+                    />
+                    {selectedProcessId !== 'outros' && (
+                      <p className="hidden md:block absolute bottom-0 left-0 text-[10px] text-muted-foreground italic">Valor padrão da tabela.</p>
+                    )}
 
                     <div className="space-y-4">
                       <div className="space-y-2">
