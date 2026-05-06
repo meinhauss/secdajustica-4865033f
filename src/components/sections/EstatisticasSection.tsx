@@ -13,6 +13,18 @@ import { CURRENT_VERSION } from "@/lib/version";
 
 const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
   {
+    version: "2.26.0",
+    date: "06/05/2026",
+    changes: [
+      "Apelações: razões de admissão e inadmissão agora aparecem nas movimentações do processo originário",
+      "Intimações: tratamento adequado dos cargos exibidos (sem texto cru)",
+      "Apelações: qualquer parte (advogado/MP) pode solicitar destaque com justificativa, retirando do julgamento virtual",
+      "Apelações: designação de Relator e início de julgamento geram movimentação no processo originário",
+      "Votos de Desembargadores: possibilidade de registrar ressalvas mesmo ao acompanhar o Relator; todos os votos sincronizam com a timeline do processo",
+      "Apelações: fundamentação exibida com formatação rica (links e quebras), corrigindo exibição de HTML cru",
+    ],
+  },
+  {
     version: "2.25.0",
     date: "02/05/2026",
     changes: [
