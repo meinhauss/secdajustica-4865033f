@@ -299,16 +299,19 @@ export default function CalculadoraCustas() {
         }
       } else {
         selectedProcess.items.forEach(item => {
-          if (selectedItems[item.label]) {
+          // Itens 'required' são sempre inclusos, outros dependem da seleção
+          if (item.required || selectedItems[item.label]) {
             let val = item.value;
-            // Se for honorário e estiver em modo percentual, recalcula
+            
             if (item.type === 'honorario' && honorarioType === 'percentage') {
               val = (valorCivel || 0) * (customPercentage / 100);
             } else if (item.type === 'honorario' && customHonorarios !== item.value && customHonorarios !== 0) {
               val = customHonorarios;
+            } else if (item.type === 'custa' && customCustas !== item.value && customCustas !== 0) {
+              // Permite sobrescrever valor base da custa se o usuário digitar na caixa principal
+              val = customCustas;
             }
             
-            // Lógica especial para Limpeza de Ficha
             if (selectedProcess.id === 'limpeza_ficha' && item.label === 'Taxa de Processamento Base') {
               crimesLimpeza.forEach(c => {
                 val += GRAVIDADE_CRIMES[c.typeIndex].value;
