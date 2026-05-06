@@ -364,10 +364,25 @@ export default function CalculadoraCustas() {
             Baseado na tabela oficial do Tribunal de Justiça e OAB-SP.
           </p>
         </div>
-        <Button onClick={copySummary} disabled={!selectedProcess} className="bg-gold hover:bg-gold-dark text-black font-bold">
-          <Copy className="mr-2 h-4 w-4" />
-          Copiar Orçamento
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button 
+            onClick={generatePDF} 
+            disabled={!selectedProcess} 
+            variant="outline"
+            className="border-gold text-gold hover:bg-gold hover:text-black font-bold"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Exportar PDF
+          </Button>
+          <Button 
+            onClick={copySummary} 
+            disabled={!selectedProcess} 
+            className="bg-gold hover:bg-gold-dark text-black font-bold"
+          >
+            <Copy className="mr-2 h-4 w-4" />
+            Copiar Resumo
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
