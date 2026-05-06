@@ -347,7 +347,7 @@ export default function CalculadoraCustas() {
     outrasCustas.forEach(c => { extras += c.value; });
 
     const custasTotal = itemizedDetails.filter(i => (i.type === 'custa' || i.type === 'despesa') && includeCustas).reduce((acc, curr) => acc + curr.value, 0);
-    const honorariosTotal = itemizedDetails.filter(i => i.type === 'honorario' && includeHonorarios).reduce((acc, curr) => acc + curr.value, 0);
+    const honorariosTotal = itemizedDetails.filter(i => i.type === 'honorario').reduce((acc, curr) => acc + curr.value, 0);
     const finalExtras = includeExtras ? extras : 0;
 
     return {
@@ -356,7 +356,7 @@ export default function CalculadoraCustas() {
       extras: finalExtras,
       total: custasTotal + honorariosTotal + finalExtras,
       itemizedDetails: itemizedDetails.filter(i => {
-        if (i.type === 'honorario') return includeHonorarios;
+        if (i.type === 'honorario') return true;
         return includeCustas;
       }).map(i => ({ ...i, required: (selectedProcess?.items?.find(orig => orig.label === i.label)?.required) }))
     };
