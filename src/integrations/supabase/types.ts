@@ -26,6 +26,12 @@ export type Database = {
           decisao_fundamentacao: string | null
           decisao_tipo: string | null
           desembargador_id: string | null
+          destaque_justificativa: string | null
+          destaque_solicitado: boolean
+          destaque_solicitado_em: string | null
+          destaque_solicitante_id: string | null
+          destaque_solicitante_nome: string | null
+          destaque_solicitante_qualificacao: string | null
           fundamentacao: string
           id: string
           numero_acordao: string | null
@@ -48,6 +54,12 @@ export type Database = {
           decisao_fundamentacao?: string | null
           decisao_tipo?: string | null
           desembargador_id?: string | null
+          destaque_justificativa?: string | null
+          destaque_solicitado?: boolean
+          destaque_solicitado_em?: string | null
+          destaque_solicitante_id?: string | null
+          destaque_solicitante_nome?: string | null
+          destaque_solicitante_qualificacao?: string | null
           fundamentacao: string
           id?: string
           numero_acordao?: string | null
@@ -70,6 +82,12 @@ export type Database = {
           decisao_fundamentacao?: string | null
           decisao_tipo?: string | null
           desembargador_id?: string | null
+          destaque_justificativa?: string | null
+          destaque_solicitado?: boolean
+          destaque_solicitado_em?: string | null
+          destaque_solicitante_id?: string | null
+          destaque_solicitante_nome?: string | null
+          destaque_solicitante_qualificacao?: string | null
           fundamentacao?: string
           id?: string
           numero_acordao?: string | null

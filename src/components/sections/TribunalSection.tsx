@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Scale, FileText, Search, ArrowLeft, ChevronRight,
   Gavel, CheckCircle, Clock, XCircle, BarChart3, Eye,
-  BookOpen, AlertTriangle, Scroll
+  BookOpen, AlertTriangle, Scroll, Megaphone, Star
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -216,7 +216,7 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
   const { data: apelacao } = useQuery({
     queryKey: ["tribunal-apelacao", apelacaoId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("apelacoes").select("*, processos(numero, autor_nome, reu_nome, classe, assunto, status, vara, sigilo), sentencas(tipo, ementa, fundamentacao, dispositivo, assinado, data_publicacao, magistrado_id)").eq("id", apelacaoId).single();
+      const { data, error } = await supabase.from("apelacoes").select("*, processos(numero, autor_nome, reu_nome, classe, assunto, status, vara, sigilo, advogado_autor_id, advogado_reu_id), sentencas(tipo, ementa, fundamentacao, dispositivo, assinado, data_publicacao, magistrado_id)").eq("id", apelacaoId).single();
       if (error) throw error;
       return data as any;
     },
@@ -352,6 +352,60 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
       toast.success("Julgamento iniciado e desembargadores notificados.");
       queryClient.invalidateQueries({ queryKey: ["tribunal-apelacao"] });
     },
+  });
+
+  // Pedido de destaque (qualquer parte)
+  const [showDestaque, setShowDestaque] = useState(false);
+  const [destaqueJust, setDestaqueJust] = useState("");
+
+  const isAdvAutor = (apelacao as any)?.processos?.advogado_autor_id === user?.id;
+  const isAdvReu = (apelacao as any)?.processos?.advogado_reu_id === user?.id;
+  const isMP = roles.includes("ministerio_publico") || roles.includes("procurador_geral");
+  const podePedirDestaque = (isAdvAutor || isAdvReu || isMP || isDesembargador) && !apelacao?.destaque_solicitado && apelacao?.status !== "julgada" && apelacao?.status !== "inadmitida";
+
+  const minhaQualificacao = isAdvAutor
+    ? "Advogado(a) do Autor"
+    : isAdvReu
+    ? "Advogado(a) do Réu"
+    : isMP
+    ? "Ministério Público"
+    : isDesembargador
+    ? "Desembargador(a)"
+    : "Parte interessada";
+
+  const solicitarDestaqueMutation = useMutation({
+    mutationFn: async () => {
+      if (!destaqueJust || destaqueJust === "<p></p>") throw new Error("Informe a justificativa do pedido de destaque.");
+      const { error } = await supabase.from("apelacoes").update({
+        destaque_solicitado: true,
+        destaque_justificativa: destaqueJust,
+        destaque_solicitante_id: user!.id,
+        destaque_solicitante_nome: profile?.nome_completo || "",
+        destaque_solicitante_qualificacao: minhaQualificacao,
+        destaque_solicitado_em: new Date().toISOString(),
+      } as any).eq("id", apelacaoId);
+      if (error) throw error;
+      if (apelacao?.processo_id) {
+        await supabase.from("movimentacoes").insert({
+          processo_id: apelacao.processo_id,
+          tipo: "pedido_destaque",
+          descricao: `Pedido de destaque (retirada do julgamento virtual e remessa à sessão presencial) formulado por ${profile?.nome_completo || ""} (${minhaQualificacao}).\n\nJustificativa:\n${destaqueJust}`,
+          autor_id: user!.id,
+        });
+        await notifyDesembargadores(
+          "Pedido de destaque",
+          `${profile?.nome_completo || "Uma parte"} solicitou destaque na apelação ${apelacao.numero_acordao}.`
+        );
+      }
+    },
+    onSuccess: () => {
+      toast.success("Pedido de destaque registrado.");
+      setShowDestaque(false);
+      setDestaqueJust("");
+      queryClient.invalidateQueries({ queryKey: ["tribunal-apelacao"] });
+      queryClient.invalidateQueries({ queryKey: ["tribunal"] });
+    },
+    onError: (e: any) => toast.error(e.message),
   });
 
   // Voto do relator
@@ -518,7 +572,22 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
         </div>
       </div>
 
-      {/* Tabs */}
+      {apelacao.destaque_solicitado && (
+        <div className="bg-gold/10 border border-gold/40 rounded-xl p-4 flex items-start gap-3">
+          <Star className="h-5 w-5 text-gold-dark mt-0.5 flex-shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground">Pedido de destaque registrado</p>
+            <p className="text-xs text-muted-foreground">
+              Solicitado por {apelacao.destaque_solicitante_nome} ({apelacao.destaque_solicitante_qualificacao})
+              {apelacao.destaque_solicitado_em && ` em ${format(new Date(apelacao.destaque_solicitado_em), "dd/MM/yyyy HH:mm", { locale: ptBR })}`}
+            </p>
+            <div className="mt-2 text-sm">
+              <RichTextView html={apelacao.destaque_justificativa} />
+            </div>
+          </div>
+        </div>
+      )}
+
       <Tabs defaultValue="recurso" className="w-full">
         <TabsList className="w-full justify-start rounded-xl bg-secondary/50 p-1 h-auto gap-1 flex-wrap">
           <TabsTrigger value="recurso" className="rounded-lg text-xs"><FileText className="h-3 w-3 mr-1" /> Recurso</TabsTrigger>
@@ -640,6 +709,22 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
           </TabsContent>
         )}
       </Tabs>
+
+      {/* Pedido de destaque (qualquer parte) */}
+      {podePedirDestaque && (
+        <div className="bg-card rounded-xl p-5 border border-border space-y-3">
+          <div className="flex items-start gap-2">
+            <Megaphone className="h-4 w-4 text-gold-dark mt-0.5" />
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-foreground">Pedido de Destaque</h3>
+              <p className="text-xs text-muted-foreground">Retire este recurso do julgamento virtual e leve à sessão presencial mediante justificativa.</p>
+            </div>
+          </div>
+          <Button onClick={() => setShowDestaque(true)} variant="outline" className="gap-2">
+            <Star className="h-4 w-4" /> Solicitar destaque
+          </Button>
+        </div>
+      )}
 
       {/* Actions */}
       {isDesembargador && (
@@ -823,6 +908,25 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
 
             <Button onClick={() => registrarVotoMutation.mutate()} disabled={registrarVotoMutation.isPending} className="w-full gap-2">
               <Gavel className="h-4 w-4" /> Registrar Voto
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog: Pedido de Destaque */}
+      <Dialog open={showDestaque} onOpenChange={setShowDestaque}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader><DialogTitle>Pedido de Destaque — {apelacao.numero_acordao}</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Ao solicitar destaque, o recurso será retirado do julgamento virtual e remetido à sessão presencial. Os desembargadores serão notificados.
+            </p>
+            <div>
+              <label className="text-sm font-medium text-foreground">Justificativa</label>
+              <RichTextEditor value={destaqueJust} onChange={setDestaqueJust} placeholder="Explique o motivo do pedido de destaque..." minHeight="160px" className="mt-1" />
+            </div>
+            <Button onClick={() => solicitarDestaqueMutation.mutate()} disabled={solicitarDestaqueMutation.isPending} className="w-full gap-2">
+              <Star className="h-4 w-4" /> Confirmar pedido de destaque
             </Button>
           </div>
         </DialogContent>
