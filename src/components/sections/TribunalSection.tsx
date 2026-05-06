@@ -912,6 +912,25 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog: Pedido de Destaque */}
+      <Dialog open={showDestaque} onOpenChange={setShowDestaque}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader><DialogTitle>Pedido de Destaque — {apelacao.numero_acordao}</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Ao solicitar destaque, o recurso será retirado do julgamento virtual e remetido à sessão presencial. Os desembargadores serão notificados.
+            </p>
+            <div>
+              <label className="text-sm font-medium text-foreground">Justificativa</label>
+              <RichTextEditor value={destaqueJust} onChange={setDestaqueJust} placeholder="Explique o motivo do pedido de destaque..." minHeight="160px" className="mt-1" />
+            </div>
+            <Button onClick={() => solicitarDestaqueMutation.mutate()} disabled={solicitarDestaqueMutation.isPending} className="w-full gap-2">
+              <Star className="h-4 w-4" /> Confirmar pedido de destaque
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
