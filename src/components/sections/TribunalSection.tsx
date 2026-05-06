@@ -176,6 +176,34 @@ function TribunalDashboard({ onSelect, onOpenProcesso }: { onSelect: (id: string
           })}
         </div>
       )}
+
+      {originarios && originarios.length > 0 && (
+        <div className="space-y-2 pt-4">
+          <div className="flex items-center gap-2">
+            <h3 className="font-display text-lg font-semibold text-foreground">Processos Originários (2ª Instância)</h3>
+            <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-institutional/10 text-institutional">{originarios.length}</span>
+          </div>
+          {originarios.map((p: any, i: number) => (
+            <motion.div key={p.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
+              onClick={() => onOpenProcesso?.(p.id)}
+              className="bg-card rounded-xl p-4 border-2 border-institutional/40 shadow-institutional hover:border-institutional transition-all cursor-pointer group">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-mono text-sm font-semibold text-institutional">{p.numero}</span>
+                    <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-institutional text-gold-light">2ª Instância</span>
+                    <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{p.classe_originaria?.replace(/_/g, " ").toUpperCase()}</span>
+                    <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{p.orgao_julgador}</span>
+                  </div>
+                  <p className="text-sm text-foreground mt-1 truncate">{p.assunto}</p>
+                  <p className="text-xs text-muted-foreground">{formatPartesShort(p.autor_nome || "")} vs {formatPartesShort(p.reu_nome || "")}</p>
+                </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-institutional transition-colors flex-shrink-0" />
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
