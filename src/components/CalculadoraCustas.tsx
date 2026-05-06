@@ -535,13 +535,13 @@ export default function CalculadoraCustas() {
         
         <div className="flex items-center gap-3">
           <Button 
-            onClick={generatePDF} 
+            onClick={openPreview} 
             disabled={!selectedProcess} 
             variant="outline"
             className="border-gold/30 text-gold hover:bg-gold hover:text-black transition-all"
           >
-            <Download className="mr-2 h-4 w-4" />
-            PDF
+            <FileText className="mr-2 h-4 w-4" />
+            Visualizar Orçamento
           </Button>
           <Button 
             onClick={copySummary} 
