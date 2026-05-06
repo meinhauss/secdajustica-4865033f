@@ -572,7 +572,22 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
         </div>
       </div>
 
-      {/* Tabs */}
+      {apelacao.destaque_solicitado && (
+        <div className="bg-gold/10 border border-gold/40 rounded-xl p-4 flex items-start gap-3">
+          <Star className="h-5 w-5 text-gold-dark mt-0.5 flex-shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground">Pedido de destaque registrado</p>
+            <p className="text-xs text-muted-foreground">
+              Solicitado por {apelacao.destaque_solicitante_nome} ({apelacao.destaque_solicitante_qualificacao})
+              {apelacao.destaque_solicitado_em && ` em ${format(new Date(apelacao.destaque_solicitado_em), "dd/MM/yyyy HH:mm", { locale: ptBR })}`}
+            </p>
+            <div className="mt-2 text-sm">
+              <RichTextView html={apelacao.destaque_justificativa} />
+            </div>
+          </div>
+        </div>
+      )}
+
       <Tabs defaultValue="recurso" className="w-full">
         <TabsList className="w-full justify-start rounded-xl bg-secondary/50 p-1 h-auto gap-1 flex-wrap">
           <TabsTrigger value="recurso" className="rounded-lg text-xs"><FileText className="h-3 w-3 mr-1" /> Recurso</TabsTrigger>
