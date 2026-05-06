@@ -1059,6 +1059,176 @@ export default function CalculadoraCustas() {
           </div>
         </div>
       </div>
+
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-4xl max-h-[92vh] overflow-y-auto p-0 gap-0">
+          <DialogHeader className="p-4 border-b sticky top-0 bg-background z-10 flex-row items-center justify-between space-y-0">
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <FileText className="h-4 w-4 text-gold" />
+              Pré-visualização do Orçamento
+            </DialogTitle>
+            <div className="flex gap-2 mr-8">
+              <Button size="sm" variant="outline" onClick={printPreview} className="h-8 text-xs">
+                <Printer className="mr-1.5 h-3.5 w-3.5" /> Imprimir
+              </Button>
+              <Button size="sm" variant="outline" onClick={exportJPG} className="h-8 text-xs">
+                <Download className="mr-1.5 h-3.5 w-3.5" /> JPG
+              </Button>
+              <Button size="sm" onClick={exportPDF} className="h-8 text-xs bg-gold hover:bg-gold-dark text-black">
+                <FileDown className="mr-1.5 h-3.5 w-3.5" /> PDF
+              </Button>
+            </div>
+          </DialogHeader>
+
+          {selectedProcess && (
+            <div className="p-4 bg-muted/30">
+              <div ref={previewRef} className="bg-white text-black mx-auto" style={{ width: "210mm", minHeight: "297mm", padding: "20mm", fontFamily: "Inter, sans-serif" }}>
+                {/* Cabeçalho */}
+                <div className="border-b-4 pb-6 mb-6" style={{ borderColor: "hsl(0 72% 51%)" }}>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-[0.3em] font-semibold" style={{ color: "hsl(0 72% 51%)" }}>
+                        Secretaria da Justiça · Jaguaré RP
+                      </p>
+                      <h1 className="text-3xl font-bold mt-2 font-display" style={{ fontFamily: "Playfair Display, serif" }}>
+                        Orçamento Processual
+                      </h1>
+                      <p className="text-xs text-gray-600 mt-1">
+                        Simulação financeira de custas e honorários — Decreto-Lei N° 001/2024
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <div className="inline-flex items-center justify-center h-14 w-14 rounded-full" style={{ backgroundColor: "hsl(0 72% 51%)" }}>
+                        <Scale className="h-7 w-7 text-white" />
+                      </div>
+                      <p className="text-[10px] text-gray-500 mt-2">{new Date().toLocaleDateString("pt-BR")}</p>
+                      <p className="text-[10px] text-gray-500">{new Date().toLocaleTimeString("pt-BR")}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Info do Processo */}
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
+                    <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Natureza da Ação</p>
+                    <p className="text-sm font-semibold mt-1">{selectedProcess.name}</p>
+                  </div>
+                  <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
+                    <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Modalidade de Honorários</p>
+                    <p className="text-sm font-semibold mt-1">
+                      {honorarioType === "fixed" ? "Valor Fixo" : `Percentual (${customPercentage}%)`}
+                    </p>
+                  </div>
+                </div>
+
+                {selectedProcess.obs && (
+                  <div className="p-3 rounded-lg mb-6 border-l-4 bg-amber-50 border-amber-400">
+                    <p className="text-[11px] text-amber-900 leading-relaxed">{selectedProcess.obs}</p>
+                  </div>
+                )}
+
+                {/* Custas e Despesas */}
+                {includeCustas && calculations.itemizedDetails.filter(i => i.type !== 'honorario').length > 0 && (
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-2 pb-2 border-b-2" style={{ borderColor: "hsl(0 72% 51%)" }}>
+                      <h2 className="text-sm font-bold uppercase tracking-wider">Custas e Despesas Processuais</h2>
+                      <span className="text-sm font-mono font-bold">{formatBRL(calculations.custas)}</span>
+                    </div>
+                    <table className="w-full text-xs">
+                      <tbody>
+                        {calculations.itemizedDetails.filter(i => i.type !== 'honorario').map((item, idx) => (
+                          <tr key={idx} className="border-b border-gray-100">
+                            <td className="py-2 text-gray-700">{item.label}</td>
+                            <td className="py-2 text-right font-mono">{formatBRL(item.value)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* Diligências e Verbas */}
+                {includeExtras && calculations.extras > 0 && (
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-2 pb-2 border-b-2" style={{ borderColor: "hsl(0 72% 51%)" }}>
+                      <h2 className="text-sm font-bold uppercase tracking-wider">Diligências e Verbas Indenizatórias</h2>
+                      <span className="text-sm font-mono font-bold">{formatBRL(calculations.extras)}</span>
+                    </div>
+                    <table className="w-full text-xs">
+                      <tbody>
+                        {diligencias > 0 && (
+                          <tr className="border-b border-gray-100">
+                            <td className="py-2 text-gray-700">Diligências de Oficial de Justiça ({diligencias}x)</td>
+                            <td className="py-2 text-right font-mono">{formatBRL(diligencias * 20000)}</td>
+                          </tr>
+                        )}
+                        {hasJuiz && <tr className="border-b border-gray-100"><td className="py-2 text-gray-700">Verba — Juiz(a) de Direito</td><td className="py-2 text-right font-mono">{formatBRL(60000)}</td></tr>}
+                        {hasPromotor && <tr className="border-b border-gray-100"><td className="py-2 text-gray-700">Verba — Promotor(a) de Justiça</td><td className="py-2 text-right font-mono">{formatBRL(80000)}</td></tr>}
+                        {hasDesembargador && <tr className="border-b border-gray-100"><td className="py-2 text-gray-700">Verba — Desembargador(a)</td><td className="py-2 text-right font-mono">{formatBRL(120000)}</td></tr>}
+                        {outrasCustas.map(c => (
+                          <tr key={c.id} className="border-b border-gray-100">
+                            <td className="py-2 text-gray-700">{c.description || "Outra despesa"}</td>
+                            <td className="py-2 text-right font-mono">{formatBRL(c.value)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* Honorários */}
+                {includeHonorarios && calculations.honorarios > 0 && (
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-2 pb-2 border-b-2" style={{ borderColor: "hsl(0 72% 51%)" }}>
+                      <h2 className="text-sm font-bold uppercase tracking-wider">Honorários Advocatícios</h2>
+                      <span className="text-sm font-mono font-bold">{formatBRL(calculations.honorarios)}</span>
+                    </div>
+                    <table className="w-full text-xs">
+                      <tbody>
+                        {calculations.itemizedDetails.filter(i => i.type === 'honorario').map((item, idx) => (
+                          <tr key={idx} className="border-b border-gray-100">
+                            <td className="py-2 text-gray-700">{item.label}</td>
+                            <td className="py-2 text-right font-mono">{formatBRL(item.value)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {isBelowPiso && (
+                      <div className="mt-3 p-2 bg-red-50 border border-red-300 rounded text-[10px] text-red-800 font-semibold">
+                        ⚠ ATENÇÃO: O valor está ABAIXO DO PISO legal de {formatBRL(selectedProcess?.id === 'acoes_civeis' ? (valorCivel || 0) * 0.20 : calculations.piso)} (Decreto-Lei 001/2024).
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Total */}
+                <div className="mt-8 p-6 rounded-xl text-white" style={{ background: "linear-gradient(135deg, hsl(0 0% 12%), hsl(0 0% 6%))" }}>
+                  <div className="flex items-end justify-between">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-[0.3em]" style={{ color: "hsl(0 72% 65%)" }}>
+                        Valor Total Estimado
+                      </p>
+                      <p className="text-4xl font-bold mt-2" style={{ fontFamily: "Playfair Display, serif" }}>
+                        {formatBRL(calculations.total)}
+                      </p>
+                    </div>
+                    <Receipt className="h-12 w-12 opacity-30" />
+                  </div>
+                </div>
+
+                {/* Rodapé */}
+                <div className="mt-8 pt-4 border-t border-gray-200 text-[9px] text-gray-500 leading-relaxed">
+                  <p className="font-semibold mb-1">Observações Legais:</p>
+                  <p>• Este orçamento é uma estimativa baseada nos valores mínimos do Decreto-Lei N° 001 de 2024 (Art. 7°) do Ordenamento Jurídico Jaguaré RP.</p>
+                  <p>• O profissional advogado não pode praticar valores abaixo dos estipulados no decreto.</p>
+                  <p>• Os valores podem sofrer alterações conforme a complexidade e o tempo de tramitação.</p>
+                  <p className="mt-2 text-center text-gray-400">Documento gerado em {new Date().toLocaleString("pt-BR")} · Secretaria da Justiça · Jaguaré RP</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
