@@ -13,6 +13,16 @@ import { CURRENT_VERSION } from "@/lib/version";
 
 const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
   {
+    version: "2.29.0",
+    date: "06/05/2026",
+    changes: [
+      "Calculadora de Custas: nova pré-visualização de orçamento com design institucional luxuoso",
+      "Opções de exportação: geração de PDF com layout de documento oficial, download em JPG e função de impressão direta",
+      "Calculadora de Custas: interface modernizada com ordenação alfabética e integração total com o Decreto-Lei 001/2024",
+      "Alerta Ético: aviso visual impeditivo ('ABAIXO DO PISO') para honorários advocatícios fora do parâmetro legal",
+    ],
+  },
+  {
     version: "2.28.0",
     date: "06/05/2026",
     changes: [
