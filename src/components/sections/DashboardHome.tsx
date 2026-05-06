@@ -118,7 +118,7 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
           className="w-full flex items-center justify-center gap-3 bg-card border border-border text-foreground rounded-xl px-6 py-3 shadow-institutional hover:border-accent hover:text-accent transition-colors font-semibold tracking-wide"
         >
           <Calculator className="h-5 w-5" />
-          SIMULADOR FINANCEIRO
+          CALCULADORA DE CUSTAS
           <ArrowRight className="h-4 w-4" />
         </Link>
       </motion.div>
