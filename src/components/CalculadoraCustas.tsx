@@ -739,22 +739,21 @@ export default function CalculadoraCustas() {
                 </Label>
                 <div className="space-y-3">
                   {outrasCustas.map((c) => (
-                    <div key={c.id} className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center p-3 bg-secondary/20 rounded-lg border">
-                      <div className="md:col-span-7">
+                    <div key={c.id} className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end p-3 bg-secondary/20 rounded-lg border border-gold/10">
+                      <div className="md:col-span-6">
+                        <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Descrição</Label>
                         <Input 
-                          placeholder="Descrição da custa" 
+                          placeholder="Ex: Taxa extra" 
                           value={c.description} 
                           onChange={e => updateOutraCusta(c.id, "description", e.target.value)}
-                          className="h-9"
+                          className="h-9 bg-background"
                         />
                       </div>
-                      <div className="md:col-span-4">
-                        <Input 
-                          type="number" 
-                          placeholder="Valor (R$)" 
-                          value={c.value || ""} 
-                          onChange={e => updateOutraCusta(c.id, "value", Number(e.target.value))}
-                          className="h-9"
+                      <div className="md:col-span-5">
+                        <CurrencyInput 
+                          label="Valor"
+                          value={c.value} 
+                          onChange={val => updateOutraCusta(c.id, "value", val)}
                         />
                       </div>
                       <div className="md:col-span-1 flex justify-end">
