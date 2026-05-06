@@ -2,7 +2,8 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { 
   Calculator, Receipt, Scale, Briefcase, Gavel, 
-  Trash2, Plus, Info, Copy, CheckCircle2 
+  Trash2, Plus, Info, Copy, CheckCircle2,
+  CheckSquare, Square
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -11,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 
 const formatBRL = (value: number) => {
@@ -23,8 +25,8 @@ const formatBRL = (value: number) => {
 interface ProcessType {
   id: string;
   name: string;
-  custas: number | "base_plus" | "special" | "vide_decreto";
-  honorarios: number | "percentage" | "special" | "none";
+  custas: number | "base_plus" | "special" | "vide_decreto" | "custom";
+  honorarios: number | "percentage" | "special" | "none" | "custom";
   description?: string;
   obs?: string;
   baseCustas?: number;
@@ -106,6 +108,13 @@ const PROCESS_TYPES: ProcessType[] = [
     custas: 1225000, 
     honorarios: "none",
     obs: "Inclui Inicial, Certidão atualizada e Ação."
+  },
+  {
+    id: "outros",
+    name: "Outros (Personalizado)",
+    custas: "custom",
+    honorarios: "custom",
+    obs: "Defina valores personalizados para custas e honorários."
   }
 ];
 
@@ -129,6 +138,17 @@ export default function CalculadoraCustas() {
   const [valorCivel, setValorCivel] = useState<number>(0);
   const [crimesLimpeza, setCrimesLimpeza] = useState<{id: string, typeIndex: number}[]>([]);
   const [hasAlteracaoNome, setHasAlteracaoNome] = useState(false);
+
+  // Custom values
+  const [customCustas, setCustomCustas] = useState<number>(0);
+  const [customHonorarios, setCustomHonorarios] = useState<number>(0);
+  const [honorarioType, setHonorarioType] = useState<"fixed" | "percentage">("fixed");
+  const [customPercentage, setCustomPercentage] = useState<number>(20);
+
+  // Toggle for specific costs
+  const [includeCustas, setIncludeCustas] = useState(true);
+  const [includeHonorarios, setIncludeHonorarios] = useState(true);
+  const [includeExtras, setIncludeExtras] = useState(true);
 
   const selectedProcess = useMemo(() => 
     PROCESS_TYPES.find(p => p.id === selectedProcessId), 
@@ -161,6 +181,8 @@ export default function CalculadoraCustas() {
         crimesLimpeza.forEach(c => {
           custas += GRAVIDADE_CRIMES[c.typeIndex].value;
         });
+      } else if (selectedProcess.custas === 'custom') {
+        custas = customCustas;
       }
 
       // Base Honorarios
@@ -171,6 +193,12 @@ export default function CalculadoraCustas() {
       } else if (selectedProcess.honorarios === 'special') {
         if (selectedProcess.id === 'defesa_detido') {
           honorarios = detidoMais10Min ? 35000 : 30000;
+        }
+      } else if (selectedProcess.honorarios === 'custom') {
+        if (honorarioType === "fixed") {
+          honorarios = customHonorarios;
+        } else {
+          honorarios = (valorCivel || 0) * (customPercentage / 100);
         }
       }
 
@@ -191,13 +219,17 @@ export default function CalculadoraCustas() {
     if (hasPromotor) extras += 80000;
     if (hasDesembargador) extras += 120000;
 
+    const finalCustas = includeCustas ? custas : 0;
+    const finalHonorarios = includeHonorarios ? honorarios : 0;
+    const finalExtras = includeExtras ? extras : 0;
+
     return {
-      custas,
-      honorarios,
-      extras,
-      total: custas + honorarios + extras
+      custas: finalCustas,
+      honorarios: finalHonorarios,
+      extras: finalExtras,
+      total: finalCustas + finalHonorarios + finalExtras
     };
-  }, [selectedProcess, diligencias, hasJuiz, hasPromotor, hasDesembargador, detidoMais10Min, valorCivel, crimesLimpeza, hasAlteracaoNome]);
+  }, [selectedProcess, diligencias, hasJuiz, hasPromotor, hasDesembargador, detidoMais10Min, valorCivel, crimesLimpeza, hasAlteracaoNome, includeCustas, includeHonorarios, includeExtras, customCustas, customHonorarios, honorarioType, customPercentage]);
 
   const copySummary = () => {
     if (!selectedProcess) return;
@@ -267,6 +299,82 @@ export default function CalculadoraCustas() {
                   </p>
                 )}
               </div>
+
+              {/* Personalização para "Outros" */}
+              {selectedProcessId === 'outros' && (
+                <div className="space-y-4 p-4 border rounded-lg bg-secondary/10">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Custas Processuais (R$)</Label>
+                      <Input 
+                        type="number" 
+                        value={customCustas} 
+                        onChange={e => setCustomCustas(Number(e.target.value))}
+                        placeholder="0.00"
+                      />
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <Label>Tipo de Honorário</Label>
+                      <RadioGroup 
+                        value={honorarioType} 
+                        onValueChange={(v: "fixed" | "percentage") => setHonorarioType(v)}
+                        className="flex gap-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="fixed" id="fixed" />
+                          <Label htmlFor="fixed">Valor Fixo</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="percentage" id="percentage" />
+                          <Label htmlFor="percentage">Percentual</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+
+                    {honorarioType === "fixed" ? (
+                      <div className="space-y-2">
+                        <Label>Honorários (R$)</Label>
+                        <Input 
+                          type="number" 
+                          value={customHonorarios} 
+                          onChange={e => setCustomHonorarios(Number(e.target.value))}
+                          placeholder="0.00"
+                        />
+                        <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                          <Info className="h-3 w-3" />
+                          Valor mínimo recomendado pela OAB: R$ 30.000,00
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label>Valor Base para Cálculo (R$)</Label>
+                          <Input 
+                            type="number" 
+                            value={valorCivel || ""} 
+                            onChange={e => setValorCivel(Number(e.target.value))}
+                            placeholder="Ex: Valor da causa"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Percentual (%)</Label>
+                          <Input 
+                            type="number" 
+                            value={customPercentage} 
+                            onChange={e => setCustomPercentage(Number(e.target.value))}
+                            placeholder="20"
+                          />
+                          <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                            <Info className="h-3 w-3" />
+                            Percentual padrão: 20%
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Campos Dinâmicos conforme a seleção */}
               {selectedProcessId === 'defesa_detido' && (
@@ -406,28 +514,78 @@ export default function CalculadoraCustas() {
             </div>
             <CardContent className="p-6 space-y-6">
               <div className="space-y-4">
-                <div className="flex justify-between items-start">
+                <div className="flex justify-between items-start group">
                   <div className="space-y-0.5">
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Custas Judiciais</p>
-                    <p className="font-medium">{selectedProcess ? formatBRL(calculations.custas) : "—"}</p>
+                    <div className="flex items-center gap-2">
+                      <Checkbox 
+                        id="inc-custas" 
+                        checked={includeCustas} 
+                        onCheckedChange={(v) => setIncludeCustas(!!v)}
+                        className="h-3 w-3"
+                      />
+                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeCustas(!includeCustas)}>Custas Judiciais</p>
+                    </div>
+                    <p className={`font-medium transition-opacity ${!includeCustas ? 'opacity-30' : ''}`}>
+                      {selectedProcess ? formatBRL(calculations.custas) : "—"}
+                    </p>
                   </div>
-                  <Scale className="h-4 w-4 text-gold/50" />
+                  <Scale className={`h-4 w-4 transition-colors ${includeCustas ? 'text-gold/50' : 'text-muted-foreground/30'}`} />
                 </div>
 
                 <div className="flex justify-between items-start">
                   <div className="space-y-0.5">
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Honorários OAB (Piso)</p>
-                    <p className="font-medium">{selectedProcess ? formatBRL(calculations.honorarios) : "—"}</p>
+                    <div className="flex items-center gap-2">
+                      <Checkbox 
+                        id="inc-honorarios" 
+                        checked={includeHonorarios} 
+                        onCheckedChange={(v) => setIncludeHonorarios(!!v)}
+                        className="h-3 w-3"
+                      />
+                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeHonorarios(!includeHonorarios)}>Honorários OAB (Piso)</p>
+                    </div>
+                    <p className={`font-medium transition-opacity ${!includeHonorarios ? 'opacity-30' : ''}`}>
+                      {selectedProcess ? formatBRL(calculations.honorarios) : "—"}
+                    </p>
                   </div>
-                  <Briefcase className="h-4 w-4 text-gold/50" />
+                  <Briefcase className={`h-4 w-4 transition-colors ${includeHonorarios ? 'text-gold/50' : 'text-muted-foreground/30'}`} />
                 </div>
 
                 <div className="flex justify-between items-start">
                   <div className="space-y-0.5">
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Taxas e Verbas</p>
-                    <p className="font-medium">{formatBRL(calculations.extras)}</p>
+                    <div className="flex items-center gap-2">
+                      <Checkbox 
+                        id="inc-extras" 
+                        checked={includeExtras} 
+                        onCheckedChange={(v) => setIncludeExtras(!!v)}
+                        className="h-3 w-3"
+                      />
+                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeExtras(!includeExtras)}>Taxas e Verbas</p>
+                    </div>
+                    <p className={`font-medium transition-opacity ${!includeExtras ? 'opacity-30' : ''}`}>
+                      {formatBRL(calculations.extras)}
+                    </p>
                   </div>
-                  <Gavel className="h-4 w-4 text-gold/50" />
+                  <Gavel className={`h-4 w-4 transition-colors ${includeExtras ? 'text-gold/50' : 'text-muted-foreground/30'}`} />
+                </div>
+
+                <div className="pt-2 flex justify-end">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-6 text-[9px] text-gold hover:text-gold hover:bg-gold/10"
+                    onClick={() => {
+                      const allSelected = includeCustas && includeHonorarios && includeExtras;
+                      setIncludeCustas(!allSelected);
+                      setIncludeHonorarios(!allSelected);
+                      setIncludeExtras(!allSelected);
+                    }}
+                  >
+                    {includeCustas && includeHonorarios && includeExtras ? (
+                      <><Square className="h-3 w-3 mr-1" /> Desmarcar Tudo</>
+                    ) : (
+                      <><CheckSquare className="h-3 w-3 mr-1" /> Marcar Tudo</>
+                    )}
+                  </Button>
                 </div>
               </div>
 
