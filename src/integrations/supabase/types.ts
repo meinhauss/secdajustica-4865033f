@@ -1891,6 +1891,7 @@ export type Database = {
           dispositivo: string | null
           fundamentacao: string | null
           id: string
+          ressalvas: string | null
           tipo: string
         }
         Insert: {
@@ -1903,6 +1904,7 @@ export type Database = {
           dispositivo?: string | null
           fundamentacao?: string | null
           id?: string
+          ressalvas?: string | null
           tipo?: string
         }
         Update: {
@@ -1915,6 +1917,7 @@ export type Database = {
           dispositivo?: string | null
           fundamentacao?: string | null
           id?: string
+          ressalvas?: string | null
           tipo?: string
         }
         Relationships: [
