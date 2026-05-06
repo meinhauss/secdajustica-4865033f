@@ -1,13 +1,13 @@
-import { useState, useMemo, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   Calculator, Receipt, Scale, Briefcase, Gavel, 
   Trash2, Plus, Info, Copy, CheckCircle2,
   CheckSquare, Square, FileText, Download,
-  Coins
+  Coins, AlertTriangle, ChevronRight, FileDown,
+  Printer, ArrowRight
 } from "lucide-react";
-// ... existing imports ...
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -18,13 +18,15 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { cn } from "@/lib/utils";
 
-const CurrencyInput = ({ value, onChange, disabled, className, label }: { 
+const CurrencyInput = ({ value, onChange, disabled, className, label, error }: { 
   value: number; 
   onChange: (val: number) => void; 
   disabled?: boolean;
   className?: string;
   label?: string;
+  error?: boolean;
 }) => {
   const [displayValue, setDisplayValue] = useState(value.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
 
@@ -40,17 +42,24 @@ const CurrencyInput = ({ value, onChange, disabled, className, label }: {
   };
 
   return (
-    <div className="space-y-1">
-      {label && <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</Label>}
+    <div className="space-y-1.5">
+      {label && <Label className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">{label}</Label>}
       <div className="relative group">
-        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gold opacity-50 group-focus-within:opacity-100 transition-opacity">
-          <Coins className="h-3 w-3" />
+        <div className={cn(
+          "absolute left-3 top-1/2 -translate-y-1/2 text-gold opacity-50 group-focus-within:opacity-100 transition-opacity",
+          error && "text-destructive opacity-100"
+        )}>
+          <Coins className="h-3.5 w-3.5" />
         </div>
         <Input
           value={displayValue}
           onChange={handleChange}
           disabled={disabled}
-          className={`pl-8 bg-background border-gold/20 focus:border-gold transition-all font-mono text-sm h-9 ${className}`}
+          className={cn(
+            "pl-9 bg-background/50 border-border hover:border-gold/30 focus:border-gold transition-all font-mono text-sm h-10 shadow-sm",
+            error && "border-destructive focus:border-destructive",
+            className
+          )}
         />
       </div>
     </div>
@@ -78,6 +87,7 @@ interface ProcessType {
   name: string;
   items: ProcessItem[];
   obs?: string;
+  pisoHonorario?: number;
 }
 
 const PROCESS_TYPES: ProcessType[] = [
@@ -94,7 +104,8 @@ const PROCESS_TYPES: ProcessType[] = [
     name: "Recursos (Apelação e/ou Recurso)", 
     items: [
       { label: "Taxa de Preparo Recursal", value: 50000, type: 'custa', required: true }
-    ]
+    ],
+    pisoHonorario: 75000
   },
   { 
     id: "mandados", 
@@ -107,7 +118,8 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "defesa_detido", 
     name: "Defesa de Acusado Detido/Preso", 
     items: [],
-    obs: "Honorários: R$ 30.000,00 (até 10 min) ou R$ 35.000,00 (> 10 min)." 
+    obs: "Honorários: R$ 30.000,00 (até 10 min) ou R$ 35.000,00 (> 10 min).",
+    pisoHonorario: 30000
   },
   { 
     id: "acoes_civeis", 
@@ -126,7 +138,8 @@ const PROCESS_TYPES: ProcessType[] = [
       { label: "Armamento", value: 100000, type: 'despesa' },
       { label: "Munições", value: 70000, type: 'despesa' }
     ],
-    obs: "Valores incluem custos obrigatórios com exame, arma e munições."
+    obs: "Valores incluem custos obrigatórios com exame, arma e munições.",
+    pisoHonorario: 110000
   },
   { 
     id: "limpeza_ficha", 
@@ -134,7 +147,8 @@ const PROCESS_TYPES: ProcessType[] = [
     items: [
       { label: "Taxa Processual Base (Ação + Inicial)", value: 50000, type: 'custa', required: true }
     ],
-    obs: "Soma de Petição Inicial (R$ 25.000) e Ação Judicial (R$ 25.000)."
+    obs: "Soma de Petição Inicial (R$ 25.000) e Ação Judicial (R$ 25.000).",
+    pisoHonorario: 110000
   },
   { 
     id: "divorcio", 
@@ -142,7 +156,8 @@ const PROCESS_TYPES: ProcessType[] = [
     items: [
       { label: "Taxas Judiciais", value: 0, type: 'custa', required: true }
     ],
-    obs: "Custas conforme decreto judicial vigente."
+    obs: "Custas conforme decreto judicial vigente.",
+    pisoHonorario: 115000
   },
   { 
     id: "alvara", 
@@ -151,7 +166,8 @@ const PROCESS_TYPES: ProcessType[] = [
       { label: "Custas TJ-SP (Inclui Inicial)", value: 150000, type: 'custa', required: true },
       { label: "Taxa AVCB (Bombeiros)", value: 50000, type: 'custa' }
     ],
-    obs: "Obrigatório o pagamento da Taxa AVCB à parte."
+    obs: "Obrigatório o pagamento da Taxa AVCB à parte.",
+    pisoHonorario: 35000
   },
   { 
     id: "casamento", 
@@ -161,7 +177,8 @@ const PROCESS_TYPES: ProcessType[] = [
       { label: "Certidão de Casamento", value: 100000, type: 'custa' },
       { label: "Valor da Ação", value: 750000, type: 'custa', required: true }
     ],
-    obs: "Total das taxas soma R$ 875.000,00."
+    obs: "Total das taxas soma R$ 875.000,00.",
+    pisoHonorario: 80000
   },
   { 
     id: "adocao", 
