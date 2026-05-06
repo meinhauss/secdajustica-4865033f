@@ -112,6 +112,7 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "mandados", 
     name: "MS, Habeas Corpus e Habeas Data", 
     items: [
+      { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
       { label: "Custas de Impetração", value: 50000, type: 'custa', required: true }
     ]
   },
