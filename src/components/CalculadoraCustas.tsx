@@ -129,6 +129,7 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "acoes_civeis", 
     name: "Ações Cíveis (Danos Morais/Materiais)", 
     items: [
+      { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
       { label: "Taxa Judiciária", value: 25000, type: 'custa', required: true }
     ],
     obs: "Danos morais: R$ 40k a R$ 2M. Honorários sugeridos: 20%."
