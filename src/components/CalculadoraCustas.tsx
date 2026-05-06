@@ -536,22 +536,28 @@ export default function CalculadoraCustas() {
                 </div>
               )}
               {selectedProcessId && (
-                <div className="space-y-4 p-4 border rounded-lg bg-secondary/10">
+                <div className="space-y-4 p-4 border rounded-lg bg-secondary/10 shadow-sm relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-1 h-full bg-gold/50" />
                   <h4 className="font-semibold text-sm flex items-center gap-2">
                     <Scale className="h-4 w-4 text-gold" />
                     Valores Principais
                   </h4>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <CurrencyInput 
-                      label="Custas Processuais"
-                      value={selectedProcessId === 'outros' ? customCustas : (selectedProcess?.items?.find(i => i.type === 'custa')?.value ?? customCustas)} 
-                      onChange={setCustomCustas}
-                      disabled={selectedProcessId !== 'outros'}
-                    />
-                    {selectedProcessId !== 'outros' && (
-                      <p className="hidden md:block absolute bottom-0 left-0 text-[10px] text-muted-foreground italic">Valor padrão da tabela.</p>
-                    )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <CurrencyInput 
+                        label="Custas Processuais"
+                        value={selectedProcessId === 'outros' ? customCustas : (selectedProcess?.items?.find(i => i.type === 'custa')?.value ?? customCustas)} 
+                        onChange={setCustomCustas}
+                        disabled={selectedProcessId !== 'outros'}
+                      />
+                      {selectedProcessId !== 'outros' && (
+                        <p className="text-[9px] text-muted-foreground italic flex items-center gap-1">
+                          <Info className="h-2 w-2" />
+                          Valor padrão obrigatório da tabela judicial.
+                        </p>
+                      )}
+                    </div>
 
                     <div className="space-y-4">
                       <div className="space-y-2">
