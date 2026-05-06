@@ -93,8 +93,7 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "recursos", 
     name: "Recursos (Apelação e/ou Recurso)", 
     items: [
-      { label: "Taxa de Preparo Recursal", value: 50000, type: 'custa', required: true },
-      { label: "Honorários de Sucumbência Recursal", value: 75000, type: 'honorario', required: true }
+      { label: "Taxa de Preparo Recursal", value: 50000, type: 'custa', required: true }
     ]
   },
   { 
@@ -107,17 +106,14 @@ const PROCESS_TYPES: ProcessType[] = [
   { 
     id: "defesa_detido", 
     name: "Defesa de Acusado Detido/Preso", 
-    items: [
-      { label: "Honorários Atendimento", value: 30000, type: 'honorario', required: true }
-    ],
-    obs: "Valor base para atendimento inicial." 
+    items: [],
+    obs: "Defina os honorários na seção de personalização abaixo." 
   },
   { 
     id: "acoes_civeis", 
     name: "Ações Cíveis (Danos Morais/Materiais)", 
     items: [
-      { label: "Taxa Judiciária", value: 25000, type: 'custa', required: true },
-      { label: "Honorários Advocatícios", value: 0, type: 'honorario', required: true }
+      { label: "Taxa Judiciária", value: 25000, type: 'custa', required: true }
     ],
     obs: "Danos morais: R$ 40k a R$ 2M."
   },
@@ -128,8 +124,7 @@ const PROCESS_TYPES: ProcessType[] = [
       { label: "Taxa de Protocolo (Inicial)", value: 25000, type: 'custa', required: true },
       { label: "Laudo Psicológico Profissional", value: 150000, type: 'despesa' },
       { label: "Curso de Armamento e Tiro", value: 200000, type: 'despesa' },
-      { label: "Munições de Treinamento", value: 100000, type: 'despesa' },
-      { label: "Honorários Advocatícios", value: 110000, type: 'honorario', required: true }
+      { label: "Munições de Treinamento", value: 100000, type: 'despesa' }
     ],
     obs: "Taxas e despesas operacionais discriminadas."
   },
@@ -137,8 +132,7 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "limpeza_ficha", 
     name: "Exclusão de Antecedentes (Limpeza)", 
     items: [
-      { label: "Taxa de Processamento Base", value: 50000, type: 'custa', required: true },
-      { label: "Honorários Advocatícios", value: 110000, type: 'honorario', required: true }
+      { label: "Taxa de Processamento Base", value: 50000, type: 'custa', required: true }
     ],
     obs: "Base de R$ 50.000,00 + valor por gravidade do crime."
   },
@@ -146,8 +140,7 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "divorcio", 
     name: "Divórcio", 
     items: [
-      { label: "Taxa de Averbação", value: 35000, type: 'custa', required: true },
-      { label: "Honorários Advocatícios", value: 115000, type: 'honorario', required: true }
+      { label: "Taxa de Averbação", value: 35000, type: 'custa', required: true }
     ]
   },
   { 
@@ -155,8 +148,7 @@ const PROCESS_TYPES: ProcessType[] = [
     name: "Alvará de Funcionamento", 
     items: [
       { label: "Taxa de Vistoria Inicial", value: 150000, type: 'custa', required: true },
-      { label: "Taxa AVCB (Bombeiros)", value: 50000, type: 'custa' },
-      { label: "Honorários Advocatícios", value: 35000, type: 'honorario', required: true }
+      { label: "Taxa AVCB (Bombeiros)", value: 50000, type: 'custa' }
     ]
   },
   { 
@@ -164,24 +156,20 @@ const PROCESS_TYPES: ProcessType[] = [
     name: "Casamento (Certidão e Ação)", 
     items: [
       { label: "Taxa Cartorária", value: 875000, type: 'custa', required: true },
-      { label: "Alteração de Sobrenome", value: 2000000, type: 'custa' },
-      { label: "Honorários Advocatícios", value: 80000, type: 'honorario', required: true }
+      { label: "Alteração de Sobrenome", value: 2000000, type: 'custa' }
     ]
   },
   { 
     id: "adocao", 
     name: "Adoção", 
     items: [
-      { label: "Taxa Processual de Adoção", value: 1225000, type: 'custa', required: true },
-      { label: "Honorários Advocatícios", value: 0, type: 'honorario', required: true }
+      { label: "Taxa Processual de Adoção", value: 1225000, type: 'custa', required: true }
     ]
   },
   {
     id: "outros",
     name: "Outros (Personalizado)",
-    items: [
-      { label: "Honorários Advocatícios", value: 0, type: 'honorario', required: true }
-    ]
+    items: []
   }
 ];
 
@@ -242,14 +230,34 @@ export default function CalculadoraCustas() {
       setHasAlteracaoNome(false);
 
       // Valores iniciais para personalização
-      const honorarioItem = selectedProcess.items.find(i => i.type === 'honorario');
-      if (honorarioItem) {
-        setCustomHonorarios(honorarioItem.value);
+      // Honorários agora são exclusivamente controlados pela seção de personalização
+      if (selectedProcess.id === 'recursos') {
+        setCustomHonorarios(75000);
         setHonorarioType("fixed");
-        setCustomPercentage(20);
-      } else if (selectedProcessId === 'acoes_civeis') {
+      } else if (selectedProcess.id === 'defesa_detido') {
+        setCustomHonorarios(30000);
+        setHonorarioType("fixed");
+      } else if (selectedProcess.id === 'acoes_civeis') {
         setHonorarioType("percentage");
         setCustomPercentage(20);
+      } else if (selectedProcess.id === 'porte_arma') {
+        setCustomHonorarios(110000);
+        setHonorarioType("fixed");
+      } else if (selectedProcess.id === 'limpeza_ficha') {
+        setCustomHonorarios(110000);
+        setHonorarioType("fixed");
+      } else if (selectedProcess.id === 'divorcio') {
+        setCustomHonorarios(115000);
+        setHonorarioType("fixed");
+      } else if (selectedProcess.id === 'alvara') {
+        setCustomHonorarios(35000);
+        setHonorarioType("fixed");
+      } else if (selectedProcess.id === 'casamento') {
+        setCustomHonorarios(80000);
+        setHonorarioType("fixed");
+      } else {
+        setCustomHonorarios(0);
+        setHonorarioType("fixed");
       }
       
       const custaItem = selectedProcess.items.find(i => i.type === 'custa');
@@ -290,47 +298,46 @@ export default function CalculadoraCustas() {
     let extras = 0;
 
     if (selectedProcess) {
-      if (selectedProcess.id === 'outros') {
-        itemizedDetails.push({ label: "Custas (Personalizado)", value: customCustas, type: 'custa' });
-        if (honorarioType === "fixed") {
-          itemizedDetails.push({ label: "Honorários (Personalizado)", value: customHonorarios, type: 'honorario' });
-        } else {
-          itemizedDetails.push({ label: `Honorários (${customPercentage}%)`, value: (valorCivel || 0) * (customPercentage / 100), type: 'honorario' });
-        }
-      } else {
-        selectedProcess.items.forEach(item => {
-          // Itens 'required' são sempre inclusos, outros dependem da seleção
-          if (item.required || selectedItems[item.label]) {
-            let val = item.value;
-            
-            if (item.type === 'honorario' && honorarioType === 'percentage') {
-              val = (valorCivel || 0) * (customPercentage / 100);
-            } else if (item.type === 'honorario' && customHonorarios !== item.value && customHonorarios !== 0) {
-              val = customHonorarios;
-            } else if (item.type === 'custa' && customCustas !== item.value && customCustas !== 0) {
-              // Permite sobrescrever valor base da custa se o usuário digitar na caixa principal
-              val = customCustas;
-            }
-            
-            if (selectedProcess.id === 'limpeza_ficha' && item.label === 'Taxa de Processamento Base') {
-              crimesLimpeza.forEach(c => {
-                val += GRAVIDADE_CRIMES[c.typeIndex].value;
-              });
-            }
-
-            itemizedDetails.push({ ...item, value: val });
+      // Itens discriminados do processo (taxas e despesas operacionais)
+      selectedProcess.items.forEach(item => {
+        if (item.required || selectedItems[item.label]) {
+          let val = item.value;
+          
+          if (selectedProcess.id === 'limpeza_ficha' && item.label === 'Taxa de Processamento Base') {
+            crimesLimpeza.forEach(c => {
+              val += GRAVIDADE_CRIMES[c.typeIndex].value;
+            });
           }
-        });
+
+          itemizedDetails.push({ ...item, value: val });
+        }
+      });
+
+      // Honorários - Controlados exclusivamente pela personalização
+      if (includeHonorarios) {
+        let hValue = 0;
+        let hLabel = "Honorários Advocatícios";
+        
+        if (honorarioType === "fixed") {
+          hValue = customHonorarios;
+        } else {
+          hValue = (valorCivel || 0) * (customPercentage / 100);
+          hLabel = `Honorários Advocatícios (${customPercentage}%)`;
+        }
+        
+        itemizedDetails.push({ label: hLabel, value: hValue, type: 'honorario' });
       }
 
       // Adicionais de nome
       if (hasAlteracaoNome && (selectedProcess.id === 'adocao' || selectedProcess.id === 'casamento')) {
         if (!itemizedDetails.find(i => i.label === "Alteração de Sobrenome")) {
           itemizedDetails.push({ label: "Alteração de Sobrenome", value: 2000000, type: 'custa' });
-          if (selectedProcess.id === 'casamento') {
-             itemizedDetails.push({ label: "Honorários p/ Alteração de Nome", value: 80000, type: 'honorario' });
-          }
         }
+      }
+
+      // Outros Processos Customizados
+      if (selectedProcess.id === 'outros') {
+        itemizedDetails.push({ label: "Custas Processuais", value: customCustas, type: 'custa' });
       }
     }
 
@@ -340,8 +347,8 @@ export default function CalculadoraCustas() {
     if (hasDesembargador) extras += 120000;
     outrasCustas.forEach(c => { extras += c.value; });
 
-    const custasTotal = itemizedDetails.filter(i => (i.type === 'custa' || i.type === 'despesa') && includeCustas).reduce((acc, curr) => acc + curr.value, 0);
-    const honorariosTotal = itemizedDetails.filter(i => i.type === 'honorario' && includeHonorarios).reduce((acc, curr) => acc + curr.value, 0);
+    const custasTotal = includeCustas ? itemizedDetails.filter(i => (i.type === 'custa' || i.type === 'despesa')).reduce((acc, curr) => acc + curr.value, 0) : 0;
+    const honorariosTotal = includeHonorarios ? itemizedDetails.filter(i => i.type === 'honorario').reduce((acc, curr) => acc + curr.value, 0) : 0;
     const finalExtras = includeExtras ? extras : 0;
 
     return {
@@ -398,11 +405,11 @@ export default function CalculadoraCustas() {
     autoTable(doc, {
       startY: 48,
       body: [
-        ["Tipo de Processo", selectedProcess.name],
-        ["Emissão", new Date().toLocaleString("pt-BR")],
+        ["Processo", selectedProcess.name],
+        ["Data/Hora", new Date().toLocaleString("pt-BR")],
       ],
       theme: "plain",
-      styles: { fontSize: 10 },
+      styles: { fontSize: 10, cellPadding: 2 },
     });
 
     // Itens Discriminados
@@ -515,23 +522,27 @@ export default function CalculadoraCustas() {
                 )}
               </div>
 
-              {/* Seleção Detalhada de Itens do Processo */}
-              {selectedProcess && selectedProcess.id !== 'outros' && (
-                <div className="space-y-3 p-4 border rounded-lg bg-secondary/5 mb-4 shadow-sm">
+              {/* Discriminação de Despesas e Taxas do Processo */}
+              {selectedProcess && selectedProcess.id !== 'outros' && selectedProcess.items.length > 0 && (
+                <div className="space-y-3 p-4 border rounded-lg bg-secondary/5 mb-4 shadow-sm relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-2 opacity-5">
+                    <CheckSquare className="h-12 w-12" />
+                  </div>
                   <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                    <CheckSquare className="h-3 w-3" />
-                    Itens Inclusos no Processo
+                    <CheckSquare className="h-3 w-3 text-gold" />
+                    Discriminação de Taxas e Despesas
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {selectedProcess.items.map((item) => (
-                      <div key={item.label} className={`flex items-center space-x-2 p-2 border rounded bg-background transition-colors ${item.required ? 'opacity-80 border-gold/30 bg-gold/5' : 'hover:bg-secondary/10'}`}>
+                      <div key={item.label} className={`flex items-center space-x-2 p-2 border rounded bg-background transition-all ${item.required ? 'border-gold/20 bg-gold/5 shadow-inner' : 'hover:border-gold/30 hover:bg-secondary/10'}`}>
                         <Checkbox 
                           id={`item-${item.label}`} 
                           checked={item.required ? true : (selectedItems[item.label] || false)}
                           disabled={item.required}
                           onCheckedChange={(v) => setSelectedItems({ ...selectedItems, [item.label]: !!v })}
+                          className={item.required ? "border-gold/50 data-[state=checked]:bg-gold data-[state=checked]:text-black" : ""}
                         />
-                        <Label htmlFor={`item-${item.label}`} className={`text-xs flex-1 flex justify-between gap-2 ${item.required ? 'cursor-default' : 'cursor-pointer'}`}>
+                        <Label htmlFor={`item-${item.label}`} className={`text-xs flex-1 flex justify-between gap-2 ${item.required ? 'cursor-default font-medium' : 'cursor-pointer'}`}>
                           <span className="truncate">{item.label}</span>
                           <span className="text-gold font-mono whitespace-nowrap">{formatBRL(item.value)}</span>
                         </Label>
@@ -797,15 +808,15 @@ export default function CalculadoraCustas() {
                 <div className="space-y-4">
                   <div className="flex justify-between items-start group">
                     <div className="space-y-0.5">
-                      <div className="flex items-center gap-2">
-                        <Checkbox 
-                          id="inc-custas" 
-                          checked={includeCustas} 
-                          onCheckedChange={(v) => setIncludeCustas(!!v)}
-                          className="h-3 w-3"
-                        />
-                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeCustas(!includeCustas)}>Custas Judiciais (Base)</p>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <Checkbox 
+                        id="inc-custas" 
+                        checked={includeCustas} 
+                        onCheckedChange={(v) => setIncludeCustas(!!v)}
+                        className="h-3 w-3 border-gold/50 data-[state=checked]:bg-gold data-[state=checked]:text-black"
+                      />
+                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeCustas(!includeCustas)}>Custas e Despesas</p>
+                    </div>
                       <p className={`font-medium transition-opacity ${!includeCustas ? 'opacity-30' : ''}`}>
                         {selectedProcess ? formatBRL(calculations.custas) : "—"}
                       </p>
@@ -830,9 +841,9 @@ export default function CalculadoraCustas() {
                             id="inc-extras" 
                             checked={includeExtras} 
                             onCheckedChange={(v) => setIncludeExtras(!!v)}
-                            className="h-3 w-3"
+                            className="h-3 w-3 border-gold/50 data-[state=checked]:bg-gold data-[state=checked]:text-black"
                           />
-                          <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeExtras(!includeExtras)}>Diligências e Taxas Extras</p>
+                          <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeExtras(!includeExtras)}>Diligências e Verbas</p>
                         </div>
                         <p className={`font-medium transition-opacity ${!includeExtras ? 'opacity-30' : ''}`}>
                           {formatBRL(calculations.extras)}
@@ -841,6 +852,24 @@ export default function CalculadoraCustas() {
                       <Gavel className={`h-4 w-4 transition-colors ${includeExtras ? 'text-gold/50' : 'text-muted-foreground/30'}`} />
                     </div>
                   )}
+
+                <div className="flex justify-between items-start">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <Checkbox 
+                        id="inc-honorarios" 
+                        checked={includeHonorarios} 
+                        onCheckedChange={(v) => setIncludeHonorarios(!!v)}
+                        className="h-3 w-3 border-gold/50 data-[state=checked]:bg-gold data-[state=checked]:text-black"
+                      />
+                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeHonorarios(!includeHonorarios)}>Honorários Advocatícios</p>
+                    </div>
+                    <p className={`font-medium transition-opacity ${!includeHonorarios ? 'opacity-30' : ''}`}>
+                      {formatBRL(calculations.honorarios)}
+                    </p>
+                  </div>
+                  <Briefcase className={`h-4 w-4 transition-colors ${includeHonorarios ? 'text-gold/50' : 'text-muted-foreground/30'}`} />
+                </div>
 
                 <div className="pt-2 flex justify-end">
                   <Button 
@@ -886,7 +915,7 @@ export default function CalculadoraCustas() {
           <div className="p-4 rounded-xl bg-secondary/30 border border-border text-[10px] text-muted-foreground italic leading-relaxed">
             * Este simulador fornece uma estimativa baseada nos valores mínimos da tabela processual. 
             O valor final pode variar de acordo com a complexidade da causa e decisões judiciais.
-            Os honorários aqui calculados representam o piso ético estabelecido pela seccional.
+            Os honorários sugeridos representam o piso ético estabelecido pela seccional.
           </div>
         </div>
       </div>
