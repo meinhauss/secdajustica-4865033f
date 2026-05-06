@@ -119,9 +119,11 @@ const PROCESS_TYPES: ProcessType[] = [
   { 
     id: "defesa_detido", 
     name: "Defesa de Acusado Detido/Preso", 
-    items: [],
+    items: [
+      { label: "Petição Inicial", value: 25000, type: 'custa', required: true }
+    ],
     obs: "Honorários: R$ 30.000,00 (até 10 min) ou R$ 35.000,00 (> 10 min).",
-    pisoHonorario: 30000 // Valor base, o aviso é dinâmico conforme seleção de tempo
+    pisoHonorario: 30000 
   },
   { 
     id: "acoes_civeis", 
