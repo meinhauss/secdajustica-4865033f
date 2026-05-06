@@ -535,72 +535,106 @@ export default function CalculadoraCustas() {
                 Tipo de Ação
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Selecione o Processo</Label>
+            <CardContent className="space-y-6 p-6">
+              <div className="space-y-2.5">
+                <Label className="text-sm font-bold flex items-center gap-2">
+                  <ChevronRight className="h-4 w-4 text-gold" />
+                  Natureza da Ação
+                </Label>
                 <Select value={selectedProcessId} onValueChange={setSelectedProcessId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Escolha uma opção..." />
+                  <SelectTrigger className="h-12 border-gold/20 bg-background/50 hover:border-gold focus:ring-gold transition-all">
+                    <SelectValue placeholder="Selecione o tipo de processo judicial..." />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-[300px]">
                     {PROCESS_TYPES.map(p => (
-                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                      <SelectItem key={p.id} value={p.id} className="py-3">{p.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                {selectedProcess?.obs && (
-                  <p className="text-xs text-muted-foreground bg-secondary/50 p-2 rounded flex items-start gap-2">
-                    <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                    {selectedProcess.obs}
-                  </p>
-                )}
+                <AnimatePresence>
+                  {selectedProcess?.obs && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="p-3 rounded-lg bg-secondary/40 border border-gold/10 flex items-start gap-3 mt-2"
+                    >
+                      <Info className="h-4 w-4 text-gold mt-0.5 flex-shrink-0" />
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        {selectedProcess.obs}
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
-              {/* Discriminação de Despesas e Taxas do Processo */}
-              {selectedProcess && selectedProcess.id !== 'outros' && selectedProcess.items.length > 0 && (
-                <div className="space-y-3 p-4 border rounded-lg bg-secondary/5 mb-4 shadow-sm relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-2 opacity-5">
-                    <CheckSquare className="h-12 w-12" />
-                  </div>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                    <CheckSquare className="h-3 w-3 text-gold" />
-                    Discriminação de Taxas e Despesas
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {selectedProcess.items.map((item) => (
-                      <div key={item.label} className={`flex items-center space-x-2 p-2 border rounded bg-background transition-all ${item.required ? 'border-gold/20 bg-gold/5 shadow-inner' : 'hover:border-gold/30 hover:bg-secondary/10'}`}>
-                        <Checkbox 
-                          id={`item-${item.label}`} 
-                          checked={item.required ? true : (selectedItems[item.label] || false)}
-                          disabled={item.required}
-                          onCheckedChange={(v) => setSelectedItems({ ...selectedItems, [item.label]: !!v })}
-                          className={item.required ? "border-gold/50 data-[state=checked]:bg-gold data-[state=checked]:text-black" : ""}
-                        />
-                        <Label htmlFor={`item-${item.label}`} className={`text-xs flex-1 flex justify-between gap-2 ${item.required ? 'cursor-default font-medium' : 'cursor-pointer'}`}>
-                          <span className="truncate">{item.label}</span>
-                          <span className="text-gold font-mono whitespace-nowrap">{formatBRL(item.value)}</span>
-                        </Label>
+              {selectedProcess && (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="space-y-6 pt-2"
+                >
+                  {/* Discriminação de Despesas e Taxas do Processo */}
+                  {selectedProcess.id !== 'outros' && selectedProcess.items.length > 0 && (
+                    <div className="space-y-3">
+                      <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                        <CheckSquare className="h-3 w-3 text-gold" />
+                        Composição de Custas
+                      </h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        {selectedProcess.items.map((item) => (
+                          <div 
+                            key={item.label} 
+                            className={cn(
+                              "flex items-center space-x-3 p-3 border rounded-xl bg-background/30 transition-all duration-300",
+                              item.required 
+                                ? "border-gold/30 bg-gold/5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] opacity-100" 
+                                : "hover:border-gold/40 hover:bg-secondary/20 border-transparent cursor-pointer"
+                            )}
+                            onClick={() => !item.required && setSelectedItems({ ...selectedItems, [item.label]: !selectedItems[item.label] })}
+                          >
+                            <Checkbox 
+                              id={`item-${item.label}`} 
+                              checked={item.required ? true : (selectedItems[item.label] || false)}
+                              disabled={item.required}
+                              className={cn(
+                                "h-4 w-4 transition-colors",
+                                item.required ? "border-gold data-[state=checked]:bg-gold data-[state=checked]:text-black" : "border-border"
+                              )}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className={cn("text-xs truncate font-medium", item.required ? "text-foreground" : "text-muted-foreground")}>{item.label}</p>
+                              <p className="text-[10px] font-mono text-gold/80">{formatBRL(item.value)}</p>
+                            </div>
+                            {item.required && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <Info className="h-3 w-3 text-gold/40" />
+                                  </TooltipTrigger>
+                                  <TooltipContent>Item obrigatório por lei</TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {selectedProcessId && (
-                <div className="space-y-4 p-4 border rounded-lg bg-secondary/10 shadow-sm relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-1 h-full bg-gold/50" />
-                  <h4 className="font-semibold text-sm flex items-center gap-2">
-                    <Scale className="h-4 w-4 text-gold" />
-                    Valores Principais
-                  </h4>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
+                    </div>
+                  )}
+
+                  <div className="p-5 rounded-2xl bg-secondary/20 border border-gold/10 shadow-inner space-y-6">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Scale className="h-4 w-4 text-gold" />
+                      <h4 className="text-xs font-bold uppercase tracking-wider">Ajustes Estratégicos</h4>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <CurrencyInput 
-                        label="Custas Processuais"
+                        label="Custas Processuais Base"
                         value={selectedProcessId === 'outros' ? customCustas : (selectedProcess?.items?.find(i => i.type === 'custa')?.value ?? customCustas)} 
                         onChange={setCustomCustas}
                         disabled={selectedProcessId !== 'outros'}
                       />
+
                       {selectedProcessId !== 'outros' && (
                         <p className="text-[9px] text-muted-foreground italic flex items-center gap-1">
                           <Info className="h-2 w-2" />
