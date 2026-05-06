@@ -159,6 +159,11 @@ export default function CalculadoraCustas() {
   // Other costs
   const [outrasCustas, setOutrasCustas] = useState<{ id: string; description: string; value: number }[]>([]);
 
+  const selectedProcess = useMemo(() => 
+    PROCESS_TYPES.find(p => p.id === selectedProcessId), 
+    [selectedProcessId]
+  );
+
   useEffect(() => {
     if (selectedProcess) {
       if (typeof selectedProcess.custas === 'number') {
