@@ -236,13 +236,12 @@ export default function CalculadoraCustas() {
       setCrimesLimpeza([]);
       setHasAlteracaoNome(false);
 
-      // Valores iniciais para personalização
-      // Honorários agora são exclusivamente controlados pela seção de personalização
+      // Valores iniciais para personalização conforme o documento enviado
       if (selectedProcess.id === 'recursos') {
         setCustomHonorarios(75000);
         setHonorarioType("fixed");
       } else if (selectedProcess.id === 'defesa_detido') {
-        setCustomHonorarios(30000);
+        setCustomHonorarios(30000); // Piso até 10 min
         setHonorarioType("fixed");
       } else if (selectedProcess.id === 'acoes_civeis') {
         setHonorarioType("percentage");
