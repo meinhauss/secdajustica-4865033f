@@ -345,7 +345,7 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
       if (isSegunda) {
         if (!form.classe_originaria) throw new Error("Selecione a classe originária");
         if (!form.orgao_julgador) throw new Error("Selecione o órgão julgador");
-        if (!form.pedido.trim()) throw new Error("Informe o pedido");
+        
       }
 
       let juizId: string | null = null;
