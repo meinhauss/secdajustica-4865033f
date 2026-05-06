@@ -2434,6 +2434,20 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                         </p>
                       )}
                       <p className="text-[10px] text-muted-foreground mt-1">{format(new Date(ap.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
+                      {ap.destaque_solicitado && (
+                        <div className="mt-2 flex items-start gap-2 rounded-lg bg-gold/10 border border-gold/40 p-2">
+                          <Star className="h-3.5 w-3.5 text-gold-dark mt-0.5" />
+                          <div className="text-xs">
+                            <p className="font-semibold text-foreground">Destaque solicitado por {ap.destaque_solicitante_nome} ({ap.destaque_solicitante_qualificacao})</p>
+                            {ap.destaque_justificativa && <div className="text-muted-foreground mt-0.5"><RichTextView html={ap.destaque_justificativa} className="text-xs" /></div>}
+                          </div>
+                        </div>
+                      )}
+                      {!ap.destaque_solicitado && ap.status !== "julgada" && ap.status !== "inadmitida" && (isAdvogado || isMP) && (
+                        <Button size="sm" variant="outline" className="mt-3 gap-2" onClick={() => { setDestaqueApId(ap.id); setDestaqueJust(""); }}>
+                          <Star className="h-3.5 w-3.5" /> Solicitar destaque
+                        </Button>
+                      )}
                     </div>
                   );
                 })}
@@ -2441,6 +2455,25 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             )}
           </TabsContent>
         )}
+
+        {/* Dialog: Pedido de destaque */}
+        <Dialog open={!!destaqueApId} onOpenChange={(o) => { if (!o) { setDestaqueApId(null); setDestaqueJust(""); } }}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader><DialogTitle>Solicitar Destaque na Apelação</DialogTitle></DialogHeader>
+            <div className="space-y-4">
+              <p className="text-xs text-muted-foreground">
+                Ao solicitar destaque, o recurso será retirado do julgamento virtual e remetido à sessão presencial. Os desembargadores serão notificados.
+              </p>
+              <div>
+                <label className="text-sm font-medium text-foreground">Justificativa</label>
+                <RichTextEditor value={destaqueJust} onChange={setDestaqueJust} placeholder="Explique o motivo do pedido de destaque..." minHeight="160px" className="mt-1" />
+              </div>
+              <Button onClick={() => solicitarDestaque.mutate()} disabled={solicitarDestaque.isPending} className="w-full gap-2">
+                <Star className="h-4 w-4" /> Confirmar pedido
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* EMBARGOS DE DECLARAÇÃO */}
         {(isSentenciado || isArquivado) && (
