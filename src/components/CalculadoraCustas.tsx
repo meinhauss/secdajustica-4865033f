@@ -108,6 +108,13 @@ const PROCESS_TYPES: ProcessType[] = [
     custas: 1225000, 
     honorarios: "none",
     obs: "Inclui Inicial, Certidão atualizada e Ação."
+  },
+  {
+    id: "outros",
+    name: "Outros (Personalizado)",
+    custas: "custom",
+    honorarios: "custom",
+    obs: "Defina valores personalizados para custas e honorários."
   }
 ];
 
