@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { RichTextView } from "@/components/ui/rich-text-editor";
 import { formatPartesShort } from "@/lib/formatPartes";
 import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
