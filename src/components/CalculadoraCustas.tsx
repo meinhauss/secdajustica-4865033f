@@ -335,7 +335,7 @@ export default function CalculadoraCustas() {
         if (item.required || selectedItems[item.label]) {
           let val = item.value;
           
-          if (selectedProcess.id === 'limpeza_ficha' && item.label === 'Taxa de Processamento Base') {
+          if (selectedProcess.id === 'limpeza_ficha' && item.label === 'Ação Judicial') {
             crimesLimpeza.forEach(c => {
               val += GRAVIDADE_CRIMES[c.typeIndex].value;
             });
