@@ -501,7 +501,6 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
                   <MultiPartyInput label="Impetrante / Autor" entries={autores} onChange={setAutores} />
                   <MultiPartyInput label="Autoridade Coatora / Réu" entries={reus} onChange={setReus} />
                   <Textarea placeholder="Síntese dos fatos *" value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} required className="rounded-xl" />
-                  <Textarea placeholder="Pedido *" value={form.pedido} onChange={(e) => setForm({ ...form, pedido: e.target.value })} required className="rounded-xl" />
                   <p className="text-[11px] text-muted-foreground px-1">O Relator será sorteado automaticamente entre os Desembargadores ativos.</p>
                 </>
               ) : (
