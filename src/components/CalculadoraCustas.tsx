@@ -150,7 +150,8 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "limpeza_ficha", 
     name: "Exclusão de Antecedentes (Limpeza)", 
     items: [
-      { label: "Taxa Processual Base (Ação + Inicial)", value: 50000, type: 'custa', required: true }
+      { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
+      { label: "Ação Judicial", value: 25000, type: 'custa', required: true }
     ],
     obs: "Soma de Petição Inicial (R$ 25.000) e Ação Judicial (R$ 25.000).",
     pisoHonorario: 110000
