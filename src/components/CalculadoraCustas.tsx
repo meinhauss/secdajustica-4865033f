@@ -571,12 +571,10 @@ export default function CalculadoraCustas() {
 
                       {honorarioType === "fixed" ? (
                         <div className="space-y-1">
-                          <Label className="text-[10px]">Valor (R$)</Label>
-                          <Input 
-                            type="number" 
+                          <CurrencyInput 
+                            label="Valor Honorário"
                             value={customHonorarios} 
-                            onChange={e => setCustomHonorarios(Number(e.target.value))}
-                            className="bg-background h-8 text-sm"
+                            onChange={setCustomHonorarios}
                           />
                           <p className="text-[9px] text-amber-500 font-medium flex items-center gap-1">
                             <Info className="h-2 w-2" />
@@ -585,22 +583,18 @@ export default function CalculadoraCustas() {
                         </div>
                       ) : (
                         <div className="space-y-2">
+                          <CurrencyInput 
+                            label="Base de Cálculo"
+                            value={valorCivel} 
+                            onChange={setValorCivel}
+                          />
                           <div className="space-y-1">
-                            <Label className="text-[10px]">Base (R$)</Label>
-                            <Input 
-                              type="number" 
-                              value={valorCivel || ""} 
-                              onChange={e => setValorCivel(Number(e.target.value))}
-                              className="bg-background h-8 text-sm"
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <Label className="text-[10px]">Percentual (%)</Label>
+                            <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Percentual (%)</Label>
                             <Input 
                               type="number" 
                               value={customPercentage} 
                               onChange={e => setCustomPercentage(Number(e.target.value))}
-                              className="bg-background h-8 text-sm"
+                              className="bg-background border-gold/20 h-9 text-sm"
                             />
                           </div>
                         </div>
