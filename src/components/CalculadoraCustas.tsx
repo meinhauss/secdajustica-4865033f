@@ -404,11 +404,11 @@ export default function CalculadoraCustas() {
     autoTable(doc, {
       startY: 48,
       body: [
-        ["Tipo de Processo", selectedProcess.name],
-        ["Emissão", new Date().toLocaleString("pt-BR")],
+        ["Processo", selectedProcess.name],
+        ["Data/Hora", new Date().toLocaleString("pt-BR")],
       ],
       theme: "plain",
-      styles: { fontSize: 10 },
+      styles: { fontSize: 10, cellPadding: 2 },
     });
 
     // Itens Discriminados
