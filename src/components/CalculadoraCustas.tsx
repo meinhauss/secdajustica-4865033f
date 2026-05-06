@@ -216,6 +216,13 @@ const GRAVIDADE_CRIMES = [
 
 export default function CalculadoraCustas() {
   const [selectedProcessId, setSelectedProcessId] = useState<string>("");
+  
+  const sortedProcessTypes = useMemo(() => {
+    const regular = PROCESS_TYPES.filter(p => p.id !== 'outros').sort((a, b) => a.name.localeCompare(b.name));
+    const outros = PROCESS_TYPES.find(p => p.id === 'outros');
+    return outros ? [...regular, outros] : regular;
+  }, []);
+
   const [diligencias, setDiligencias] = useState<number>(0);
   const [hasJuiz, setHasJuiz] = useState(true);
   const [hasPromotor, setHasPromotor] = useState(false);
