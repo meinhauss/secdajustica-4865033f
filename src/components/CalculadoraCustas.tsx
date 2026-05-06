@@ -273,6 +273,85 @@ export default function CalculadoraCustas() {
     toast.success("Resumo copiado!");
   };
 
+  const generatePDF = () => {
+    if (!selectedProcess) return;
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    // Cabeçalho
+    doc.setFontSize(18);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Simulado de Custas Processuais e Honorários", pageWidth / 2, 20, { align: "center" });
+    doc.setFontSize(12);
+    doc.text(`Data: ${new Date().toLocaleDateString("pt-BR")}`, pageWidth / 2, 28, { align: "center" });
+
+    // Informações do Processo
+    doc.setFontSize(14);
+    doc.text("Informações do Processo", 14, 45);
+    autoTable(doc, {
+      startY: 48,
+      body: [
+        ["Tipo de Processo", selectedProcess.name],
+        ["Status", "Estimativa de Custas"],
+      ],
+      theme: "striped",
+      styles: { fontSize: 10 },
+    });
+
+    // Itens Discriminados
+    doc.setFontSize(14);
+    doc.text("Discriminação de Valores", 14, (doc as any).lastAutoTable.finalY + 15);
+    
+    const tableData = [];
+    if (includeCustas) {
+      tableData.push(["Custas Judiciais (Base)", formatBRL(calculations.custas)]);
+    }
+    if (includeHonorarios) {
+      tableData.push(["Honorários Advocatícios", formatBRL(calculations.honorarios)]);
+    }
+    if (includeExtras) {
+      if (diligencias > 0) {
+        tableData.push([`Diligências (${diligencias}x)`, formatBRL(diligencias * 20000)]);
+      }
+      if (hasJuiz) tableData.push(["Verba: Juiz de Direito", formatBRL(60000)]);
+      if (hasPromotor) tableData.push(["Verba: Promotor de Justiça", formatBRL(80000)]);
+      if (hasDesembargador) tableData.push(["Verba: Desembargador", formatBRL(120000)]);
+      
+      outrasCustas.forEach(c => {
+        tableData.push([`Outra: ${c.description || "Sem descrição"}`, formatBRL(c.value)]);
+      });
+    }
+
+    autoTable(doc, {
+      startY: (doc as any).lastAutoTable.finalY + 18,
+      head: [["Descrição", "Valor"]],
+      body: tableData,
+      theme: "grid",
+      headStyles: { fillColor: [241, 196, 15] as any, textColor: 0 },
+      styles: { fontSize: 10 },
+    });
+
+    // Total
+    const finalY = (doc as any).lastAutoTable.finalY + 10;
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text(`TOTAL ESTIMADO: ${formatBRL(calculations.total)}`, 14, finalY);
+
+    // Notas de rodapé
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    const footerText = [
+      "* Este documento é um simulado financeiro baseado nas tabelas oficiais de 2026.",
+      "* Os valores podem sofrer alterações conforme a complexidade e tempo do processo.",
+      "* Honorários calculados respeitam o piso ético estabelecido pela seccional."
+    ];
+    doc.text(footerText, 14, finalY + 15);
+
+    doc.save(`Orcamento_${selectedProcess.name.replace(/\s+/g, "_")}.pdf`);
+    toast.success("PDF gerado com sucesso!");
+  };
+
   return (
     <div className="container mx-auto py-8 px-4 max-w-5xl">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
