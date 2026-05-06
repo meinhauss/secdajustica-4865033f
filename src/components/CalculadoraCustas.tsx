@@ -234,6 +234,11 @@ export default function CalculadoraCustas() {
     if (hasPromotor) extras += 80000;
     if (hasDesembargador) extras += 120000;
 
+    // Outras Custas
+    outrasCustas.forEach(c => {
+      extras += c.value;
+    });
+
     const finalCustas = includeCustas ? custas : 0;
     const finalHonorarios = includeHonorarios ? honorarios : 0;
     const finalExtras = includeExtras ? extras : 0;
