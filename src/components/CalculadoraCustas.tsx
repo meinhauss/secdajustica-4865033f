@@ -382,7 +382,8 @@ export default function CalculadoraCustas() {
       itemizedDetails: itemizedDetails.filter(i => {
         if (i.type === 'honorario') return includeHonorarios;
         return includeCustas;
-      }).map(i => ({ ...i, required: (selectedProcess?.items?.find(orig => orig.label === i.label)?.required) }))
+      }).map(i => ({ ...i, required: (selectedProcess?.items?.find(orig => orig.label === i.label)?.required) })),
+      piso: selectedProcess?.pisoHonorario || 0
     };
   }, [selectedProcess, diligencias, hasJuiz, hasPromotor, hasDesembargador, valorCivel, hasAlteracaoNome, includeCustas, includeHonorarios, includeExtras, customCustas, customHonorarios, honorarioType, customPercentage, outrasCustas, selectedItems, crimesLimpeza]);
 
