@@ -186,27 +186,27 @@ export default function CalculadoraCustas() {
     [selectedProcessId]
   );
 
+  // Seleção de itens específicos do processo
+  const [selectedItems, setSelectedItems] = useState<Record<string, boolean>>({});
+
   useEffect(() => {
     if (selectedProcess) {
-      if (typeof selectedProcess.custas === 'number') {
-        setCustomCustas(selectedProcess.custas);
-      } else if (selectedProcess.custas === 'base_plus' && selectedProcess.baseCustas) {
-        setCustomCustas(selectedProcess.baseCustas);
-      } else {
-        setCustomCustas(0);
-      }
+      const initial: Record<string, boolean> = {};
+      selectedProcess.items.forEach(item => {
+        initial[item.label] = true;
+      });
+      setSelectedItems(initial);
 
-      if (typeof selectedProcess.honorarios === 'number') {
-        setCustomHonorarios(selectedProcess.honorarios);
+      // Valores iniciais para personalização se for processo conhecido
+      const firstHonorario = selectedProcess.items.find(i => i.type === 'honorario');
+      if (firstHonorario) {
+        setCustomHonorarios(firstHonorario.value);
         setHonorarioType("fixed");
-      } else if (selectedProcess.honorarios === 'percentage') {
-        setHonorarioType("percentage");
-        setCustomPercentage(20);
-      } else if (selectedProcess.honorarios === 'special') {
-        if (selectedProcess.id === 'defesa_detido') {
-          setCustomHonorarios(30000);
-          setHonorarioType("fixed");
-        }
+      }
+      
+      const firstCusta = selectedProcess.items.find(i => i.type === 'custa');
+      if (firstCusta) {
+        setCustomCustas(firstCusta.value);
       }
     }
   }, [selectedProcessId]);
