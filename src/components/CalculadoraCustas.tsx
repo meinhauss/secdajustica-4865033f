@@ -3,8 +3,10 @@ import { motion } from "framer-motion";
 import { 
   Calculator, Receipt, Scale, Briefcase, Gavel, 
   Trash2, Plus, Info, Copy, CheckCircle2,
-  CheckSquare, Square, FileText, Download
+  CheckSquare, Square, FileText, Download,
+  Coins
 } from "lucide-react";
+// ... existing imports ...
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -16,6 +18,44 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+
+const CurrencyInput = ({ value, onChange, disabled, className, label }: { 
+  value: number; 
+  onChange: (val: number) => void; 
+  disabled?: boolean;
+  className?: string;
+  label?: string;
+}) => {
+  const [displayValue, setDisplayValue] = useState(value.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+
+  useEffect(() => {
+    setDisplayValue(value.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+  }, [value]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/\D/g, "");
+    const numericValue = Number(rawValue) / 100;
+    setDisplayValue(numericValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+    onChange(numericValue);
+  };
+
+  return (
+    <div className="space-y-1">
+      {label && <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</Label>}
+      <div className="relative group">
+        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gold opacity-50 group-focus-within:opacity-100 transition-opacity">
+          <Coins className="h-3 w-3" />
+        </div>
+        <Input
+          value={displayValue}
+          onChange={handleChange}
+          disabled={disabled}
+          className={`pl-8 bg-background border-gold/20 focus:border-gold transition-all font-mono text-sm h-9 ${className}`}
+        />
+      </div>
+    </div>
+  );
+};
 
 const formatBRL = (value: number) => {
   return new Intl.NumberFormat('pt-BR', {
