@@ -578,27 +578,11 @@ export default function CalculadoraCustas() {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Scale className="h-5 w-5 text-gold" />
-                Diligências e Verbas
+                Custas Adicionais e Verbas
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label className="flex justify-between">
-                  Diligências (Oficial de Justiça)
-                  <span className="text-gold font-mono">{formatBRL(diligencias * 20000)}</span>
-                </Label>
-                <div className="flex items-center gap-4">
-                  <Input 
-                    type="number" 
-                    min="0" 
-                    value={diligencias} 
-                    onChange={e => setDiligencias(Math.max(0, Number(e.target.value)))}
-                    className="w-24"
-                  />
-                  <span className="text-xs text-muted-foreground">R$ 20.000,00 por diligência</span>
-                </div>
-              </div>
-              {/* Detalhes de Verbas Indenizatórias e Extras */}
+              {/* Seção unificada de Verbas e Diligências */}
               <div className="space-y-4 p-4 border rounded-lg bg-secondary/10">
                 <h4 className="font-semibold text-sm flex items-center gap-2">
                   <Gavel className="h-4 w-4 text-gold" />
@@ -639,32 +623,6 @@ export default function CalculadoraCustas() {
                         <Label htmlFor="desemb" className="text-[10px] cursor-pointer">Desemb. (120k)</Label>
                       </div>
                     </div>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-3">
-                <Label>Verbas Indenizatórias (Obrigatórias por lei)</Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="flex items-center space-x-2 border p-3 rounded-lg hover:bg-secondary/20 transition-colors">
-                    <Checkbox id="juiz" checked={hasJuiz} onCheckedChange={(v) => setHasJuiz(!!v)} />
-                    <Label htmlFor="juiz" className="flex flex-col cursor-pointer">
-                      <span>Juiz de Direito</span>
-                      <span className="text-[10px] text-muted-foreground">{formatBRL(60000)}</span>
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2 border p-3 rounded-lg hover:bg-secondary/20 transition-colors">
-                    <Checkbox id="promotor" checked={hasPromotor} onCheckedChange={(v) => setHasPromotor(!!v)} />
-                    <Label htmlFor="promotor" className="flex flex-col cursor-pointer">
-                      <span>Promotor de Justiça</span>
-                      <span className="text-[10px] text-muted-foreground">{formatBRL(80000)}</span>
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2 border p-3 rounded-lg hover:bg-secondary/20 transition-colors">
-                    <Checkbox id="desemb" checked={hasDesembargador} onCheckedChange={(v) => setHasDesembargador(!!v)} />
-                    <Label htmlFor="desemb" className="flex flex-col cursor-pointer">
-                      <span>Desembargador (Recurso)</span>
-                      <span className="text-[10px] text-muted-foreground">{formatBRL(120000)}</span>
-                    </Label>
                   </div>
                 </div>
               </div>
