@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { RichTextView } from "@/components/ui/rich-text-editor";
 import { formatPartesShort } from "@/lib/formatPartes";
 import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -321,11 +322,11 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
         <TabsContent value="recurso" className="mt-4 space-y-4">
           <div className="bg-card rounded-xl p-5 border border-border">
             <h3 className="text-sm font-semibold text-foreground mb-2">Fundamentação do Recurso</h3>
-            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{apelacao.fundamentacao}</p>
+            <RichTextView html={apelacao.fundamentacao} className="text-sm" />
           </div>
           <div className="bg-card rounded-xl p-5 border border-border">
             <h3 className="text-sm font-semibold text-foreground mb-2">Pedido</h3>
-            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{apelacao.pedido}</p>
+            <RichTextView html={apelacao.pedido} className="text-sm" />
           </div>
         </TabsContent>
 
