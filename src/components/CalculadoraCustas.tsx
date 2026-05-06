@@ -3,8 +3,10 @@ import { motion } from "framer-motion";
 import { 
   Calculator, Receipt, Scale, Briefcase, Gavel, 
   Trash2, Plus, Info, Copy, CheckCircle2,
-  CheckSquare, Square, FileText, Download
+  CheckSquare, Square, FileText, Download,
+  Coins
 } from "lucide-react";
+// ... existing imports ...
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -17,10 +19,50 @@ import { toast } from "sonner";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
+const CurrencyInput = ({ value, onChange, disabled, className, label }: { 
+  value: number; 
+  onChange: (val: number) => void; 
+  disabled?: boolean;
+  className?: string;
+  label?: string;
+}) => {
+  const [displayValue, setDisplayValue] = useState(value.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+
+  useEffect(() => {
+    setDisplayValue(value.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+  }, [value]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/\D/g, "");
+    const numericValue = Number(rawValue) / 100;
+    setDisplayValue(numericValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+    onChange(numericValue);
+  };
+
+  return (
+    <div className="space-y-1">
+      {label && <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</Label>}
+      <div className="relative group">
+        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gold opacity-50 group-focus-within:opacity-100 transition-opacity">
+          <Coins className="h-3 w-3" />
+        </div>
+        <Input
+          value={displayValue}
+          onChange={handleChange}
+          disabled={disabled}
+          className={`pl-8 bg-background border-gold/20 focus:border-gold transition-all font-mono text-sm h-9 ${className}`}
+        />
+      </div>
+    </div>
+  );
+};
+
 const formatBRL = (value: number) => {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(value);
 };
 
@@ -52,7 +94,7 @@ const PROCESS_TYPES: ProcessType[] = [
     name: "Recursos (Apelação e/ou Recurso)", 
     items: [
       { label: "Taxa de Preparo Recursal", value: 50000, type: 'custa', required: true },
-      { label: "Honorários de Sucumbência Recursal", value: 75000, type: 'honorario' }
+      { label: "Honorários de Sucumbência Recursal", value: 75000, type: 'honorario', required: true }
     ]
   },
   { 
@@ -66,17 +108,16 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "defesa_detido", 
     name: "Defesa de Acusado Detido/Preso", 
     items: [
-      { label: "Honorários Atendimento (até 10 min)", value: 30000, type: 'honorario' },
-      { label: "Honorários Atendimento (> 10 min)", value: 35000, type: 'honorario' }
+      { label: "Honorários Atendimento", value: 30000, type: 'honorario', required: true }
     ],
-    obs: "Escolha o valor baseado no tempo de atendimento." 
+    obs: "Valor base para atendimento inicial." 
   },
   { 
     id: "acoes_civeis", 
     name: "Ações Cíveis (Danos Morais/Materiais)", 
     items: [
       { label: "Taxa Judiciária", value: 25000, type: 'custa', required: true },
-      { label: "Honorários Ad Exitum (20%)", value: 0, type: 'honorario' }
+      { label: "Honorários Advocatícios", value: 0, type: 'honorario', required: true }
     ],
     obs: "Danos morais: R$ 40k a R$ 2M."
   },
@@ -88,16 +129,16 @@ const PROCESS_TYPES: ProcessType[] = [
       { label: "Laudo Psicológico Profissional", value: 150000, type: 'despesa' },
       { label: "Curso de Armamento e Tiro", value: 200000, type: 'despesa' },
       { label: "Munições de Treinamento", value: 100000, type: 'despesa' },
-      { label: "Honorários Administrativos", value: 110000, type: 'honorario' }
+      { label: "Honorários Advocatícios", value: 110000, type: 'honorario', required: true }
     ],
-    obs: "Discriminação completa para o cliente."
+    obs: "Taxas e despesas operacionais discriminadas."
   },
   { 
     id: "limpeza_ficha", 
     name: "Exclusão de Antecedentes (Limpeza)", 
     items: [
       { label: "Taxa de Processamento Base", value: 50000, type: 'custa', required: true },
-      { label: "Honorários Advocatícios", value: 110000, type: 'honorario' }
+      { label: "Honorários Advocatícios", value: 110000, type: 'honorario', required: true }
     ],
     obs: "Base de R$ 50.000,00 + valor por gravidade do crime."
   },
@@ -106,7 +147,7 @@ const PROCESS_TYPES: ProcessType[] = [
     name: "Divórcio", 
     items: [
       { label: "Taxa de Averbação", value: 35000, type: 'custa', required: true },
-      { label: "Honorários Advocatícios", value: 115000, type: 'honorario' }
+      { label: "Honorários Advocatícios", value: 115000, type: 'honorario', required: true }
     ]
   },
   { 
@@ -115,7 +156,7 @@ const PROCESS_TYPES: ProcessType[] = [
     items: [
       { label: "Taxa de Vistoria Inicial", value: 150000, type: 'custa', required: true },
       { label: "Taxa AVCB (Bombeiros)", value: 50000, type: 'custa' },
-      { label: "Honorários Advocatícios", value: 35000, type: 'honorario' }
+      { label: "Honorários Advocatícios", value: 35000, type: 'honorario', required: true }
     ]
   },
   { 
@@ -124,7 +165,7 @@ const PROCESS_TYPES: ProcessType[] = [
     items: [
       { label: "Taxa Cartorária", value: 875000, type: 'custa', required: true },
       { label: "Alteração de Sobrenome", value: 2000000, type: 'custa' },
-      { label: "Honorários Processuais", value: 80000, type: 'honorario' }
+      { label: "Honorários Advocatícios", value: 80000, type: 'honorario', required: true }
     ]
   },
   { 
@@ -132,16 +173,14 @@ const PROCESS_TYPES: ProcessType[] = [
     name: "Adoção", 
     items: [
       { label: "Taxa Processual de Adoção", value: 1225000, type: 'custa', required: true },
-      { label: "Estudo Psicossocial Judiciário", value: 0, type: 'custa' },
-      { label: "Honorários Advocatícios", value: 0, type: 'honorario' }
+      { label: "Honorários Advocatícios", value: 0, type: 'honorario', required: true }
     ]
   },
   {
     id: "outros",
     name: "Outros (Personalizado)",
     items: [
-      { label: "Custa Personalizada", value: 0, type: 'custa' },
-      { label: "Honorário Personalizado", value: 0, type: 'honorario' }
+      { label: "Honorários Advocatícios", value: 0, type: 'honorario', required: true }
     ]
   }
 ];
@@ -220,7 +259,7 @@ export default function CalculadoraCustas() {
         setCustomCustas(0);
       }
     }
-  }, [selectedProcessId]);
+  }, [selectedProcessId, selectedProcess]);
 
   const addCrimeLimpeza = () => {
     setCrimesLimpeza([...crimesLimpeza, { id: Math.random().toString(), typeIndex: 0 }]);
@@ -260,16 +299,19 @@ export default function CalculadoraCustas() {
         }
       } else {
         selectedProcess.items.forEach(item => {
-          if (selectedItems[item.label]) {
+          // Itens 'required' são sempre inclusos, outros dependem da seleção
+          if (item.required || selectedItems[item.label]) {
             let val = item.value;
-            // Se for honorário e estiver em modo percentual, recalcula
+            
             if (item.type === 'honorario' && honorarioType === 'percentage') {
               val = (valorCivel || 0) * (customPercentage / 100);
             } else if (item.type === 'honorario' && customHonorarios !== item.value && customHonorarios !== 0) {
               val = customHonorarios;
+            } else if (item.type === 'custa' && customCustas !== item.value && customCustas !== 0) {
+              // Permite sobrescrever valor base da custa se o usuário digitar na caixa principal
+              val = customCustas;
             }
             
-            // Lógica especial para Limpeza de Ficha
             if (selectedProcess.id === 'limpeza_ficha' && item.label === 'Taxa de Processamento Base') {
               crimesLimpeza.forEach(c => {
                 val += GRAVIDADE_CRIMES[c.typeIndex].value;
@@ -310,7 +352,7 @@ export default function CalculadoraCustas() {
       itemizedDetails: itemizedDetails.filter(i => {
         if (i.type === 'honorario') return includeHonorarios;
         return includeCustas;
-      })
+      }).map(i => ({ ...i, required: (selectedProcess?.items?.find(orig => orig.label === i.label)?.required) }))
     };
   }, [selectedProcess, diligencias, hasJuiz, hasPromotor, hasDesembargador, valorCivel, hasAlteracaoNome, includeCustas, includeHonorarios, includeExtras, customCustas, customHonorarios, honorarioType, customPercentage, outrasCustas, selectedItems, crimesLimpeza]);
 
@@ -320,17 +362,21 @@ export default function CalculadoraCustas() {
     const summary = [
       "═══ ORÇAMENTO PROCESSUAL ═══",
       `Processo: ${selectedProcess.name}`,
+      `Emissão: ${new Date().toLocaleDateString("pt-BR")}`,
+      "",
+      "DETALHAMENTO:",
       ...calculations.itemizedDetails.map(item => `• ${item.label}: ${formatBRL(item.value)}`),
-      `Taxas/Diligências/Verbas: ${formatBRL(calculations.extras)}`,
+      includeExtras && calculations.extras > 0 ? `• Taxas/Diligências Extras: ${formatBRL(calculations.extras)}` : null,
+      "",
       "────────────────────────",
-      `TOTAL: ${formatBRL(calculations.total)}`,
+      `TOTAL ESTIMADO: ${formatBRL(calculations.total)}`,
+      "────────────────────────",
       "",
       selectedProcess.obs ? `Obs: ${selectedProcess.obs}` : null,
-      diligencias > 0 ? `• ${diligencias} diligência(s) inclusa(s)` : null,
     ].filter(Boolean).join("\n");
 
     navigator.clipboard.writeText(summary);
-    toast.success("Resumo copiado!");
+    toast.success("Orçamento copiado para a área de transferência!");
   };
 
   const generatePDF = () => {
@@ -371,7 +417,7 @@ export default function CalculadoraCustas() {
       if (hasPromotor) tableData.push(["Verba: Promotor de Justiça", formatBRL(80000)]);
       if (hasDesembargador) tableData.push(["Verba: Desembargador", formatBRL(120000)]);
       outrasCustas.forEach(c => {
-        tableData.push([`Outra: ${c.description || "Sem descrição"}`, formatBRL(c.value)]);
+        tableData.push([`Custa Extra: ${c.description || "Sem descrição"}`, formatBRL(c.value)]);
       });
     }
 
@@ -380,23 +426,24 @@ export default function CalculadoraCustas() {
       head: [["Descrição", "Valor"]],
       body: tableData,
       theme: "grid",
-      headStyles: { fillColor: [241, 196, 15] as any, textColor: 0 },
-      styles: { fontSize: 10 },
+      headStyles: { fillColor: [184, 134, 11] as any, textColor: 255 }, // Darker gold
+      styles: { fontSize: 9 },
     });
 
     // Total
-    const finalY = (doc as any).lastAutoTable.finalY + 10;
+    const finalY = (doc as any).lastAutoTable.finalY + 15;
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
-    doc.text(`TOTAL ESTIMADO: ${formatBRL(calculations.total)}`, 14, finalY);
+    doc.text(`VALOR TOTAL ESTIMADO: ${formatBRL(calculations.total)}`, 14, finalY);
 
     // Notas de rodapé
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
     const footerText = [
-      "* Este documento é um simulado financeiro baseado nas tabelas oficiais de 2026.",
-      "* Os valores podem sofrer alterações conforme a complexidade e tempo do processo.",
-      "* Honorários calculados respeitam o piso ético estabelecido pela seccional."
+      "* Este documento é uma estimativa financeira baseada na tabela oficial da OAB-SP e TJ-SP 2026.",
+      "* Os valores podem sofrer alterações conforme o tempo de tramitação e complexidade.",
+      "* Honorários contratuais representam o piso ético estabelecido pela seccional."
     ];
     doc.text(footerText, 14, finalY + 15);
 
@@ -470,20 +517,21 @@ export default function CalculadoraCustas() {
 
               {/* Seleção Detalhada de Itens do Processo */}
               {selectedProcess && selectedProcess.id !== 'outros' && (
-                <div className="space-y-3 p-4 border rounded-lg bg-secondary/5 mb-4">
+                <div className="space-y-3 p-4 border rounded-lg bg-secondary/5 mb-4 shadow-sm">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                     <CheckSquare className="h-3 w-3" />
                     Itens Inclusos no Processo
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {selectedProcess.items.map((item) => (
-                      <div key={item.label} className="flex items-center space-x-2 p-2 border rounded bg-background hover:bg-secondary/10 transition-colors">
+                      <div key={item.label} className={`flex items-center space-x-2 p-2 border rounded bg-background transition-colors ${item.required ? 'opacity-80 border-gold/30 bg-gold/5' : 'hover:bg-secondary/10'}`}>
                         <Checkbox 
                           id={`item-${item.label}`} 
-                          checked={selectedItems[item.label] || false}
+                          checked={item.required ? true : (selectedItems[item.label] || false)}
+                          disabled={item.required}
                           onCheckedChange={(v) => setSelectedItems({ ...selectedItems, [item.label]: !!v })}
                         />
-                        <Label htmlFor={`item-${item.label}`} className="text-xs cursor-pointer flex-1 flex justify-between gap-2">
+                        <Label htmlFor={`item-${item.label}`} className={`text-xs flex-1 flex justify-between gap-2 ${item.required ? 'cursor-default' : 'cursor-pointer'}`}>
                           <span className="truncate">{item.label}</span>
                           <span className="text-gold font-mono whitespace-nowrap">{formatBRL(item.value)}</span>
                         </Label>
@@ -493,24 +541,26 @@ export default function CalculadoraCustas() {
                 </div>
               )}
               {selectedProcessId && (
-                <div className="space-y-4 p-4 border rounded-lg bg-secondary/10">
+                <div className="space-y-4 p-4 border rounded-lg bg-secondary/10 shadow-sm relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-1 h-full bg-gold/50" />
                   <h4 className="font-semibold text-sm flex items-center gap-2">
                     <Scale className="h-4 w-4 text-gold" />
                     Valores Principais
                   </h4>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label className="text-xs">Custas Processuais (R$)</Label>
-                      <Input 
-                        type="number" 
+                      <CurrencyInput 
+                        label="Custas Processuais"
                         value={selectedProcessId === 'outros' ? customCustas : (selectedProcess?.items?.find(i => i.type === 'custa')?.value ?? customCustas)} 
-                        onChange={e => setCustomCustas(Number(e.target.value))}
+                        onChange={setCustomCustas}
                         disabled={selectedProcessId !== 'outros'}
-                        className="bg-background h-8 text-sm"
                       />
                       {selectedProcessId !== 'outros' && (
-                        <p className="text-[10px] text-muted-foreground italic">Valor padrão da tabela.</p>
+                        <p className="text-[9px] text-muted-foreground italic flex items-center gap-1">
+                          <Info className="h-2 w-2" />
+                          Valor padrão obrigatório da tabela judicial.
+                        </p>
                       )}
                     </div>
 
@@ -535,12 +585,10 @@ export default function CalculadoraCustas() {
 
                       {honorarioType === "fixed" ? (
                         <div className="space-y-1">
-                          <Label className="text-[10px]">Valor (R$)</Label>
-                          <Input 
-                            type="number" 
+                          <CurrencyInput 
+                            label="Valor Honorário"
                             value={customHonorarios} 
-                            onChange={e => setCustomHonorarios(Number(e.target.value))}
-                            className="bg-background h-8 text-sm"
+                            onChange={setCustomHonorarios}
                           />
                           <p className="text-[9px] text-amber-500 font-medium flex items-center gap-1">
                             <Info className="h-2 w-2" />
@@ -549,22 +597,18 @@ export default function CalculadoraCustas() {
                         </div>
                       ) : (
                         <div className="space-y-2">
+                          <CurrencyInput 
+                            label="Base de Cálculo"
+                            value={valorCivel} 
+                            onChange={setValorCivel}
+                          />
                           <div className="space-y-1">
-                            <Label className="text-[10px]">Base (R$)</Label>
-                            <Input 
-                              type="number" 
-                              value={valorCivel || ""} 
-                              onChange={e => setValorCivel(Number(e.target.value))}
-                              className="bg-background h-8 text-sm"
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <Label className="text-[10px]">Percentual (%)</Label>
+                            <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Percentual (%)</Label>
                             <Input 
                               type="number" 
                               value={customPercentage} 
                               onChange={e => setCustomPercentage(Number(e.target.value))}
-                              className="bg-background h-8 text-sm"
+                              className="bg-background border-gold/20 h-9 text-sm"
                             />
                           </div>
                         </div>
@@ -709,22 +753,21 @@ export default function CalculadoraCustas() {
                 </Label>
                 <div className="space-y-3">
                   {outrasCustas.map((c) => (
-                    <div key={c.id} className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center p-3 bg-secondary/20 rounded-lg border">
-                      <div className="md:col-span-7">
+                    <div key={c.id} className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end p-3 bg-secondary/20 rounded-lg border border-gold/10">
+                      <div className="md:col-span-6">
+                        <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Descrição</Label>
                         <Input 
-                          placeholder="Descrição da custa" 
+                          placeholder="Ex: Taxa extra" 
                           value={c.description} 
                           onChange={e => updateOutraCusta(c.id, "description", e.target.value)}
-                          className="h-9"
+                          className="h-9 bg-background"
                         />
                       </div>
-                      <div className="md:col-span-4">
-                        <Input 
-                          type="number" 
-                          placeholder="Valor (R$)" 
-                          value={c.value || ""} 
-                          onChange={e => updateOutraCusta(c.id, "value", Number(e.target.value))}
-                          className="h-9"
+                      <div className="md:col-span-5">
+                        <CurrencyInput 
+                          label="Valor"
+                          value={c.value} 
+                          onChange={val => updateOutraCusta(c.id, "value", val)}
                         />
                       </div>
                       <div className="md:col-span-1 flex justify-end">
