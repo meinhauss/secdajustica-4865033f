@@ -111,7 +111,7 @@ export default function CodigoPenalPage() {
         <TabsContent value="codigo" className="flex-1 mt-0">
           {/* Filtros */}
           <section className="border-b border-border bg-card/50">
-            <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col lg:flex-row gap-3">
+            <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-3">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
