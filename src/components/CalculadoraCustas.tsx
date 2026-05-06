@@ -388,9 +388,19 @@ export default function CalculadoraCustas() {
   }, [selectedProcess, diligencias, hasJuiz, hasPromotor, hasDesembargador, valorCivel, hasAlteracaoNome, includeCustas, includeHonorarios, includeExtras, customCustas, customHonorarios, honorarioType, customPercentage, outrasCustas, selectedItems, crimesLimpeza]);
 
   const isBelowPiso = useMemo(() => {
-    if (!selectedProcess || !selectedProcess.pisoHonorario) return false;
+    if (!selectedProcess) return false;
+    
+    // Caso especial para Ações Cíveis (Danos Morais/Materiais): 20% sobre o total
+    if (selectedProcess.id === 'acoes_civeis') {
+      const valorReferencia = valorCivel || 0;
+      const honorariosMinimos = valorReferencia * 0.20;
+      // Se for percentual e menor que 20% ou se for fixo e menor que o cálculo de 20%
+      return calculations.honorarios < honorariosMinimos;
+    }
+
+    if (!selectedProcess.pisoHonorario) return false;
     return calculations.honorarios < selectedProcess.pisoHonorario;
-  }, [calculations.honorarios, selectedProcess]);
+  }, [calculations.honorarios, selectedProcess, valorCivel]);
 
   const copySummary = () => {
     if (!selectedProcess) return;
