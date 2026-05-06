@@ -526,6 +526,30 @@ export default function CalculadoraCustas() {
     toast.success("PDF gerado com sucesso!");
   };
 
+  const generateJPG = async () => {
+    if (!previewRef.current) return;
+    try {
+      const canvas = await html2canvas(previewRef.current, {
+        backgroundColor: "#0a0a0a",
+        scale: 2,
+        logging: false,
+        useCORS: true
+      });
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+      const link = document.createElement("a");
+      link.download = `Orcamento_${selectedProcess?.name.replace(/\s+/g, "_")}.jpg`;
+      link.href = dataUrl;
+      link.click();
+      toast.success("Imagem gerada com sucesso!");
+    } catch (error) {
+      toast.error("Erro ao gerar imagem");
+    }
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
     <div className="container mx-auto py-6 px-4 max-w-6xl">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 pb-6 border-b">
