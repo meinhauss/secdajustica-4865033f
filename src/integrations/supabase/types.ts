@@ -31,6 +31,8 @@ export type Database = {
           numero_acordao: string | null
           pedido: string
           processo_id: string
+          razoes_admissao: string | null
+          razoes_inadmissao: string | null
           sentenca_id: string
           status: string
           updated_at: string
@@ -51,6 +53,8 @@ export type Database = {
           numero_acordao?: string | null
           pedido: string
           processo_id: string
+          razoes_admissao?: string | null
+          razoes_inadmissao?: string | null
           sentenca_id: string
           status?: string
           updated_at?: string
@@ -71,6 +75,8 @@ export type Database = {
           numero_acordao?: string | null
           pedido?: string
           processo_id?: string
+          razoes_admissao?: string | null
+          razoes_inadmissao?: string | null
           sentenca_id?: string
           status?: string
           updated_at?: string
@@ -1855,6 +1861,60 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      votos_apelacao: {
+        Row: {
+          acompanha_voto_id: string | null
+          apelacao_id: string
+          created_at: string
+          decisao_tipo: string | null
+          desembargador_id: string
+          desembargador_nome: string
+          dispositivo: string | null
+          fundamentacao: string | null
+          id: string
+          tipo: string
+        }
+        Insert: {
+          acompanha_voto_id?: string | null
+          apelacao_id: string
+          created_at?: string
+          decisao_tipo?: string | null
+          desembargador_id: string
+          desembargador_nome: string
+          dispositivo?: string | null
+          fundamentacao?: string | null
+          id?: string
+          tipo?: string
+        }
+        Update: {
+          acompanha_voto_id?: string | null
+          apelacao_id?: string
+          created_at?: string
+          decisao_tipo?: string | null
+          desembargador_id?: string
+          desembargador_nome?: string
+          dispositivo?: string | null
+          fundamentacao?: string | null
+          id?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "votos_apelacao_acompanha_voto_id_fkey"
+            columns: ["acompanha_voto_id"]
+            isOneToOne: false
+            referencedRelation: "votos_apelacao"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "votos_apelacao_apelacao_id_fkey"
+            columns: ["apelacao_id"]
+            isOneToOne: false
+            referencedRelation: "apelacoes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
