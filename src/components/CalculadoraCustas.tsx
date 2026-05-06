@@ -369,7 +369,8 @@ export default function CalculadoraCustas() {
 
       // Outros Processos Customizados
       if (selectedProcess.id === 'outros') {
-        itemizedDetails.push({ label: "Custas Processuais", value: customCustas, type: 'custa' });
+        // Já incluso via itemizedDetails da Petição Inicial se necessário, 
+        // ou permitindo valor customizado aqui se preferir.
       }
     }
 
