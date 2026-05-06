@@ -671,24 +671,58 @@ export default function CalculadoraCustas() {
               </h3>
             </div>
             <CardContent className="p-6 space-y-6">
-              <div className="space-y-4">
-                <div className="flex justify-between items-start group">
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <Checkbox 
-                        id="inc-custas" 
-                        checked={includeCustas} 
-                        onCheckedChange={(v) => setIncludeCustas(!!v)}
-                        className="h-3 w-3"
-                      />
-                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeCustas(!includeCustas)}>Custas Judiciais</p>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-start group">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <Checkbox 
+                          id="inc-custas" 
+                          checked={includeCustas} 
+                          onCheckedChange={(v) => setIncludeCustas(!!v)}
+                          className="h-3 w-3"
+                        />
+                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeCustas(!includeCustas)}>Custas Judiciais (Base)</p>
+                      </div>
+                      <p className={`font-medium transition-opacity ${!includeCustas ? 'opacity-30' : ''}`}>
+                        {selectedProcess ? formatBRL(calculations.custas) : "—"}
+                      </p>
                     </div>
-                    <p className={`font-medium transition-opacity ${!includeCustas ? 'opacity-30' : ''}`}>
-                      {selectedProcess ? formatBRL(calculations.custas) : "—"}
-                    </p>
+                    <Scale className={`h-4 w-4 transition-colors ${includeCustas ? 'text-gold/50' : 'text-muted-foreground/30'}`} />
                   </div>
-                  <Scale className={`h-4 w-4 transition-colors ${includeCustas ? 'text-gold/50' : 'text-muted-foreground/30'}`} />
-                </div>
+
+                  {includeExtras && diligencias > 0 && (
+                    <div className="flex justify-between items-start">
+                      <div className="space-y-0.5 pl-5 border-l border-gold/20">
+                        <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Diligências ({diligencias}x)</p>
+                        <p className="text-xs font-medium">{formatBRL(diligencias * 20000)}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {includeExtras && (hasJuiz || hasPromotor || hasDesembargador) && (
+                    <div className="space-y-1 pl-5 border-l border-gold/20">
+                      <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Verbas Indenizatórias</p>
+                      <div className="space-y-0.5">
+                        {hasJuiz && <div className="flex justify-between text-[10px]"><span className="opacity-70">Juiz:</span> <span>{formatBRL(60000)}</span></div>}
+                        {hasPromotor && <div className="flex justify-between text-[10px]"><span className="opacity-70">Promotor:</span> <span>{formatBRL(80000)}</span></div>}
+                        {hasDesembargador && <div className="flex justify-between text-[10px]"><span className="opacity-70">Desemb.:</span> <span>{formatBRL(120000)}</span></div>}
+                      </div>
+                    </div>
+                  )}
+
+                  {includeExtras && outrasCustas.length > 0 && (
+                    <div className="space-y-1 pl-5 border-l border-gold/20">
+                      <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Custas Personalizadas</p>
+                      <div className="space-y-0.5">
+                        {outrasCustas.map((c) => (
+                          <div key={c.id} className="flex justify-between text-[10px]">
+                            <span className="opacity-70 truncate max-w-[120px]">{c.description || "Outra"}:</span>
+                            <span>{formatBRL(c.value)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                 <div className="flex justify-between items-start">
                   <div className="space-y-0.5">
