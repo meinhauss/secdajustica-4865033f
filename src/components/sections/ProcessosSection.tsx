@@ -268,7 +268,32 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
 
   const [form, setForm] = useState({
     classe: "civil", assunto: "", descricao: "", vara: "1ª Vara Cível", valor_causa: "", sigilo: "publico",
+    instancia: "1" as "1" | "2",
+    classe_originaria: "",
+    orgao_julgador: "",
+    pedido: "",
   });
+
+  const CLASSES_ORIGINARIAS = [
+    { value: "mandado_seguranca", label: "Mandado de Segurança", classe: "constitucional" },
+    { value: "habeas_corpus", label: "Habeas Corpus", classe: "criminal" },
+    { value: "acao_rescisoria", label: "Ação Rescisória", classe: "civil" },
+    { value: "reclamacao", label: "Reclamação", classe: "civil" },
+    { value: "conflito_competencia", label: "Conflito de Competência", classe: "civil" },
+  ];
+
+  const ORGAOS_JULGADORES = [
+    "1ª Câmara de Direito Público",
+    "2ª Câmara de Direito Público",
+    "1ª Câmara Criminal",
+    "2ª Câmara Criminal",
+    "Câmara Cível",
+    "Tribunal Pleno",
+  ];
+
+  const podeAbrirSegundaInstancia = roles.some(r =>
+    ["admin", "advogado", "ministerio_publico", "procurador_geral", "desembargador", "presidente_tribunal"].includes(r)
+  ) || isCidadao; // cidadão pode impetrar HC
 
   const { data: processos, isLoading } = useQuery({
     queryKey: ["processos", isCidadao, profile?.id_personagem, user?.id],
