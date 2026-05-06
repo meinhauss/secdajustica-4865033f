@@ -1,0 +1,463 @@
+import { useState, useMemo } from "react";
+import { motion } from "framer-motion";
+import { 
+  Calculator, Receipt, Scale, Briefcase, Gavel, 
+  Trash2, Plus, Info, Copy, CheckCircle2 
+} from "lucide-react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { toast } from "sonner";
+
+const formatBRL = (value: number) => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(value);
+};
+
+interface ProcessType {
+  id: string;
+  name: string;
+  custas: number | "base_plus" | "special" | "vide_decreto";
+  honorarios: number | "percentage" | "special" | "none";
+  description?: string;
+  obs?: string;
+  baseCustas?: number;
+  baseHonorarios?: number;
+}
+
+const PROCESS_TYPES: ProcessType[] = [
+  { 
+    id: "peticao_inicial", 
+    name: "Petição Inicial (Geral)", 
+    custas: 25000, 
+    honorarios: "none", 
+    obs: "Valor fixo somado à respectiva ação." 
+  },
+  { 
+    id: "recursos", 
+    name: "Recursos (Apelação e/ou Recurso)", 
+    custas: 50000, 
+    honorarios: 75000 
+  },
+  { 
+    id: "mandados", 
+    name: "MS, Habeas Corpus e Habeas Data", 
+    custas: 50000, 
+    honorarios: "none" 
+  },
+  { 
+    id: "defesa_detido", 
+    name: "Defesa de Acusado Detido/Preso", 
+    custas: 0, 
+    honorarios: "special",
+    obs: "R$ 30.000,00 (até 10 min) ou R$ 35.000,00 (> 10 min)" 
+  },
+  { 
+    id: "acoes_civeis", 
+    name: "Ações Cíveis (Danos Morais/Materiais)", 
+    custas: 25000, 
+    honorarios: "percentage",
+    obs: "20% sobre o valor total. Danos morais: R$ 40k a R$ 2M."
+  },
+  { 
+    id: "porte_arma", 
+    name: "Porte de Arma de Fogo (Uso Permitido)", 
+    custas: 475000, 
+    honorarios: 110000,
+    obs: "Inclui Inicial, Psicológico, Armamento, Munições e Verbas (Promotor/Juiz)."
+  },
+  { 
+    id: "limpeza_ficha", 
+    name: "Exclusão de Antecedentes (Limpeza)", 
+    custas: "base_plus", 
+    honorarios: 110000,
+    baseCustas: 50000,
+    obs: "Base de R$ 50.000,00 + valor por gravidade do crime + Verbas."
+  },
+  { 
+    id: "divorcio", 
+    name: "Divórcio", 
+    custas: "vide_decreto", 
+    honorarios: 115000 
+  },
+  { 
+    id: "alvara", 
+    name: "Alvará de Funcionamento", 
+    custas: 150000, 
+    honorarios: 35000,
+    obs: "Inclui Inicial. Obrigatório Taxa AVCB à parte."
+  },
+  { 
+    id: "casamento", 
+    name: "Casamento (Certidão e Ação)", 
+    custas: 875000, 
+    honorarios: 80000,
+    obs: "Inclui Inicial, Certidão e Ação."
+  },
+  { 
+    id: "adocao", 
+    name: "Adoção", 
+    custas: 1225000, 
+    honorarios: "none",
+    obs: "Inclui Inicial, Certidão atualizada e Ação."
+  }
+];
+
+const GRAVIDADE_CRIMES = [
+  { label: "0 a 10 meses", value: 25000 },
+  { label: "11 a 19 meses", value: 40000 },
+  { label: "20 a 30 meses", value: 60000 },
+  { label: "31 a 100 meses", value: 80000 },
+  { label: "Superior a 100 meses", value: 100000 },
+];
+
+export default function CalculadoraCustas() {
+  const [selectedProcessId, setSelectedProcessId] = useState<string>("");
+  const [diligencias, setDiligencias] = useState<number>(0);
+  const [hasJuiz, setHasJuiz] = useState(true);
+  const [hasPromotor, setHasPromotor] = useState(false);
+  const [hasDesembargador, setHasDesembargador] = useState(false);
+  
+  // Specific inputs
+  const [detidoMais10Min, setDetidoMais10Min] = useState(false);
+  const [valorCivel, setValorCivel] = useState<number>(0);
+  const [crimesLimpeza, setCrimesLimpeza] = useState<{id: string, typeIndex: number}[]>([]);
+  const [hasAlteracaoNome, setHasAlteracaoNome] = useState(false);
+
+  const selectedProcess = useMemo(() => 
+    PROCESS_TYPES.find(p => p.id === selectedProcessId), 
+    [selectedProcessId]
+  );
+
+  const addCrimeLimpeza = () => {
+    setCrimesLimpeza([...crimesLimpeza, { id: Math.random().toString(), typeIndex: 0 }]);
+  };
+
+  const removeCrimeLimpeza = (id: string) => {
+    setCrimesLimpeza(crimesLimpeza.filter(c => c.id !== id));
+  };
+
+  const updateCrimeLimpeza = (id: string, typeIndex: number) => {
+    setCrimesLimpeza(crimesLimpeza.map(c => c.id === id ? { ...c, typeIndex } : c));
+  };
+
+  const calculations = useMemo(() => {
+    let custas = 0;
+    let honorarios = 0;
+    let extras = 0;
+
+    if (selectedProcess) {
+      // Base Custas
+      if (typeof selectedProcess.custas === 'number') {
+        custas = selectedProcess.custas;
+      } else if (selectedProcess.custas === 'base_plus' && selectedProcess.baseCustas) {
+        custas = selectedProcess.baseCustas;
+        crimesLimpeza.forEach(c => {
+          custas += GRAVIDADE_CRIMES[c.typeIndex].value;
+        });
+      }
+
+      // Base Honorarios
+      if (typeof selectedProcess.honorarios === 'number') {
+        honorarios = selectedProcess.honorarios;
+      } else if (selectedProcess.honorarios === 'percentage') {
+        honorarios = valorCivel * 0.20;
+      } else if (selectedProcess.honorarios === 'special') {
+        if (selectedProcess.id === 'defesa_detido') {
+          honorarios = detidoMais10Min ? 35000 : 30000;
+        }
+      }
+
+      // Adicionais de nome (Adoção ou Casamento)
+      if (hasAlteracaoNome && (selectedProcess.id === 'adocao' || selectedProcess.id === 'casamento')) {
+        custas += 2000000;
+        if (selectedProcess.id === 'casamento') {
+          honorarios += 80000;
+        }
+      }
+    }
+
+    // Diligências
+    extras += diligencias * 20000;
+
+    // Verbas Indenizatórias
+    if (hasJuiz) extras += 60000;
+    if (hasPromotor) extras += 80000;
+    if (hasDesembargador) extras += 120000;
+
+    return {
+      custas,
+      honorarios,
+      extras,
+      total: custas + honorarios + extras
+    };
+  }, [selectedProcess, diligencias, hasJuiz, hasPromotor, hasDesembargador, detidoMais10Min, valorCivel, crimesLimpeza, hasAlteracaoNome]);
+
+  const copySummary = () => {
+    if (!selectedProcess) return;
+
+    const summary = [
+      "═══ ORÇAMENTO PROCESSUAL ═══",
+      `Processo: ${selectedProcess.name}`,
+      `Custas Processuais: ${formatBRL(calculations.custas)}`,
+      `Honorários: ${formatBRL(calculations.honorarios)}`,
+      `Taxas/Diligências/Verbas: ${formatBRL(calculations.extras)}`,
+      "────────────────────────",
+      `TOTAL: ${formatBRL(calculations.total)}`,
+      "",
+      selectedProcess.obs ? `Obs: ${selectedProcess.obs}` : null,
+      diligencias > 0 ? `• ${diligencias} diligência(s) inclusa(s)` : null,
+    ].filter(Boolean).join("\n");
+
+    navigator.clipboard.writeText(summary);
+    toast.success("Resumo copiado!");
+  };
+
+  return (
+    <div className="container mx-auto py-8 px-4 max-w-5xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-bold font-display text-foreground flex items-center gap-3">
+            <Calculator className="h-8 w-8 text-gold" />
+            Calculadora de Custas e Honorários
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Baseado na tabela oficial do Tribunal de Justiça e OAB-SP.
+          </p>
+        </div>
+        <Button onClick={copySummary} disabled={!selectedProcess} className="bg-gold hover:bg-gold-dark text-black font-bold">
+          <Copy className="mr-2 h-4 w-4" />
+          Copiar Orçamento
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Configurações */}
+        <div className="lg:col-span-2 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Briefcase className="h-5 w-5 text-gold" />
+                Tipo de Ação
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Selecione o Processo</Label>
+                <Select value={selectedProcessId} onValueChange={setSelectedProcessId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Escolha uma opção..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PROCESS_TYPES.map(p => (
+                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedProcess?.obs && (
+                  <p className="text-xs text-muted-foreground bg-secondary/50 p-2 rounded flex items-start gap-2">
+                    <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                    {selectedProcess.obs}
+                  </p>
+                )}
+              </div>
+
+              {/* Campos Dinâmicos conforme a seleção */}
+              {selectedProcessId === 'defesa_detido' && (
+                <div className="flex items-center space-x-2 p-3 bg-secondary/30 rounded-lg">
+                  <Checkbox 
+                    id="tempo" 
+                    checked={detidoMais10Min} 
+                    onCheckedChange={(v) => setDetidoMais10Min(!!v)} 
+                  />
+                  <Label htmlFor="tempo" className="cursor-pointer">Atendimento superior a 10 minutos?</Label>
+                </div>
+              )}
+
+              {selectedProcessId === 'acoes_civeis' && (
+                <div className="space-y-2">
+                  <Label>Valor da Causa / Indenização (R$)</Label>
+                  <Input 
+                    type="number" 
+                    placeholder="Ex: 50000" 
+                    value={valorCivel || ""} 
+                    onChange={e => setValorCivel(Number(e.target.value))}
+                  />
+                  <p className="text-[10px] text-muted-foreground">Honorários de 20% serão calculados sobre este valor.</p>
+                </div>
+              )}
+
+              {selectedProcessId === 'limpeza_ficha' && (
+                <div className="space-y-3">
+                  <Label className="flex justify-between items-center">
+                    Crimes a Limpar
+                    <Button size="sm" variant="outline" onClick={addCrimeLimpeza} className="h-7 text-[10px]">
+                      <Plus className="h-3 w-3 mr-1" /> Add Crime
+                    </Button>
+                  </Label>
+                  <div className="space-y-2">
+                    {crimesLimpeza.map((c, idx) => (
+                      <div key={c.id} className="flex gap-2 items-center">
+                        <Select 
+                          value={c.typeIndex.toString()} 
+                          onValueChange={(v) => updateCrimeLimpeza(c.id, Number(v))}
+                        >
+                          <SelectTrigger className="flex-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {GRAVIDADE_CRIMES.map((g, i) => (
+                              <SelectItem key={i} value={i.toString()}>{g.label} (+{formatBRL(g.value)})</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button variant="ghost" size="icon" onClick={() => removeCrimeLimpeza(c.id)} className="text-destructive h-9 w-9">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    {crimesLimpeza.length === 0 && <p className="text-xs text-center text-muted-foreground py-2">Nenhum crime adicionado.</p>}
+                  </div>
+                </div>
+              )}
+
+              {(selectedProcessId === 'casamento' || selectedProcessId === 'adocao') && (
+                <div className="flex items-center space-x-2 p-3 bg-secondary/30 rounded-lg">
+                  <Checkbox 
+                    id="nome" 
+                    checked={hasAlteracaoNome} 
+                    onCheckedChange={(v) => setHasAlteracaoNome(!!v)} 
+                  />
+                  <Label htmlFor="nome" className="cursor-pointer">Incluir Alteração de Nome? (+ R$ 2.000.000,00)</Label>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Scale className="h-5 w-5 text-gold" />
+                Diligências e Verbas
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label className="flex justify-between">
+                  Diligências (Oficial de Justiça)
+                  <span className="text-gold font-mono">{formatBRL(diligencias * 20000)}</span>
+                </Label>
+                <div className="flex items-center gap-4">
+                  <Input 
+                    type="number" 
+                    min="0" 
+                    value={diligencias} 
+                    onChange={e => setDiligencias(Math.max(0, Number(e.target.value)))}
+                    className="w-24"
+                  />
+                  <span className="text-xs text-muted-foreground">R$ 20.000,00 por diligência</span>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Label>Verbas Indenizatórias (Obrigatórias por lei)</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="flex items-center space-x-2 border p-3 rounded-lg hover:bg-secondary/20 transition-colors">
+                    <Checkbox id="juiz" checked={hasJuiz} onCheckedChange={(v) => setHasJuiz(!!v)} />
+                    <Label htmlFor="juiz" className="flex flex-col cursor-pointer">
+                      <span>Juiz de Direito</span>
+                      <span className="text-[10px] text-muted-foreground">{formatBRL(60000)}</span>
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2 border p-3 rounded-lg hover:bg-secondary/20 transition-colors">
+                    <Checkbox id="promotor" checked={hasPromotor} onCheckedChange={(v) => setHasPromotor(!!v)} />
+                    <Label htmlFor="promotor" className="flex flex-col cursor-pointer">
+                      <span>Promotor de Justiça</span>
+                      <span className="text-[10px] text-muted-foreground">{formatBRL(80000)}</span>
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2 border p-3 rounded-lg hover:bg-secondary/20 transition-colors">
+                    <Checkbox id="desemb" checked={hasDesembargador} onCheckedChange={(v) => setHasDesembargador(!!v)} />
+                    <Label htmlFor="desemb" className="flex flex-col cursor-pointer">
+                      <span>Desembargador (Recurso)</span>
+                      <span className="text-[10px] text-muted-foreground">{formatBRL(120000)}</span>
+                    </Label>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Resumo */}
+        <div className="space-y-4">
+          <Card className="border-2 border-gold/20 bg-institutional text-institutional-foreground overflow-hidden">
+            <div className="bg-gold/10 p-4 border-b border-gold/20">
+              <h3 className="font-display font-bold text-xl flex items-center gap-2 text-gold">
+                <Receipt className="h-5 w-5" />
+                Resumo do Cálculo
+              </h3>
+            </div>
+            <CardContent className="p-6 space-y-6">
+              <div className="space-y-4">
+                <div className="flex justify-between items-start">
+                  <div className="space-y-0.5">
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Custas Judiciais</p>
+                    <p className="font-medium">{selectedProcess ? formatBRL(calculations.custas) : "—"}</p>
+                  </div>
+                  <Scale className="h-4 w-4 text-gold/50" />
+                </div>
+
+                <div className="flex justify-between items-start">
+                  <div className="space-y-0.5">
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Honorários OAB (Piso)</p>
+                    <p className="font-medium">{selectedProcess ? formatBRL(calculations.honorarios) : "—"}</p>
+                  </div>
+                  <Briefcase className="h-4 w-4 text-gold/50" />
+                </div>
+
+                <div className="flex justify-between items-start">
+                  <div className="space-y-0.5">
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Taxas e Verbas</p>
+                    <p className="font-medium">{formatBRL(calculations.extras)}</p>
+                  </div>
+                  <Gavel className="h-4 w-4 text-gold/50" />
+                </div>
+              </div>
+
+              <div className="pt-6 border-t border-white/10">
+                <p className="text-[10px] uppercase tracking-widest text-gold mb-1">Total Estimado</p>
+                <p className="text-4xl font-bold font-display text-white">
+                  {formatBRL(calculations.total)}
+                </p>
+              </div>
+
+              <div className="bg-white/5 rounded-lg p-3 space-y-2">
+                <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                  <CheckCircle2 className="h-3 w-3 text-green-500" />
+                  Valores atualizados conforme Provimento 2026.
+                </div>
+                <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                  <CheckCircle2 className="h-3 w-3 text-green-500" />
+                  Incidência de Verbas Indenizatórias inclusa.
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="p-4 rounded-xl bg-secondary/30 border border-border text-[10px] text-muted-foreground italic leading-relaxed">
+            * Este simulador fornece uma estimativa baseada nos valores mínimos da tabela processual. 
+            O valor final pode variar de acordo com a complexidade da causa e decisões judiciais.
+            Os honorários aqui calculados representam o piso ético estabelecido pela seccional.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
