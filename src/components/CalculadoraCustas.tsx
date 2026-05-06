@@ -119,7 +119,7 @@ const PROCESS_TYPES: ProcessType[] = [
     name: "Defesa de Acusado Detido/Preso", 
     items: [],
     obs: "Honorários: R$ 30.000,00 (até 10 min) ou R$ 35.000,00 (> 10 min).",
-    pisoHonorario: 30000
+    pisoHonorario: 30000 // Valor base, o aviso é dinâmico conforme seleção de tempo
   },
   { 
     id: "acoes_civeis", 
@@ -178,7 +178,7 @@ const PROCESS_TYPES: ProcessType[] = [
       { label: "Valor da Ação", value: 750000, type: 'custa', required: true }
     ],
     obs: "Total das taxas soma R$ 875.000,00.",
-    pisoHonorario: 80000
+    pisoHonorario: 90000
   },
   { 
     id: "adocao", 
@@ -276,7 +276,7 @@ export default function CalculadoraCustas() {
         setCustomHonorarios(35000);
         setHonorarioType("fixed");
       } else if (selectedProcess.id === 'casamento') {
-        setCustomHonorarios(80000);
+        setCustomHonorarios(90000);
         setHonorarioType("fixed");
       } else {
         setCustomHonorarios(0);
@@ -374,6 +374,11 @@ export default function CalculadoraCustas() {
     const honorariosTotal = includeHonorarios ? itemizedDetails.filter(i => i.type === 'honorario').reduce((acc, curr) => acc + curr.value, 0) : 0;
     const finalExtras = includeExtras ? extras : 0;
 
+    let pisoCalculado = selectedProcess?.pisoHonorario || 0;
+    if (selectedProcess?.id === 'defesa_detido') {
+      pisoCalculado = detidoMais10Min ? 35000 : 30000;
+    }
+
     return {
       custas: custasTotal,
       honorarios: honorariosTotal,
@@ -383,14 +388,23 @@ export default function CalculadoraCustas() {
         if (i.type === 'honorario') return includeHonorarios;
         return includeCustas;
       }).map(i => ({ ...i, required: (selectedProcess?.items?.find(orig => orig.label === i.label)?.required) })),
-      piso: selectedProcess?.pisoHonorario || 0
+      piso: pisoCalculado
     };
-  }, [selectedProcess, diligencias, hasJuiz, hasPromotor, hasDesembargador, valorCivel, hasAlteracaoNome, includeCustas, includeHonorarios, includeExtras, customCustas, customHonorarios, honorarioType, customPercentage, outrasCustas, selectedItems, crimesLimpeza]);
+  }, [selectedProcess, diligencias, hasJuiz, hasPromotor, hasDesembargador, valorCivel, hasAlteracaoNome, includeCustas, includeHonorarios, includeExtras, customCustas, customHonorarios, honorarioType, customPercentage, outrasCustas, selectedItems, crimesLimpeza, detidoMais10Min]);
 
   const isBelowPiso = useMemo(() => {
-    if (!selectedProcess || !selectedProcess.pisoHonorario) return false;
-    return calculations.honorarios < selectedProcess.pisoHonorario;
-  }, [calculations.honorarios, selectedProcess]);
+    if (!selectedProcess) return false;
+    
+    // Caso especial para Ações Cíveis (Danos Morais/Materiais): 20% sobre o total
+    if (selectedProcess.id === 'acoes_civeis') {
+      const valorReferencia = valorCivel || 0;
+      const honorariosMinimos = valorReferencia * 0.20;
+      return calculations.honorarios < honorariosMinimos;
+    }
+
+    if (!calculations.piso) return false;
+    return calculations.honorarios < calculations.piso;
+  }, [calculations.honorarios, calculations.piso, selectedProcess, valorCivel]);
 
   const copySummary = () => {
     if (!selectedProcess) return;
@@ -627,13 +641,29 @@ export default function CalculadoraCustas() {
                       <h4 className="text-xs font-bold uppercase tracking-wider">Ajustes Estratégicos</h4>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
                       <CurrencyInput 
                         label="Custas Processuais Base"
                         value={selectedProcessId === 'outros' ? customCustas : (selectedProcess?.items?.find(i => i.type === 'custa')?.value ?? customCustas)} 
                         onChange={setCustomCustas}
                         disabled={selectedProcessId !== 'outros'}
                       />
+
+                      {selectedProcessId === 'defesa_detido' && (
+                        <div className="flex items-center space-x-3 p-3 bg-background/40 rounded-xl border border-gold/10">
+                          <Checkbox 
+                            id="tempo-toggle" 
+                            checked={detidoMais10Min} 
+                            onCheckedChange={(v) => setDetidoMais10Min(!!v)}
+                            className="h-5 w-5 border-gold/30"
+                          />
+                          <Label htmlFor="tempo-toggle" className="text-xs cursor-pointer leading-tight">
+                            Atendimento superior a 10 minutos?<br/>
+                            <span className="text-[10px] text-gold/60 italic">(Ajusta o piso legal para R$ 35k)</span>
+                          </Label>
+                        </div>
+                      )}
+                    </div>
 
                       <div className="space-y-4">
                         <div className="space-y-2">
@@ -660,16 +690,18 @@ export default function CalculadoraCustas() {
                               label="Valor Pretendido"
                               value={customHonorarios} 
                               onChange={setCustomHonorarios}
-                              error={isBelowPiso}
+                              error={isBelowPiso && includeHonorarios}
                             />
                             <p className={cn(
                               "text-[9px] font-medium flex items-center gap-1 mt-1 transition-colors",
-                              isBelowPiso ? "text-destructive" : "text-gold"
+                              isBelowPiso && includeHonorarios ? "text-destructive" : "text-gold"
                             )}>
                               <Info className="h-2 w-2" />
-                              {selectedProcess?.pisoHonorario 
-                                ? `Piso da Categoria: ${formatBRL(selectedProcess.pisoHonorario)}` 
-                                : "Piso conforme tabela enviada."}
+                              {selectedProcess?.id === 'acoes_civeis'
+                                ? `Piso Jaguaré: 20% do total (${formatBRL((valorCivel || 0) * 0.20)})`
+                                : calculations.piso > 0 
+                                  ? `Piso Jaguaré (Decreto-Lei 001/2024): ${formatBRL(calculations.piso)}` 
+                                  : "Piso conforme decreto vigente."}
                             </p>
                           </div>
                         ) : (
@@ -693,7 +725,6 @@ export default function CalculadoraCustas() {
                             </div>
                           </div>
                         )}
-                      </div>
                     </div>
                   </div>
                 </motion.div>
@@ -955,7 +986,7 @@ export default function CalculadoraCustas() {
                           className="text-[10px] text-destructive flex items-center gap-1.5 font-bold mt-1.5 bg-destructive/10 px-2 py-1 rounded shadow-sm border border-destructive/20"
                         >
                           <AlertTriangle className="h-3.5 w-3.5 fill-destructive text-white" />
-                          ABAIXO DO PISO ({formatBRL(calculations.piso)})
+                          ABAIXO DO PISO ({formatBRL(selectedProcess?.id === 'acoes_civeis' ? (valorCivel || 0) * 0.20 : calculations.piso)})
                         </motion.p>
                       )}
                     </div>
@@ -1007,9 +1038,9 @@ export default function CalculadoraCustas() {
           </Card>
 
           <div className="p-4 rounded-xl bg-secondary/30 border border-border text-[10px] text-muted-foreground italic leading-relaxed">
-            * Este simulador fornece uma estimativa baseada nos valores mínimos da tabela processual. 
-            O valor final pode variar de acordo com a complexidade da causa e decisões judiciais.
-            Os honorários sugeridos respeitam o piso da tabela de processos vigente.
+            * Este simulador fornece uma estimativa baseada nos valores mínimos do Decreto-Lei N° 001 de 2024 (Art. 7°). 
+            O profissional advogado não pode praticar valores abaixo dos estipulados no decreto.
+            Os honorários sugeridos respeitam o piso legal obrigatório do Jaguaré RP.
           </div>
         </div>
       </div>
