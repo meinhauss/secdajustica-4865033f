@@ -597,10 +597,15 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
           <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${cfg.color}`}>{cfg.label}</span>
           {apelacao.desembargador_id && (
             <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-institutional/10 text-institutional">
-              Relator definido
+              Relator: {relatorProfile?.nome_completo || "—"}
             </span>
           )}
         </div>
+        {apelacao.desembargador_id && (
+          <p className="text-xs text-muted-foreground -mt-1 mb-2">
+            <span className="font-semibold text-foreground">Relator(a):</span> {relatorProfile?.nome_completo || "—"}
+          </p>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
           <div>
