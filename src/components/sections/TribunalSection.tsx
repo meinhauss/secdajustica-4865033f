@@ -260,6 +260,16 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
     );
   };
 
+  // Relator profile (for header display)
+  const { data: relatorProfile } = useQuery({
+    queryKey: ["relator-profile", apelacao?.desembargador_id],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("nome_completo").eq("user_id", apelacao!.desembargador_id).single();
+      return data;
+    },
+    enabled: !!apelacao?.desembargador_id,
+  });
+
   // Qualificar como relator (antes de admitir)
   const qualificarRelatorMutation = useMutation({
     mutationFn: async () => {
@@ -268,6 +278,14 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
         .update({ desembargador_id: user!.id })
         .eq("id", apelacaoId);
       if (error) throw error;
+      if (apelacao?.processo_id) {
+        await supabase.from("movimentacoes").insert({
+          processo_id: apelacao.processo_id,
+          tipo: "relator_designado",
+          descricao: `${profile?.nome_completo || "Desembargador(a)"} assumiu como Relator(a) da apelação ${apelacao.numero_acordao}.`,
+          autor_id: user!.id,
+        });
+      }
     },
     onSuccess: () => {
       toast.success("Você se qualificou como Relator desta apelação.");
@@ -347,6 +365,14 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
         "Julgamento iniciado",
         `Apelação ${apelacao.numero_acordao} entrou em julgamento.`
       );
+      if (apelacao?.processo_id) {
+        await supabase.from("movimentacoes").insert({
+          processo_id: apelacao.processo_id,
+          tipo: "julgamento_iniciado",
+          descricao: `Julgamento da apelação ${apelacao.numero_acordao} iniciado pelo Relator ${profile?.nome_completo || ""}.`,
+          autor_id: user!.id,
+        });
+      }
     },
     onSuccess: () => {
       toast.success("Julgamento iniciado e desembargadores notificados.");
@@ -428,6 +454,14 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
         dispositivo: decisaoDisp,
       });
       if (error) throw error;
+      if (apelacao?.processo_id) {
+        await supabase.from("movimentacoes").insert({
+          processo_id: apelacao.processo_id,
+          tipo: "voto_relator",
+          descricao: `Voto do Relator ${profile?.nome_completo || ""} na apelação ${apelacao.numero_acordao}: ${DECISAO_LABELS[decisaoTipo] || decisaoTipo}.\n\nFundamentação:\n${decisaoFund}\n\nDispositivo:\n${decisaoDisp}`,
+          autor_id: user!.id,
+        });
+      }
     },
     onSuccess: () => {
       toast.success("Voto do relator registrado!");
@@ -443,6 +477,7 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
   const [vDecisao, setVDecisao] = useState("mantida");
   const [vFund, setVFund] = useState("");
   const [vDisp, setVDisp] = useState("");
+  const [vRessalvas, setVRessalvas] = useState("");
 
   const registrarVotoMutation = useMutation({
     mutationFn: async () => {
@@ -456,6 +491,7 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
         if (!votoRelator) throw new Error("Voto do relator ainda não foi proferido.");
         payload.acompanha_voto_id = votoRelator.id;
         payload.decisao_tipo = votoRelator.decisao_tipo;
+        if (vRessalvas && vRessalvas !== "<p></p>") payload.ressalvas = vRessalvas;
       } else {
         if (!vFund || vFund === "<p></p>") throw new Error("Informe a fundamentação.");
         if (!vDisp || vDisp === "<p></p>") throw new Error("Informe o dispositivo.");
@@ -465,10 +501,26 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
       }
       const { error } = await supabase.from("votos_apelacao").insert(payload);
       if (error) throw error;
+      if (apelacao?.processo_id) {
+        let desc = "";
+        if (tipoVoto === "acompanha") {
+          desc = `${profile?.nome_completo || "Desembargador(a)"} acompanhou o voto do Relator na apelação ${apelacao.numero_acordao}.`;
+          if (vRessalvas && vRessalvas !== "<p></p>") desc += `\n\nRessalvas:\n${vRessalvas}`;
+        } else {
+          desc = `Voto divergente proferido por ${profile?.nome_completo || "Desembargador(a)"} na apelação ${apelacao.numero_acordao}: ${DECISAO_LABELS[vDecisao] || vDecisao}.\n\nFundamentação:\n${vFund}\n\nDispositivo:\n${vDisp}`;
+        }
+        await supabase.from("movimentacoes").insert({
+          processo_id: apelacao.processo_id,
+          tipo: tipoVoto === "acompanha" ? "voto_acompanha" : "voto_divergente",
+          descricao: desc,
+          autor_id: user!.id,
+        });
+      }
     },
     onSuccess: () => {
       toast.success("Voto registrado!");
       setShowVoto(false);
+      setVRessalvas("");
       queryClient.invalidateQueries({ queryKey: ["tribunal-votos", apelacaoId] });
     },
     onError: (e: any) => toast.error(e.message),
@@ -545,10 +597,15 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
           <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${cfg.color}`}>{cfg.label}</span>
           {apelacao.desembargador_id && (
             <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-institutional/10 text-institutional">
-              Relator definido
+              Relator: {relatorProfile?.nome_completo || "—"}
             </span>
           )}
         </div>
+        {apelacao.desembargador_id && (
+          <p className="text-xs text-muted-foreground -mt-1 mb-2">
+            <span className="font-semibold text-foreground">Relator(a):</span> {relatorProfile?.nome_completo || "—"}
+          </p>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
           <div>
@@ -679,6 +736,12 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
                       <RichTextView html={v.dispositivo} className="text-sm" />
                     </div>
                   </>
+                )}
+                {v.tipo === "acompanha" && v.ressalvas && (
+                  <div className="mt-2">
+                    <h5 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Ressalvas / Razões</h5>
+                    <RichTextView html={v.ressalvas} className="text-sm" />
+                  </div>
                 )}
               </div>
             ))}
@@ -904,6 +967,13 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
                   <RichTextEditor value={vDisp} onChange={setVDisp} placeholder="Parte dispositiva..." minHeight="100px" className="mt-1" />
                 </div>
               </>
+            )}
+
+            {tipoVoto === "acompanha" && (
+              <div>
+                <label className="text-sm font-medium text-foreground">Ressalvas / Razões (opcional)</label>
+                <RichTextEditor value={vRessalvas} onChange={setVRessalvas} placeholder="Acrescente razões próprias ou ressalvas ao acompanhar o voto do Relator..." minHeight="140px" className="mt-1" />
+              </div>
             )}
 
             <Button onClick={() => registrarVotoMutation.mutate()} disabled={registrarVotoMutation.isPending} className="w-full gap-2">
