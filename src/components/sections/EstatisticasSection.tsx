@@ -13,6 +13,16 @@ import { CURRENT_VERSION } from "@/lib/version";
 
 const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
   {
+    version: "2.27.0",
+    date: "06/05/2026",
+    changes: [
+      "Código Penal Integrado: nova página pública (/codigo-penal) com todos os artigos, penas, multas e fianças",
+      "Banner de destaque do Código Penal na página pública principal com link para visitas externas",
+      "Filtros por categoria e busca por artigo, crime ou descrição no Código Penal",
+      "Preparação para a Calculadora Penal (em breve)",
+    ],
+  },
+  {
     version: "2.26.0",
     date: "06/05/2026",
     changes: [
