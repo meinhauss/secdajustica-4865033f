@@ -975,6 +975,10 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
                 <RichTextEditor value={vRessalvas} onChange={setVRessalvas} placeholder="Acrescente razões próprias ou ressalvas ao acompanhar o voto do Relator..." minHeight="140px" className="mt-1" />
               </div>
             )}
+
+            <Button onClick={() => registrarVotoMutation.mutate()} disabled={registrarVotoMutation.isPending} className="w-full gap-2">
+              <Gavel className="h-4 w-4" /> Registrar Voto
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
