@@ -298,6 +298,49 @@ function TabInicio({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
         </div>
       </div>
 
+      {/* Código Penal — destaque principal */}
+      <div className="max-w-7xl mx-auto px-4 -mt-8 relative z-10">
+        <motion.a
+          href="/codigo-penal"
+          target="_blank"
+          rel="noopener noreferrer"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="block relative overflow-hidden rounded-2xl border-2 border-gold/50 bg-gradient-to-br from-institutional-dark via-institutional to-institutional-dark p-6 lg:p-8 shadow-2xl shadow-gold/10 hover:border-gold hover:shadow-gold/30 transition-all group"
+        >
+          <div className="absolute -top-12 -right-12 w-64 h-64 bg-gold/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-1/3 w-96 h-32 bg-gold/5 rounded-full blur-2xl" />
+          <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
+            <div className="bg-gold/20 rounded-2xl p-5 border border-gold/30 shadow-lg">
+              <BookOpen className="h-14 w-14 text-gold" />
+            </div>
+            <div className="flex-1 text-center md:text-left">
+              <span className="text-[10px] uppercase tracking-[0.25em] text-gold font-bold">Documento Oficial</span>
+              <h3 className="font-display text-2xl lg:text-3xl font-bold text-sidebar-foreground mt-1">
+                Código Penal Integrado
+              </h3>
+              <p className="text-sidebar-foreground/70 text-sm lg:text-base mt-2 max-w-2xl">
+                Consulte a íntegra dos artigos penais vigentes na Comarca, com tipificação,
+                <strong className="text-gold"> pena</strong>,
+                <strong className="text-gold"> multa</strong> e
+                <strong className="text-gold"> fiança</strong>.
+                Acesso público — sem necessidade de login.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Button className="rounded-xl h-12 px-8 bg-gold hover:bg-gold-light text-institutional-dark font-bold whitespace-nowrap group-hover:scale-105 transition-transform">
+                Acessar Código Penal
+                <ExternalLink className="ml-2 h-4 w-4" />
+              </Button>
+              <span className="text-[10px] text-sidebar-foreground/40 text-center font-mono">
+                /codigo-penal
+              </span>
+            </div>
+          </div>
+        </motion.a>
+      </div>
+
       {/* Service Cards */}
       <div className="max-w-7xl mx-auto px-4 py-12">
         <h3 className="font-display text-xl font-semibold text-foreground mb-6">
