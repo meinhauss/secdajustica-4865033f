@@ -114,7 +114,8 @@ const PROCESS_TYPES: ProcessType[] = [
     items: [
       { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
       { label: "Custas de Impetração", value: 50000, type: 'custa', required: true }
-    ]
+    ],
+    obs: "Mandado de Segurança, Habeas Corpus e Habeas Data."
   },
   { 
     id: "defesa_detido", 
