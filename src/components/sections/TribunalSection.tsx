@@ -969,9 +969,12 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
               </>
             )}
 
-            <Button onClick={() => registrarVotoMutation.mutate()} disabled={registrarVotoMutation.isPending} className="w-full gap-2">
-              <Gavel className="h-4 w-4" /> Registrar Voto
-            </Button>
+            {tipoVoto === "acompanha" && (
+              <div>
+                <label className="text-sm font-medium text-foreground">Ressalvas / Razões (opcional)</label>
+                <RichTextEditor value={vRessalvas} onChange={setVRessalvas} placeholder="Acrescente razões próprias ou ressalvas ao acompanhar o voto do Relator..." minHeight="140px" className="mt-1" />
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
