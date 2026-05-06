@@ -767,75 +767,34 @@ export default function CalculadoraCustas() {
                     <Scale className={`h-4 w-4 transition-colors ${includeCustas ? 'text-gold/50' : 'text-muted-foreground/30'}`} />
                   </div>
 
-                  {includeExtras && diligencias > 0 && (
+                  {calculations.itemizedDetails.map((item, idx) => (
+                    <div key={idx} className="flex justify-between items-start pl-5 border-l border-gold/20">
+                      <div className="space-y-0.5">
+                        <p className="text-[9px] uppercase tracking-widest text-muted-foreground">{item.label}</p>
+                        <p className="text-xs font-medium">{formatBRL(item.value)}</p>
+                      </div>
+                    </div>
+                  ))}
+
+                  {includeExtras && (diligencias > 0 || hasJuiz || hasPromotor || hasDesembargador || outrasCustas.length > 0) && (
                     <div className="flex justify-between items-start">
-                      <div className="space-y-0.5 pl-5 border-l border-gold/20">
-                        <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Diligências ({diligencias}x)</p>
-                        <p className="text-xs font-medium">{formatBRL(diligencias * 20000)}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {includeExtras && (hasJuiz || hasPromotor || hasDesembargador) && (
-                    <div className="space-y-1 pl-5 border-l border-gold/20">
-                      <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Verbas Indenizatórias</p>
                       <div className="space-y-0.5">
-                        {hasJuiz && <div className="flex justify-between text-[10px]"><span className="opacity-70">Juiz:</span> <span>{formatBRL(60000)}</span></div>}
-                        {hasPromotor && <div className="flex justify-between text-[10px]"><span className="opacity-70">Promotor:</span> <span>{formatBRL(80000)}</span></div>}
-                        {hasDesembargador && <div className="flex justify-between text-[10px]"><span className="opacity-70">Desemb.:</span> <span>{formatBRL(120000)}</span></div>}
+                        <div className="flex items-center gap-2">
+                          <Checkbox 
+                            id="inc-extras" 
+                            checked={includeExtras} 
+                            onCheckedChange={(v) => setIncludeExtras(!!v)}
+                            className="h-3 w-3"
+                          />
+                          <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeExtras(!includeExtras)}>Diligências e Taxas Extras</p>
+                        </div>
+                        <p className={`font-medium transition-opacity ${!includeExtras ? 'opacity-30' : ''}`}>
+                          {formatBRL(calculations.extras)}
+                        </p>
                       </div>
+                      <Gavel className={`h-4 w-4 transition-colors ${includeExtras ? 'text-gold/50' : 'text-muted-foreground/30'}`} />
                     </div>
                   )}
-
-                  {includeExtras && outrasCustas.length > 0 && (
-                    <div className="space-y-1 pl-5 border-l border-gold/20">
-                      <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Custas Personalizadas</p>
-                      <div className="space-y-0.5">
-                        {outrasCustas.map((c) => (
-                          <div key={c.id} className="flex justify-between text-[10px]">
-                            <span className="opacity-70 truncate max-w-[120px]">{c.description || "Outra"}:</span>
-                            <span>{formatBRL(c.value)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                <div className="flex justify-between items-start">
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <Checkbox 
-                        id="inc-honorarios" 
-                        checked={includeHonorarios} 
-                        onCheckedChange={(v) => setIncludeHonorarios(!!v)}
-                        className="h-3 w-3"
-                      />
-                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeHonorarios(!includeHonorarios)}>Honorários OAB (Piso)</p>
-                    </div>
-                    <p className={`font-medium transition-opacity ${!includeHonorarios ? 'opacity-30' : ''}`}>
-                      {selectedProcess ? formatBRL(calculations.honorarios) : "—"}
-                    </p>
-                  </div>
-                  <Briefcase className={`h-4 w-4 transition-colors ${includeHonorarios ? 'text-gold/50' : 'text-muted-foreground/30'}`} />
-                </div>
-
-                <div className="flex justify-between items-start">
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <Checkbox 
-                        id="inc-extras" 
-                        checked={includeExtras} 
-                        onCheckedChange={(v) => setIncludeExtras(!!v)}
-                        className="h-3 w-3"
-                      />
-                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeExtras(!includeExtras)}>Taxas e Verbas</p>
-                    </div>
-                    <p className={`font-medium transition-opacity ${!includeExtras ? 'opacity-30' : ''}`}>
-                      {formatBRL(calculations.extras)}
-                    </p>
-                  </div>
-                  <Gavel className={`h-4 w-4 transition-colors ${includeExtras ? 'text-gold/50' : 'text-muted-foreground/30'}`} />
-                </div>
 
                 <div className="pt-2 flex justify-end">
                   <Button 
