@@ -102,8 +102,18 @@
     @apply border-border;
   }
 
-  body {
+  html, body {
     @apply bg-background text-foreground font-body antialiased;
+    overflow-x: hidden;
+  }
+
+  body {
+    max-width: 100vw;
+  }
+
+  /* Prevent long words/URLs from breaking layouts on small screens */
+  p, span, h1, h2, h3, h4, h5, h6, td, th, li, div, a {
+    overflow-wrap: anywhere;
   }
 
   h1, h2, h3 {
