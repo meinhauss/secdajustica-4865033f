@@ -150,6 +150,9 @@ export default function CalculadoraCustas() {
   const [includeHonorarios, setIncludeHonorarios] = useState(true);
   const [includeExtras, setIncludeExtras] = useState(true);
 
+  // Other costs
+  const [outrasCustas, setOutrasCustas] = useState<{ id: string; description: string; value: number }[]>([]);
+
   const selectedProcess = useMemo(() => 
     PROCESS_TYPES.find(p => p.id === selectedProcessId), 
     [selectedProcessId]
@@ -165,6 +168,18 @@ export default function CalculadoraCustas() {
 
   const updateCrimeLimpeza = (id: string, typeIndex: number) => {
     setCrimesLimpeza(crimesLimpeza.map(c => c.id === id ? { ...c, typeIndex } : c));
+  };
+
+  const addOutraCusta = () => {
+    setOutrasCustas([...outrasCustas, { id: Math.random().toString(), description: "", value: 0 }]);
+  };
+
+  const removeOutraCusta = (id: string) => {
+    setOutrasCustas(outrasCustas.filter(c => c.id !== id));
+  };
+
+  const updateOutraCusta = (id: string, field: "description" | "value", val: string | number) => {
+    setOutrasCustas(outrasCustas.map(c => c.id === id ? { ...c, [field]: val } : c));
   };
 
   const calculations = useMemo(() => {
@@ -219,6 +234,11 @@ export default function CalculadoraCustas() {
     if (hasPromotor) extras += 80000;
     if (hasDesembargador) extras += 120000;
 
+    // Outras Custas
+    outrasCustas.forEach(c => {
+      extras += c.value;
+    });
+
     const finalCustas = includeCustas ? custas : 0;
     const finalHonorarios = includeHonorarios ? honorarios : 0;
     const finalExtras = includeExtras ? extras : 0;
@@ -229,7 +249,7 @@ export default function CalculadoraCustas() {
       extras: finalExtras,
       total: finalCustas + finalHonorarios + finalExtras
     };
-  }, [selectedProcess, diligencias, hasJuiz, hasPromotor, hasDesembargador, detidoMais10Min, valorCivel, crimesLimpeza, hasAlteracaoNome, includeCustas, includeHonorarios, includeExtras, customCustas, customHonorarios, honorarioType, customPercentage]);
+  }, [selectedProcess, diligencias, hasJuiz, hasPromotor, hasDesembargador, detidoMais10Min, valorCivel, crimesLimpeza, hasAlteracaoNome, includeCustas, includeHonorarios, includeExtras, customCustas, customHonorarios, honorarioType, customPercentage, outrasCustas]);
 
   const copySummary = () => {
     if (!selectedProcess) return;
@@ -404,9 +424,9 @@ export default function CalculadoraCustas() {
               {selectedProcessId === 'limpeza_ficha' && (
                 <div className="space-y-3">
                   <Label className="flex justify-between items-center">
-                    Crimes a Limpar
+                    Antecedentes a Limpar
                     <Button size="sm" variant="outline" onClick={addCrimeLimpeza} className="h-7 text-[10px]">
-                      <Plus className="h-3 w-3 mr-1" /> Add Crime
+                      <Plus className="h-3 w-3 mr-1" /> Add Antecedente
                     </Button>
                   </Label>
                   <div className="space-y-2">
@@ -430,7 +450,7 @@ export default function CalculadoraCustas() {
                         </Button>
                       </div>
                     ))}
-                    {crimesLimpeza.length === 0 && <p className="text-xs text-center text-muted-foreground py-2">Nenhum crime adicionado.</p>}
+                    {crimesLimpeza.length === 0 && <p className="text-xs text-center text-muted-foreground py-2">Nenhum antecedente adicionado.</p>}
                   </div>
                 </div>
               )}
@@ -497,6 +517,44 @@ export default function CalculadoraCustas() {
                       <span className="text-[10px] text-muted-foreground">{formatBRL(120000)}</span>
                     </Label>
                   </div>
+                </div>
+              </div>
+
+              <div className="space-y-4 pt-4 border-t">
+                <Label className="flex justify-between items-center">
+                  Outras Custas (Personalizadas)
+                  <Button size="sm" variant="outline" onClick={addOutraCusta} className="h-7 text-[10px]">
+                    <Plus className="h-3 w-3 mr-1" /> Add Custa
+                  </Button>
+                </Label>
+                <div className="space-y-3">
+                  {outrasCustas.map((c) => (
+                    <div key={c.id} className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center p-3 bg-secondary/20 rounded-lg border">
+                      <div className="md:col-span-7">
+                        <Input 
+                          placeholder="Descrição da custa" 
+                          value={c.description} 
+                          onChange={e => updateOutraCusta(c.id, "description", e.target.value)}
+                          className="h-9"
+                        />
+                      </div>
+                      <div className="md:col-span-4">
+                        <Input 
+                          type="number" 
+                          placeholder="Valor (R$)" 
+                          value={c.value || ""} 
+                          onChange={e => updateOutraCusta(c.id, "value", Number(e.target.value))}
+                          className="h-9"
+                        />
+                      </div>
+                      <div className="md:col-span-1 flex justify-end">
+                        <Button variant="ghost" size="icon" onClick={() => removeOutraCusta(c.id)} className="text-destructive h-9 w-9">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                  {outrasCustas.length === 0 && <p className="text-xs text-center text-muted-foreground py-2">Nenhuma custa extra adicionada.</p>}
                 </div>
               </div>
             </CardContent>
