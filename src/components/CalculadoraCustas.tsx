@@ -93,7 +93,7 @@ interface ProcessType {
 const PROCESS_TYPES: ProcessType[] = [
   { 
     id: "peticao_inicial", 
-    name: "00. Petição Inicial (Geral)", 
+    name: "Petição Inicial (Geral)", 
     items: [
       { label: "Taxa Judiciária (Inicial)", value: 25000, type: 'custa', required: true }
     ],
