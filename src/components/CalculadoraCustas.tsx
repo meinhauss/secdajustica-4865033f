@@ -424,9 +424,9 @@ export default function CalculadoraCustas() {
               {selectedProcessId === 'limpeza_ficha' && (
                 <div className="space-y-3">
                   <Label className="flex justify-between items-center">
-                    Crimes a Limpar
+                    Antecedentes a Limpar
                     <Button size="sm" variant="outline" onClick={addCrimeLimpeza} className="h-7 text-[10px]">
-                      <Plus className="h-3 w-3 mr-1" /> Add Crime
+                      <Plus className="h-3 w-3 mr-1" /> Add Antecedente
                     </Button>
                   </Label>
                   <div className="space-y-2">
@@ -450,7 +450,7 @@ export default function CalculadoraCustas() {
                         </Button>
                       </div>
                     ))}
-                    {crimesLimpeza.length === 0 && <p className="text-xs text-center text-muted-foreground py-2">Nenhum crime adicionado.</p>}
+                    {crimesLimpeza.length === 0 && <p className="text-xs text-center text-muted-foreground py-2">Nenhum antecedente adicionado.</p>}
                   </div>
                 </div>
               )}
