@@ -149,7 +149,7 @@ const PROCESS_TYPES: ProcessType[] = [
   },
   { 
     id: "limpeza_ficha", 
-    name: "Exclusão de Antecedentes Criminais (Limpeza de Ficha)", 
+    name: "Exclusão de Antecedentes Criminais", 
     items: [
       { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
       { label: "Ação Judicial", value: 25000, type: 'custa', required: true }
