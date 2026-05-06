@@ -137,7 +137,7 @@ const PROCESS_TYPES: ProcessType[] = [
   },
   { 
     id: "porte_arma", 
-    name: "Porte de Arma de Fogo de Uso Permitido", 
+    name: "Porte de Arma de Fogo", 
     items: [
       { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
       { label: "Exame Psicológico", value: 90000, type: 'despesa' },
