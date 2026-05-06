@@ -119,7 +119,7 @@ const PROCESS_TYPES: ProcessType[] = [
   },
   { 
     id: "defesa_detido", 
-    name: "Defesa de Acusado Detido/Preso", 
+    name: "Defesa de Acusado Detido ou Preso", 
     items: [
       { label: "Petição Inicial", value: 25000, type: 'custa', required: true }
     ],
