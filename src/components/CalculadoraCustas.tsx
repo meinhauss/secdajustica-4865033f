@@ -347,7 +347,7 @@ export default function CalculadoraCustas() {
     outrasCustas.forEach(c => { extras += c.value; });
 
     const custasTotal = itemizedDetails.filter(i => (i.type === 'custa' || i.type === 'despesa') && includeCustas).reduce((acc, curr) => acc + curr.value, 0);
-    const honorariosTotal = itemizedDetails.filter(i => i.type === 'honorario').reduce((acc, curr) => acc + curr.value, 0);
+    const honorariosTotal = includeHonorarios ? itemizedDetails.filter(i => i.type === 'honorario').reduce((acc, curr) => acc + curr.value, 0) : 0;
     const finalExtras = includeExtras ? extras : 0;
 
     return {
