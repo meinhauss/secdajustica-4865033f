@@ -190,18 +190,28 @@ export default function CalculadoraCustas() {
     let extras = 0;
 
     if (selectedProcess) {
-      // Base Custas - Use custom value if user can edit it or if it's "custom" process
+      // Base Custas
       if (selectedProcess.id === 'outros') {
         custas = customCustas;
+      } else if (selectedProcess.custas === 'base_plus' && selectedProcess.baseCustas) {
+        custas = selectedProcess.baseCustas;
+        crimesLimpeza.forEach(c => {
+          custas += GRAVIDADE_CRIMES[c.typeIndex].value;
+        });
       } else {
         custas = typeof selectedProcess.custas === 'number' ? selectedProcess.custas : customCustas;
       }
 
-      // Base Honorarios - Always allow custom/percentage logic for any process
+      // Base Honorarios
       if (honorarioType === "fixed") {
         honorarios = customHonorarios;
       } else {
         honorarios = (valorCivel || 0) * (customPercentage / 100);
+      }
+
+      // Adicionais especiais baseados no tipo (sobrescrevendo se necessário)
+      if (selectedProcess.id === 'defesa_detido' && honorarioType === "fixed" && customHonorarios === 0) {
+        honorarios = detidoMais10Min ? 35000 : 30000;
       }
 
       // Adicionais de nome (Adoção ou Casamento)
