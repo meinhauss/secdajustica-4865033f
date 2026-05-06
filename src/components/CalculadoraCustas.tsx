@@ -416,37 +416,90 @@ export default function CalculadoraCustas() {
                 )}
               </div>
 
-              {/* Personalização para "Outros" */}
-              {selectedProcessId === 'outros' && (
+              {/* Personalização de Custas e Honorários */}
+              {(selectedProcessId === 'outros' || selectedProcessId) && (
                 <div className="space-y-4 p-4 border rounded-lg bg-secondary/10">
-                  <div className="space-y-4">
+                  <h4 className="font-semibold text-sm flex items-center gap-2">
+                    <Scale className="h-4 w-4 text-gold" />
+                    Personalizar Valores
+                  </h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Custas Processuais (R$)</Label>
                       <Input 
                         type="number" 
-                        value={customCustas} 
+                        value={selectedProcessId === 'outros' ? customCustas : (typeof selectedProcess?.custas === 'number' ? selectedProcess.custas : customCustas)} 
                         onChange={e => setCustomCustas(Number(e.target.value))}
-                        placeholder="0.00"
+                        disabled={selectedProcessId !== 'outros'}
+                        className="bg-background"
                       />
+                      {selectedProcessId !== 'outros' && (
+                        <p className="text-[10px] text-muted-foreground italic">Valor fixo da tabela para este processo.</p>
+                      )}
                     </div>
-                    
-                    <div className="space-y-3">
-                      <Label>Tipo de Honorário</Label>
-                      <RadioGroup 
-                        value={honorarioType} 
-                        onValueChange={(v: "fixed" | "percentage") => setHonorarioType(v)}
-                        className="flex gap-4"
-                      >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="fixed" id="fixed" />
-                          <Label htmlFor="fixed">Valor Fixo</Label>
+
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Tipo de Honorário</Label>
+                        <RadioGroup 
+                          value={honorarioType} 
+                          onValueChange={(v: "fixed" | "percentage") => setHonorarioType(v)}
+                          className="flex gap-4"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="fixed" id="fixed" />
+                            <Label htmlFor="fixed" className="text-xs">Fixo</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="percentage" id="percentage" />
+                            <Label htmlFor="percentage" className="text-xs">Percentual</Label>
+                          </div>
+                        </RadioGroup>
+                      </div>
+
+                      {honorarioType === "fixed" ? (
+                        <div className="space-y-2">
+                          <Label>Valor Honorário (R$)</Label>
+                          <Input 
+                            type="number" 
+                            value={customHonorarios} 
+                            onChange={e => setCustomHonorarios(Number(e.target.value))}
+                            placeholder="0.00"
+                            className="bg-background"
+                          />
+                          <p className="text-[10px] text-amber-500 font-medium flex items-center gap-1">
+                            <Info className="h-3 w-3" />
+                            Piso OAB-SP: R$ 30.000,00
+                          </p>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="percentage" id="percentage" />
-                          <Label htmlFor="percentage">Percentual</Label>
+                      ) : (
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label>Base de Cálculo (R$)</Label>
+                            <Input 
+                              type="number" 
+                              value={valorCivel || ""} 
+                              onChange={e => setValorCivel(Number(e.target.value))}
+                              placeholder="Valor da causa"
+                              className="bg-background"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Percentual (%)</Label>
+                            <Input 
+                              type="number" 
+                              value={customPercentage} 
+                              onChange={e => setCustomPercentage(Number(e.target.value))}
+                              className="bg-background"
+                            />
+                          </div>
                         </div>
-                      </RadioGroup>
+                      )}
                     </div>
+                  </div>
+                </div>
+              )}
 
                     {honorarioType === "fixed" ? (
                       <div className="space-y-2">
