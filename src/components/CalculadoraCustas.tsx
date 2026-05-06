@@ -1,8 +1,4 @@
 import { useState, useMemo, useEffect } from "react";
-// ... (rest of imports remain same)
-// I'll use code--view to check the full beginning first to be safe if I wanted to do more but line_replace is better.
-// Actually let's just use line_replace to add the useEffect and adjust the interface/state.
-
 import { motion } from "framer-motion";
 import { 
   Calculator, Receipt, Scale, Briefcase, Gavel, 
