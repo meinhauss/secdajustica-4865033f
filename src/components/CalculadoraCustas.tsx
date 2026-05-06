@@ -298,46 +298,44 @@ export default function CalculadoraCustas() {
     let extras = 0;
 
     if (selectedProcess) {
-      if (selectedProcess.id === 'outros') {
-        itemizedDetails.push({ label: "Custas (Personalizado)", value: customCustas, type: 'custa' });
-        if (honorarioType === "fixed") {
-          itemizedDetails.push({ label: "Honorários (Personalizado)", value: customHonorarios, type: 'honorario' });
-        } else {
-          itemizedDetails.push({ label: `Honorários (${customPercentage}%)`, value: (valorCivel || 0) * (customPercentage / 100), type: 'honorario' });
-        }
-      } else {
-        selectedProcess.items.forEach(item => {
-          // Itens 'required' são sempre inclusos, outros dependem da seleção
-          if (item.required || selectedItems[item.label]) {
-            let val = item.value;
-            
-            if (item.type === 'honorario' && honorarioType === 'percentage') {
-              val = (valorCivel || 0) * (customPercentage / 100);
-            } else if (item.type === 'honorario' && customHonorarios !== item.value && customHonorarios !== 0) {
-              val = customHonorarios;
-            } else if (item.type === 'custa' && customCustas !== item.value && customCustas !== 0) {
-              // Permite sobrescrever valor base da custa se o usuário digitar na caixa principal
-              val = customCustas;
-            }
-            
-            if (selectedProcess.id === 'limpeza_ficha' && item.label === 'Taxa de Processamento Base') {
-              crimesLimpeza.forEach(c => {
-                val += GRAVIDADE_CRIMES[c.typeIndex].value;
-              });
-            }
-
-            itemizedDetails.push({ ...item, value: val });
+      // Itens discriminados do processo (sem honorários advocatícios)
+      selectedProcess.items.forEach(item => {
+        if (item.required || selectedItems[item.label]) {
+          let val = item.value;
+          
+          if (item.type === 'custa' && customCustas !== item.value && customCustas !== 0 && selectedProcess.id === 'outros') {
+            val = customCustas;
           }
-        });
+          
+          if (selectedProcess.id === 'limpeza_ficha' && item.label === 'Taxa de Processamento Base') {
+            crimesLimpeza.forEach(c => {
+              val += GRAVIDADE_CRIMES[c.typeIndex].value;
+            });
+          }
+
+          itemizedDetails.push({ ...item, value: val });
+        }
+      });
+
+      // Honorários - Controlados exclusivamente pela personalização
+      if (includeHonorarios) {
+        let hValue = 0;
+        let hLabel = "Honorários Advocatícios";
+        
+        if (honorarioType === "fixed") {
+          hValue = customHonorarios;
+        } else {
+          hValue = (valorCivel || 0) * (customPercentage / 100);
+          hLabel = `Honorários Advocatícios (${customPercentage}%)`;
+        }
+        
+        itemizedDetails.push({ label: hLabel, value: hValue, type: 'honorario' });
       }
 
       // Adicionais de nome
       if (hasAlteracaoNome && (selectedProcess.id === 'adocao' || selectedProcess.id === 'casamento')) {
         if (!itemizedDetails.find(i => i.label === "Alteração de Sobrenome")) {
           itemizedDetails.push({ label: "Alteração de Sobrenome", value: 2000000, type: 'custa' });
-          if (selectedProcess.id === 'casamento') {
-             itemizedDetails.push({ label: "Honorários p/ Alteração de Nome", value: 80000, type: 'honorario' });
-          }
         }
       }
     }
