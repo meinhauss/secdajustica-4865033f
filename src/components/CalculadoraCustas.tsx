@@ -1306,6 +1306,7 @@ export default function CalculadoraCustas() {
         </DialogContent>
       </Dialog>
     </div>
+    </>
   );
 }
 
