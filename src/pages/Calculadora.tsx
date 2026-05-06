@@ -20,7 +20,7 @@ export default function CalculadoraPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold font-display">Simulador Financeiro</h1>
+            <h1 className="text-2xl font-bold font-display">Calculadora de Custas</h1>
             <p className="text-sm text-muted-foreground">Cálculo de custas judiciais e honorários advocatícios</p>
           </div>
         </div>
