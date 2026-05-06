@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
 import {
   FileText, Scale, Clock, Gavel,
-  Briefcase, GraduationCap, Stamp, Bell, ArrowRight
+  Briefcase, GraduationCap, Stamp, Bell, ArrowRight, BookOpen
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -93,6 +94,20 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
         CONSULTAR CREDENCIAL
         <ArrowRight className="h-5 w-5" />
       </motion.button>
+
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+      >
+        <Link
+          to="/codigo-penal"
+          className="w-full flex items-center justify-center gap-3 bg-card border border-border text-foreground rounded-xl px-6 py-3 shadow-institutional hover:border-accent hover:text-accent transition-colors font-semibold tracking-wide"
+        >
+          <BookOpen className="h-5 w-5" />
+          CÓDIGO PENAL
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+      </motion.div>
 
       {stats.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
