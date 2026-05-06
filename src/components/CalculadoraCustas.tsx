@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { 
   Calculator, Receipt, Scale, Briefcase, Gavel, 
   Trash2, Plus, Info, Copy, CheckCircle2,
-  CheckSquare, Square
+  CheckSquare, Square, FileText, Download
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -14,6 +14,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const formatBRL = (value: number) => {
   return new Intl.NumberFormat('pt-BR', {
