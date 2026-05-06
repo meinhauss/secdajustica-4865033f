@@ -107,7 +107,7 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "defesa_detido", 
     name: "Defesa de Acusado Detido/Preso", 
     items: [],
-    obs: "Defina os honorários na seção de personalização abaixo." 
+    obs: "Honorários: R$ 30.000,00 (até 10 min) ou R$ 35.000,00 (> 10 min)." 
   },
   { 
     id: "acoes_civeis", 
@@ -115,56 +115,63 @@ const PROCESS_TYPES: ProcessType[] = [
     items: [
       { label: "Taxa Judiciária", value: 25000, type: 'custa', required: true }
     ],
-    obs: "Danos morais: R$ 40k a R$ 2M."
+    obs: "Danos morais: R$ 40k a R$ 2M. Honorários sugeridos: 20%."
   },
   { 
     id: "porte_arma", 
     name: "Porte de Arma de Fogo (Uso Permitido)", 
     items: [
-      { label: "Taxa de Protocolo (Inicial)", value: 25000, type: 'custa', required: true },
-      { label: "Laudo Psicológico Profissional", value: 150000, type: 'despesa' },
-      { label: "Curso de Armamento e Tiro", value: 200000, type: 'despesa' },
-      { label: "Munições de Treinamento", value: 100000, type: 'despesa' }
+      { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
+      { label: "Exame Psicológico", value: 90000, type: 'despesa' },
+      { label: "Armamento", value: 100000, type: 'despesa' },
+      { label: "Munições", value: 70000, type: 'despesa' }
     ],
-    obs: "Taxas e despesas operacionais discriminadas."
+    obs: "Valores incluem custos obrigatórios com exame, arma e munições."
   },
   { 
     id: "limpeza_ficha", 
     name: "Exclusão de Antecedentes (Limpeza)", 
     items: [
-      { label: "Taxa de Processamento Base", value: 50000, type: 'custa', required: true }
+      { label: "Taxa Processual Base (Ação + Inicial)", value: 50000, type: 'custa', required: true }
     ],
-    obs: "Base de R$ 50.000,00 + valor por gravidade do crime."
+    obs: "Soma de Petição Inicial (R$ 25.000) e Ação Judicial (R$ 25.000)."
   },
   { 
     id: "divorcio", 
     name: "Divórcio", 
     items: [
-      { label: "Taxa de Averbação", value: 35000, type: 'custa', required: true }
-    ]
+      { label: "Taxas Judiciais", value: 0, type: 'custa', required: true }
+    ],
+    obs: "Custas conforme decreto judicial vigente."
   },
   { 
     id: "alvara", 
     name: "Alvará de Funcionamento", 
     items: [
-      { label: "Taxa de Vistoria Inicial", value: 150000, type: 'custa', required: true },
+      { label: "Custas TJ-SP (Inclui Inicial)", value: 150000, type: 'custa', required: true },
       { label: "Taxa AVCB (Bombeiros)", value: 50000, type: 'custa' }
-    ]
+    ],
+    obs: "Obrigatório o pagamento da Taxa AVCB à parte."
   },
   { 
     id: "casamento", 
     name: "Casamento (Certidão e Ação)", 
     items: [
-      { label: "Taxa Cartorária", value: 875000, type: 'custa', required: true },
-      { label: "Alteração de Sobrenome", value: 2000000, type: 'custa' }
-    ]
+      { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
+      { label: "Certidão de Casamento", value: 100000, type: 'custa' },
+      { label: "Valor da Ação", value: 750000, type: 'custa', required: true }
+    ],
+    obs: "Total das taxas soma R$ 875.000,00."
   },
   { 
     id: "adocao", 
     name: "Adoção", 
     items: [
-      { label: "Taxa Processual de Adoção", value: 1225000, type: 'custa', required: true }
-    ]
+      { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
+      { label: "Certidão de Nascimento (Atualização)", value: 250000, type: 'custa' },
+      { label: "Valor da Ação", value: 950000, type: 'custa', required: true }
+    ],
+    obs: "Total das taxas soma R$ 1.225.000,00."
   },
   {
     id: "outros",
@@ -229,13 +236,12 @@ export default function CalculadoraCustas() {
       setCrimesLimpeza([]);
       setHasAlteracaoNome(false);
 
-      // Valores iniciais para personalização
-      // Honorários agora são exclusivamente controlados pela seção de personalização
+      // Valores iniciais para personalização conforme o documento enviado
       if (selectedProcess.id === 'recursos') {
         setCustomHonorarios(75000);
         setHonorarioType("fixed");
       } else if (selectedProcess.id === 'defesa_detido') {
-        setCustomHonorarios(30000);
+        setCustomHonorarios(30000); // Piso até 10 min
         setHonorarioType("fixed");
       } else if (selectedProcess.id === 'acoes_civeis') {
         setHonorarioType("percentage");
@@ -603,7 +609,7 @@ export default function CalculadoraCustas() {
                           />
                           <p className="text-[9px] text-amber-500 font-medium flex items-center gap-1">
                             <Info className="h-2 w-2" />
-                            Piso OAB-SP: R$ 30.000,00
+                            Piso conforme tabela de processos enviada.
                           </p>
                         </div>
                       ) : (
@@ -915,7 +921,7 @@ export default function CalculadoraCustas() {
           <div className="p-4 rounded-xl bg-secondary/30 border border-border text-[10px] text-muted-foreground italic leading-relaxed">
             * Este simulador fornece uma estimativa baseada nos valores mínimos da tabela processual. 
             O valor final pode variar de acordo com a complexidade da causa e decisões judiciais.
-            Os honorários sugeridos representam o piso ético estabelecido pela seccional.
+            Os honorários sugeridos respeitam o piso da tabela de processos vigente.
           </div>
         </div>
       </div>
