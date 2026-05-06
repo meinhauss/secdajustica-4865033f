@@ -501,7 +501,7 @@ export default function CalculadoraCustas() {
                       <Label className="text-xs">Custas Processuais (R$)</Label>
                       <Input 
                         type="number" 
-                        value={selectedProcessId === 'outros' ? customCustas : (selectedProcess?.custas && typeof selectedProcess.custas === 'number' ? selectedProcess.custas : customCustas)} 
+                        value={selectedProcessId === 'outros' ? customCustas : (selectedProcess?.items?.find(i => i.type === 'custa')?.value ?? customCustas)} 
                         onChange={e => setCustomCustas(Number(e.target.value))}
                         disabled={selectedProcessId !== 'outros'}
                         className="bg-background h-8 text-sm"
