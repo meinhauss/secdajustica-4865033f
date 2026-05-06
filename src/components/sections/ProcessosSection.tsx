@@ -584,13 +584,20 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
             return (
               <motion.div key={p.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
                 onClick={() => onSelect(p.id)}
-                className="bg-card rounded-xl p-4 border border-border shadow-institutional hover:border-institutional/30 transition-all cursor-pointer group">
+                className={`bg-card rounded-xl p-4 border shadow-institutional hover:border-institutional/30 transition-all cursor-pointer group ${(p as any).instancia === 2 ? "border-2 border-institutional/40" : "border-border"}`}>
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-mono text-sm font-semibold text-institutional">{p.numero}</span>
                       <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${cfg.color}`}>{cfg.label}</span>
-                      <span className="text-[10px] uppercase tracking-wider font-medium px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{p.classe}</span>
+                      {(p as any).instancia === 2 ? (
+                        <>
+                          <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-institutional text-gold-light">2ª Instância</span>
+                          {(p as any).classe_originaria && <span className="text-[10px] uppercase tracking-wider font-medium px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{String((p as any).classe_originaria).replace(/_/g, " ")}</span>}
+                        </>
+                      ) : (
+                        <span className="text-[10px] uppercase tracking-wider font-medium px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{p.classe}</span>
+                      )}
                       {p.prioridade && <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">Prioritário</span>}
                       {(p as any).sigilo && (p as any).sigilo !== "publico" && (
                         <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive flex items-center gap-1">
