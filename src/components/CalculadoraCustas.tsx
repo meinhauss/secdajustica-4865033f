@@ -1,9 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { 
   Calculator, Receipt, Scale, Briefcase, Gavel, 
   Trash2, Plus, Info, Copy, CheckCircle2,
-  CheckSquare, Square
+  CheckSquare, Square, FileText, Download
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -14,6 +14,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const formatBRL = (value: number) => {
   return new Intl.NumberFormat('pt-BR', {
@@ -158,6 +160,31 @@ export default function CalculadoraCustas() {
     [selectedProcessId]
   );
 
+  useEffect(() => {
+    if (selectedProcess) {
+      if (typeof selectedProcess.custas === 'number') {
+        setCustomCustas(selectedProcess.custas);
+      } else if (selectedProcess.custas === 'base_plus' && selectedProcess.baseCustas) {
+        setCustomCustas(selectedProcess.baseCustas);
+      } else {
+        setCustomCustas(0);
+      }
+
+      if (typeof selectedProcess.honorarios === 'number') {
+        setCustomHonorarios(selectedProcess.honorarios);
+        setHonorarioType("fixed");
+      } else if (selectedProcess.honorarios === 'percentage') {
+        setHonorarioType("percentage");
+        setCustomPercentage(20);
+      } else if (selectedProcess.honorarios === 'special') {
+        if (selectedProcess.id === 'defesa_detido') {
+          setCustomHonorarios(30000);
+          setHonorarioType("fixed");
+        }
+      }
+    }
+  }, [selectedProcessId]);
+
   const addCrimeLimpeza = () => {
     setCrimesLimpeza([...crimesLimpeza, { id: Math.random().toString(), typeIndex: 0 }]);
   };
@@ -189,32 +216,27 @@ export default function CalculadoraCustas() {
 
     if (selectedProcess) {
       // Base Custas
-      if (typeof selectedProcess.custas === 'number') {
-        custas = selectedProcess.custas;
+      if (selectedProcess.id === 'outros') {
+        custas = customCustas;
       } else if (selectedProcess.custas === 'base_plus' && selectedProcess.baseCustas) {
         custas = selectedProcess.baseCustas;
         crimesLimpeza.forEach(c => {
           custas += GRAVIDADE_CRIMES[c.typeIndex].value;
         });
-      } else if (selectedProcess.custas === 'custom') {
-        custas = customCustas;
+      } else {
+        custas = typeof selectedProcess.custas === 'number' ? selectedProcess.custas : customCustas;
       }
 
       // Base Honorarios
-      if (typeof selectedProcess.honorarios === 'number') {
-        honorarios = selectedProcess.honorarios;
-      } else if (selectedProcess.honorarios === 'percentage') {
-        honorarios = valorCivel * 0.20;
-      } else if (selectedProcess.honorarios === 'special') {
-        if (selectedProcess.id === 'defesa_detido') {
-          honorarios = detidoMais10Min ? 35000 : 30000;
-        }
-      } else if (selectedProcess.honorarios === 'custom') {
-        if (honorarioType === "fixed") {
-          honorarios = customHonorarios;
-        } else {
-          honorarios = (valorCivel || 0) * (customPercentage / 100);
-        }
+      if (honorarioType === "fixed") {
+        honorarios = customHonorarios;
+      } else {
+        honorarios = (valorCivel || 0) * (customPercentage / 100);
+      }
+
+      // Adicionais especiais baseados no tipo (sobrescrevendo se necessário)
+      if (selectedProcess.id === 'defesa_detido' && honorarioType === "fixed" && customHonorarios === 0) {
+        honorarios = detidoMais10Min ? 35000 : 30000;
       }
 
       // Adicionais de nome (Adoção ou Casamento)
@@ -249,7 +271,7 @@ export default function CalculadoraCustas() {
       extras: finalExtras,
       total: finalCustas + finalHonorarios + finalExtras
     };
-  }, [selectedProcess, diligencias, hasJuiz, hasPromotor, hasDesembargador, detidoMais10Min, valorCivel, crimesLimpeza, hasAlteracaoNome, includeCustas, includeHonorarios, includeExtras, customCustas, customHonorarios, honorarioType, customPercentage, outrasCustas]);
+  }, [selectedProcess, diligencias, hasJuiz, hasPromotor, hasDesembargador, valorCivel, hasAlteracaoNome, includeCustas, includeHonorarios, includeExtras, customCustas, customHonorarios, honorarioType, customPercentage, outrasCustas]);
 
   const copySummary = () => {
     if (!selectedProcess) return;
@@ -271,6 +293,85 @@ export default function CalculadoraCustas() {
     toast.success("Resumo copiado!");
   };
 
+  const generatePDF = () => {
+    if (!selectedProcess) return;
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    // Cabeçalho
+    doc.setFontSize(18);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Simulado de Custas Processuais e Honorários", pageWidth / 2, 20, { align: "center" });
+    doc.setFontSize(12);
+    doc.text(`Data: ${new Date().toLocaleDateString("pt-BR")}`, pageWidth / 2, 28, { align: "center" });
+
+    // Informações do Processo
+    doc.setFontSize(14);
+    doc.text("Informações do Processo", 14, 45);
+    autoTable(doc, {
+      startY: 48,
+      body: [
+        ["Tipo de Processo", selectedProcess.name],
+        ["Status", "Estimativa de Custas"],
+      ],
+      theme: "striped",
+      styles: { fontSize: 10 },
+    });
+
+    // Itens Discriminados
+    doc.setFontSize(14);
+    doc.text("Discriminação de Valores", 14, (doc as any).lastAutoTable.finalY + 15);
+    
+    const tableData = [];
+    if (includeCustas) {
+      tableData.push(["Custas Judiciais (Base)", formatBRL(calculations.custas)]);
+    }
+    if (includeHonorarios) {
+      tableData.push(["Honorários Advocatícios", formatBRL(calculations.honorarios)]);
+    }
+    if (includeExtras) {
+      if (diligencias > 0) {
+        tableData.push([`Diligências (${diligencias}x)`, formatBRL(diligencias * 20000)]);
+      }
+      if (hasJuiz) tableData.push(["Verba: Juiz de Direito", formatBRL(60000)]);
+      if (hasPromotor) tableData.push(["Verba: Promotor de Justiça", formatBRL(80000)]);
+      if (hasDesembargador) tableData.push(["Verba: Desembargador", formatBRL(120000)]);
+      
+      outrasCustas.forEach(c => {
+        tableData.push([`Outra: ${c.description || "Sem descrição"}`, formatBRL(c.value)]);
+      });
+    }
+
+    autoTable(doc, {
+      startY: (doc as any).lastAutoTable.finalY + 18,
+      head: [["Descrição", "Valor"]],
+      body: tableData,
+      theme: "grid",
+      headStyles: { fillColor: [241, 196, 15] as any, textColor: 0 },
+      styles: { fontSize: 10 },
+    });
+
+    // Total
+    const finalY = (doc as any).lastAutoTable.finalY + 10;
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text(`TOTAL ESTIMADO: ${formatBRL(calculations.total)}`, 14, finalY);
+
+    // Notas de rodapé
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    const footerText = [
+      "* Este documento é um simulado financeiro baseado nas tabelas oficiais de 2026.",
+      "* Os valores podem sofrer alterações conforme a complexidade e tempo do processo.",
+      "* Honorários calculados respeitam o piso ético estabelecido pela seccional."
+    ];
+    doc.text(footerText, 14, finalY + 15);
+
+    doc.save(`Orcamento_${selectedProcess.name.replace(/\s+/g, "_")}.pdf`);
+    toast.success("PDF gerado com sucesso!");
+  };
+
   return (
     <div className="container mx-auto py-8 px-4 max-w-5xl">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -283,10 +384,25 @@ export default function CalculadoraCustas() {
             Baseado na tabela oficial do Tribunal de Justiça e OAB-SP.
           </p>
         </div>
-        <Button onClick={copySummary} disabled={!selectedProcess} className="bg-gold hover:bg-gold-dark text-black font-bold">
-          <Copy className="mr-2 h-4 w-4" />
-          Copiar Orçamento
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button 
+            onClick={generatePDF} 
+            disabled={!selectedProcess} 
+            variant="outline"
+            className="border-gold text-gold hover:bg-gold hover:text-black font-bold"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Exportar PDF
+          </Button>
+          <Button 
+            onClick={copySummary} 
+            disabled={!selectedProcess} 
+            className="bg-gold hover:bg-gold-dark text-black font-bold"
+          >
+            <Copy className="mr-2 h-4 w-4" />
+            Copiar Resumo
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -320,81 +436,89 @@ export default function CalculadoraCustas() {
                 )}
               </div>
 
-              {/* Personalização para "Outros" */}
-              {selectedProcessId === 'outros' && (
+              {/* Personalização de Custas e Honorários */}
+              {selectedProcessId && (
                 <div className="space-y-4 p-4 border rounded-lg bg-secondary/10">
-                  <div className="space-y-4">
+                  <h4 className="font-semibold text-sm flex items-center gap-2">
+                    <Scale className="h-4 w-4 text-gold" />
+                    Valores Principais
+                  </h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Custas Processuais (R$)</Label>
+                      <Label className="text-xs">Custas Processuais (R$)</Label>
                       <Input 
                         type="number" 
-                        value={customCustas} 
+                        value={selectedProcessId === 'outros' ? customCustas : (selectedProcess?.custas && typeof selectedProcess.custas === 'number' ? selectedProcess.custas : customCustas)} 
                         onChange={e => setCustomCustas(Number(e.target.value))}
-                        placeholder="0.00"
+                        disabled={selectedProcessId !== 'outros'}
+                        className="bg-background h-8 text-sm"
                       />
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <Label>Tipo de Honorário</Label>
-                      <RadioGroup 
-                        value={honorarioType} 
-                        onValueChange={(v: "fixed" | "percentage") => setHonorarioType(v)}
-                        className="flex gap-4"
-                      >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="fixed" id="fixed" />
-                          <Label htmlFor="fixed">Valor Fixo</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="percentage" id="percentage" />
-                          <Label htmlFor="percentage">Percentual</Label>
-                        </div>
-                      </RadioGroup>
+                      {selectedProcessId !== 'outros' && (
+                        <p className="text-[10px] text-muted-foreground italic">Valor padrão da tabela.</p>
+                      )}
                     </div>
 
-                    {honorarioType === "fixed" ? (
+                    <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label>Honorários (R$)</Label>
-                        <Input 
-                          type="number" 
-                          value={customHonorarios} 
-                          onChange={e => setCustomHonorarios(Number(e.target.value))}
-                          placeholder="0.00"
-                        />
-                        <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                          <Info className="h-3 w-3" />
-                          Valor mínimo recomendado pela OAB: R$ 30.000,00
-                        </p>
+                        <Label className="text-xs">Honorários</Label>
+                        <RadioGroup 
+                          value={honorarioType} 
+                          onValueChange={(v: "fixed" | "percentage") => setHonorarioType(v)}
+                          className="flex gap-4"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="fixed" id="fixed" />
+                            <Label htmlFor="fixed" className="text-[10px]">Fixo</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="percentage" id="percentage" />
+                            <Label htmlFor="percentage" className="text-[10px]">Percentual</Label>
+                          </div>
+                        </RadioGroup>
                       </div>
-                    ) : (
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label>Valor Base para Cálculo (R$)</Label>
+
+                      {honorarioType === "fixed" ? (
+                        <div className="space-y-1">
+                          <Label className="text-[10px]">Valor (R$)</Label>
                           <Input 
                             type="number" 
-                            value={valorCivel || ""} 
-                            onChange={e => setValorCivel(Number(e.target.value))}
-                            placeholder="Ex: Valor da causa"
+                            value={customHonorarios} 
+                            onChange={e => setCustomHonorarios(Number(e.target.value))}
+                            className="bg-background h-8 text-sm"
                           />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Percentual (%)</Label>
-                          <Input 
-                            type="number" 
-                            value={customPercentage} 
-                            onChange={e => setCustomPercentage(Number(e.target.value))}
-                            placeholder="20"
-                          />
-                          <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                            <Info className="h-3 w-3" />
-                            Percentual padrão: 20%
+                          <p className="text-[9px] text-amber-500 font-medium flex items-center gap-1">
+                            <Info className="h-2 w-2" />
+                            Piso OAB-SP: R$ 30.000,00
                           </p>
                         </div>
-                      </div>
-                    )}
+                      ) : (
+                        <div className="space-y-2">
+                          <div className="space-y-1">
+                            <Label className="text-[10px]">Base (R$)</Label>
+                            <Input 
+                              type="number" 
+                              value={valorCivel || ""} 
+                              onChange={e => setValorCivel(Number(e.target.value))}
+                              className="bg-background h-8 text-sm"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-[10px]">Percentual (%)</Label>
+                            <Input 
+                              type="number" 
+                              value={customPercentage} 
+                              onChange={e => setCustomPercentage(Number(e.target.value))}
+                              className="bg-background h-8 text-sm"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
+
 
               {/* Campos Dinâmicos conforme a seleção */}
               {selectedProcessId === 'defesa_detido' && (
@@ -472,50 +596,51 @@ export default function CalculadoraCustas() {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Scale className="h-5 w-5 text-gold" />
-                Diligências e Verbas
+                Custas Adicionais e Verbas
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label className="flex justify-between">
-                  Diligências (Oficial de Justiça)
-                  <span className="text-gold font-mono">{formatBRL(diligencias * 20000)}</span>
-                </Label>
-                <div className="flex items-center gap-4">
-                  <Input 
-                    type="number" 
-                    min="0" 
-                    value={diligencias} 
-                    onChange={e => setDiligencias(Math.max(0, Number(e.target.value)))}
-                    className="w-24"
-                  />
-                  <span className="text-xs text-muted-foreground">R$ 20.000,00 por diligência</span>
-                </div>
-              </div>
+              {/* Seção unificada de Verbas e Diligências */}
+              <div className="space-y-4 p-4 border rounded-lg bg-secondary/10">
+                <h4 className="font-semibold text-sm flex items-center gap-2">
+                  <Gavel className="h-4 w-4 text-gold" />
+                  Verbas e Diligências
+                </h4>
+                
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="flex justify-between text-xs">
+                      Diligências (Oficial de Justiça)
+                      <span className="text-gold font-mono">{formatBRL(diligencias * 20000)}</span>
+                    </Label>
+                    <div className="flex items-center gap-4">
+                      <Input 
+                        type="number" 
+                        min="0" 
+                        value={diligencias} 
+                        onChange={e => setDiligencias(Math.max(0, Number(e.target.value)))}
+                        className="w-24 bg-background"
+                      />
+                      <span className="text-[10px] text-muted-foreground">R$ 20.000,00 cada</span>
+                    </div>
+                  </div>
 
-              <div className="space-y-3">
-                <Label>Verbas Indenizatórias (Obrigatórias por lei)</Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="flex items-center space-x-2 border p-3 rounded-lg hover:bg-secondary/20 transition-colors">
-                    <Checkbox id="juiz" checked={hasJuiz} onCheckedChange={(v) => setHasJuiz(!!v)} />
-                    <Label htmlFor="juiz" className="flex flex-col cursor-pointer">
-                      <span>Juiz de Direito</span>
-                      <span className="text-[10px] text-muted-foreground">{formatBRL(60000)}</span>
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2 border p-3 rounded-lg hover:bg-secondary/20 transition-colors">
-                    <Checkbox id="promotor" checked={hasPromotor} onCheckedChange={(v) => setHasPromotor(!!v)} />
-                    <Label htmlFor="promotor" className="flex flex-col cursor-pointer">
-                      <span>Promotor de Justiça</span>
-                      <span className="text-[10px] text-muted-foreground">{formatBRL(80000)}</span>
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2 border p-3 rounded-lg hover:bg-secondary/20 transition-colors">
-                    <Checkbox id="desemb" checked={hasDesembargador} onCheckedChange={(v) => setHasDesembargador(!!v)} />
-                    <Label htmlFor="desemb" className="flex flex-col cursor-pointer">
-                      <span>Desembargador (Recurso)</span>
-                      <span className="text-[10px] text-muted-foreground">{formatBRL(120000)}</span>
-                    </Label>
+                  <div className="space-y-2">
+                    <Label className="text-xs">Verbas Indenizatórias</Label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <div className="flex items-center space-x-2 border p-2 rounded bg-background">
+                        <Checkbox id="juiz" checked={hasJuiz} onCheckedChange={(v) => setHasJuiz(!!v)} />
+                        <Label htmlFor="juiz" className="text-[10px] cursor-pointer">Juiz (60k)</Label>
+                      </div>
+                      <div className="flex items-center space-x-2 border p-2 rounded bg-background">
+                        <Checkbox id="promotor" checked={hasPromotor} onCheckedChange={(v) => setHasPromotor(!!v)} />
+                        <Label htmlFor="promotor" className="text-[10px] cursor-pointer">Promotor (80k)</Label>
+                      </div>
+                      <div className="flex items-center space-x-2 border p-2 rounded bg-background">
+                        <Checkbox id="desemb" checked={hasDesembargador} onCheckedChange={(v) => setHasDesembargador(!!v)} />
+                        <Label htmlFor="desemb" className="text-[10px] cursor-pointer">Desemb. (120k)</Label>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -571,24 +696,58 @@ export default function CalculadoraCustas() {
               </h3>
             </div>
             <CardContent className="p-6 space-y-6">
-              <div className="space-y-4">
-                <div className="flex justify-between items-start group">
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <Checkbox 
-                        id="inc-custas" 
-                        checked={includeCustas} 
-                        onCheckedChange={(v) => setIncludeCustas(!!v)}
-                        className="h-3 w-3"
-                      />
-                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeCustas(!includeCustas)}>Custas Judiciais</p>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-start group">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <Checkbox 
+                          id="inc-custas" 
+                          checked={includeCustas} 
+                          onCheckedChange={(v) => setIncludeCustas(!!v)}
+                          className="h-3 w-3"
+                        />
+                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeCustas(!includeCustas)}>Custas Judiciais (Base)</p>
+                      </div>
+                      <p className={`font-medium transition-opacity ${!includeCustas ? 'opacity-30' : ''}`}>
+                        {selectedProcess ? formatBRL(calculations.custas) : "—"}
+                      </p>
                     </div>
-                    <p className={`font-medium transition-opacity ${!includeCustas ? 'opacity-30' : ''}`}>
-                      {selectedProcess ? formatBRL(calculations.custas) : "—"}
-                    </p>
+                    <Scale className={`h-4 w-4 transition-colors ${includeCustas ? 'text-gold/50' : 'text-muted-foreground/30'}`} />
                   </div>
-                  <Scale className={`h-4 w-4 transition-colors ${includeCustas ? 'text-gold/50' : 'text-muted-foreground/30'}`} />
-                </div>
+
+                  {includeExtras && diligencias > 0 && (
+                    <div className="flex justify-between items-start">
+                      <div className="space-y-0.5 pl-5 border-l border-gold/20">
+                        <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Diligências ({diligencias}x)</p>
+                        <p className="text-xs font-medium">{formatBRL(diligencias * 20000)}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {includeExtras && (hasJuiz || hasPromotor || hasDesembargador) && (
+                    <div className="space-y-1 pl-5 border-l border-gold/20">
+                      <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Verbas Indenizatórias</p>
+                      <div className="space-y-0.5">
+                        {hasJuiz && <div className="flex justify-between text-[10px]"><span className="opacity-70">Juiz:</span> <span>{formatBRL(60000)}</span></div>}
+                        {hasPromotor && <div className="flex justify-between text-[10px]"><span className="opacity-70">Promotor:</span> <span>{formatBRL(80000)}</span></div>}
+                        {hasDesembargador && <div className="flex justify-between text-[10px]"><span className="opacity-70">Desemb.:</span> <span>{formatBRL(120000)}</span></div>}
+                      </div>
+                    </div>
+                  )}
+
+                  {includeExtras && outrasCustas.length > 0 && (
+                    <div className="space-y-1 pl-5 border-l border-gold/20">
+                      <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Custas Personalizadas</p>
+                      <div className="space-y-0.5">
+                        {outrasCustas.map((c) => (
+                          <div key={c.id} className="flex justify-between text-[10px]">
+                            <span className="opacity-70 truncate max-w-[120px]">{c.description || "Outra"}:</span>
+                            <span>{formatBRL(c.value)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                 <div className="flex justify-between items-start">
                   <div className="space-y-0.5">
