@@ -525,7 +525,7 @@ export default function CalculadoraCustas() {
               <Calculator className="h-6 w-6 text-gold" />
             </div>
             <h1 className="text-3xl font-bold font-display tracking-tight text-foreground">
-              Simulador Financeiro
+              Calculadora de Custas
             </h1>
           </div>
           <p className="text-muted-foreground">
