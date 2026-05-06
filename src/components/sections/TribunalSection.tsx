@@ -737,6 +737,12 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
                     </div>
                   </>
                 )}
+                {v.tipo === "acompanha" && v.ressalvas && (
+                  <div className="mt-2">
+                    <h5 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Ressalvas / Razões</h5>
+                    <RichTextView html={v.ressalvas} className="text-sm" />
+                  </div>
+                )}
               </div>
             ))}
           </TabsContent>
