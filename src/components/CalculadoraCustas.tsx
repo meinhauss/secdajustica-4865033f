@@ -848,6 +848,24 @@ export default function CalculadoraCustas() {
                     </div>
                   )}
 
+                <div className="flex justify-between items-start">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <Checkbox 
+                        id="inc-honorarios" 
+                        checked={includeHonorarios} 
+                        onCheckedChange={(v) => setIncludeHonorarios(!!v)}
+                        className="h-3 w-3 border-gold/50 data-[state=checked]:bg-gold data-[state=checked]:text-black"
+                      />
+                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeHonorarios(!includeHonorarios)}>Honorários Advocatícios</p>
+                    </div>
+                    <p className={`font-medium transition-opacity ${!includeHonorarios ? 'opacity-30' : ''}`}>
+                      {formatBRL(calculations.honorarios)}
+                    </p>
+                  </div>
+                  <Briefcase className={`h-4 w-4 transition-colors ${includeHonorarios ? 'text-gold/50' : 'text-muted-foreground/30'}`} />
+                </div>
+
                 <div className="pt-2 flex justify-end">
                   <Button 
                     variant="ghost" 
