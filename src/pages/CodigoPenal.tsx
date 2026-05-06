@@ -121,7 +121,7 @@ export default function CodigoPenalPage() {
                   className="pl-10 h-11 rounded-xl"
                 />
               </div>
-              <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex gap-2 flex-wrap">
                 <Button
                   variant={categoria === "Todas" ? "default" : "outline"}
                   size="sm"
