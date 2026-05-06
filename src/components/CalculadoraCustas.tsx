@@ -1,11 +1,11 @@
-import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Calculator, Receipt, Scale, Briefcase, Gavel, 
   Trash2, Plus, Info, Copy, CheckCircle2,
   CheckSquare, Square, FileText, Download,
   Coins, AlertTriangle, ChevronRight, FileDown,
-  Printer, ArrowRight, X, Image as ImageIcon
+  Printer, ArrowRight
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -15,11 +15,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import html2canvas from "html2canvas";
 import { cn } from "@/lib/utils";
 
 const CurrencyInput = ({ value, onChange, disabled, className, label, error }: { 
@@ -254,8 +252,6 @@ export default function CalculadoraCustas() {
 
   // Other costs
   const [outrasCustas, setOutrasCustas] = useState<{ id: string; description: string; value: number }[]>([]);
-  const [showPreview, setShowPreview] = useState(false);
-  const previewRef = useRef<HTMLDivElement>(null);
 
   const selectedProcess = useMemo(() => 
     PROCESS_TYPES.find(p => p.id === selectedProcessId), 
@@ -526,32 +522,7 @@ export default function CalculadoraCustas() {
     toast.success("PDF gerado com sucesso!");
   };
 
-  const generateJPG = async () => {
-    if (!previewRef.current) return;
-    try {
-      const canvas = await html2canvas(previewRef.current, {
-        backgroundColor: "#0a0a0a",
-        scale: 2,
-        logging: false,
-        useCORS: true
-      });
-      const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
-      const link = document.createElement("a");
-      link.download = `Orcamento_${selectedProcess?.name.replace(/\s+/g, "_")}.jpg`;
-      link.href = dataUrl;
-      link.click();
-      toast.success("Imagem gerada com sucesso!");
-    } catch (error) {
-      toast.error("Erro ao gerar imagem");
-    }
-  };
-
-  const handlePrint = () => {
-    window.print();
-  };
-
   return (
-    <>
     <div className="container mx-auto py-6 px-4 max-w-6xl">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 pb-6 border-b">
         <div className="space-y-1">
@@ -1094,219 +1065,6 @@ export default function CalculadoraCustas() {
           </div>
         </div>
       </div>
-      </div>
-      <Dialog open={showPreview} onOpenChange={setShowPreview}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-background border-gold/20 p-0 overflow-hidden sm:rounded-2xl shadow-2xl">
-          <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-gold/10 p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-1.5 bg-gold/10 rounded-md">
-                <FileText className="h-4 w-4 text-gold" />
-              </div>
-              <div>
-                <DialogTitle className="text-sm font-bold uppercase tracking-widest">Pré-visualização do Orçamento</DialogTitle>
-                <DialogDescription className="text-[10px]">Confira os detalhes antes de exportar</DialogDescription>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button size="sm" variant="ghost" onClick={() => setShowPreview(false)} className="h-8 w-8 p-0 hover:bg-gold/10 hover:text-gold transition-colors">
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          <div className="p-6 md:p-10 space-y-8 print:p-0" id="preview-capture">
-            <div ref={previewRef} className="bg-[#0a0a0a] border border-gold/20 rounded-2xl overflow-hidden shadow-2xl relative">
-              {/* Branding superior */}
-              <div className="h-2 w-full bg-gradient-to-r from-gold/50 via-gold to-gold/50" />
-              
-              <div className="p-8 md:p-12 space-y-10">
-                {/* Cabeçalho do Orçamento */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-gold/10 pb-10">
-                  <div className="space-y-3">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold/10 border border-gold/20">
-                      <Scale className="h-3 w-3 text-gold" />
-                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gold">Ordenamento Jaguaré</span>
-                    </div>
-                    <h2 className="text-3xl md:text-4xl font-bold font-display tracking-tight text-white leading-tight">
-                      Orçamento <span className="text-gold">Processual</span>
-                    </h2>
-                    <p className="text-muted-foreground text-sm font-medium flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-gold/60" />
-                      ID: {Math.random().toString(36).substring(7).toUpperCase()} • Emitido em {new Date().toLocaleDateString("pt-BR")}
-                    </p>
-                  </div>
-                  
-                  <div className="text-right hidden md:block">
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-gold/60 mb-1">Status da Simulação</div>
-                    <div className={cn(
-                      "inline-flex items-center gap-2 px-4 py-1.5 rounded-lg font-bold text-xs border",
-                      isBelowPiso ? "bg-destructive/10 border-destructive/30 text-destructive" : "bg-green-500/10 border-green-500/30 text-green-500"
-                    )}>
-                      {isBelowPiso ? <AlertTriangle className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
-                      {isBelowPiso ? "REVISÃO NECESSÁRIA" : "CONFORME DECRETO"}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Grid de Informações */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-gold mb-4 flex items-center gap-2">
-                        <Briefcase className="h-3.5 w-3.5" />
-                        Objeto da Ação
-                      </h3>
-                      <p className="text-xl font-bold text-white leading-snug">{selectedProcess?.name}</p>
-                    </div>
-
-                    <div className="space-y-4">
-                      <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-gold mb-4 flex items-center gap-2">
-                        <CheckSquare className="h-3.5 w-3.5" />
-                        Detalhamento de Itens
-                      </h3>
-                      <div className="space-y-3">
-                        {calculations.itemizedDetails.map((item, idx) => (
-                          <div key={idx} className="flex justify-between items-center group/item p-2 rounded-lg hover:bg-white/5 transition-colors">
-                            <span className="text-sm text-muted-foreground group-hover/item:text-white transition-colors">{item.label}</span>
-                            <span className="text-sm font-mono text-gold font-bold">{formatBRL(item.value)}</span>
-                          </div>
-                        ))}
-                        {includeExtras && (
-                          <>
-                            {diligencias > 0 && (
-                              <div className="flex justify-between items-center p-2 rounded-lg hover:bg-white/5">
-                                <span className="text-sm text-muted-foreground">Diligências ({diligencias}x)</span>
-                                <span className="text-sm font-mono text-gold font-bold">{formatBRL(diligencias * 20000)}</span>
-                              </div>
-                            )}
-                            {hasJuiz && (
-                              <div className="flex justify-between items-center p-2 rounded-lg hover:bg-white/5">
-                                <span className="text-sm text-muted-foreground">Verba: Juiz de Direito</span>
-                                <span className="text-sm font-mono text-gold font-bold">{formatBRL(60000)}</span>
-                              </div>
-                            )}
-                            {hasPromotor && (
-                              <div className="flex justify-between items-center p-2 rounded-lg hover:bg-white/5">
-                                <span className="text-sm text-muted-foreground">Verba: Promotor de Justiça</span>
-                                <span className="text-sm font-mono text-gold font-bold">{formatBRL(80000)}</span>
-                              </div>
-                            )}
-                            {hasDesembargador && (
-                              <div className="flex justify-between items-center p-2 rounded-lg hover:bg-white/5">
-                                <span className="text-sm text-muted-foreground">Verba: Desembargador</span>
-                                <span className="text-sm font-mono text-gold font-bold">{formatBRL(120000)}</span>
-                              </div>
-                            )}
-                            {outrasCustas.map((c) => (
-                              <div key={c.id} className="flex justify-between items-center p-2 rounded-lg hover:bg-white/5">
-                                <span className="text-sm text-muted-foreground truncate max-w-[180px]">{c.description || "Outras Custas"}</span>
-                                <span className="text-sm font-mono text-gold font-bold">{formatBRL(c.value)}</span>
-                              </div>
-                            ))}
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-6">
-                    <div className="bg-gold/5 border border-gold/10 rounded-2xl p-8 space-y-6">
-                      <div className="space-y-1">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gold/60">Investimento Total Estimado</p>
-                        <h4 className="text-5xl font-bold font-display text-white">{formatBRL(calculations.total)}</h4>
-                      </div>
-                      
-                      <div className="space-y-3 pt-6 border-t border-gold/10">
-                        <div className="flex justify-between text-xs">
-                          <span className="text-muted-foreground">Custas & Despesas:</span>
-                          <span className="text-white font-mono">{formatBRL(calculations.custas + (includeExtras ? calculations.extras : 0))}</span>
-                        </div>
-                        <div className="flex justify-between text-xs">
-                          <span className="text-muted-foreground">Honorários Profissionais:</span>
-                          <span className={cn("font-mono font-bold", isBelowPiso ? "text-destructive" : "text-white")}>
-                            {formatBRL(calculations.honorarios)}
-                          </span>
-                        </div>
-                      </div>
-
-                      {isBelowPiso && (
-                        <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-xl flex items-start gap-3">
-                          <AlertTriangle className="h-4 w-4 text-destructive flex-shrink-0 mt-0.5" />
-                          <div>
-                            <p className="text-[10px] font-bold text-destructive uppercase tracking-wider">Aviso de Piso Legal</p>
-                            <p className="text-[10px] text-destructive/80 leading-snug">
-                              Valor abaixo do mínimo estabelecido pelo Decreto-Lei N° 001/2024.
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="p-4 rounded-xl border border-white/5 bg-white/5">
-                      <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-3 flex items-center gap-2">
-                        <Info className="h-3 w-3" />
-                        Notas Legais
-                      </h4>
-                      <ul className="space-y-2">
-                        <li className="text-[10px] text-muted-foreground leading-relaxed flex gap-2">
-                          <span className="text-gold">•</span>
-                          Valores baseados no Art. 7° do Decreto-Lei Jaguaré.
-                        </li>
-                        <li className="text-[10px] text-muted-foreground leading-relaxed flex gap-2">
-                          <span className="text-gold">•</span>
-                          Sujeito a alterações conforme complexidade da causa.
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Rodapé do Orçamento */}
-                <div className="pt-10 border-t border-gold/10 flex flex-col md:flex-row justify-between items-center gap-6">
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-full border border-gold/30 flex items-center justify-center bg-gold/5">
-                      <Scale className="h-6 w-6 text-gold" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-white tracking-widest uppercase">Jaguaré Law System</p>
-                      <p className="text-[10px] text-muted-foreground">Inteligência Jurídica & Financeira</p>
-                    </div>
-                  </div>
-                  
-                  <div className="px-4 py-2 bg-white/5 rounded-lg border border-white/5 text-[9px] text-muted-foreground font-mono uppercase tracking-[0.2em]">
-                    Autenticidade Verificada pela Ordem dos Advogados
-                  </div>
-                </div>
-              </div>
-
-              {/* Marca d'água de fundo */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.02] pointer-events-none rotate-[-15deg]">
-                <Scale className="w-[500px] h-[500px] text-gold" />
-              </div>
-            </div>
-          </div>
-
-          <div className="p-6 bg-secondary/20 border-t border-gold/10 flex flex-wrap items-center justify-center gap-3">
-            <Button onClick={generatePDF} className="bg-white hover:bg-white/90 text-black font-bold text-xs h-10 px-6">
-              <Download className="mr-2 h-4 w-4" />
-              Baixar PDF
-            </Button>
-            <Button onClick={generateJPG} variant="outline" className="border-gold/30 text-gold hover:bg-gold/10 font-bold text-xs h-10 px-6">
-              <ImageIcon className="mr-2 h-4 w-4" />
-              Baixar JPG
-            </Button>
-            <Button onClick={handlePrint} variant="outline" className="border-white/10 text-white hover:bg-white/5 font-bold text-xs h-10 px-6">
-              <Printer className="mr-2 h-4 w-4" />
-              Imprimir
-            </Button>
-            <Button onClick={copySummary} variant="ghost" className="text-muted-foreground hover:text-gold text-xs h-10">
-              <Copy className="mr-2 h-3 w-3" />
-              Copiar Texto
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+    </div>
   );
 }
-
