@@ -101,7 +101,7 @@ const PROCESS_TYPES: ProcessType[] = [
   },
   { 
     id: "recursos", 
-    name: "Recursos (Apelação e/ou Recurso)", 
+    name: "Recursos Criminais e Cíveis", 
     items: [
       { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
       { label: "Taxa de Preparo Recursal", value: 50000, type: 'custa', required: true }
@@ -110,15 +110,16 @@ const PROCESS_TYPES: ProcessType[] = [
   },
   { 
     id: "mandados", 
-    name: "MS, Habeas Corpus e Habeas Data", 
+    name: "Ação Mandamental (MS, HC, HD)", 
     items: [
       { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
       { label: "Custas de Impetração", value: 50000, type: 'custa', required: true }
-    ]
+    ],
+    obs: "Mandado de Segurança, Habeas Corpus e Habeas Data."
   },
   { 
     id: "defesa_detido", 
-    name: "Defesa de Acusado Detido/Preso", 
+    name: "Defesa de Acusado", 
     items: [
       { label: "Petição Inicial", value: 25000, type: 'custa', required: true }
     ],
@@ -136,7 +137,7 @@ const PROCESS_TYPES: ProcessType[] = [
   },
   { 
     id: "porte_arma", 
-    name: "Porte de Arma de Fogo (Uso Permitido)", 
+    name: "Porte de Arma de Fogo", 
     items: [
       { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
       { label: "Exame Psicológico", value: 90000, type: 'despesa' },
@@ -148,7 +149,7 @@ const PROCESS_TYPES: ProcessType[] = [
   },
   { 
     id: "limpeza_ficha", 
-    name: "Exclusão de Antecedentes (Limpeza)", 
+    name: "Exclusão de Antecedentes Criminais", 
     items: [
       { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
       { label: "Ação Judicial", value: 25000, type: 'custa', required: true }
@@ -158,7 +159,7 @@ const PROCESS_TYPES: ProcessType[] = [
   },
   { 
     id: "divorcio", 
-    name: "Divórcio", 
+    name: "Ação de Divórcio", 
     items: [
       { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
       { label: "Taxas Judiciais", value: 0, type: 'custa', required: true }
@@ -178,7 +179,7 @@ const PROCESS_TYPES: ProcessType[] = [
   },
   { 
     id: "casamento", 
-    name: "Casamento (Certidão e Ação)", 
+    name: "Certidão de Casamento", 
     items: [
       { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
       { label: "Certidão de Casamento", value: 100000, type: 'custa' },
@@ -189,7 +190,7 @@ const PROCESS_TYPES: ProcessType[] = [
   },
   { 
     id: "adocao", 
-    name: "Adoção", 
+    name: "Ação de Adoção", 
     items: [
       { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
       { label: "Certidão de Nascimento (Atualização)", value: 250000, type: 'custa' },
@@ -216,6 +217,17 @@ const GRAVIDADE_CRIMES = [
 
 export default function CalculadoraCustas() {
   const [selectedProcessId, setSelectedProcessId] = useState<string>("");
+  
+  const sortedProcessTypes = useMemo(() => {
+    const regular = PROCESS_TYPES.filter(p => p.id !== 'outros')
+      .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+    const outros = PROCESS_TYPES.find(p => p.id === 'outros');
+    
+    const result = [...regular];
+    if (outros) result.push(outros);
+    return result;
+  }, []);
+
   const [diligencias, setDiligencias] = useState<number>(0);
   const [hasJuiz, setHasJuiz] = useState(true);
   const [hasPromotor, setHasPromotor] = useState(false);
@@ -569,7 +581,7 @@ export default function CalculadoraCustas() {
                     <SelectValue placeholder="Selecione o tipo de processo judicial..." />
                   </SelectTrigger>
                   <SelectContent className="max-h-[300px]">
-                    {PROCESS_TYPES.map(p => (
+                    {sortedProcessTypes.map(p => (
                       <SelectItem key={p.id} value={p.id} className="py-3">{p.name}</SelectItem>
                     ))}
                   </SelectContent>
