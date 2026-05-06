@@ -292,6 +292,14 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
         razoes_admissao: razoesAdm,
       }).eq("id", apelacaoId);
       if (error) throw error;
+      if (apelacao?.processo_id) {
+        await supabase.from("movimentacoes").insert({
+          processo_id: apelacao.processo_id,
+          tipo: "apelacao_admitida",
+          descricao: `Apelação admitida pelo Relator ${profile?.nome_completo || ""}.\n\nRazões da admissão:\n${razoesAdm}`,
+          autor_id: user!.id,
+        });
+      }
     },
     onSuccess: () => {
       toast.success("Apelação admitida!");
@@ -311,6 +319,14 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
         razoes_inadmissao: razoesInadm,
       }).eq("id", apelacaoId);
       if (error) throw error;
+      if (apelacao?.processo_id) {
+        await supabase.from("movimentacoes").insert({
+          processo_id: apelacao.processo_id,
+          tipo: "apelacao_inadmitida",
+          descricao: `Apelação inadmitida pelo Relator ${profile?.nome_completo || ""}.\n\nRazões da inadmissão:\n${razoesInadm}`,
+          autor_id: user!.id,
+        });
+      }
     },
     onSuccess: () => {
       toast.success("Apelação inadmitida.");
