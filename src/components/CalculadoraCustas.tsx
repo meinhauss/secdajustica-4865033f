@@ -24,15 +24,18 @@ const formatBRL = (value: number) => {
   }).format(value);
 };
 
+interface ProcessItem {
+  label: string;
+  value: number;
+  type: 'custa' | 'honorario' | 'despesa';
+  required?: boolean;
+}
+
 interface ProcessType {
   id: string;
   name: string;
-  custas: number | "base_plus" | "special" | "vide_decreto" | "custom";
-  honorarios: number | "percentage" | "special" | "none" | "custom";
-  description?: string;
+  items: ProcessItem[];
   obs?: string;
-  baseCustas?: number;
-  baseHonorarios?: number;
 }
 
 const PROCESS_TYPES: ProcessType[] = [
