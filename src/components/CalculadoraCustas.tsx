@@ -455,76 +455,65 @@ export default function CalculadoraCustas() {
     toast.success("Orçamento copiado para a área de transferência!");
   };
 
-  const generatePDF = () => {
+  const openPreview = () => {
     if (!selectedProcess) return;
+    setPreviewOpen(true);
+  };
 
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-
-    // Cabeçalho
-    doc.setFontSize(18);
-    doc.setTextColor(0, 0, 0);
-    doc.text("Simulado de Custas Processuais e Honorários", pageWidth / 2, 20, { align: "center" });
-    doc.setFontSize(12);
-    doc.text(`Data: ${new Date().toLocaleDateString("pt-BR")}`, pageWidth / 2, 28, { align: "center" });
-
-    // Informações do Processo
-    doc.setFontSize(14);
-    doc.text("Informações do Processo", 14, 45);
-    autoTable(doc, {
-      startY: 48,
-      body: [
-        ["Processo", selectedProcess.name],
-        ["Data/Hora", new Date().toLocaleString("pt-BR")],
-      ],
-      theme: "plain",
-      styles: { fontSize: 10, cellPadding: 2 },
+  const captureCanvas = async () => {
+    if (!previewRef.current) return null;
+    return await html2canvas(previewRef.current, {
+      backgroundColor: "#ffffff",
+      scale: 2,
+      useCORS: true,
     });
+  };
 
-    // Itens Discriminados
-    doc.setFontSize(14);
-    doc.text("Detalhamento de Custas e Honorários", 14, (doc as any).lastAutoTable.finalY + 15);
-    
-    const tableData = calculations.itemizedDetails.map(item => [item.label, formatBRL(item.value)]);
-    
-    if (includeExtras) {
-      if (diligencias > 0) tableData.push([`Diligências (${diligencias}x)`, formatBRL(diligencias * 20000)]);
-      if (hasJuiz) tableData.push(["Verba: Juiz de Direito", formatBRL(60000)]);
-      if (hasPromotor) tableData.push(["Verba: Promotor de Justiça", formatBRL(80000)]);
-      if (hasDesembargador) tableData.push(["Verba: Desembargador", formatBRL(120000)]);
-      outrasCustas.forEach(c => {
-        tableData.push([`Custa Extra: ${c.description || "Sem descrição"}`, formatBRL(c.value)]);
-      });
+  const exportJPG = async () => {
+    const canvas = await captureCanvas();
+    if (!canvas || !selectedProcess) return;
+    const link = document.createElement("a");
+    link.download = `Orcamento_${selectedProcess.name.replace(/\s+/g, "_")}.jpg`;
+    link.href = canvas.toDataURL("image/jpeg", 0.95);
+    link.click();
+    toast.success("JPG baixado!");
+  };
+
+  const exportPDF = async () => {
+    const canvas = await captureCanvas();
+    if (!canvas || !selectedProcess) return;
+    const imgData = canvas.toDataURL("image/jpeg", 0.95);
+    const pdf = new jsPDF("p", "mm", "a4");
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const imgWidth = pageWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
     }
 
-    autoTable(doc, {
-      startY: (doc as any).lastAutoTable.finalY + 18,
-      head: [["Descrição", "Valor"]],
-      body: tableData,
-      theme: "grid",
-      headStyles: { fillColor: [184, 134, 11] as any, textColor: 255 }, // Darker gold
-      styles: { fontSize: 9 },
-    });
-
-    // Total
-    const finalY = (doc as any).lastAutoTable.finalY + 15;
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text(`VALOR TOTAL ESTIMADO: ${formatBRL(calculations.total)}`, 14, finalY);
-
-    // Notas de rodapé
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
-    doc.setTextColor(100, 100, 100);
-    const footerText = [
-      "* Este documento é uma estimativa financeira baseada na tabela oficial da OAB-SP e TJ-SP 2026.",
-      "* Os valores podem sofrer alterações conforme o tempo de tramitação e complexidade.",
-      "* Honorários contratuais representam o piso ético estabelecido pela seccional."
-    ];
-    doc.text(footerText, 14, finalY + 15);
-
-    doc.save(`Orcamento_${selectedProcess.name.replace(/\s+/g, "_")}.pdf`);
+    pdf.save(`Orcamento_${selectedProcess.name.replace(/\s+/g, "_")}.pdf`);
     toast.success("PDF gerado com sucesso!");
+  };
+
+  const printPreview = async () => {
+    const canvas = await captureCanvas();
+    if (!canvas) return;
+    const dataUrl = canvas.toDataURL("image/png");
+    const w = window.open("", "_blank");
+    if (!w) return;
+    w.document.write(`<html><head><title>Imprimir Orçamento</title></head><body style="margin:0"><img src="${dataUrl}" style="width:100%" onload="window.print();window.close()"/></body></html>`);
+    w.document.close();
   };
 
   return (
