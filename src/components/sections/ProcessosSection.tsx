@@ -410,6 +410,16 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
           descricao: `Processo originário distribuído por sorteio ao(à) Desembargador(a) Relator(a) ${juizNome || "designado(a)"} — ${form.orgao_julgador}`,
           autor_id: user?.id,
         });
+        // Notificar desembargadores sobre novo processo originário
+        const { data: desembs } = await supabase.from("user_roles").select("user_id").eq("role", "desembargador" as any);
+        const notifs = (desembs || []).map((d: any) => ({
+          user_id: d.user_id,
+          titulo: relatorId === d.user_id ? "Novo processo originário distribuído a você" : "Novo processo originário no Tribunal",
+          mensagem: `${form.orgao_julgador} — ${CLASSES_ORIGINARIAS.find(c => c.value === form.classe_originaria)?.label || ""}: ${form.assunto}${relatorId === d.user_id ? " (Você é o Relator sorteado)" : ""}`,
+          tipo: "processo",
+          link_secao: "tribunal",
+        }));
+        if (notifs.length > 0) await supabase.from("notificacoes").insert(notifs);
       } else if (juizId) {
         await supabase.from("movimentacoes").insert({
           processo_id: processoId,
