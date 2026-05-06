@@ -1,13 +1,13 @@
-import { useState, useMemo, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   Calculator, Receipt, Scale, Briefcase, Gavel, 
   Trash2, Plus, Info, Copy, CheckCircle2,
   CheckSquare, Square, FileText, Download,
-  Coins
+  Coins, AlertTriangle, ChevronRight, FileDown,
+  Printer, ArrowRight
 } from "lucide-react";
-// ... existing imports ...
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -18,13 +18,15 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { cn } from "@/lib/utils";
 
-const CurrencyInput = ({ value, onChange, disabled, className, label }: { 
+const CurrencyInput = ({ value, onChange, disabled, className, label, error }: { 
   value: number; 
   onChange: (val: number) => void; 
   disabled?: boolean;
   className?: string;
   label?: string;
+  error?: boolean;
 }) => {
   const [displayValue, setDisplayValue] = useState(value.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
 
@@ -40,17 +42,24 @@ const CurrencyInput = ({ value, onChange, disabled, className, label }: {
   };
 
   return (
-    <div className="space-y-1">
-      {label && <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</Label>}
+    <div className="space-y-1.5">
+      {label && <Label className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">{label}</Label>}
       <div className="relative group">
-        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gold opacity-50 group-focus-within:opacity-100 transition-opacity">
-          <Coins className="h-3 w-3" />
+        <div className={cn(
+          "absolute left-3 top-1/2 -translate-y-1/2 text-gold opacity-50 group-focus-within:opacity-100 transition-opacity",
+          error && "text-destructive opacity-100"
+        )}>
+          <Coins className="h-3.5 w-3.5" />
         </div>
         <Input
           value={displayValue}
           onChange={handleChange}
           disabled={disabled}
-          className={`pl-8 bg-background border-gold/20 focus:border-gold transition-all font-mono text-sm h-9 ${className}`}
+          className={cn(
+            "pl-9 bg-background/50 border-border hover:border-gold/30 focus:border-gold transition-all font-mono text-sm h-10 shadow-sm",
+            error && "border-destructive focus:border-destructive",
+            className
+          )}
         />
       </div>
     </div>
@@ -78,6 +87,7 @@ interface ProcessType {
   name: string;
   items: ProcessItem[];
   obs?: string;
+  pisoHonorario?: number;
 }
 
 const PROCESS_TYPES: ProcessType[] = [
@@ -94,7 +104,8 @@ const PROCESS_TYPES: ProcessType[] = [
     name: "Recursos (Apelação e/ou Recurso)", 
     items: [
       { label: "Taxa de Preparo Recursal", value: 50000, type: 'custa', required: true }
-    ]
+    ],
+    pisoHonorario: 75000
   },
   { 
     id: "mandados", 
@@ -107,7 +118,8 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "defesa_detido", 
     name: "Defesa de Acusado Detido/Preso", 
     items: [],
-    obs: "Honorários: R$ 30.000,00 (até 10 min) ou R$ 35.000,00 (> 10 min)." 
+    obs: "Honorários: R$ 30.000,00 (até 10 min) ou R$ 35.000,00 (> 10 min).",
+    pisoHonorario: 30000
   },
   { 
     id: "acoes_civeis", 
@@ -126,7 +138,8 @@ const PROCESS_TYPES: ProcessType[] = [
       { label: "Armamento", value: 100000, type: 'despesa' },
       { label: "Munições", value: 70000, type: 'despesa' }
     ],
-    obs: "Valores incluem custos obrigatórios com exame, arma e munições."
+    obs: "Valores incluem custos obrigatórios com exame, arma e munições.",
+    pisoHonorario: 110000
   },
   { 
     id: "limpeza_ficha", 
@@ -134,7 +147,8 @@ const PROCESS_TYPES: ProcessType[] = [
     items: [
       { label: "Taxa Processual Base (Ação + Inicial)", value: 50000, type: 'custa', required: true }
     ],
-    obs: "Soma de Petição Inicial (R$ 25.000) e Ação Judicial (R$ 25.000)."
+    obs: "Soma de Petição Inicial (R$ 25.000) e Ação Judicial (R$ 25.000).",
+    pisoHonorario: 110000
   },
   { 
     id: "divorcio", 
@@ -142,7 +156,8 @@ const PROCESS_TYPES: ProcessType[] = [
     items: [
       { label: "Taxas Judiciais", value: 0, type: 'custa', required: true }
     ],
-    obs: "Custas conforme decreto judicial vigente."
+    obs: "Custas conforme decreto judicial vigente.",
+    pisoHonorario: 115000
   },
   { 
     id: "alvara", 
@@ -151,7 +166,8 @@ const PROCESS_TYPES: ProcessType[] = [
       { label: "Custas TJ-SP (Inclui Inicial)", value: 150000, type: 'custa', required: true },
       { label: "Taxa AVCB (Bombeiros)", value: 50000, type: 'custa' }
     ],
-    obs: "Obrigatório o pagamento da Taxa AVCB à parte."
+    obs: "Obrigatório o pagamento da Taxa AVCB à parte.",
+    pisoHonorario: 35000
   },
   { 
     id: "casamento", 
@@ -161,7 +177,8 @@ const PROCESS_TYPES: ProcessType[] = [
       { label: "Certidão de Casamento", value: 100000, type: 'custa' },
       { label: "Valor da Ação", value: 750000, type: 'custa', required: true }
     ],
-    obs: "Total das taxas soma R$ 875.000,00."
+    obs: "Total das taxas soma R$ 875.000,00.",
+    pisoHonorario: 80000
   },
   { 
     id: "adocao", 
@@ -365,9 +382,15 @@ export default function CalculadoraCustas() {
       itemizedDetails: itemizedDetails.filter(i => {
         if (i.type === 'honorario') return includeHonorarios;
         return includeCustas;
-      }).map(i => ({ ...i, required: (selectedProcess?.items?.find(orig => orig.label === i.label)?.required) }))
+      }).map(i => ({ ...i, required: (selectedProcess?.items?.find(orig => orig.label === i.label)?.required) })),
+      piso: selectedProcess?.pisoHonorario || 0
     };
   }, [selectedProcess, diligencias, hasJuiz, hasPromotor, hasDesembargador, valorCivel, hasAlteracaoNome, includeCustas, includeHonorarios, includeExtras, customCustas, customHonorarios, honorarioType, customPercentage, outrasCustas, selectedItems, crimesLimpeza]);
+
+  const isBelowPiso = useMemo(() => {
+    if (!selectedProcess || !selectedProcess.pisoHonorario) return false;
+    return calculations.honorarios < selectedProcess.pisoHonorario;
+  }, [calculations.honorarios, selectedProcess]);
 
   const copySummary = () => {
     if (!selectedProcess) return;
@@ -465,34 +488,39 @@ export default function CalculadoraCustas() {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-5xl">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-bold font-display text-foreground flex items-center gap-3">
-            <Calculator className="h-8 w-8 text-gold" />
-            Calculadora de Custas e Honorários
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Baseado na tabela oficial do Tribunal de Justiça e OAB-SP.
+    <div className="container mx-auto py-6 px-4 max-w-6xl">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 pb-6 border-b">
+        <div className="space-y-1">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gold/10 rounded-lg">
+              <Calculator className="h-6 w-6 text-gold" />
+            </div>
+            <h1 className="text-3xl font-bold font-display tracking-tight text-foreground">
+              Simulador Financeiro
+            </h1>
+          </div>
+          <p className="text-muted-foreground">
+            Cálculo estratégico de custas, despesas e honorários profissionais.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        
+        <div className="flex items-center gap-3">
           <Button 
             onClick={generatePDF} 
             disabled={!selectedProcess} 
             variant="outline"
-            className="border-gold text-gold hover:bg-gold hover:text-black font-bold"
+            className="border-gold/30 text-gold hover:bg-gold hover:text-black transition-all"
           >
             <Download className="mr-2 h-4 w-4" />
-            Exportar PDF
+            PDF
           </Button>
           <Button 
             onClick={copySummary} 
             disabled={!selectedProcess} 
-            className="bg-gold hover:bg-gold-dark text-black font-bold"
+            className="bg-gold hover:bg-gold-dark text-black font-bold shadow-gold/20 shadow-lg"
           >
             <Copy className="mr-2 h-4 w-4" />
-            Copiar Resumo
+            Copiar Orçamento
           </Button>
         </div>
       </div>
@@ -507,299 +535,297 @@ export default function CalculadoraCustas() {
                 Tipo de Ação
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Selecione o Processo</Label>
+            <CardContent className="space-y-6 p-6">
+              <div className="space-y-2.5">
+                <Label className="text-sm font-bold flex items-center gap-2">
+                  <ChevronRight className="h-4 w-4 text-gold" />
+                  Natureza da Ação
+                </Label>
                 <Select value={selectedProcessId} onValueChange={setSelectedProcessId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Escolha uma opção..." />
+                  <SelectTrigger className="h-12 border-gold/20 bg-background/50 hover:border-gold focus:ring-gold transition-all">
+                    <SelectValue placeholder="Selecione o tipo de processo judicial..." />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-[300px]">
                     {PROCESS_TYPES.map(p => (
-                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                      <SelectItem key={p.id} value={p.id} className="py-3">{p.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                {selectedProcess?.obs && (
-                  <p className="text-xs text-muted-foreground bg-secondary/50 p-2 rounded flex items-start gap-2">
-                    <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                    {selectedProcess.obs}
-                  </p>
-                )}
+                <AnimatePresence>
+                  {selectedProcess?.obs && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="p-3 rounded-lg bg-secondary/40 border border-gold/10 flex items-start gap-3 mt-2"
+                    >
+                      <Info className="h-4 w-4 text-gold mt-0.5 flex-shrink-0" />
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        {selectedProcess.obs}
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
-              {/* Discriminação de Despesas e Taxas do Processo */}
-              {selectedProcess && selectedProcess.id !== 'outros' && selectedProcess.items.length > 0 && (
-                <div className="space-y-3 p-4 border rounded-lg bg-secondary/5 mb-4 shadow-sm relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-2 opacity-5">
-                    <CheckSquare className="h-12 w-12" />
-                  </div>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                    <CheckSquare className="h-3 w-3 text-gold" />
-                    Discriminação de Taxas e Despesas
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {selectedProcess.items.map((item) => (
-                      <div key={item.label} className={`flex items-center space-x-2 p-2 border rounded bg-background transition-all ${item.required ? 'border-gold/20 bg-gold/5 shadow-inner' : 'hover:border-gold/30 hover:bg-secondary/10'}`}>
-                        <Checkbox 
-                          id={`item-${item.label}`} 
-                          checked={item.required ? true : (selectedItems[item.label] || false)}
-                          disabled={item.required}
-                          onCheckedChange={(v) => setSelectedItems({ ...selectedItems, [item.label]: !!v })}
-                          className={item.required ? "border-gold/50 data-[state=checked]:bg-gold data-[state=checked]:text-black" : ""}
-                        />
-                        <Label htmlFor={`item-${item.label}`} className={`text-xs flex-1 flex justify-between gap-2 ${item.required ? 'cursor-default font-medium' : 'cursor-pointer'}`}>
-                          <span className="truncate">{item.label}</span>
-                          <span className="text-gold font-mono whitespace-nowrap">{formatBRL(item.value)}</span>
-                        </Label>
+              {selectedProcess && (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="space-y-6 pt-2"
+                >
+                  {/* Discriminação de Despesas e Taxas do Processo */}
+                  {selectedProcess.id !== 'outros' && selectedProcess.items.length > 0 && (
+                    <div className="space-y-3">
+                      <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                        <CheckSquare className="h-3 w-3 text-gold" />
+                        Composição de Custas
+                      </h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        {selectedProcess.items.map((item) => (
+                          <div 
+                            key={item.label} 
+                            className={cn(
+                              "flex items-center space-x-3 p-3 border rounded-xl bg-background/30 transition-all duration-300",
+                              item.required 
+                                ? "border-gold/30 bg-gold/5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] opacity-100" 
+                                : "hover:border-gold/40 hover:bg-secondary/20 border-transparent cursor-pointer"
+                            )}
+                            onClick={() => !item.required && setSelectedItems({ ...selectedItems, [item.label]: !selectedItems[item.label] })}
+                          >
+                            <Checkbox 
+                              id={`item-${item.label}`} 
+                              checked={item.required ? true : (selectedItems[item.label] || false)}
+                              disabled={item.required}
+                              className={cn(
+                                "h-4 w-4 transition-colors",
+                                item.required ? "border-gold data-[state=checked]:bg-gold data-[state=checked]:text-black" : "border-border"
+                              )}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className={cn("text-xs truncate font-medium", item.required ? "text-foreground" : "text-muted-foreground")}>{item.label}</p>
+                              <p className="text-[10px] font-mono text-gold/80">{formatBRL(item.value)}</p>
+                            </div>
+                            {item.required && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <Info className="h-3 w-3 text-gold/40" />
+                                  </TooltipTrigger>
+                                  <TooltipContent>Item obrigatório por lei</TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {selectedProcessId && (
-                <div className="space-y-4 p-4 border rounded-lg bg-secondary/10 shadow-sm relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-1 h-full bg-gold/50" />
-                  <h4 className="font-semibold text-sm flex items-center gap-2">
-                    <Scale className="h-4 w-4 text-gold" />
-                    Valores Principais
-                  </h4>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
+                    </div>
+                  )}
+
+                  <div className="p-5 rounded-2xl bg-secondary/20 border border-gold/10 shadow-inner space-y-6">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Scale className="h-4 w-4 text-gold" />
+                      <h4 className="text-xs font-bold uppercase tracking-wider">Ajustes Estratégicos</h4>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <CurrencyInput 
-                        label="Custas Processuais"
+                        label="Custas Processuais Base"
                         value={selectedProcessId === 'outros' ? customCustas : (selectedProcess?.items?.find(i => i.type === 'custa')?.value ?? customCustas)} 
                         onChange={setCustomCustas}
                         disabled={selectedProcessId !== 'outros'}
                       />
-                      {selectedProcessId !== 'outros' && (
-                        <p className="text-[9px] text-muted-foreground italic flex items-center gap-1">
-                          <Info className="h-2 w-2" />
-                          Valor padrão obrigatório da tabela judicial.
-                        </p>
-                      )}
-                    </div>
 
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label className="text-xs">Honorários</Label>
-                        <RadioGroup 
-                          value={honorarioType} 
-                          onValueChange={(v: "fixed" | "percentage") => setHonorarioType(v)}
-                          className="flex gap-4"
-                        >
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="fixed" id="fixed" />
-                            <Label htmlFor="fixed" className="text-[10px]">Fixo</Label>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Regime de Honorários</Label>
+                          <RadioGroup 
+                            value={honorarioType} 
+                            onValueChange={(v: "fixed" | "percentage") => setHonorarioType(v)}
+                            className="flex gap-4 p-1.5 bg-background/50 rounded-lg border border-border w-fit"
+                          >
+                            <div className="flex items-center space-x-2 px-2">
+                              <RadioGroupItem value="fixed" id="fixed" className="text-gold" />
+                              <Label htmlFor="fixed" className="text-xs cursor-pointer">Valor Fixo</Label>
+                            </div>
+                            <div className="flex items-center space-x-2 px-2">
+                              <RadioGroupItem value="percentage" id="percentage" className="text-gold" />
+                              <Label htmlFor="percentage" className="text-xs cursor-pointer">Percentual</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+
+                        {honorarioType === "fixed" ? (
+                          <div className="space-y-1">
+                            <CurrencyInput 
+                              label="Valor Pretendido"
+                              value={customHonorarios} 
+                              onChange={setCustomHonorarios}
+                              error={isBelowPiso}
+                            />
+                            <p className={cn(
+                              "text-[9px] font-medium flex items-center gap-1 mt-1 transition-colors",
+                              isBelowPiso ? "text-destructive" : "text-gold"
+                            )}>
+                              <Info className="h-2 w-2" />
+                              {selectedProcess?.pisoHonorario 
+                                ? `Piso da Categoria: ${formatBRL(selectedProcess.pisoHonorario)}` 
+                                : "Piso conforme tabela enviada."}
+                            </p>
                           </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="percentage" id="percentage" />
-                            <Label htmlFor="percentage" className="text-[10px]">Percentual</Label>
+                        ) : (
+                          <div className="space-y-3">
+                            <CurrencyInput 
+                              label="Base de Cálculo (Causa)"
+                              value={valorCivel} 
+                              onChange={setValorCivel}
+                            />
+                            <div className="space-y-1.5">
+                              <Label className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Alíquota (%)</Label>
+                              <div className="relative">
+                                <Input 
+                                  type="number" 
+                                  value={customPercentage} 
+                                  onChange={e => setCustomPercentage(Number(e.target.value))}
+                                  className="bg-background/50 border-border h-10 text-sm font-mono focus:border-gold transition-all"
+                                />
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">%</span>
+                              </div>
+                            </div>
                           </div>
-                        </RadioGroup>
+                        )}
                       </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </CardContent>
+          </Card>
 
-                      {honorarioType === "fixed" ? (
-                        <div className="space-y-1">
-                          <CurrencyInput 
-                            label="Valor Honorário"
-                            value={customHonorarios} 
-                            onChange={setCustomHonorarios}
+          <AnimatePresence>
+            {selectedProcess && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-6"
+              >
+                <Card className="border-gold/10 bg-background/40 backdrop-blur-sm overflow-hidden">
+                  <div className="h-1 w-full bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Scale className="h-5 w-5 text-gold" />
+                      Variáveis Processuais
+                    </CardTitle>
+                    <CardDescription className="text-[11px] uppercase tracking-wider">
+                      Taxas de diligência e verbas indenizatórias
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 rounded-xl bg-secondary/10 border border-gold/5">
+                      <div className="space-y-3">
+                        <Label className="flex justify-between text-xs font-bold uppercase tracking-wider">
+                          Diligências Judiciais
+                          <span className="text-gold font-mono">{formatBRL(diligencias * 20000)}</span>
+                        </Label>
+                        <div className="flex items-center gap-4">
+                          <Input 
+                            type="number" 
+                            min="0" 
+                            value={diligencias} 
+                            onChange={e => setDiligencias(Math.max(0, Number(e.target.value)))}
+                            className="w-24 bg-background/50 border-gold/20 h-10 font-mono"
                           />
-                          <p className="text-[9px] text-amber-500 font-medium flex items-center gap-1">
-                            <Info className="h-2 w-2" />
-                            Piso conforme tabela de processos enviada.
+                          <p className="text-[10px] text-muted-foreground leading-snug">
+                            Oficial de Justiça<br/>R$ 20.000,00 cada
                           </p>
                         </div>
-                      ) : (
-                        <div className="space-y-2">
-                          <CurrencyInput 
-                            label="Base de Cálculo"
-                            value={valorCivel} 
-                            onChange={setValorCivel}
-                          />
-                          <div className="space-y-1">
-                            <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Percentual (%)</Label>
-                            <Input 
-                              type="number" 
-                              value={customPercentage} 
-                              onChange={e => setCustomPercentage(Number(e.target.value))}
-                              className="bg-background border-gold/20 h-9 text-sm"
-                            />
-                          </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        <Label className="text-xs font-bold uppercase tracking-wider">Verbas Indenizatórias</Label>
+                        <div className="grid grid-cols-1 gap-2">
+                          {[
+                            { id: 'juiz', checked: hasJuiz, onChange: setHasJuiz, label: 'Juiz de Direito', val: '60k' },
+                            { id: 'promotor', checked: hasPromotor, onChange: setHasPromotor, label: 'Promotor de Justiça', val: '80k' },
+                            { id: 'desemb', checked: hasDesembargador, onChange: setHasDesembargador, label: 'Desembargador', val: '120k' },
+                          ].map((v) => (
+                            <div key={v.id} 
+                              className={cn(
+                                "flex items-center justify-between p-2.5 rounded-lg border transition-all cursor-pointer",
+                                v.checked ? "border-gold/30 bg-gold/5" : "border-transparent bg-background/20 hover:bg-secondary/30"
+                              )}
+                              onClick={() => v.onChange(!v.checked)}
+                            >
+                              <div className="flex items-center space-x-2">
+                                <Checkbox id={v.id} checked={v.checked} onCheckedChange={(val) => v.onChange(!!val)} className="border-gold/30" />
+                                <Label htmlFor={v.id} className="text-[11px] cursor-pointer font-medium">{v.label}</Label>
+                              </div>
+                              <span className="text-[10px] font-mono text-gold/70">R$ {v.val}</span>
+                            </div>
+                          ))}
                         </div>
-                      )}
+                      </div>
                     </div>
-                  </div>
-                </div>
-              )}
 
-
-              {/* Campos Dinâmicos conforme a seleção */}
-              {selectedProcessId === 'defesa_detido' && (
-                <div className="flex items-center space-x-2 p-3 bg-secondary/30 rounded-lg">
-                  <Checkbox 
-                    id="tempo" 
-                    checked={detidoMais10Min} 
-                    onCheckedChange={(v) => setDetidoMais10Min(!!v)} 
-                  />
-                  <Label htmlFor="tempo" className="cursor-pointer">Atendimento superior a 10 minutos?</Label>
-                </div>
-              )}
-
-              {selectedProcessId === 'acoes_civeis' && (
-                <div className="space-y-2">
-                  <Label>Valor da Causa / Indenização (R$)</Label>
-                  <Input 
-                    type="number" 
-                    placeholder="Ex: 50000" 
-                    value={valorCivel || ""} 
-                    onChange={e => setValorCivel(Number(e.target.value))}
-                  />
-                  <p className="text-[10px] text-muted-foreground">Honorários de 20% serão calculados sobre este valor.</p>
-                </div>
-              )}
-
-              {selectedProcessId === 'limpeza_ficha' && (
-                <div className="space-y-3">
-                  <Label className="flex justify-between items-center">
-                    Antecedentes a Limpar
-                    <Button size="sm" variant="outline" onClick={addCrimeLimpeza} className="h-7 text-[10px]">
-                      <Plus className="h-3 w-3 mr-1" /> Add Antecedente
-                    </Button>
-                  </Label>
-                  <div className="space-y-2">
-                    {crimesLimpeza.map((c, idx) => (
-                      <div key={c.id} className="flex gap-2 items-center">
-                        <Select 
-                          value={c.typeIndex.toString()} 
-                          onValueChange={(v) => updateCrimeLimpeza(c.id, Number(v))}
-                        >
-                          <SelectTrigger className="flex-1">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {GRAVIDADE_CRIMES.map((g, i) => (
-                              <SelectItem key={i} value={i.toString()}>{g.label} (+{formatBRL(g.value)})</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Button variant="ghost" size="icon" onClick={() => removeCrimeLimpeza(c.id)} className="text-destructive h-9 w-9">
-                          <Trash2 className="h-4 w-4" />
+                    <div className="space-y-4 pt-4 border-t border-gold/10">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground flex items-center gap-2">
+                          <Plus className="h-3 w-3 text-gold" />
+                          Outras Custas
+                        </Label>
+                        <Button size="sm" variant="ghost" onClick={addOutraCusta} className="h-7 text-[10px] text-gold hover:bg-gold/10">
+                          Adicionar Item
                         </Button>
                       </div>
-                    ))}
-                    {crimesLimpeza.length === 0 && <p className="text-xs text-center text-muted-foreground py-2">Nenhum antecedente adicionado.</p>}
-                  </div>
-                </div>
-              )}
-
-              {(selectedProcessId === 'casamento' || selectedProcessId === 'adocao') && (
-                <div className="flex items-center space-x-2 p-3 bg-secondary/30 rounded-lg">
-                  <Checkbox 
-                    id="nome" 
-                    checked={hasAlteracaoNome} 
-                    onCheckedChange={(v) => setHasAlteracaoNome(!!v)} 
-                  />
-                  <Label htmlFor="nome" className="cursor-pointer">Incluir Alteração de Nome? (+ R$ 2.000.000,00)</Label>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Scale className="h-5 w-5 text-gold" />
-                Custas Adicionais e Verbas
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Seção unificada de Verbas e Diligências */}
-              <div className="space-y-4 p-4 border rounded-lg bg-secondary/10">
-                <h4 className="font-semibold text-sm flex items-center gap-2">
-                  <Gavel className="h-4 w-4 text-gold" />
-                  Verbas e Diligências
-                </h4>
-                
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label className="flex justify-between text-xs">
-                      Diligências (Oficial de Justiça)
-                      <span className="text-gold font-mono">{formatBRL(diligencias * 20000)}</span>
-                    </Label>
-                    <div className="flex items-center gap-4">
-                      <Input 
-                        type="number" 
-                        min="0" 
-                        value={diligencias} 
-                        onChange={e => setDiligencias(Math.max(0, Number(e.target.value)))}
-                        className="w-24 bg-background"
-                      />
-                      <span className="text-[10px] text-muted-foreground">R$ 20.000,00 cada</span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-xs">Verbas Indenizatórias</Label>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                      <div className="flex items-center space-x-2 border p-2 rounded bg-background">
-                        <Checkbox id="juiz" checked={hasJuiz} onCheckedChange={(v) => setHasJuiz(!!v)} />
-                        <Label htmlFor="juiz" className="text-[10px] cursor-pointer">Juiz (60k)</Label>
-                      </div>
-                      <div className="flex items-center space-x-2 border p-2 rounded bg-background">
-                        <Checkbox id="promotor" checked={hasPromotor} onCheckedChange={(v) => setHasPromotor(!!v)} />
-                        <Label htmlFor="promotor" className="text-[10px] cursor-pointer">Promotor (80k)</Label>
-                      </div>
-                      <div className="flex items-center space-x-2 border p-2 rounded bg-background">
-                        <Checkbox id="desemb" checked={hasDesembargador} onCheckedChange={(v) => setHasDesembargador(!!v)} />
-                        <Label htmlFor="desemb" className="text-[10px] cursor-pointer">Desemb. (120k)</Label>
+                      
+                      <div className="space-y-3">
+                        {outrasCustas.map((c) => (
+                          <motion.div 
+                            key={c.id} 
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end p-4 bg-secondary/10 rounded-xl border border-gold/10 shadow-sm relative group"
+                          >
+                            <div className="md:col-span-6">
+                              <Input 
+                                placeholder="Descrição da despesa..." 
+                                value={c.description} 
+                                onChange={e => updateOutraCusta(c.id, "description", e.target.value)}
+                                className="h-9 bg-background/50 border-border text-sm"
+                              />
+                            </div>
+                            <div className="md:col-span-5">
+                              <CurrencyInput 
+                                value={c.value} 
+                                onChange={val => updateOutraCusta(c.id, "value", val)}
+                                className="h-9"
+                              />
+                            </div>
+                            <div className="md:col-span-1 flex justify-end">
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={() => removeOutraCusta(c.id)} 
+                                className="text-destructive/50 hover:text-destructive hover:bg-destructive/10 h-9 w-9 transition-colors"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </motion.div>
+                        ))}
+                        {outrasCustas.length === 0 && (
+                          <div className="text-center py-6 border-2 border-dashed border-border rounded-xl opacity-40">
+                            <p className="text-[10px] uppercase tracking-widest">Nenhum item extra adicionado</p>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4 pt-4 border-t">
-                <Label className="flex justify-between items-center">
-                  Outras Custas (Personalizadas)
-                  <Button size="sm" variant="outline" onClick={addOutraCusta} className="h-7 text-[10px]">
-                    <Plus className="h-3 w-3 mr-1" /> Add Custa
-                  </Button>
-                </Label>
-                <div className="space-y-3">
-                  {outrasCustas.map((c) => (
-                    <div key={c.id} className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end p-3 bg-secondary/20 rounded-lg border border-gold/10">
-                      <div className="md:col-span-6">
-                        <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Descrição</Label>
-                        <Input 
-                          placeholder="Ex: Taxa extra" 
-                          value={c.description} 
-                          onChange={e => updateOutraCusta(c.id, "description", e.target.value)}
-                          className="h-9 bg-background"
-                        />
-                      </div>
-                      <div className="md:col-span-5">
-                        <CurrencyInput 
-                          label="Valor"
-                          value={c.value} 
-                          onChange={val => updateOutraCusta(c.id, "value", val)}
-                        />
-                      </div>
-                      <div className="md:col-span-1 flex justify-end">
-                        <Button variant="ghost" size="icon" onClick={() => removeOutraCusta(c.id)} className="text-destructive h-9 w-9">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                  {outrasCustas.length === 0 && <p className="text-xs text-center text-muted-foreground py-2">Nenhuma custa extra adicionada.</p>}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
+
 
         {/* Resumo */}
         <div className="space-y-4">
@@ -814,68 +840,130 @@ export default function CalculadoraCustas() {
                 <div className="space-y-4">
                   <div className="flex justify-between items-start group">
                     <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <Checkbox 
-                        id="inc-custas" 
-                        checked={includeCustas} 
-                        onCheckedChange={(v) => setIncludeCustas(!!v)}
-                        className="h-3 w-3 border-gold/50 data-[state=checked]:bg-gold data-[state=checked]:text-black"
-                      />
-                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeCustas(!includeCustas)}>Custas e Despesas</p>
-                    </div>
-                      <p className={`font-medium transition-opacity ${!includeCustas ? 'opacity-30' : ''}`}>
+                      <div className="flex items-center gap-2">
+                        <Checkbox 
+                          id="inc-custas" 
+                          checked={includeCustas} 
+                          onCheckedChange={(v) => setIncludeCustas(!!v)}
+                          className="h-4 w-4 border-gold/50 data-[state=checked]:bg-gold data-[state=checked]:text-black rounded-sm"
+                        />
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-gold/80 cursor-pointer" onClick={() => setIncludeCustas(!includeCustas)}>Custas e Despesas</p>
+                      </div>
+                      <p className={cn("text-lg font-display tracking-tight transition-opacity", !includeCustas && "opacity-30")}>
                         {selectedProcess ? formatBRL(calculations.custas) : "—"}
                       </p>
                     </div>
-                    <Scale className={`h-4 w-4 transition-colors ${includeCustas ? 'text-gold/50' : 'text-muted-foreground/30'}`} />
+                    <Scale className={cn("h-5 w-5 transition-colors", includeCustas ? "text-gold/60" : "text-muted-foreground/30")} />
                   </div>
 
-                  {calculations.itemizedDetails.map((item, idx) => (
-                    <div key={idx} className="flex justify-between items-start pl-5 border-l border-gold/20">
-                      <div className="space-y-0.5">
-                        <p className="text-[9px] uppercase tracking-widest text-muted-foreground">{item.label}</p>
-                        <p className="text-xs font-medium">{formatBRL(item.value)}</p>
-                      </div>
-                    </div>
-                  ))}
+                  <AnimatePresence>
+                    {includeCustas && (
+                      <motion.div 
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden space-y-1.5 pl-6 border-l-2 border-gold/10 ml-2"
+                      >
+                        {calculations.itemizedDetails.filter(i => i.type !== 'honorario').map((item, idx) => (
+                          <div key={idx} className="flex justify-between text-[11px] py-0.5 group">
+                            <span className="text-muted-foreground group-hover:text-foreground transition-colors">{item.label}</span>
+                            <span className="font-mono text-gold/90">{formatBRL(item.value)}</span>
+                          </div>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
-                  {includeExtras && (diligencias > 0 || hasJuiz || hasPromotor || hasDesembargador || outrasCustas.length > 0) && (
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-0.5">
-                        <div className="flex items-center gap-2">
-                          <Checkbox 
-                            id="inc-extras" 
-                            checked={includeExtras} 
-                            onCheckedChange={(v) => setIncludeExtras(!!v)}
-                            className="h-3 w-3 border-gold/50 data-[state=checked]:bg-gold data-[state=checked]:text-black"
-                          />
-                          <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeExtras(!includeExtras)}>Diligências e Verbas</p>
-                        </div>
-                        <p className={`font-medium transition-opacity ${!includeExtras ? 'opacity-30' : ''}`}>
-                          {formatBRL(calculations.extras)}
-                        </p>
-                      </div>
-                      <Gavel className={`h-4 w-4 transition-colors ${includeExtras ? 'text-gold/50' : 'text-muted-foreground/30'}`} />
-                    </div>
-                  )}
+                  <div className="h-px bg-gold/10 my-2" />
 
-                <div className="flex justify-between items-start">
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <Checkbox 
-                        id="inc-honorarios" 
-                        checked={includeHonorarios} 
-                        onCheckedChange={(v) => setIncludeHonorarios(!!v)}
-                        className="h-3 w-3 border-gold/50 data-[state=checked]:bg-gold data-[state=checked]:text-black"
-                      />
-                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeHonorarios(!includeHonorarios)}>Honorários Advocatícios</p>
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <Checkbox 
+                          id="inc-extras" 
+                          checked={includeExtras} 
+                          onCheckedChange={(v) => setIncludeExtras(!!v)}
+                          className="h-4 w-4 border-gold/50 data-[state=checked]:bg-gold data-[state=checked]:text-black rounded-sm"
+                        />
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-gold/80 cursor-pointer" onClick={() => setIncludeExtras(!includeExtras)}>Diligências e Verbas</p>
+                      </div>
+                      <p className={cn("text-lg font-display tracking-tight transition-opacity", !includeExtras && "opacity-30")}>
+                        {formatBRL(calculations.extras)}
+                      </p>
                     </div>
-                    <p className={`font-medium transition-opacity ${!includeHonorarios ? 'opacity-30' : ''}`}>
-                      {formatBRL(calculations.honorarios)}
-                    </p>
+                    <Gavel className={cn("h-5 w-5 transition-colors", includeExtras ? "text-gold/60" : "text-muted-foreground/30")} />
                   </div>
-                  <Briefcase className={`h-4 w-4 transition-colors ${includeHonorarios ? 'text-gold/50' : 'text-muted-foreground/30'}`} />
-                </div>
+
+                  <AnimatePresence>
+                    {includeExtras && (diligencias > 0 || hasJuiz || hasPromotor || hasDesembargador || outrasCustas.length > 0) && (
+                      <motion.div 
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden space-y-1.5 pl-6 border-l-2 border-gold/10 ml-2"
+                      >
+                        {diligencias > 0 && (
+                          <div className="flex justify-between text-[11px] py-0.5">
+                            <span className="text-muted-foreground">Diligências ({diligencias}x)</span>
+                            <span className="font-mono text-gold/90">{formatBRL(diligencias * 20000)}</span>
+                          </div>
+                        )}
+                        {(hasJuiz || hasPromotor || hasDesembargador) && (
+                          <div className="space-y-1">
+                            {hasJuiz && <div className="flex justify-between text-[11px]"><span className="text-muted-foreground">Juiz:</span> <span className="font-mono">{formatBRL(60000)}</span></div>}
+                            {hasPromotor && <div className="flex justify-between text-[11px]"><span className="text-muted-foreground">Promotor:</span> <span className="font-mono">{formatBRL(80000)}</span></div>}
+                            {hasDesembargador && <div className="flex justify-between text-[11px]"><span className="text-muted-foreground">Desemb.:</span> <span className="font-mono">{formatBRL(120000)}</span></div>}
+                          </div>
+                        )}
+                        {outrasCustas.map((c) => (
+                          <div key={c.id} className="flex justify-between text-[11px] py-0.5">
+                            <span className="text-muted-foreground truncate max-w-[140px]">{c.description || "Outra"}</span>
+                            <span className="font-mono text-gold/90">{formatBRL(c.value)}</span>
+                          </div>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <div className="h-px bg-gold/10 my-2" />
+
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <Checkbox 
+                          id="inc-honorarios" 
+                          checked={includeHonorarios} 
+                          onCheckedChange={(v) => setIncludeHonorarios(!!v)}
+                          className={cn(
+                            "h-4 w-4 border-gold/50 data-[state=checked]:bg-gold data-[state=checked]:text-black rounded-sm",
+                            isBelowPiso && includeHonorarios && "border-destructive ring-destructive/20 ring-4"
+                          )}
+                        />
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-gold/80 cursor-pointer" onClick={() => setIncludeHonorarios(!includeHonorarios)}>Honorários Profissionais</p>
+                      </div>
+                      <p className={cn(
+                        "text-lg font-display tracking-tight transition-opacity",
+                        !includeHonorarios && "opacity-30",
+                        isBelowPiso && includeHonorarios && "text-destructive font-bold"
+                      )}>
+                        {formatBRL(calculations.honorarios)}
+                      </p>
+                      {isBelowPiso && includeHonorarios && (
+                        <motion.p 
+                          initial={{ opacity: 0, x: -5 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className="text-[10px] text-destructive flex items-center gap-1.5 font-bold mt-1.5 bg-destructive/10 px-2 py-1 rounded shadow-sm border border-destructive/20"
+                        >
+                          <AlertTriangle className="h-3.5 w-3.5 fill-destructive text-white" />
+                          ABAIXO DO PISO ({formatBRL(calculations.piso)})
+                        </motion.p>
+                      )}
+                    </div>
+                    <Briefcase className={cn(
+                      "h-5 w-5 transition-colors",
+                      includeHonorarios ? (isBelowPiso ? "text-destructive animate-pulse" : "text-gold/60") : "text-muted-foreground/30"
+                    )} />
+                  </div>
 
                 <div className="pt-2 flex justify-end">
                   <Button 
