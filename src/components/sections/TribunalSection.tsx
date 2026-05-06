@@ -260,6 +260,16 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
     );
   };
 
+  // Relator profile (for header display)
+  const { data: relatorProfile } = useQuery({
+    queryKey: ["relator-profile", apelacao?.desembargador_id],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("nome_completo").eq("user_id", apelacao!.desembargador_id).single();
+      return data;
+    },
+    enabled: !!apelacao?.desembargador_id,
+  });
+
   // Qualificar como relator (antes de admitir)
   const qualificarRelatorMutation = useMutation({
     mutationFn: async () => {
@@ -268,6 +278,14 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
         .update({ desembargador_id: user!.id })
         .eq("id", apelacaoId);
       if (error) throw error;
+      if (apelacao?.processo_id) {
+        await supabase.from("movimentacoes").insert({
+          processo_id: apelacao.processo_id,
+          tipo: "relator_designado",
+          descricao: `${profile?.nome_completo || "Desembargador(a)"} assumiu como Relator(a) da apelação ${apelacao.numero_acordao}.`,
+          autor_id: user!.id,
+        });
+      }
     },
     onSuccess: () => {
       toast.success("Você se qualificou como Relator desta apelação.");
