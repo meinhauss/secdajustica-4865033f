@@ -387,6 +387,11 @@ export default function CalculadoraCustas() {
     };
   }, [selectedProcess, diligencias, hasJuiz, hasPromotor, hasDesembargador, valorCivel, hasAlteracaoNome, includeCustas, includeHonorarios, includeExtras, customCustas, customHonorarios, honorarioType, customPercentage, outrasCustas, selectedItems, crimesLimpeza]);
 
+  const isBelowPiso = useMemo(() => {
+    if (!selectedProcess || !selectedProcess.pisoHonorario) return false;
+    return calculations.honorarios < selectedProcess.pisoHonorario;
+  }, [calculations.honorarios, selectedProcess]);
+
   const copySummary = () => {
     if (!selectedProcess) return;
 
@@ -483,34 +488,39 @@ export default function CalculadoraCustas() {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-5xl">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-bold font-display text-foreground flex items-center gap-3">
-            <Calculator className="h-8 w-8 text-gold" />
-            Calculadora de Custas e Honorários
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Baseado na tabela oficial do Tribunal de Justiça e OAB-SP.
+    <div className="container mx-auto py-6 px-4 max-w-6xl">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 pb-6 border-b">
+        <div className="space-y-1">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gold/10 rounded-lg">
+              <Calculator className="h-6 w-6 text-gold" />
+            </div>
+            <h1 className="text-3xl font-bold font-display tracking-tight text-foreground">
+              Simulador Financeiro
+            </h1>
+          </div>
+          <p className="text-muted-foreground">
+            Cálculo estratégico de custas, despesas e honorários profissionais.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        
+        <div className="flex items-center gap-3">
           <Button 
             onClick={generatePDF} 
             disabled={!selectedProcess} 
             variant="outline"
-            className="border-gold text-gold hover:bg-gold hover:text-black font-bold"
+            className="border-gold/30 text-gold hover:bg-gold hover:text-black transition-all"
           >
             <Download className="mr-2 h-4 w-4" />
-            Exportar PDF
+            PDF
           </Button>
           <Button 
             onClick={copySummary} 
             disabled={!selectedProcess} 
-            className="bg-gold hover:bg-gold-dark text-black font-bold"
+            className="bg-gold hover:bg-gold-dark text-black font-bold shadow-gold/20 shadow-lg"
           >
             <Copy className="mr-2 h-4 w-4" />
-            Copiar Resumo
+            Copiar Orçamento
           </Button>
         </div>
       </div>
