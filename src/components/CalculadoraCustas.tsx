@@ -1040,7 +1040,7 @@ export default function CalculadoraCustas() {
 
           <div className="p-4 rounded-xl bg-secondary/30 border border-border text-[10px] text-muted-foreground italic leading-relaxed">
             * Este simulador fornece uma estimativa baseada nos valores mínimos do Decreto-Lei N° 001 de 2024 (Art. 7°). 
-            O profissional advogado não pode praticar valores abaixo dos estipulados no decreto sob pena de sanções éticas.
+            O profissional advogado não pode praticar valores abaixo dos estipulados no decreto.
             Os honorários sugeridos respeitam o piso legal obrigatório do Jaguaré RP.
           </div>
         </div>
