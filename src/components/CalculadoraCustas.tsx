@@ -254,6 +254,8 @@ export default function CalculadoraCustas() {
 
   // Other costs
   const [outrasCustas, setOutrasCustas] = useState<{ id: string; description: string; value: number }[]>([]);
+  const [showPreview, setShowPreview] = useState(false);
+  const previewRef = useRef<HTMLDivElement>(null);
 
   const selectedProcess = useMemo(() => 
     PROCESS_TYPES.find(p => p.id === selectedProcessId), 
