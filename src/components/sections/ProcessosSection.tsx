@@ -339,28 +339,57 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
   const createProcesso = useMutation({
     mutationFn: async () => {
       if (autores.length === 0) throw new Error("Adicione pelo menos um autor");
-      if (reus.length === 0) throw new Error("Adicione pelo menos um réu");
+      if (reus.length === 0) throw new Error(form.instancia === "2" ? "Adicione ao menos um réu / autoridade coatora" : "Adicione pelo menos um réu");
 
-      const { data: sorteioData } = await supabase.rpc("sortear_magistrado");
-      const juizId = sorteioData || null;
+      const isSegunda = form.instancia === "2";
+      if (isSegunda) {
+        if (!form.classe_originaria) throw new Error("Selecione a classe originária");
+        if (!form.orgao_julgador) throw new Error("Selecione o órgão julgador");
+        if (!form.pedido.trim()) throw new Error("Informe o pedido");
+      }
 
+      let juizId: string | null = null;
+      let relatorId: string | null = null;
       let juizNome = "";
-      if (juizId) {
-        const { data: juizProfile } = await supabase.from("profiles").select("nome_completo").eq("user_id", juizId).maybeSingle();
-        juizNome = juizProfile?.nome_completo || "";
+
+      if (isSegunda) {
+        const { data: relatorData } = await supabase.rpc("sortear_desembargador" as any);
+        relatorId = (relatorData as string) || null;
+        if (relatorId) {
+          const { data: pr } = await supabase.from("profiles").select("nome_completo").eq("user_id", relatorId).maybeSingle();
+          juizNome = pr?.nome_completo || "";
+        }
+      } else {
+        const { data: sorteioData } = await supabase.rpc("sortear_magistrado");
+        juizId = (sorteioData as string) || null;
+        if (juizId) {
+          const { data: juizProfile } = await supabase.from("profiles").select("nome_completo").eq("user_id", juizId).maybeSingle();
+          juizNome = juizProfile?.nome_completo || "";
+        }
       }
 
       const autorDisplay = JSON.stringify(autores);
       const reuDisplay = JSON.stringify(reus);
       const processoId = crypto.randomUUID();
-      const { error } = await supabase.from("processos").insert({
+      const insertPayload: any = {
         id: processoId,
-        numero: "", classe: form.classe as any, assunto: form.assunto, descricao: form.descricao,
-        autor_nome: autorDisplay, reu_nome: reuDisplay, vara: form.vara,
+        numero: "",
+        classe: form.classe as any,
+        assunto: form.assunto,
+        descricao: form.descricao,
+        autor_nome: autorDisplay,
+        reu_nome: reuDisplay,
+        vara: isSegunda ? form.orgao_julgador : form.vara,
         valor_causa: parseCurrencyToNumber(form.valor_causa),
         juiz_id: juizId,
         sigilo: form.sigilo,
-      });
+        instancia: isSegunda ? 2 : 1,
+        classe_originaria: isSegunda ? form.classe_originaria : null,
+        orgao_julgador: isSegunda ? form.orgao_julgador : null,
+        relator_id: relatorId,
+        pedido: isSegunda ? form.pedido : null,
+      };
+      const { error } = await supabase.from("processos").insert(insertPayload);
       if (error) throw error;
 
       if (user?.id) {
@@ -374,7 +403,14 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
         if (interessadoError) throw interessadoError;
       }
 
-      if (juizId) {
+      if (isSegunda && relatorId) {
+        await supabase.from("movimentacoes").insert({
+          processo_id: processoId,
+          tipo: "distribuicao",
+          descricao: `Processo originário distribuído por sorteio ao(à) Desembargador(a) Relator(a) ${juizNome || "designado(a)"} — ${form.orgao_julgador}`,
+          autor_id: user?.id,
+        });
+      } else if (juizId) {
         await supabase.from("movimentacoes").insert({
           processo_id: processoId,
           tipo: "distribuicao",
@@ -386,7 +422,7 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["processos"] });
       setOpen(false);
-      setForm({ classe: "civil", assunto: "", descricao: "", vara: "1ª Vara Cível", valor_causa: "", sigilo: "publico" });
+      setForm({ classe: "civil", assunto: "", descricao: "", vara: "1ª Vara Cível", valor_causa: "", sigilo: "publico", instancia: "1", classe_originaria: "", orgao_julgador: "", pedido: "" });
       setAutores([]); setReus([]);
       toast.success("Processo cadastrado e distribuído por sorteio!");
     },
