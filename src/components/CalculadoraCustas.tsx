@@ -678,8 +678,10 @@ export default function CalculadoraCustas() {
                             )}>
                               <Info className="h-2 w-2" />
                               {selectedProcess?.pisoHonorario 
-                                ? `Piso da Categoria: ${formatBRL(selectedProcess.pisoHonorario)}` 
-                                : "Piso conforme tabela enviada."}
+                                ? `Piso Jaguaré (Art. 7°): ${formatBRL(selectedProcess.pisoHonorario)}` 
+                                : selectedProcess?.id === 'acoes_civeis'
+                                  ? `Piso Jaguaré: 20% do total (${formatBRL((valorCivel || 0) * 0.20)})`
+                                  : "Piso conforme decreto vigente."}
                             </p>
                           </div>
                         ) : (
