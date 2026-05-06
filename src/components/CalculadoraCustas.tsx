@@ -2,7 +2,8 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { 
   Calculator, Receipt, Scale, Briefcase, Gavel, 
-  Trash2, Plus, Info, Copy, CheckCircle2 
+  Trash2, Plus, Info, Copy, CheckCircle2,
+  CheckSquare, Square
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -11,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 
 const formatBRL = (value: number) => {
