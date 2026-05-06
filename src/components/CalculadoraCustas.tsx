@@ -276,7 +276,7 @@ export default function CalculadoraCustas() {
         setCustomHonorarios(35000);
         setHonorarioType("fixed");
       } else if (selectedProcess.id === 'casamento') {
-        setCustomHonorarios(80000);
+        setCustomHonorarios(90000);
         setHonorarioType("fixed");
       } else {
         setCustomHonorarios(0);
