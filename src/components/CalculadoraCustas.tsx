@@ -921,7 +921,7 @@ export default function CalculadoraCustas() {
           <div className="p-4 rounded-xl bg-secondary/30 border border-border text-[10px] text-muted-foreground italic leading-relaxed">
             * Este simulador fornece uma estimativa baseada nos valores mínimos da tabela processual. 
             O valor final pode variar de acordo com a complexidade da causa e decisões judiciais.
-            Os honorários sugeridos representam o piso ético estabelecido pela seccional.
+            Os honorários sugeridos respeitam o piso da tabela de processos vigente.
           </div>
         </div>
       </div>
