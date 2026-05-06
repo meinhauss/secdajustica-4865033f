@@ -236,68 +236,72 @@ export default function CalculadoraCustas() {
   };
 
   const calculations = useMemo(() => {
-    let custas = 0;
-    let honorarios = 0;
+    const itemizedDetails: { label: string; value: number; type: 'custa' | 'honorario' | 'despesa' }[] = [];
     let extras = 0;
 
     if (selectedProcess) {
-      // Base Custas
       if (selectedProcess.id === 'outros') {
-        custas = customCustas;
-      } else if (selectedProcess.custas === 'base_plus' && selectedProcess.baseCustas) {
-        custas = selectedProcess.baseCustas;
-        crimesLimpeza.forEach(c => {
-          custas += GRAVIDADE_CRIMES[c.typeIndex].value;
+        itemizedDetails.push({ label: "Custas (Personalizado)", value: customCustas, type: 'custa' });
+        if (honorarioType === "fixed") {
+          itemizedDetails.push({ label: "Honorários (Personalizado)", value: customHonorarios, type: 'honorario' });
+        } else {
+          itemizedDetails.push({ label: `Honorários (${customPercentage}%)`, value: (valorCivel || 0) * (customPercentage / 100), type: 'honorario' });
+        }
+      } else {
+        selectedProcess.items.forEach(item => {
+          if (selectedItems[item.label]) {
+            let val = item.value;
+            // Se for honorário e estiver em modo percentual, recalcula
+            if (item.type === 'honorario' && honorarioType === 'percentage') {
+              val = (valorCivel || 0) * (customPercentage / 100);
+            } else if (item.type === 'honorario' && customHonorarios !== item.value && customHonorarios !== 0) {
+              val = customHonorarios;
+            }
+            
+            // Lógica especial para Limpeza de Ficha
+            if (selectedProcess.id === 'limpeza_ficha' && item.label === 'Taxa de Processamento Base') {
+              crimesLimpeza.forEach(c => {
+                val += GRAVIDADE_CRIMES[c.typeIndex].value;
+              });
+            }
+
+            itemizedDetails.push({ ...item, value: val });
+          }
         });
-      } else {
-        custas = typeof selectedProcess.custas === 'number' ? selectedProcess.custas : customCustas;
       }
 
-      // Base Honorarios
-      if (honorarioType === "fixed") {
-        honorarios = customHonorarios;
-      } else {
-        honorarios = (valorCivel || 0) * (customPercentage / 100);
-      }
-
-      // Adicionais especiais baseados no tipo (sobrescrevendo se necessário)
-      if (selectedProcess.id === 'defesa_detido' && honorarioType === "fixed" && customHonorarios === 0) {
-        honorarios = detidoMais10Min ? 35000 : 30000;
-      }
-
-      // Adicionais de nome (Adoção ou Casamento)
+      // Adicionais de nome
       if (hasAlteracaoNome && (selectedProcess.id === 'adocao' || selectedProcess.id === 'casamento')) {
-        custas += 2000000;
-        if (selectedProcess.id === 'casamento') {
-          honorarios += 80000;
+        if (!itemizedDetails.find(i => i.label === "Alteração de Sobrenome")) {
+          itemizedDetails.push({ label: "Alteração de Sobrenome", value: 2000000, type: 'custa' });
+          if (selectedProcess.id === 'casamento') {
+             itemizedDetails.push({ label: "Honorários p/ Alteração de Nome", value: 80000, type: 'honorario' });
+          }
         }
       }
     }
 
-    // Diligências
-    extras += diligencias * 20000;
-
-    // Verbas Indenizatórias
+    if (diligencias > 0) extras += diligencias * 20000;
     if (hasJuiz) extras += 60000;
     if (hasPromotor) extras += 80000;
     if (hasDesembargador) extras += 120000;
+    outrasCustas.forEach(c => { extras += c.value; });
 
-    // Outras Custas
-    outrasCustas.forEach(c => {
-      extras += c.value;
-    });
-
-    const finalCustas = includeCustas ? custas : 0;
-    const finalHonorarios = includeHonorarios ? honorarios : 0;
+    const custasTotal = itemizedDetails.filter(i => (i.type === 'custa' || i.type === 'despesa') && includeCustas).reduce((acc, curr) => acc + curr.value, 0);
+    const honorariosTotal = itemizedDetails.filter(i => i.type === 'honorario' && includeHonorarios).reduce((acc, curr) => acc + curr.value, 0);
     const finalExtras = includeExtras ? extras : 0;
 
     return {
-      custas: finalCustas,
-      honorarios: finalHonorarios,
+      custas: custasTotal,
+      honorarios: honorariosTotal,
       extras: finalExtras,
-      total: finalCustas + finalHonorarios + finalExtras
+      total: custasTotal + honorariosTotal + finalExtras,
+      itemizedDetails: itemizedDetails.filter(i => {
+        if (i.type === 'honorario') return includeHonorarios;
+        return includeCustas;
+      })
     };
-  }, [selectedProcess, diligencias, hasJuiz, hasPromotor, hasDesembargador, valorCivel, hasAlteracaoNome, includeCustas, includeHonorarios, includeExtras, customCustas, customHonorarios, honorarioType, customPercentage, outrasCustas]);
+  }, [selectedProcess, diligencias, hasJuiz, hasPromotor, hasDesembargador, valorCivel, hasAlteracaoNome, includeCustas, includeHonorarios, includeExtras, customCustas, customHonorarios, honorarioType, customPercentage, outrasCustas, selectedItems, crimesLimpeza]);
 
   const copySummary = () => {
     if (!selectedProcess) return;
