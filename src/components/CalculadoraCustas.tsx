@@ -399,13 +399,12 @@ export default function CalculadoraCustas() {
     if (selectedProcess.id === 'acoes_civeis') {
       const valorReferencia = valorCivel || 0;
       const honorariosMinimos = valorReferencia * 0.20;
-      // Se for percentual e menor que 20% ou se for fixo e menor que o cálculo de 20%
       return calculations.honorarios < honorariosMinimos;
     }
 
-    if (!selectedProcess.pisoHonorario) return false;
-    return calculations.honorarios < selectedProcess.pisoHonorario;
-  }, [calculations.honorarios, selectedProcess, valorCivel]);
+    if (!calculations.piso) return false;
+    return calculations.honorarios < calculations.piso;
+  }, [calculations.honorarios, calculations.piso, selectedProcess, valorCivel]);
 
   const copySummary = () => {
     if (!selectedProcess) return;
