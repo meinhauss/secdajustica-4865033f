@@ -521,12 +521,12 @@ export default function CalculadoraCustas() {
                 )}
               </div>
 
-              {/* Seleção Detalhada de Itens do Processo */}
-              {selectedProcess && selectedProcess.id !== 'outros' && (
+              {/* Seleção Detalhada de Despesas e Taxas do Processo */}
+              {selectedProcess && selectedProcess.id !== 'outros' && selectedProcess.items.length > 0 && (
                 <div className="space-y-3 p-4 border rounded-lg bg-secondary/5 mb-4 shadow-sm">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                     <CheckSquare className="h-3 w-3" />
-                    Itens Inclusos no Processo
+                    Discriminação de Taxas e Despesas
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {selectedProcess.items.map((item) => (
