@@ -157,16 +157,16 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
       </motion.aside>
 
       {/* Main */}
-      <div className="flex-1 flex flex-col min-h-screen">
+      <div className="flex-1 flex flex-col min-h-screen min-w-0">
         {/* Top bar */}
-        <header className="h-14 bg-card border-b border-border flex items-center px-4 gap-4 shadow-institutional">
-          <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-foreground">
+        <header className="h-14 bg-card border-b border-border flex items-center px-3 sm:px-4 gap-2 sm:gap-4 shadow-institutional">
+          <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-foreground flex-shrink-0">
             <Menu className="h-5 w-5" />
           </button>
-          <h1 className="font-display text-lg font-semibold text-foreground">
+          <h1 className="font-display text-base sm:text-lg font-semibold text-foreground truncate min-w-0">
             {filteredItems.find((i) => i.id === activeSection)?.label || "Painel"}
           </h1>
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-1 sm:gap-2 flex-shrink-0">
             <button
               onClick={toggleTheme}
               aria-label={theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"}
@@ -181,19 +181,20 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
               }
               onSectionChange(section);
             }} />
-            <span className="text-xs text-muted-foreground hidden sm:block">
+            <span className="text-xs text-muted-foreground hidden md:block">
               Sistema Judiciário v{CURRENT_VERSION}
             </span>
           </div>
         </header>
 
         {/* Content */}
-        <main className="flex-1 p-4 lg:p-6 overflow-auto">
+        <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-auto min-w-0">
           <motion.div
             key={activeSection}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
+            className="min-w-0 max-w-full"
           >
             {children}
           </motion.div>
