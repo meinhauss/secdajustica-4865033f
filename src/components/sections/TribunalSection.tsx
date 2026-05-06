@@ -46,7 +46,7 @@ function StatCard({ label, value, icon: Icon, delay = 0 }: { label: string; valu
   );
 }
 
-export default function TribunalSection() {
+export default function TribunalSection({ onOpenProcesso }: { onOpenProcesso?: (id: string) => void } = {}) {
   const [view, setView] = useState<"dashboard" | "detail">("dashboard");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -54,7 +54,7 @@ export default function TribunalSection() {
     return <ApelacaoDetail apelacaoId={selectedId} onBack={() => { setView("dashboard"); setSelectedId(null); }} />;
   }
 
-  return <TribunalDashboard onSelect={(id) => { setSelectedId(id); setView("detail"); }} />;
+  return <TribunalDashboard onSelect={(id) => { setSelectedId(id); setView("detail"); }} onOpenProcesso={onOpenProcesso} />;
 }
 
 /* ═══════════════════════════════════════ */
