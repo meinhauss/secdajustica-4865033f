@@ -259,7 +259,7 @@ export default function CalculadoraCustas() {
         setCustomCustas(0);
       }
     }
-  }, [selectedProcessId]);
+  }, [selectedProcessId, selectedProcess]);
 
   const addCrimeLimpeza = () => {
     setCrimesLimpeza([...crimesLimpeza, { id: Math.random().toString(), typeIndex: 0 }]);
