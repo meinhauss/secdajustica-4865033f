@@ -298,14 +298,10 @@ export default function CalculadoraCustas() {
     let extras = 0;
 
     if (selectedProcess) {
-      // Itens discriminados do processo (sem honorários advocatícios)
+      // Itens discriminados do processo (taxas e despesas operacionais)
       selectedProcess.items.forEach(item => {
         if (item.required || selectedItems[item.label]) {
           let val = item.value;
-          
-          if (item.type === 'custa' && customCustas !== item.value && customCustas !== 0 && selectedProcess.id === 'outros') {
-            val = customCustas;
-          }
           
           if (selectedProcess.id === 'limpeza_ficha' && item.label === 'Taxa de Processamento Base') {
             crimesLimpeza.forEach(c => {
@@ -337,6 +333,11 @@ export default function CalculadoraCustas() {
         if (!itemizedDetails.find(i => i.label === "Alteração de Sobrenome")) {
           itemizedDetails.push({ label: "Alteração de Sobrenome", value: 2000000, type: 'custa' });
         }
+      }
+
+      // Outros Processos Customizados
+      if (selectedProcess.id === 'outros') {
+        itemizedDetails.push({ label: "Custas Processuais", value: customCustas, type: 'custa' });
       }
     }
 
