@@ -514,28 +514,78 @@ export default function CalculadoraCustas() {
             </div>
             <CardContent className="p-6 space-y-6">
               <div className="space-y-4">
-                <div className="flex justify-between items-start">
+                <div className="flex justify-between items-start group">
                   <div className="space-y-0.5">
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Custas Judiciais</p>
-                    <p className="font-medium">{selectedProcess ? formatBRL(calculations.custas) : "—"}</p>
+                    <div className="flex items-center gap-2">
+                      <Checkbox 
+                        id="inc-custas" 
+                        checked={includeCustas} 
+                        onCheckedChange={(v) => setIncludeCustas(!!v)}
+                        className="h-3 w-3"
+                      />
+                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeCustas(!includeCustas)}>Custas Judiciais</p>
+                    </div>
+                    <p className={`font-medium transition-opacity ${!includeCustas ? 'opacity-30' : ''}`}>
+                      {selectedProcess ? formatBRL(calculations.custas) : "—"}
+                    </p>
                   </div>
-                  <Scale className="h-4 w-4 text-gold/50" />
+                  <Scale className={`h-4 w-4 transition-colors ${includeCustas ? 'text-gold/50' : 'text-muted-foreground/30'}`} />
                 </div>
 
                 <div className="flex justify-between items-start">
                   <div className="space-y-0.5">
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Honorários OAB (Piso)</p>
-                    <p className="font-medium">{selectedProcess ? formatBRL(calculations.honorarios) : "—"}</p>
+                    <div className="flex items-center gap-2">
+                      <Checkbox 
+                        id="inc-honorarios" 
+                        checked={includeHonorarios} 
+                        onCheckedChange={(v) => setIncludeHonorarios(!!v)}
+                        className="h-3 w-3"
+                      />
+                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeHonorarios(!includeHonorarios)}>Honorários OAB (Piso)</p>
+                    </div>
+                    <p className={`font-medium transition-opacity ${!includeHonorarios ? 'opacity-30' : ''}`}>
+                      {selectedProcess ? formatBRL(calculations.honorarios) : "—"}
+                    </p>
                   </div>
-                  <Briefcase className="h-4 w-4 text-gold/50" />
+                  <Briefcase className={`h-4 w-4 transition-colors ${includeHonorarios ? 'text-gold/50' : 'text-muted-foreground/30'}`} />
                 </div>
 
                 <div className="flex justify-between items-start">
                   <div className="space-y-0.5">
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Taxas e Verbas</p>
-                    <p className="font-medium">{formatBRL(calculations.extras)}</p>
+                    <div className="flex items-center gap-2">
+                      <Checkbox 
+                        id="inc-extras" 
+                        checked={includeExtras} 
+                        onCheckedChange={(v) => setIncludeExtras(!!v)}
+                        className="h-3 w-3"
+                      />
+                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeExtras(!includeExtras)}>Taxas e Verbas</p>
+                    </div>
+                    <p className={`font-medium transition-opacity ${!includeExtras ? 'opacity-30' : ''}`}>
+                      {formatBRL(calculations.extras)}
+                    </p>
                   </div>
-                  <Gavel className="h-4 w-4 text-gold/50" />
+                  <Gavel className={`h-4 w-4 transition-colors ${includeExtras ? 'text-gold/50' : 'text-muted-foreground/30'}`} />
+                </div>
+
+                <div className="pt-2 flex justify-end">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-6 text-[9px] text-gold hover:text-gold hover:bg-gold/10"
+                    onClick={() => {
+                      const allSelected = includeCustas && includeHonorarios && includeExtras;
+                      setIncludeCustas(!allSelected);
+                      setIncludeHonorarios(!allSelected);
+                      setIncludeExtras(!allSelected);
+                    }}
+                  >
+                    {includeCustas && includeHonorarios && includeExtras ? (
+                      <><Square className="h-3 w-3 mr-1" /> Desmarcar Tudo</>
+                    ) : (
+                      <><CheckSquare className="h-3 w-3 mr-1" /> Marcar Tudo</>
+                    )}
+                  </Button>
                 </div>
               </div>
 
