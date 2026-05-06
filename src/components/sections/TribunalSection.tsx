@@ -81,6 +81,18 @@ function TribunalDashboard({ onSelect, onOpenProcesso }: { onSelect: (id: string
     enabled: !!user,
   });
 
+  const { data: originarios } = useQuery({
+    queryKey: ["tribunal-originarios"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("processos")
+        .select("id, numero, autor_nome, reu_nome, classe, classe_originaria, orgao_julgador, assunto, status, created_at, sigilo, prioridade, relator_id")
+        .eq("instancia", 2)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+
   const filtered = apelacoes?.filter((a: any) => {
     const matchSearch = !search ||
       a.numero_acordao?.toLowerCase().includes(search.toLowerCase()) ||
