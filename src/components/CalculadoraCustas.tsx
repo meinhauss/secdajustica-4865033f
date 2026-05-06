@@ -181,6 +181,8 @@ export default function CalculadoraCustas() {
         crimesLimpeza.forEach(c => {
           custas += GRAVIDADE_CRIMES[c.typeIndex].value;
         });
+      } else if (selectedProcess.custas === 'custom') {
+        custas = customCustas;
       }
 
       // Base Honorarios
@@ -191,6 +193,12 @@ export default function CalculadoraCustas() {
       } else if (selectedProcess.honorarios === 'special') {
         if (selectedProcess.id === 'defesa_detido') {
           honorarios = detidoMais10Min ? 35000 : 30000;
+        }
+      } else if (selectedProcess.honorarios === 'custom') {
+        if (honorarioType === "fixed") {
+          honorarios = customHonorarios;
+        } else {
+          honorarios = (valorCivel || 0) * (customPercentage / 100);
         }
       }
 
@@ -211,13 +219,17 @@ export default function CalculadoraCustas() {
     if (hasPromotor) extras += 80000;
     if (hasDesembargador) extras += 120000;
 
+    const finalCustas = includeCustas ? custas : 0;
+    const finalHonorarios = includeHonorarios ? honorarios : 0;
+    const finalExtras = includeExtras ? extras : 0;
+
     return {
-      custas,
-      honorarios,
-      extras,
-      total: custas + honorarios + extras
+      custas: finalCustas,
+      honorarios: finalHonorarios,
+      extras: finalExtras,
+      total: finalCustas + finalHonorarios + finalExtras
     };
-  }, [selectedProcess, diligencias, hasJuiz, hasPromotor, hasDesembargador, detidoMais10Min, valorCivel, crimesLimpeza, hasAlteracaoNome]);
+  }, [selectedProcess, diligencias, hasJuiz, hasPromotor, hasDesembargador, detidoMais10Min, valorCivel, crimesLimpeza, hasAlteracaoNome, includeCustas, includeHonorarios, includeExtras, customCustas, customHonorarios, honorarioType, customPercentage]);
 
   const copySummary = () => {
     if (!selectedProcess) return;
