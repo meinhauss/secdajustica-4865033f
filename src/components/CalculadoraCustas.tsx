@@ -190,7 +190,7 @@ const PROCESS_TYPES: ProcessType[] = [
   },
   { 
     id: "adocao", 
-    name: "Adoção", 
+    name: "Ação de Adoção", 
     items: [
       { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
       { label: "Certidão de Nascimento (Atualização)", value: 250000, type: 'custa' },
