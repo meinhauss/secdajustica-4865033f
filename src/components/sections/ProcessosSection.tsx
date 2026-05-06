@@ -2032,9 +2032,25 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             // Intimações
             intimacoesProc?.forEach((intim: any) => {
               const statusLabel: Record<string, string> = { pendente: "Pendente", lida: "Lida", cumprida: "Cumprida", expirada: "Expirada" };
+              const cargoLabels: Record<string, string> = {
+                ministerio_publico: "Ministério Público",
+                procurador_geral: "Procurador-Geral de Justiça",
+                magistrado: "Juiz(a) de Direito",
+                desembargador: "Desembargador(a)",
+                presidente_tribunal: "Presidente do Tribunal",
+                advogado: "Advogado(a)",
+                oficial_justica: "Oficial de Justiça",
+                policia_civil: "Polícia Civil",
+                policia_militar: "Polícia Militar",
+                policia_federal: "Polícia Federal",
+                procurador_estado: "Procurador(a) do Estado",
+                presidente_oab: "Presidente da OAB",
+                admin: "Administrador",
+              };
+              const cargoLabel = intim.cargo_intimado ? (cargoLabels[intim.cargo_intimado] || intim.cargo_intimado.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())) : "";
               items.push({
                 id: `intim-${intim.id}`, date: intim.created_at, tipo: `intimação — ${intim.tipo}`,
-                titulo: `Intimação para ${intim.destinatario_nome}${intim.cargo_intimado ? ` (${intim.cargo_intimado})` : ""}`,
+                titulo: `Intimação para ${intim.destinatario_nome}${cargoLabel ? ` (${cargoLabel})` : ""}`,
                 descricao: `${intim.conteudo}\n\nPrazo: ${intim.prazo_dias} hora(s) — Status: ${statusLabel[intim.status] || intim.status}${intim.data_leitura ? `\nLida em: ${format(new Date(intim.data_leitura), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}` : ""}`,
                 badge_color: "bg-sky-100 text-sky-800 dark:bg-sky-950/30 dark:text-sky-400",
               });
