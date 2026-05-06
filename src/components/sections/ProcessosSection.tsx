@@ -1397,7 +1397,50 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     onError: (err: any) => toast.error(err.message),
   });
 
-  // Embargos de declaração
+  // Pedido de destaque na apelação
+  const [destaqueApId, setDestaqueApId] = useState<string | null>(null);
+  const [destaqueJust, setDestaqueJust] = useState("");
+  const solicitarDestaque = useMutation({
+    mutationFn: async () => {
+      if (!destaqueApId) throw new Error("Apelação não selecionada.");
+      if (!destaqueJust || destaqueJust === "<p></p>") throw new Error("Informe a justificativa.");
+      const qualificacao = isAdvogado
+        ? "Advogado(a)"
+        : isMP
+        ? "Ministério Público"
+        : "Parte interessada";
+      const { error } = await supabase.from("apelacoes").update({
+        destaque_solicitado: true,
+        destaque_justificativa: destaqueJust,
+        destaque_solicitante_id: user!.id,
+        destaque_solicitante_nome: profile?.nome_completo || "",
+        destaque_solicitante_qualificacao: qualificacao,
+        destaque_solicitado_em: new Date().toISOString(),
+      } as any).eq("id", destaqueApId);
+      if (error) throw error;
+      await addMovimentacao.mutateAsync({
+        tipo: "pedido_destaque",
+        descricao: `Pedido de destaque (retirada do julgamento virtual e remessa à sessão presencial) formulado por ${profile?.nome_completo || ""} (${qualificacao}).\n\nJustificativa:\n${destaqueJust}`,
+      });
+      const { data: desembs } = await supabase.from("user_roles").select("user_id").in("role", ["desembargador", "presidente_tribunal"] as any);
+      const notifs = (desembs || []).map((d: any) => ({
+        user_id: d.user_id,
+        titulo: "Pedido de destaque",
+        mensagem: `${profile?.nome_completo || "Uma parte"} solicitou destaque em uma apelação.`,
+        tipo: "processo",
+        link_secao: "tribunal",
+      }));
+      if (notifs.length > 0) await supabase.from("notificacoes").insert(notifs);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["apelacoes-proc", processoId] });
+      setDestaqueApId(null);
+      setDestaqueJust("");
+      toast.success("Pedido de destaque registrado.");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   const [showEmbargos, setShowEmbargos] = useState(false);
   const [embargosForm, setEmbargosForm] = useState({ sentenca_id: "", tipo: "omissao", fundamentacao: "", pedido: "" });
   const oporEmbargos = useMutation({
