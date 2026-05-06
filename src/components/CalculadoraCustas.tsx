@@ -326,9 +326,9 @@ export default function CalculadoraCustas() {
       // Adicionais de nome
       if (hasAlteracaoNome && (selectedProcess.id === 'adocao' || selectedProcess.id === 'casamento')) {
         if (!itemizedDetails.find(i => i.label === "Alteração de Sobrenome")) {
-          itemizedDetails.push({ label: "Alteração de Sobrenome", value: 2000000, type: 'custa' });
+          itemizedDetails.push({ label: "Alteração de Sobrenome", value: 2000000, type: 'custa', required: true });
           if (selectedProcess.id === 'casamento') {
-             itemizedDetails.push({ label: "Honorários p/ Alteração de Nome", value: 80000, type: 'honorario' });
+             itemizedDetails.push({ label: "Honorários p/ Alteração de Nome", value: 80000, type: 'honorario', required: true });
           }
         }
       }
