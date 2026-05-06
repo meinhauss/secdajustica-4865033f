@@ -1312,12 +1312,17 @@ export type Database = {
           assunto: string
           autor_nome: string
           classe: Database["public"]["Enums"]["classe_processual"]
+          classe_originaria: string | null
           created_at: string
           descricao: string | null
           id: string
+          instancia: number
           juiz_id: string | null
           numero: string
+          orgao_julgador: string | null
+          pedido: string | null
           prioridade: boolean | null
+          relator_id: string | null
           reu_nome: string
           sigilo: string
           status: Database["public"]["Enums"]["processo_status"]
@@ -1331,12 +1336,17 @@ export type Database = {
           assunto: string
           autor_nome: string
           classe?: Database["public"]["Enums"]["classe_processual"]
+          classe_originaria?: string | null
           created_at?: string
           descricao?: string | null
           id?: string
+          instancia?: number
           juiz_id?: string | null
           numero: string
+          orgao_julgador?: string | null
+          pedido?: string | null
           prioridade?: boolean | null
+          relator_id?: string | null
           reu_nome: string
           sigilo?: string
           status?: Database["public"]["Enums"]["processo_status"]
@@ -1350,12 +1360,17 @@ export type Database = {
           assunto?: string
           autor_nome?: string
           classe?: Database["public"]["Enums"]["classe_processual"]
+          classe_originaria?: string | null
           created_at?: string
           descricao?: string | null
           id?: string
+          instancia?: number
           juiz_id?: string | null
           numero?: string
+          orgao_julgador?: string | null
+          pedido?: string | null
           prioridade?: boolean | null
+          relator_id?: string | null
           reu_nome?: string
           sigilo?: string
           status?: Database["public"]["Enums"]["processo_status"]
@@ -1897,6 +1912,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      sortear_desembargador: { Args: never; Returns: string }
       sortear_jurados: {
         Args: {
           _data_sessao: string
