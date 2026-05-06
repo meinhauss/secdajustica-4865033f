@@ -674,17 +674,17 @@ export default function CalculadoraCustas() {
                               label="Valor Pretendido"
                               value={customHonorarios} 
                               onChange={setCustomHonorarios}
-                              error={isBelowPiso}
+                              error={isBelowPiso && includeHonorarios}
                             />
                             <p className={cn(
                               "text-[9px] font-medium flex items-center gap-1 mt-1 transition-colors",
-                              isBelowPiso ? "text-destructive" : "text-gold"
+                              isBelowPiso && includeHonorarios ? "text-destructive" : "text-gold"
                             )}>
                               <Info className="h-2 w-2" />
-                              {selectedProcess?.pisoHonorario 
-                                ? `Piso Jaguaré (Art. 7°): ${formatBRL(selectedProcess.pisoHonorario)}` 
-                                : selectedProcess?.id === 'acoes_civeis'
-                                  ? `Piso Jaguaré: 20% do total (${formatBRL((valorCivel || 0) * 0.20)})`
+                              {selectedProcess?.id === 'acoes_civeis'
+                                ? `Piso Jaguaré: 20% do total (${formatBRL((valorCivel || 0) * 0.20)})`
+                                : calculations.piso > 0 
+                                  ? `Piso Jaguaré (Decreto-Lei 001/2024): ${formatBRL(calculations.piso)}` 
                                   : "Piso conforme decreto vigente."}
                             </p>
                           </div>
