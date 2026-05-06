@@ -836,9 +836,9 @@ export default function CalculadoraCustas() {
                             id="inc-extras" 
                             checked={includeExtras} 
                             onCheckedChange={(v) => setIncludeExtras(!!v)}
-                            className="h-3 w-3"
+                            className="h-3 w-3 border-gold/50 data-[state=checked]:bg-gold data-[state=checked]:text-black"
                           />
-                          <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeExtras(!includeExtras)}>Diligências e Taxas Extras</p>
+                          <p className="text-[10px] uppercase tracking-widest text-muted-foreground cursor-pointer" onClick={() => setIncludeExtras(!includeExtras)}>Diligências e Verbas</p>
                         </div>
                         <p className={`font-medium transition-opacity ${!includeExtras ? 'opacity-30' : ''}`}>
                           {formatBRL(calculations.extras)}
