@@ -300,6 +300,82 @@ export default function CalculadoraCustas() {
                 )}
               </div>
 
+              {/* Personalização para "Outros" */}
+              {selectedProcessId === 'outros' && (
+                <div className="space-y-4 p-4 border rounded-lg bg-secondary/10">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Custas Processuais (R$)</Label>
+                      <Input 
+                        type="number" 
+                        value={customCustas} 
+                        onChange={e => setCustomCustas(Number(e.target.value))}
+                        placeholder="0.00"
+                      />
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <Label>Tipo de Honorário</Label>
+                      <RadioGroup 
+                        value={honorarioType} 
+                        onValueChange={(v: "fixed" | "percentage") => setHonorarioType(v)}
+                        className="flex gap-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="fixed" id="fixed" />
+                          <Label htmlFor="fixed">Valor Fixo</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="percentage" id="percentage" />
+                          <Label htmlFor="percentage">Percentual</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+
+                    {honorarioType === "fixed" ? (
+                      <div className="space-y-2">
+                        <Label>Honorários (R$)</Label>
+                        <Input 
+                          type="number" 
+                          value={customHonorarios} 
+                          onChange={e => setCustomHonorarios(Number(e.target.value))}
+                          placeholder="0.00"
+                        />
+                        <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                          <Info className="h-3 w-3" />
+                          Valor mínimo recomendado pela OAB: R$ 30.000,00
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label>Valor Base para Cálculo (R$)</Label>
+                          <Input 
+                            type="number" 
+                            value={valorCivel || ""} 
+                            onChange={e => setValorCivel(Number(e.target.value))}
+                            placeholder="Ex: Valor da causa"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Percentual (%)</Label>
+                          <Input 
+                            type="number" 
+                            value={customPercentage} 
+                            onChange={e => setCustomPercentage(Number(e.target.value))}
+                            placeholder="20"
+                          />
+                          <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                            <Info className="h-3 w-3" />
+                            Percentual padrão: 20%
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Campos Dinâmicos conforme a seleção */}
               {selectedProcessId === 'defesa_detido' && (
                 <div className="flex items-center space-x-2 p-3 bg-secondary/30 rounded-lg">
