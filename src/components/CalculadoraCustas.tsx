@@ -199,7 +199,9 @@ const PROCESS_TYPES: ProcessType[] = [
   {
     id: "outros",
     name: "Outros (Personalizado)",
-    items: []
+    items: [
+      { label: "Petição Inicial", value: 25000, type: 'custa', required: true }
+    ]
   }
 ];
 
