@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
 import {
   FileText, Scale, Clock, Gavel,
-  Briefcase, GraduationCap, Stamp, Bell, ArrowRight
+  Briefcase, GraduationCap, Stamp, Bell, ArrowRight, BookOpen
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
