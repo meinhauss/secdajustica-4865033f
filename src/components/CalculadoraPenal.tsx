@@ -116,7 +116,7 @@ export default function CalculadoraPenal() {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
       {/* Coluna esquerda: catálogo de crimes */}
       <div className="lg:col-span-2 space-y-4">
         <div className="bg-card border border-border rounded-xl p-4">
