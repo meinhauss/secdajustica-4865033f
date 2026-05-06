@@ -103,6 +103,7 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "recursos", 
     name: "Recursos (Apelação e/ou Recurso)", 
     items: [
+      { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
       { label: "Taxa de Preparo Recursal", value: 50000, type: 'custa', required: true }
     ],
     pisoHonorario: 75000
