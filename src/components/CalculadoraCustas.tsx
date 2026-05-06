@@ -1093,8 +1093,6 @@ export default function CalculadoraCustas() {
           </div>
         </div>
       </div>
-    </div>
-
       {/* Modal de Pré-visualização */}
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-background border-gold/20 p-0 overflow-hidden sm:rounded-2xl shadow-2xl">
