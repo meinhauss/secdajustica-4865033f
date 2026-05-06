@@ -417,25 +417,25 @@ export default function CalculadoraCustas() {
               </div>
 
               {/* Personalização de Custas e Honorários */}
-              {(selectedProcessId === 'outros' || selectedProcessId) && (
+              {selectedProcessId && (
                 <div className="space-y-4 p-4 border rounded-lg bg-secondary/10">
                   <h4 className="font-semibold text-sm flex items-center gap-2">
                     <Scale className="h-4 w-4 text-gold" />
-                    Personalizar Valores
+                    Valores Principais
                   </h4>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Custas Processuais (R$)</Label>
+                      <Label className="text-xs">Custas Processuais (R$)</Label>
                       <Input 
                         type="number" 
-                        value={selectedProcessId === 'outros' ? customCustas : (typeof selectedProcess?.custas === 'number' ? selectedProcess.custas : customCustas)} 
+                        value={selectedProcessId === 'outros' ? customCustas : (selectedProcess?.custas && typeof selectedProcess.custas === 'number' ? selectedProcess.custas : customCustas)} 
                         onChange={e => setCustomCustas(Number(e.target.value))}
                         disabled={selectedProcessId !== 'outros'}
-                        className="bg-background"
+                        className="bg-background h-8 text-sm"
                       />
                       {selectedProcessId !== 'outros' && (
-                        <p className="text-[10px] text-muted-foreground italic">Valor fixo da tabela para este processo.</p>
+                        <p className="text-[10px] text-muted-foreground italic">Valor padrão da tabela.</p>
                       )}
                     </div>
 
