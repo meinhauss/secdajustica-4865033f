@@ -345,7 +345,7 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
       if (isSegunda) {
         if (!form.classe_originaria) throw new Error("Selecione a classe originária");
         if (!form.orgao_julgador) throw new Error("Selecione o órgão julgador");
-        if (!form.pedido.trim()) throw new Error("Informe o pedido");
+        
       }
 
       let juizId: string | null = null;
@@ -387,7 +387,7 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
         classe_originaria: isSegunda ? form.classe_originaria : null,
         orgao_julgador: isSegunda ? form.orgao_julgador : null,
         relator_id: relatorId,
-        pedido: isSegunda ? form.pedido : null,
+        pedido: null,
       };
       const { error } = await supabase.from("processos").insert(insertPayload);
       if (error) throw error;
@@ -501,7 +501,6 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
                   <MultiPartyInput label="Impetrante / Autor" entries={autores} onChange={setAutores} />
                   <MultiPartyInput label="Autoridade Coatora / Réu" entries={reus} onChange={setReus} />
                   <Textarea placeholder="Síntese dos fatos *" value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} required className="rounded-xl" />
-                  <Textarea placeholder="Pedido *" value={form.pedido} onChange={(e) => setForm({ ...form, pedido: e.target.value })} required className="rounded-xl" />
                   <p className="text-[11px] text-muted-foreground px-1">O Relator será sorteado automaticamente entre os Desembargadores ativos.</p>
                 </>
               ) : (
@@ -585,13 +584,20 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
             return (
               <motion.div key={p.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
                 onClick={() => onSelect(p.id)}
-                className="bg-card rounded-xl p-4 border border-border shadow-institutional hover:border-institutional/30 transition-all cursor-pointer group">
+                className={`bg-card rounded-xl p-4 border shadow-institutional hover:border-institutional/30 transition-all cursor-pointer group ${(p as any).instancia === 2 ? "border-2 border-institutional/40" : "border-border"}`}>
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-mono text-sm font-semibold text-institutional">{p.numero}</span>
                       <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${cfg.color}`}>{cfg.label}</span>
-                      <span className="text-[10px] uppercase tracking-wider font-medium px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{p.classe}</span>
+                      {(p as any).instancia === 2 ? (
+                        <>
+                          <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-institutional text-gold-light">2ª Instância</span>
+                          {(p as any).classe_originaria && <span className="text-[10px] uppercase tracking-wider font-medium px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{String((p as any).classe_originaria).replace(/_/g, " ")}</span>}
+                        </>
+                      ) : (
+                        <span className="text-[10px] uppercase tracking-wider font-medium px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{p.classe}</span>
+                      )}
                       {p.prioridade && <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">Prioritário</span>}
                       {(p as any).sigilo && (p as any).sigilo !== "publico" && (
                         <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive flex items-center gap-1">

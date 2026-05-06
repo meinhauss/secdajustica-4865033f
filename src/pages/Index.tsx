@@ -48,7 +48,7 @@ const Index = () => {
       case "meus-processos": return <MeusProcessosSection onOpenProcesso={(id) => { setOpenProcessoId(id); setActiveSection("processos"); }} />;
       case "consulta": return <ConsultaPublicaSection />;
       case "magistrado": return <MagistradoSection />;
-      case "tribunal": return <TribunalSection />;
+      case "tribunal": return <TribunalSection onOpenProcesso={(id) => { setOpenProcessoId(id); setActiveSection("processos"); }} />;
       case "jurisprudencia": return <JurisprudenciaSection />;
       case "mp": return <MPSection />;
       case "audiencias": return <AudienciasSection />;
