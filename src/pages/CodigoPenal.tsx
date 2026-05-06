@@ -14,10 +14,13 @@ import {
   type ArtigoPenal,
 } from "@/data/codigoPenal";
 import logoSjc from "@/assets/logo-sjc.jpg";
+import CalculadoraPenal from "@/components/CalculadoraPenal";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function CodigoPenalPage() {
   const [busca, setBusca] = useState("");
   const [categoria, setCategoria] = useState<string>("Todas");
+  const [aba, setAba] = useState<string>("codigo");
 
   const filtrados = useMemo(() => {
     const termo = busca.trim().toLowerCase();
@@ -85,108 +88,125 @@ export default function CodigoPenalPage() {
             cidadãos, advogados, magistrados e agentes da segurança pública.
           </p>
 
-          <div className="mt-6 inline-flex items-center gap-2 text-xs text-sidebar-foreground/60 bg-institutional-dark/40 px-4 py-2 rounded-full border border-gold/20">
-            <Calculator className="h-3.5 w-3.5 text-gold" />
-            Calculadora penal em desenvolvimento — em breve disponível nesta página.
-          </div>
         </div>
       </section>
 
-      {/* Filtros */}
-      <section className="border-b border-border bg-card sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col lg:flex-row gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar artigo, crime ou descrição..."
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-              className="pl-10 h-11 rounded-xl"
-            />
-          </div>
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            <Button
-              variant={categoria === "Todas" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setCategoria("Todas")}
-              className="rounded-full whitespace-nowrap"
-            >
-              Todas ({CODIGO_PENAL.length})
-            </Button>
-            {CATEGORIAS_PENAL.map((cat) => (
-              <Button
-                key={cat}
-                variant={categoria === cat ? "default" : "outline"}
-                size="sm"
-                onClick={() => setCategoria(cat)}
-                className="rounded-full whitespace-nowrap"
-              >
-                {cat}
-              </Button>
-            ))}
+      {/* Tabs: Código Penal / Calculadora */}
+      <Tabs value={aba} onValueChange={setAba} className="flex-1 flex flex-col">
+        <div className="border-b border-border bg-card sticky top-0 z-10">
+          <div className="max-w-7xl mx-auto px-4">
+            <TabsList className="h-12 bg-transparent gap-1">
+              <TabsTrigger value="codigo" className="data-[state=active]:bg-gold/10 data-[state=active]:text-gold gap-2">
+                <BookOpen className="h-4 w-4" /> Código Penal
+              </TabsTrigger>
+              <TabsTrigger value="calculadora" className="data-[state=active]:bg-gold/10 data-[state=active]:text-gold gap-2">
+                <Calculator className="h-4 w-4" /> Calculadora Penal
+              </TabsTrigger>
+            </TabsList>
           </div>
         </div>
-      </section>
 
-      {/* Conteúdo */}
-      <main className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
-        {filtrados.length === 0 ? (
-          <div className="text-center py-20 text-muted-foreground">
-            <Scale className="h-16 w-16 mx-auto mb-4 opacity-20" />
-            <p>Nenhum artigo encontrado para esta busca.</p>
-          </div>
-        ) : (
-          <div className="space-y-8">
-            {Object.entries(agrupados).map(([cat, artigos]) => (
-              <div key={cat}>
-                <div className="flex items-center gap-2 mb-3">
-                  <Gavel className="h-4 w-4 text-gold" />
-                  <h3 className="font-display text-lg font-semibold text-foreground">{cat}</h3>
-                  <span className="text-xs text-muted-foreground">({artigos.length})</span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {artigos.map((a, i) => (
-                    <motion.div
-                      key={`${a.artigo}-${a.crime}-${i}`}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: Math.min(i * 0.02, 0.3) }}
-                      className="bg-card border border-border rounded-xl p-4 hover:border-gold/40 hover:shadow-md transition-all"
-                    >
-                      <div className="flex items-start justify-between gap-3 mb-2">
-                        <div className="min-w-0">
-                          <span className="text-[10px] uppercase tracking-wider font-bold text-gold-dark font-mono">
-                            {a.artigo}
-                          </span>
-                          <h4 className="font-display text-base font-semibold text-foreground leading-tight">
-                            {a.crime}
-                          </h4>
-                        </div>
-                      </div>
-                      <p className="text-xs text-muted-foreground mb-3 leading-relaxed">{a.descricao}</p>
-                      <div className="flex flex-wrap gap-1.5 pt-2 border-t border-border">
-                        <Badge variant="secondary" className="text-[10px] font-mono">
-                          Pena: {formatPena(a.penaMeses)}
-                        </Badge>
-                        <Badge variant="outline" className="text-[10px] font-mono">
-                          Multa: {a.multa > 0 ? formatBRL(a.multa) : "—"}
-                        </Badge>
-                        <Badge
-                          variant={a.fianca === "sem_fianca" ? "destructive" : "outline"}
-                          className="text-[10px] font-mono"
-                        >
-                          Fiança: {formatFianca(a.fianca)}
-                        </Badge>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
+        <TabsContent value="codigo" className="flex-1 mt-0">
+          {/* Filtros */}
+          <section className="border-b border-border bg-card/50">
+            <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col lg:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar artigo, crime ou descrição..."
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                  className="pl-10 h-11 rounded-xl"
+                />
               </div>
-            ))}
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                <Button
+                  variant={categoria === "Todas" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setCategoria("Todas")}
+                  className="rounded-full whitespace-nowrap"
+                >
+                  Todas ({CODIGO_PENAL.length})
+                </Button>
+                {CATEGORIAS_PENAL.map((cat) => (
+                  <Button
+                    key={cat}
+                    variant={categoria === cat ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCategoria(cat)}
+                    className="rounded-full whitespace-nowrap"
+                  >
+                    {cat}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </section>
+          <div className="max-w-7xl mx-auto px-4 py-8 w-full">
+            {filtrados.length === 0 ? (
+              <div className="text-center py-20 text-muted-foreground">
+                <Scale className="h-16 w-16 mx-auto mb-4 opacity-20" />
+                <p>Nenhum artigo encontrado para esta busca.</p>
+              </div>
+            ) : (
+              <div className="space-y-8">
+                {Object.entries(agrupados).map(([cat, artigos]) => (
+                  <div key={cat}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <Gavel className="h-4 w-4 text-gold" />
+                      <h3 className="font-display text-lg font-semibold text-foreground">{cat}</h3>
+                      <span className="text-xs text-muted-foreground">({artigos.length})</span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {artigos.map((a, i) => (
+                        <motion.div
+                          key={`${a.artigo}-${a.crime}-${i}`}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: Math.min(i * 0.02, 0.3) }}
+                          className="bg-card border border-border rounded-xl p-4 hover:border-gold/40 hover:shadow-md transition-all"
+                        >
+                          <div className="flex items-start justify-between gap-3 mb-2">
+                            <div className="min-w-0">
+                              <span className="text-[10px] uppercase tracking-wider font-bold text-gold-dark font-mono">
+                                {a.artigo}
+                              </span>
+                              <h4 className="font-display text-base font-semibold text-foreground leading-tight">
+                                {a.crime}
+                              </h4>
+                            </div>
+                          </div>
+                          <p className="text-xs text-muted-foreground mb-3 leading-relaxed">{a.descricao}</p>
+                          <div className="flex flex-wrap gap-1.5 pt-2 border-t border-border">
+                            <Badge variant="secondary" className="text-[10px] font-mono">
+                              Pena: {formatPena(a.penaMeses)}
+                            </Badge>
+                            <Badge variant="outline" className="text-[10px] font-mono">
+                              Multa: {a.multa > 0 ? formatBRL(a.multa) : "—"}
+                            </Badge>
+                            <Badge
+                              variant={a.fianca === "sem_fianca" ? "destructive" : "outline"}
+                              className="text-[10px] font-mono"
+                            >
+                              Fiança: {formatFianca(a.fianca)}
+                            </Badge>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        )}
-      </main>
+        </TabsContent>
 
+        <TabsContent value="calculadora" className="flex-1 mt-0">
+          <div className="max-w-7xl mx-auto px-4 py-8 w-full">
+            <CalculadoraPenal />
+          </div>
+        </TabsContent>
+      </Tabs>
       {/* Footer */}
       <footer className="bg-institutional-dark text-sidebar-foreground/50 text-[11px] py-6 mt-8">
         <div className="max-w-7xl mx-auto px-4 text-center space-y-2">

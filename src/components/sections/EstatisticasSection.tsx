@@ -13,6 +13,17 @@ import { CURRENT_VERSION } from "@/lib/version";
 
 const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
   {
+    version: "2.28.0",
+    date: "06/05/2026",
+    changes: [
+      "Calculadora Penal: ferramenta interativa para somar penas, multas e fianças de múltiplos crimes",
+      "Catálogo pesquisável com adição de crimes em um clique e ajuste de quantidade",
+      "Ajustes percentuais de majoração e atenuação da pena base",
+      "Resumo do cálculo copiável para uso em peças processuais",
+      "Indicação automática de crimes inafiançáveis no resultado consolidado",
+    ],
+  },
+  {
     version: "2.27.0",
     date: "06/05/2026",
     changes: [
