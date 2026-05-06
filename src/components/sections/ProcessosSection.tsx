@@ -387,7 +387,7 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
         classe_originaria: isSegunda ? form.classe_originaria : null,
         orgao_julgador: isSegunda ? form.orgao_julgador : null,
         relator_id: relatorId,
-        pedido: isSegunda ? form.pedido : null,
+        pedido: null,
       };
       const { error } = await supabase.from("processos").insert(insertPayload);
       if (error) throw error;
