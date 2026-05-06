@@ -368,9 +368,8 @@ export default function CalculadoraCustas() {
       }
 
       // Outros Processos Customizados
-      if (selectedProcess.id === 'outros') {
-        // Já incluso via itemizedDetails da Petição Inicial se necessário, 
-        // ou permitindo valor customizado aqui se preferir.
+      if (selectedProcess.id === 'outros' && customCustas > 0) {
+        itemizedDetails.push({ label: "Outras Custas Judiciais", value: customCustas, type: 'custa' });
       }
     }
 
