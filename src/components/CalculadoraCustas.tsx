@@ -641,13 +641,29 @@ export default function CalculadoraCustas() {
                       <h4 className="text-xs font-bold uppercase tracking-wider">Ajustes Estratégicos</h4>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
                       <CurrencyInput 
                         label="Custas Processuais Base"
                         value={selectedProcessId === 'outros' ? customCustas : (selectedProcess?.items?.find(i => i.type === 'custa')?.value ?? customCustas)} 
                         onChange={setCustomCustas}
                         disabled={selectedProcessId !== 'outros'}
                       />
+
+                      {selectedProcessId === 'defesa_detido' && (
+                        <div className="flex items-center space-x-3 p-3 bg-background/40 rounded-xl border border-gold/10">
+                          <Checkbox 
+                            id="tempo-toggle" 
+                            checked={detidoMais10Min} 
+                            onCheckedChange={(v) => setDetidoMais10Min(!!v)}
+                            className="h-5 w-5 border-gold/30"
+                          />
+                          <Label htmlFor="tempo-toggle" className="text-xs cursor-pointer leading-tight">
+                            Atendimento superior a 10 minutos?<br/>
+                            <span className="text-[10px] text-gold/60 italic">(Ajusta o piso legal para R$ 35k)</span>
+                          </Label>
+                        </div>
+                      )}
+                    </div>
 
                       <div className="space-y-4">
                         <div className="space-y-2">
