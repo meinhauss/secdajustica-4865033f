@@ -179,7 +179,7 @@ const PROCESS_TYPES: ProcessType[] = [
   },
   { 
     id: "casamento", 
-    name: "Casamento (Certidão e Ação)", 
+    name: "Certidão de Casamento", 
     items: [
       { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
       { label: "Certidão de Casamento", value: 100000, type: 'custa' },
