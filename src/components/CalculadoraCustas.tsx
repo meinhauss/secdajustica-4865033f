@@ -362,17 +362,21 @@ export default function CalculadoraCustas() {
     const summary = [
       "═══ ORÇAMENTO PROCESSUAL ═══",
       `Processo: ${selectedProcess.name}`,
+      `Emissão: ${new Date().toLocaleDateString("pt-BR")}`,
+      "",
+      "DETALHAMENTO:",
       ...calculations.itemizedDetails.map(item => `• ${item.label}: ${formatBRL(item.value)}`),
-      `Taxas/Diligências/Verbas: ${formatBRL(calculations.extras)}`,
+      includeExtras && calculations.extras > 0 ? `• Taxas/Diligências Extras: ${formatBRL(calculations.extras)}` : null,
+      "",
       "────────────────────────",
-      `TOTAL: ${formatBRL(calculations.total)}`,
+      `TOTAL ESTIMADO: ${formatBRL(calculations.total)}`,
+      "────────────────────────",
       "",
       selectedProcess.obs ? `Obs: ${selectedProcess.obs}` : null,
-      diligencias > 0 ? `• ${diligencias} diligência(s) inclusa(s)` : null,
     ].filter(Boolean).join("\n");
 
     navigator.clipboard.writeText(summary);
-    toast.success("Resumo copiado!");
+    toast.success("Orçamento copiado para a área de transferência!");
   };
 
   const generatePDF = () => {
