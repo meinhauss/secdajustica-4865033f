@@ -365,6 +365,14 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
         "Julgamento iniciado",
         `Apelação ${apelacao.numero_acordao} entrou em julgamento.`
       );
+      if (apelacao?.processo_id) {
+        await supabase.from("movimentacoes").insert({
+          processo_id: apelacao.processo_id,
+          tipo: "julgamento_iniciado",
+          descricao: `Julgamento da apelação ${apelacao.numero_acordao} iniciado pelo Relator ${profile?.nome_completo || ""}.`,
+          autor_id: user!.id,
+        });
+      }
     },
     onSuccess: () => {
       toast.success("Julgamento iniciado e desembargadores notificados.");
