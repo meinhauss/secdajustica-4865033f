@@ -491,6 +491,7 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
         if (!votoRelator) throw new Error("Voto do relator ainda não foi proferido.");
         payload.acompanha_voto_id = votoRelator.id;
         payload.decisao_tipo = votoRelator.decisao_tipo;
+        if (vRessalvas && vRessalvas !== "<p></p>") payload.ressalvas = vRessalvas;
       } else {
         if (!vFund || vFund === "<p></p>") throw new Error("Informe a fundamentação.");
         if (!vDisp || vDisp === "<p></p>") throw new Error("Informe o dispositivo.");
@@ -500,10 +501,26 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
       }
       const { error } = await supabase.from("votos_apelacao").insert(payload);
       if (error) throw error;
+      if (apelacao?.processo_id) {
+        let desc = "";
+        if (tipoVoto === "acompanha") {
+          desc = `${profile?.nome_completo || "Desembargador(a)"} acompanhou o voto do Relator na apelação ${apelacao.numero_acordao}.`;
+          if (vRessalvas && vRessalvas !== "<p></p>") desc += `\n\nRessalvas:\n${vRessalvas}`;
+        } else {
+          desc = `Voto divergente proferido por ${profile?.nome_completo || "Desembargador(a)"} na apelação ${apelacao.numero_acordao}: ${DECISAO_LABELS[vDecisao] || vDecisao}.\n\nFundamentação:\n${vFund}\n\nDispositivo:\n${vDisp}`;
+        }
+        await supabase.from("movimentacoes").insert({
+          processo_id: apelacao.processo_id,
+          tipo: tipoVoto === "acompanha" ? "voto_acompanha" : "voto_divergente",
+          descricao: desc,
+          autor_id: user!.id,
+        });
+      }
     },
     onSuccess: () => {
       toast.success("Voto registrado!");
       setShowVoto(false);
+      setVRessalvas("");
       queryClient.invalidateQueries({ queryKey: ["tribunal-votos", apelacaoId] });
     },
     onError: (e: any) => toast.error(e.message),
