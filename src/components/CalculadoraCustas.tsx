@@ -106,7 +106,7 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "recursos", 
     name: "Recursos Criminais e Cíveis", 
     items: [
-      { label: "Valor Base do Processo", value: 0, type: 'custa', required: true },
+      { label: "Valor Base do Processo", value: 50000, type: 'custa', required: true },
       { label: "Taxa de Preparo Recursal", value: 50000, type: 'custa', required: true }
     ],
     pisoHonorario: 75000
@@ -115,7 +115,7 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "mandados", 
     name: "Ação Mandamental (MS, HC, HD)", 
     items: [
-      { label: "Valor Base do Processo", value: 0, type: 'custa', required: true },
+      { label: "Valor Base do Processo", value: 50000, type: 'custa', required: true },
       { label: "Custas de Impetração", value: 50000, type: 'custa', required: true }
     ],
     obs: "Mandado de Segurança, Habeas Corpus e Habeas Data."
