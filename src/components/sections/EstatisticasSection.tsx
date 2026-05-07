@@ -13,14 +13,6 @@ import { CURRENT_VERSION } from "@/lib/version";
 
 const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
   {
-    version: "2.30.0",
-    date: "07/05/2026",
-    changes: [
-      "Calculadora de Custas: adicionada opção para processos com Sentença Anulada pelo TJ",
-      "Calculadora de Custas: ajuste automático de fluxos quando a sentença perde efeito",
-    ],
-  },
-  {
     version: "2.29.0",
     date: "06/05/2026",
     changes: [

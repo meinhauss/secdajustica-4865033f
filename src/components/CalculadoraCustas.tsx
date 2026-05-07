@@ -111,14 +111,6 @@ const PROCESS_TYPES: ProcessType[] = [
     ],
     pisoHonorario: 75000
   },
-  {
-    id: "sentenca_anulada",
-    name: "Sentença Anulada pelo TJ",
-    items: [
-      { label: "Petição Inicial", value: 25000, type: 'custa', required: true }
-    ],
-    obs: "A sentença perde seu efeito e o processo volta a correr (em andamento)."
-  },
   { 
     id: "mandados", 
     name: "Ação Mandamental (MS, HC, HD)", 
