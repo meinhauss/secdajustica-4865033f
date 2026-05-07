@@ -142,7 +142,7 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "porte_arma", 
     name: "Porte de Arma de Fogo", 
     items: [
-      { label: "Valor Base do Processo", value: 0, type: 'custa', required: true },
+      { label: "Valor Base do Processo", value: 25000, type: 'custa', required: true },
       { label: "Exame Psicológico", value: 90000, type: 'despesa' },
       { label: "Armamento", value: 100000, type: 'despesa' },
       { label: "Munições", value: 70000, type: 'despesa' }
@@ -154,10 +154,10 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "limpeza_ficha", 
     name: "Exclusão de Antecedentes Criminais", 
     items: [
-      { label: "Valor Base do Processo", value: 0, type: 'custa', required: true },
-      { label: "Ação Judicial", value: 25000, type: 'custa', required: true }
+      { label: "Valor Base do Processo", value: 25000, type: 'custa', required: true },
+      { label: "Ação Judicial", value: 0, type: 'custa', required: true }
     ],
-    obs: "Soma de Petição Inicial (R$ 25.000) e Ação Judicial (R$ 25.000).",
+    obs: "Soma de Petição Inicial (R$ 25.000) e Valor Base (R$ 25.000).",
     pisoHonorario: 110000
   },
   { 
@@ -174,7 +174,7 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "alvara", 
     name: "Alvará de Funcionamento", 
     items: [
-      { label: "Valor Base do Processo", value: 150000, type: 'custa', required: true },
+      { label: "Valor Base do Processo", value: 25000, type: 'custa', required: true },
       { label: "Taxa AVCB (Bombeiros)", value: 50000, type: 'custa' }
     ],
     obs: "Obrigatório o pagamento da Taxa AVCB à parte.",
@@ -184,9 +184,8 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "casamento", 
     name: "Certidão de Casamento", 
     items: [
-      { label: "Valor Base do Processo", value: 0, type: 'custa', required: true },
-      { label: "Certidão de Casamento", value: 100000, type: 'custa' },
-      { label: "Valor da Ação", value: 750000, type: 'custa', required: true }
+      { label: "Valor Base do Processo", value: 750000, type: 'custa', required: true },
+      { label: "Certidão de Casamento", value: 100000, type: 'custa' }
     ],
     obs: "Total das taxas soma R$ 875.000,00.",
     pisoHonorario: 90000
@@ -195,9 +194,8 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "adocao", 
     name: "Ação de Adoção", 
     items: [
-      { label: "Valor Base do Processo", value: 0, type: 'custa', required: true },
-      { label: "Certidão de Nascimento (Atualização)", value: 250000, type: 'custa' },
-      { label: "Valor da Ação", value: 950000, type: 'custa', required: true }
+      { label: "Valor Base do Processo", value: 950000, type: 'custa', required: true },
+      { label: "Certidão de Nascimento (Atualização)", value: 250000, type: 'custa' }
     ],
     obs: "Total das taxas soma R$ 1.225.000,00."
   },
