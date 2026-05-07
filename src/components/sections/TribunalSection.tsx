@@ -576,7 +576,7 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
         });
       }
 
-      const ementa = `${apelacao.processos?.classe ? apelacao.processos.classe.toUpperCase() : "APELAÇÃO"}. ${apelacao.processos?.assunto ? apelacao.processos.assunto.toUpperCase() : "ASSUNTO NÃO INFORMADO"}. ${DECISAO_LABELS[decisaoFinal]?.toUpperCase() || decisaoFinal.toUpperCase()}. ACÓRDÃO PROFERIDO EM 2ª INSTÂNCIA. PROCESSO Nº ${apelacao.processos?.numero || ""}.`;
+      const ementa = `EMENTA: ${apelacao.processos?.classe ? apelacao.processos.classe.toUpperCase() : "APELAÇÃO"}. ${apelacao.processos?.assunto ? apelacao.processos.assunto.toUpperCase() : "ASSUNTO NÃO INFORMADO"}. ${DECISAO_LABELS[decisaoFinal]?.toUpperCase() || decisaoFinal.toUpperCase()}.\n\n1. ACÓRDÃO PROFERIDO EM 2ª INSTÂNCIA PELO TRIBUNAL DE JUSTIÇA.\n2. PROCESSO Nº ${apelacao.processos?.numero || ""}.\n3. RELATOR: ${votoRelator.desembargador_nome.toUpperCase()}.`;
       await supabase.from("jurisprudencias").insert({
         apelacao_id: apelacaoId,
         processo_id: apelacao.processo_id,
