@@ -347,10 +347,18 @@ export default function CalculadoraCustas() {
     let extras = 0;
 
     if (selectedProcess) {
+      // Identificar o primeiro item de custa para que o campo "Custas Processuais Base" o controle
+      const firstCustaItem = selectedProcess.items.find(i => i.type === 'custa');
+      
       // Itens discriminados do processo (taxas e despesas operacionais)
       selectedProcess.items.forEach(item => {
         if (item.required || selectedItems[item.label]) {
           let val = item.value;
+          
+          // Se for o item base, usa o valor do estado customCustas
+          if (item.label === firstCustaItem?.label) {
+            val = customCustas;
+          }
           
           if (selectedProcess.id === 'limpeza_ficha' && item.label === 'Ação Judicial') {
             crimesLimpeza.forEach(c => {
@@ -383,11 +391,6 @@ export default function CalculadoraCustas() {
           itemizedDetails.push({ label: "Alteração de Sobrenome", value: 2000000, type: 'custa' });
         }
       }
-
-      // Outros Processos Customizados
-      if (selectedProcess.id === 'outros' && customCustas > 0) {
-        itemizedDetails.push({ label: "Outras Custas Judiciais", value: customCustas, type: 'custa' });
-      }
     }
 
     if (diligencias > 0) extras += diligencias * 20000;
@@ -405,7 +408,7 @@ export default function CalculadoraCustas() {
       pisoCalculado = detidoMais10Min ? 35000 : 30000;
     }
 
-    return {
+    const result = {
       custas: custasTotal,
       honorarios: honorariosTotal,
       extras: finalExtras,
@@ -416,6 +419,7 @@ export default function CalculadoraCustas() {
       }).map(i => ({ ...i, required: (selectedProcess?.items?.find(orig => orig.label === i.label)?.required) })),
       piso: pisoCalculado
     };
+    return result;
   }, [selectedProcess, diligencias, hasJuiz, hasPromotor, hasDesembargador, valorCivel, hasAlteracaoNome, includeCustas, includeHonorarios, includeExtras, customCustas, customHonorarios, honorarioType, customPercentage, outrasCustas, selectedItems, crimesLimpeza, detidoMais10Min]);
 
   const isBelowPiso = useMemo(() => {
@@ -659,9 +663,8 @@ export default function CalculadoraCustas() {
                     <div className="space-y-4">
                       <CurrencyInput 
                         label="Custas Processuais Base"
-                        value={selectedProcessId === 'outros' ? customCustas : (selectedProcess?.items?.find(i => i.type === 'custa')?.value ?? customCustas)} 
+                        value={customCustas} 
                         onChange={setCustomCustas}
-                        disabled={selectedProcessId !== 'outros'}
                       />
 
                       {selectedProcessId === 'defesa_detido' && (
