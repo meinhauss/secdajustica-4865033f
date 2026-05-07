@@ -149,7 +149,6 @@ function TribunalDashboard({ onSelect, onOpenProcesso }: { onSelect: (id: string
       ) : (
         <div className="space-y-2">
           {filtered.map((a: any, i: number) => {
-            console.log("Rendering appeal:", a);
             const cfg = STATUS_CFG[a.status] || STATUS_CFG.interposta;
             return (
               <motion.div key={a.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
