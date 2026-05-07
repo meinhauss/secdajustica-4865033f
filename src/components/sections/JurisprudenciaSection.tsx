@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { RichTextView } from "@/components/ui/rich-text-editor";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -210,11 +211,11 @@ function JurisprudenciaDetail({ id, onBack }: { id: string; onBack: () => void }
       <div className="bg-card rounded-xl p-5 border border-border space-y-4">
         <div>
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Fundamentação</h3>
-          <p className="text-sm text-muted-foreground mt-2 whitespace-pre-wrap">{j.decisao_fundamentacao || "—"}</p>
+          <RichTextView html={j.decisao_fundamentacao} className="text-sm mt-2" />
         </div>
         <div>
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Dispositivo</h3>
-          <p className="text-sm text-muted-foreground mt-2 whitespace-pre-wrap">{j.decisao_dispositivo || "—"}</p>
+          <RichTextView html={j.decisao_dispositivo} className="text-sm mt-2" />
         </div>
       </div>
     </div>
