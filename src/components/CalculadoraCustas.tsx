@@ -615,7 +615,7 @@ export default function CalculadoraCustas() {
                         Taxas Específicas da Ação
                       </h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        {selectedProcess.items.map((item) => (
+                        {selectedProcess.items.filter(i => i.label !== "Valor Base do Processo" && i.label !== "Petição Inicial" && i.label !== "Taxa Judiciária (Inicial)").map((item) => (
                           <div 
                             key={item.label} 
                             className={cn(
