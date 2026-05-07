@@ -91,6 +91,7 @@ function TribunalDashboard({ onSelect, onOpenProcesso }: { onSelect: (id: string
     },
   });
 
+  console.log("Apelacoes raw data:", apelacoes);
   const filtered = apelacoes?.filter((a: any) => {
     const matchSearch = !search ||
       a.numero_acordao?.toLowerCase().includes(search.toLowerCase()) ||
