@@ -347,18 +347,19 @@ export default function CalculadoraCustas() {
     let extras = 0;
 
     if (selectedProcess) {
-      // Identificar o primeiro item de custa para que o campo "Custas Processuais Base" o controle
-      const firstCustaItem = selectedProcess.items.find(i => i.type === 'custa');
+      // Valor base do processo (editável no input "Custas Processuais Base")
+      itemizedDetails.push({ label: "Valor Base do Processo", value: customCustas, type: 'custa' });
       
-      // Itens discriminados do processo (taxas e despesas operacionais)
+      // Petição Inicial (Custo fixo de 25k para todos os processos)
+      itemizedDetails.push({ label: "Petição Inicial", value: 25000, type: 'custa' });
+
+      // Itens discriminados do processo (taxas e despesas operacionais específicas)
       selectedProcess.items.forEach(item => {
+        // Ignora "Valor Base do Processo" da lista pré-definida pois já adicionamos acima
+        if (item.label === "Valor Base do Processo" || item.label === "Petição Inicial" || item.label === "Taxa Judiciária (Inicial)") return;
+
         if (item.required || selectedItems[item.label]) {
           let val = item.value;
-          
-          // Se for o item base, usa o valor do estado customCustas
-          if (item.label === firstCustaItem?.label) {
-            val = customCustas;
-          }
           
           if (selectedProcess.id === 'limpeza_ficha' && item.label === 'Ação Judicial') {
             crimesLimpeza.forEach(c => {
