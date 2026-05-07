@@ -22,6 +22,8 @@ const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
   },
   {
     version: "2.29.0",
+    date: "06/05/2026",
+    changes: [
       "Calculadora de Custas: nova pré-visualização de orçamento com design institucional luxuoso",
       "Opções de exportação: geração de PDF com layout de documento oficial, download em JPG e função de impressão direta",
       "Calculadora de Custas: interface modernizada com ordenação alfabética e integração total com o Decreto-Lei 001/2024",
