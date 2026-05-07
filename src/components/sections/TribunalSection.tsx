@@ -555,6 +555,26 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
         descricao: `Acórdão proferido pelo TJ (${apelacao.numero_acordao}): ${DECISAO_LABELS[decisaoFinal] || decisaoFinal}`,
       });
 
+      // Se sentença foi ANULADA: revogar sentença e reabrir o processo
+      if (decisaoFinal === "anulada" && apelacao.sentenca_id) {
+        await supabase.from("sentencas").update({
+          anulada: true,
+          anulada_em: now,
+          anulada_por_apelacao_id: apelacaoId,
+        }).eq("id", apelacao.sentenca_id);
+
+        await supabase.from("processos").update({
+          status: "em_andamento",
+        }).eq("id", apelacao.processo_id);
+
+        await supabase.from("movimentacoes").insert({
+          processo_id: apelacao.processo_id,
+          autor_id: user!.id,
+          tipo: "sentenca_anulada",
+          descricao: `<h2>SENTENÇA ANULADA PELO TRIBUNAL DE JUSTIÇA</h2><p>Em julgamento da apelação <strong>${apelacao.numero_acordao}</strong>, o Tribunal de Justiça <strong>ANULOU</strong> a sentença anteriormente proferida, que perde todos os seus efeitos.</p><p>O processo retorna ao seu curso regular perante a vara de origem para nova instrução e julgamento.</p>`,
+        });
+      }
+
       const ementa = `${DECISAO_LABELS[decisaoFinal] || decisaoFinal}. ${apelacao.processos?.classe ? apelacao.processos.classe.toUpperCase() + ". " : ""}${apelacao.processos?.assunto || ""}. Processo nº ${apelacao.processos?.numero || ""}.`;
       await supabase.from("jurisprudencias").insert({
         apelacao_id: apelacaoId,
