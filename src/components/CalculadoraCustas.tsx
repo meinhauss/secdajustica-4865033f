@@ -666,9 +666,8 @@ export default function CalculadoraCustas() {
                     <div className="space-y-4">
                       <CurrencyInput 
                         label="Custas Processuais Base"
-                        value={selectedProcessId === 'outros' ? customCustas : (selectedProcess?.items?.find(i => i.type === 'custa')?.value ?? customCustas)} 
+                        value={customCustas} 
                         onChange={setCustomCustas}
-                        disabled={selectedProcessId !== 'outros'}
                       />
 
                       {selectedProcessId === 'defesa_detido' && (
