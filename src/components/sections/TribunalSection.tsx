@@ -70,7 +70,7 @@ function TribunalDashboard({ onSelect, onOpenProcesso }: { onSelect: (id: string
     queryKey: ["tribunal-apelacoes", user?.id, isDesembargador],
     queryFn: async () => {
       // All desembargadores can see all appeals (to qualify, vote, accompany)
-      const q = supabase.from("apelacoes").select("*, processos(numero, autor_nome, reu_nome, classe, assunto), sentencas(tipo, ementa, dispositivo)").order("created_at", { ascending: false });
+      const q = supabase.from("apelacoes").select("*, processos:processo_id(numero, autor_nome, reu_nome, classe, assunto), sentencas(tipo, ementa, dispositivo)").order("created_at", { ascending: false });
       const { data, error } = await q;
       if (error) throw error;
       return data as any[];
@@ -216,7 +216,7 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
   const { data: apelacao } = useQuery({
     queryKey: ["tribunal-apelacao", apelacaoId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("apelacoes").select("*, processos(numero, autor_nome, reu_nome, classe, assunto, status, vara, sigilo, advogado_autor_id, advogado_reu_id), sentencas(tipo, ementa, fundamentacao, dispositivo, assinado, data_publicacao, magistrado_id)").eq("id", apelacaoId).single();
+      const { data, error } = await supabase.from("apelacoes").select("*, processos:processo_id(numero, autor_nome, reu_nome, classe, assunto, status, vara, sigilo, advogado_autor_id, advogado_reu_id), sentencas(tipo, ementa, fundamentacao, dispositivo, assinado, data_publicacao, magistrado_id)").eq("id", apelacaoId).single();
       if (error) throw error;
       return data as any;
     },
