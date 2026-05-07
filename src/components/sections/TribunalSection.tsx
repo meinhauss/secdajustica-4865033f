@@ -867,7 +867,7 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
 
               {meuVoto && <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-2"><CheckCircle className="h-3 w-3" /> Você já votou.</p>}
 
-              {votoRelator && (votos?.length || 0) >= 1 && (isRelator || roles.includes("admin") || roles.includes("presidente_tribunal")) && (
+              {votoRelator && (votos?.length || 0) >= 3 && (isRelator || roles.includes("admin") || roles.includes("presidente_tribunal")) && (
                 <Button onClick={() => proclamarMutation.mutate()} disabled={proclamarMutation.isPending} variant="outline" className="gap-2">
                   <BarChart3 className="h-4 w-4" /> Proclamar Acórdão
                 </Button>
