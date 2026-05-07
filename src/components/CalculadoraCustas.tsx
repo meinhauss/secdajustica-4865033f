@@ -608,11 +608,11 @@ export default function CalculadoraCustas() {
                   className="space-y-6 pt-2"
                 >
                   {/* Discriminação de Despesas e Taxas do Processo */}
-                  {selectedProcess.id !== 'outros' && selectedProcess.items.length > 0 && (
+                  {selectedProcess.id !== 'outros' && selectedProcess.items.filter(i => i.label !== "Valor Base do Processo" && i.label !== "Petição Inicial" && i.label !== "Taxa Judiciária (Inicial)").length > 0 && (
                     <div className="space-y-3">
                       <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                         <CheckSquare className="h-3 w-3 text-gold" />
-                        Composição de Custas
+                        Taxas Específicas da Ação
                       </h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                         {selectedProcess.items.map((item) => (
