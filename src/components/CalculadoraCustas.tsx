@@ -344,6 +344,8 @@ export default function CalculadoraCustas() {
 
   const calculations = useMemo(() => {
     const itemizedDetails: { label: string; value: number; type: 'custa' | 'honorario' | 'despesa' }[] = [];
+    console.log('Selected items:', selectedItems);
+    console.log('Selected process:', selectedProcess);
     let extras = 0;
 
     if (selectedProcess) {
