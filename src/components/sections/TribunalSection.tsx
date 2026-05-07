@@ -95,7 +95,8 @@ function TribunalDashboard({ onSelect, onOpenProcesso }: { onSelect: (id: string
     const matchSearch = !search ||
       a.numero_acordao?.toLowerCase().includes(search.toLowerCase()) ||
       a.apelante_nome?.toLowerCase().includes(search.toLowerCase()) ||
-      (a.processos?.numero || "").toLowerCase().includes(search.toLowerCase());
+      (a.processos?.numero || "").toLowerCase().includes(search.toLowerCase()) ||
+      (a.sentencas?.dispositivo || "").toLowerCase().includes(search.toLowerCase());
     const matchStatus = filterStatus === "all" || a.status === filterStatus;
     return matchSearch && matchStatus;
   }) || [];
