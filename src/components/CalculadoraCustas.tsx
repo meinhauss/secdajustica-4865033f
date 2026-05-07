@@ -407,7 +407,7 @@ export default function CalculadoraCustas() {
       pisoCalculado = detidoMais10Min ? 35000 : 30000;
     }
 
-    return {
+    const result = {
       custas: custasTotal,
       honorarios: honorariosTotal,
       extras: finalExtras,
@@ -418,6 +418,8 @@ export default function CalculadoraCustas() {
       }).map(i => ({ ...i, required: (selectedProcess?.items?.find(orig => orig.label === i.label)?.required) })),
       piso: pisoCalculado
     };
+    console.log('Calculation result:', result);
+    return result;
   }, [selectedProcess, diligencias, hasJuiz, hasPromotor, hasDesembargador, valorCivel, hasAlteracaoNome, includeCustas, includeHonorarios, includeExtras, customCustas, customHonorarios, honorarioType, customPercentage, outrasCustas, selectedItems, crimesLimpeza, detidoMais10Min]);
 
   const isBelowPiso = useMemo(() => {
