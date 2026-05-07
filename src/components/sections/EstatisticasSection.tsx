@@ -13,9 +13,15 @@ import { CURRENT_VERSION } from "@/lib/version";
 
 const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
   {
-    version: "2.29.0",
-    date: "06/05/2026",
+    version: "2.30.0",
+    date: "07/05/2026",
     changes: [
+      "Calculadora de Custas: adicionada opção para processos com Sentença Anulada pelo TJ",
+      "Calculadora de Custas: ajuste automático de fluxos quando a sentença perde efeito",
+    ],
+  },
+  {
+    version: "2.29.0",
       "Calculadora de Custas: nova pré-visualização de orçamento com design institucional luxuoso",
       "Opções de exportação: geração de PDF com layout de documento oficial, download em JPG e função de impressão direta",
       "Calculadora de Custas: interface modernizada com ordenação alfabética e integração total com o Decreto-Lei 001/2024",
