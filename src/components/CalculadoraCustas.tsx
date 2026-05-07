@@ -98,7 +98,7 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "peticao_inicial", 
     name: "Petição Inicial (Geral)", 
     items: [
-      { label: "Taxa Judiciária (Inicial)", value: 25000, type: 'custa', required: true }
+      { label: "Taxa Judiciária (Inicial)", value: 0, type: 'custa', required: true }
     ],
     obs: "Valor fixo somado à respectiva ação." 
   },
@@ -106,7 +106,7 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "recursos", 
     name: "Recursos Criminais e Cíveis", 
     items: [
-      { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
+      { label: "Valor Base do Processo", value: 0, type: 'custa', required: true },
       { label: "Taxa de Preparo Recursal", value: 50000, type: 'custa', required: true }
     ],
     pisoHonorario: 75000
@@ -115,7 +115,7 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "mandados", 
     name: "Ação Mandamental (MS, HC, HD)", 
     items: [
-      { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
+      { label: "Valor Base do Processo", value: 0, type: 'custa', required: true },
       { label: "Custas de Impetração", value: 50000, type: 'custa', required: true }
     ],
     obs: "Mandado de Segurança, Habeas Corpus e Habeas Data."
@@ -124,7 +124,7 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "defesa_detido", 
     name: "Defesa de Acusado", 
     items: [
-      { label: "Petição Inicial", value: 25000, type: 'custa', required: true }
+      { label: "Valor Base do Processo", value: 0, type: 'custa', required: true }
     ],
     obs: "Honorários: R$ 30.000,00 (até 10 min) ou R$ 35.000,00 (> 10 min).",
     pisoHonorario: 30000 
@@ -133,7 +133,7 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "acoes_civeis", 
     name: "Ações Cíveis (Danos Morais/Materiais)", 
     items: [
-      { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
+      { label: "Valor Base do Processo", value: 0, type: 'custa', required: true },
       { label: "Taxa Judiciária", value: 25000, type: 'custa', required: true }
     ],
     obs: "Danos morais: R$ 40k a R$ 2M. Honorários sugeridos: 20%."
@@ -142,7 +142,7 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "porte_arma", 
     name: "Porte de Arma de Fogo", 
     items: [
-      { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
+      { label: "Valor Base do Processo", value: 0, type: 'custa', required: true },
       { label: "Exame Psicológico", value: 90000, type: 'despesa' },
       { label: "Armamento", value: 100000, type: 'despesa' },
       { label: "Munições", value: 70000, type: 'despesa' }
@@ -154,7 +154,7 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "limpeza_ficha", 
     name: "Exclusão de Antecedentes Criminais", 
     items: [
-      { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
+      { label: "Valor Base do Processo", value: 0, type: 'custa', required: true },
       { label: "Ação Judicial", value: 25000, type: 'custa', required: true }
     ],
     obs: "Soma de Petição Inicial (R$ 25.000) e Ação Judicial (R$ 25.000).",
@@ -164,7 +164,7 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "divorcio", 
     name: "Ação de Divórcio", 
     items: [
-      { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
+      { label: "Valor Base do Processo", value: 0, type: 'custa', required: true },
       { label: "Taxas Judiciais", value: 0, type: 'custa', required: true }
     ],
     obs: "Custas conforme decreto judicial vigente.",
@@ -174,7 +174,7 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "alvara", 
     name: "Alvará de Funcionamento", 
     items: [
-      { label: "Custas TJ-SP (Inclui Inicial)", value: 150000, type: 'custa', required: true },
+      { label: "Valor Base do Processo", value: 150000, type: 'custa', required: true },
       { label: "Taxa AVCB (Bombeiros)", value: 50000, type: 'custa' }
     ],
     obs: "Obrigatório o pagamento da Taxa AVCB à parte.",
@@ -184,7 +184,7 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "casamento", 
     name: "Certidão de Casamento", 
     items: [
-      { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
+      { label: "Valor Base do Processo", value: 0, type: 'custa', required: true },
       { label: "Certidão de Casamento", value: 100000, type: 'custa' },
       { label: "Valor da Ação", value: 750000, type: 'custa', required: true }
     ],
@@ -195,7 +195,7 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "adocao", 
     name: "Ação de Adoção", 
     items: [
-      { label: "Petição Inicial", value: 25000, type: 'custa', required: true },
+      { label: "Valor Base do Processo", value: 0, type: 'custa', required: true },
       { label: "Certidão de Nascimento (Atualização)", value: 250000, type: 'custa' },
       { label: "Valor da Ação", value: 950000, type: 'custa', required: true }
     ],
@@ -205,7 +205,7 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "outros",
     name: "Outros (Personalizado)",
     items: [
-      { label: "Petição Inicial", value: 25000, type: 'custa', required: true }
+      { label: "Valor Base do Processo", value: 0, type: 'custa', required: true }
     ]
   }
 ];
@@ -347,18 +347,19 @@ export default function CalculadoraCustas() {
     let extras = 0;
 
     if (selectedProcess) {
-      // Identificar o primeiro item de custa para que o campo "Custas Processuais Base" o controle
-      const firstCustaItem = selectedProcess.items.find(i => i.type === 'custa');
+      // Valor base do processo (editável no input "Custas Processuais Base")
+      itemizedDetails.push({ label: "Valor Base do Processo", value: customCustas, type: 'custa' });
       
-      // Itens discriminados do processo (taxas e despesas operacionais)
+      // Petição Inicial (Custo fixo de 25k para todos os processos)
+      itemizedDetails.push({ label: "Petição Inicial", value: 25000, type: 'custa' });
+
+      // Itens discriminados do processo (taxas e despesas operacionais específicas)
       selectedProcess.items.forEach(item => {
+        // Ignora "Valor Base do Processo" da lista pré-definida pois já adicionamos acima
+        if (item.label === "Valor Base do Processo" || item.label === "Petição Inicial" || item.label === "Taxa Judiciária (Inicial)") return;
+
         if (item.required || selectedItems[item.label]) {
           let val = item.value;
-          
-          // Se for o item base, usa o valor do estado customCustas
-          if (item.label === firstCustaItem?.label) {
-            val = customCustas;
-          }
           
           if (selectedProcess.id === 'limpeza_ficha' && item.label === 'Ação Judicial') {
             crimesLimpeza.forEach(c => {
@@ -607,14 +608,14 @@ export default function CalculadoraCustas() {
                   className="space-y-6 pt-2"
                 >
                   {/* Discriminação de Despesas e Taxas do Processo */}
-                  {selectedProcess.id !== 'outros' && selectedProcess.items.length > 0 && (
+                  {selectedProcess.id !== 'outros' && selectedProcess.items.filter(i => i.label !== "Valor Base do Processo" && i.label !== "Petição Inicial" && i.label !== "Taxa Judiciária (Inicial)").length > 0 && (
                     <div className="space-y-3">
                       <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                         <CheckSquare className="h-3 w-3 text-gold" />
-                        Composição de Custas
+                        Taxas Específicas da Ação
                       </h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        {selectedProcess.items.map((item) => (
+                        {selectedProcess.items.filter(i => i.label !== "Valor Base do Processo" && i.label !== "Petição Inicial" && i.label !== "Taxa Judiciária (Inicial)").map((item) => (
                           <div 
                             key={item.label} 
                             className={cn(
