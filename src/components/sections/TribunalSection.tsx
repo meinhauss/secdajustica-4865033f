@@ -47,6 +47,7 @@ function StatCard({ label, value, icon: Icon, delay = 0 }: { label: string; valu
 }
 
 export default function TribunalSection({ onOpenProcesso }: { onOpenProcesso?: (id: string) => void } = {}) {
+  console.log("TribunalSection rendering");
   const [view, setView] = useState<"dashboard" | "detail">("dashboard");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
