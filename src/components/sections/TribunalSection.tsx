@@ -62,7 +62,6 @@ export default function TribunalSection({ onOpenProcesso }: { onOpenProcesso?: (
 /* ═══════════════════════════════════════ */
 function TribunalDashboard({ onSelect, onOpenProcesso }: { onSelect: (id: string) => void; onOpenProcesso?: (id: string) => void }) {
   const { user, roles } = useAuth();
-  console.log("TribunalDashboard active for user:", user?.id, "with roles:", roles);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const isDesembargador = roles.some(r => ["desembargador", "presidente_tribunal", "admin", "magistrado"].includes(r));
