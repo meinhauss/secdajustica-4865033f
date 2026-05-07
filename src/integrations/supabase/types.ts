@@ -1746,6 +1746,9 @@ export type Database = {
       }
       sentencas: {
         Row: {
+          anulada: boolean
+          anulada_em: string | null
+          anulada_por_apelacao_id: string | null
           assinado: boolean
           created_at: string
           data_publicacao: string | null
@@ -1758,6 +1761,9 @@ export type Database = {
           tipo: string
         }
         Insert: {
+          anulada?: boolean
+          anulada_em?: string | null
+          anulada_por_apelacao_id?: string | null
           assinado?: boolean
           created_at?: string
           data_publicacao?: string | null
@@ -1770,6 +1776,9 @@ export type Database = {
           tipo?: string
         }
         Update: {
+          anulada?: boolean
+          anulada_em?: string | null
+          anulada_por_apelacao_id?: string | null
           assinado?: boolean
           created_at?: string
           data_publicacao?: string | null
@@ -1782,6 +1791,13 @@ export type Database = {
           tipo?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "sentencas_anulada_por_apelacao_id_fkey"
+            columns: ["anulada_por_apelacao_id"]
+            isOneToOne: false
+            referencedRelation: "apelacoes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "sentencas_processo_id_fkey"
             columns: ["processo_id"]
