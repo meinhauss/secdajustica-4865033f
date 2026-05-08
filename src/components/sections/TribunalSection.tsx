@@ -1040,7 +1040,7 @@ function OriginarioTribunalDetail({ processoId, onBack }: { processoId: string; 
   const queryClient = useQueryClient();
   const isDesembargador = roles.some(r => ["desembargador", "presidente_tribunal", "admin", "magistrado"].includes(r));
 
-  const { data: processo } = useQuery({
+  const { data: processo, isLoading: isLoadingProcesso } = useQuery({
     queryKey: ["tribunal-originario", processoId],
     queryFn: async () => {
       const { data, error } = await supabase.from("processos").select("*").eq("id", processoId).single();
@@ -1106,11 +1106,13 @@ function OriginarioTribunalDetail({ processoId, onBack }: { processoId: string; 
       toast.success("Decisão proferida e jurisprudência gerada!");
       setShowDecisao(false);
       queryClient.invalidateQueries({ queryKey: ["tribunal-originario"] });
+      queryClient.invalidateQueries({ queryKey: ["movimentacoes", processoId] });
     },
     onError: (e: any) => toast.error(e.message),
   });
 
-  if (!processo) return <div className="text-center py-16"><p className="text-sm text-muted-foreground">Carregando...</p></div>;
+  if (isLoadingProcesso) return <div className="text-center py-16"><p className="text-sm text-muted-foreground">Carregando processo...</p></div>;
+  if (!processo) return <div className="text-center py-16"><p className="text-sm text-muted-foreground">Processo não encontrado.</p></div>;
 
   const isRelator = processo.relator_id === user?.id;
 
@@ -1257,7 +1259,7 @@ function OriginarioTribunalDetail({ processoId, onBack }: { processoId: string; 
 }
 
 function ProcessoTimeline({ processoId }: { processoId: string }) {
-  const { data: movimentacoes } = useQuery({
+  const { data: movimentacoes, isLoading } = useQuery({
     queryKey: ["movimentacoes", processoId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -1269,6 +1271,8 @@ function ProcessoTimeline({ processoId }: { processoId: string }) {
       return data;
     },
   });
+
+  if (isLoading) return <div className="text-center py-12"><p className="text-sm text-muted-foreground">Carregando movimentações...</p></div>;
 
   if (!movimentacoes?.length) {
     return (
