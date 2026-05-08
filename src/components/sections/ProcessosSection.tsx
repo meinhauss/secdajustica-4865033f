@@ -1560,7 +1560,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                 <Lock className="h-3 w-3" /> {(processo as any).sigilo === "segredo_justica" ? "Segredo de Justiça" : "Sigilo Absoluto"}
               </span>
             )}
-            {isJudicial && (
+            {(isJudicial || (isMagistradoOrDesembargador && (processo.juiz_id === user?.id || processo.relator_id === user?.id))) && (
               <Select value={processo.status} onValueChange={(v) => updateStatus.mutate(v)}>
                 <SelectTrigger className="rounded-xl w-44 h-8 text-xs"><SelectValue /></SelectTrigger>
                 <SelectContent>
