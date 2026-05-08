@@ -830,6 +830,16 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     enabled: !!processo?.juiz_id,
   });
 
+  const { data: relatorProfile } = useQuery({
+    queryKey: ["relator-profile", processo?.relator_id],
+    queryFn: async () => {
+      if (!processo?.relator_id) return null;
+      const { data } = await supabase.from("profiles").select("nome_completo").eq("user_id", processo.relator_id).maybeSingle();
+      return data;
+    },
+    enabled: !!processo?.relator_id,
+  });
+
   // Magistrado/desembargador can only act on their assigned processes
   const isAssignedJudge = (isMagistradoOrDesembargador) && processo?.juiz_id === user?.id;
   // Juízes/desembargadores NÃO podem agir na aba Processos — só via Portal do Juiz
@@ -1256,7 +1266,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   // After sentencing, no new movimentações — only appeals are allowed (except oficial de justiça)
   const isSentenciado = processo?.status === "sentenciado";
   const isArquivado = processo?.status === "arquivado";
-  const canAddMovimentacao = isOficialJustica || (!isSentenciado && !isArquivado && (isJudicial || (isAdvogado && advogadoTemProcuracao) || institucionalInteressado));
+  const canAddMovimentacao = isOficialJustica || (!isSentenciado && !isArquivado && (isJudicial || (isMagistradoOrDesembargador && (processo?.juiz_id === user?.id || processo?.relator_id === user?.id)) || (isAdvogado && advogadoTemProcuracao) || institucionalInteressado));
 
   const manifestarInteresse = useMutation({
     mutationFn: async () => {
@@ -1560,7 +1570,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                 <Lock className="h-3 w-3" /> {(processo as any).sigilo === "segredo_justica" ? "Segredo de Justiça" : "Sigilo Absoluto"}
               </span>
             )}
-            {isJudicial && (
+            {(isJudicial || (isMagistradoOrDesembargador && (processo.juiz_id === user?.id || processo.relator_id === user?.id))) && (
               <Select value={processo.status} onValueChange={(v) => updateStatus.mutate(v)}>
                 <SelectTrigger className="rounded-xl w-44 h-8 text-xs"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -1614,12 +1624,18 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               <p className="text-sm font-medium text-foreground">{processo.vara || "—"}</p>
             </div>
             <div>
-              <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Juiz(a)</p>
-              <p className="text-sm font-medium text-foreground">{juizProfile?.nome_completo || "Não atribuído"}</p>
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">{processo.instancia === 2 ? "Relator(a)" : "Juiz(a)"}</p>
+              <p className="text-sm font-medium text-foreground">
+                {processo.instancia === 2 
+                  ? (relatorProfile?.nome_completo || "Aguardando distribuição") 
+                  : (juizProfile?.nome_completo || "Não atribuído")}
+              </p>
             </div>
             <div>
-              <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Classe Processual</p>
-              <p className="text-sm font-medium text-foreground capitalize">{processo.classe}</p>
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Classe {processo.instancia === 2 ? "Originária" : "Processual"}</p>
+              <p className="text-sm font-medium text-foreground capitalize">
+                {processo.instancia === 2 ? (processo.classe_originaria?.replace(/_/g, " ") || processo.classe) : processo.classe}
+              </p>
             </div>
             <div>
               <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Assunto</p>
