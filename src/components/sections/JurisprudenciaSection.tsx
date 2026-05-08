@@ -8,10 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import {
-  Search, Scale, Gavel, BookOpen, ChevronRight, ArrowLeft, FileText
+  Search, Scale, Gavel, BookOpen, ChevronRight, ArrowLeft, FileText, Download, Loader2
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import { toast } from "sonner";
 
 const DECISAO_LABELS: Record<string, string> = {
   mantida: "Sentença Mantida",
