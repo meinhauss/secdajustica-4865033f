@@ -1170,6 +1170,9 @@ function OriginarioTribunalDetail({ processoId, onBack }: { processoId: string; 
           <TabsTrigger value="movimentacoes" className="rounded-lg text-xs">
             <HistoryIcon className="h-3 w-3 mr-1" /> Movimentações
           </TabsTrigger>
+          <TabsTrigger value="documentos" className="rounded-lg text-xs">
+            <FileText className="h-3 w-3 mr-1" /> Documentos
+          </TabsTrigger>
           {isDesembargador && (
             <TabsTrigger value="acoes" className="rounded-lg text-xs">
               <Gavel className="h-3 w-3 mr-1" /> Ações do Tribunal
@@ -1179,6 +1182,10 @@ function OriginarioTribunalDetail({ processoId, onBack }: { processoId: string; 
 
         <TabsContent value="movimentacoes" className="mt-4">
           <ProcessoTimeline processoId={processoId} />
+        </TabsContent>
+
+        <TabsContent value="documentos" className="mt-4">
+          <ProcessoDocumentos processoId={processoId} />
         </TabsContent>
 
         {isDesembargador && (
