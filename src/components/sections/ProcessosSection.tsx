@@ -502,7 +502,12 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
                 <>
                   <Select value={form.classe_originaria} onValueChange={(v) => {
                     const c = CLASSES_ORIGINARIAS.find(x => x.value === v);
-                    setForm({ ...form, classe_originaria: v, classe: c?.classe || form.classe });
+                    let aLabel = "Autor";
+                    let rLabel = "Réu";
+                    if (v === "habeas_corpus") { aLabel = "Impetrante"; rLabel = "Autoridade Coatora"; }
+                    else if (v === "mandado_seguranca") { aLabel = "Impetrante"; rLabel = "Impetrado"; }
+                    else if (v === "acao_rescisoria") { aLabel = "Autor"; rLabel = "Réu"; }
+                    setForm({ ...form, classe_originaria: v, classe: c?.classe || form.classe, autor_label: aLabel, reu_label: rLabel });
                   }}>
                     <SelectTrigger className="rounded-xl"><SelectValue placeholder="Classe Originária *" /></SelectTrigger>
                     <SelectContent>
@@ -516,8 +521,14 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
                     </SelectContent>
                   </Select>
                   <Input placeholder="Assunto *" value={form.assunto} onChange={(e) => setForm({ ...form, assunto: e.target.value })} required className="rounded-xl" />
-                  <MultiPartyInput label="Impetrante / Autor" entries={autores} onChange={setAutores} />
-                  <MultiPartyInput label="Autoridade Coatora / Réu" entries={reus} onChange={setReus} />
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input placeholder="Classe do Autor (Ex: Impetrante)" value={form.autor_label} onChange={(e) => setForm({ ...form, autor_label: e.target.value })} className="rounded-xl" />
+                    <Input placeholder="Classe do Réu (Ex: Impetrado)" value={form.reu_label} onChange={(e) => setForm({ ...form, reu_label: e.target.value })} className="rounded-xl" />
+                  </div>
+
+                  <MultiPartyInput label={form.autor_label} entries={autores} onChange={setAutores} />
+                  <MultiPartyInput label={form.reu_label} entries={reus} onChange={setReus} />
                   <Textarea placeholder="Síntese dos fatos *" value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} required className="rounded-xl" />
                   <p className="text-[11px] text-muted-foreground px-1">O Relator será sorteado automaticamente entre os Desembargadores ativos.</p>
                 </>
@@ -533,8 +544,14 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
                     </SelectContent>
                   </Select>
                   <Input placeholder="Assunto" value={form.assunto} onChange={(e) => setForm({ ...form, assunto: e.target.value })} required className="rounded-xl" />
-                  <MultiPartyInput label="Autor" entries={autores} onChange={setAutores} />
-                  <MultiPartyInput label="Réu" entries={reus} onChange={setReus} />
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input placeholder="Classe do Autor" value={form.autor_label} onChange={(e) => setForm({ ...form, autor_label: e.target.value })} className="rounded-xl" />
+                    <Input placeholder="Classe do Réu" value={form.reu_label} onChange={(e) => setForm({ ...form, reu_label: e.target.value })} className="rounded-xl" />
+                  </div>
+
+                  <MultiPartyInput label={form.autor_label} entries={autores} onChange={setAutores} />
+                  <MultiPartyInput label={form.reu_label} entries={reus} onChange={setReus} />
                   <Input placeholder="Vara" value={form.vara} onChange={(e) => setForm({ ...form, vara: e.target.value })} className="rounded-xl" />
                   <Input placeholder="Valor da Causa (R$)" value={form.valor_causa} onChange={(e) => { const raw = e.target.value.replace(/\D/g, ""); setForm({ ...form, valor_causa: raw ? formatCurrency(raw) : "" }); }} className="rounded-xl" />
                   <Textarea placeholder="Síntese (resumo) dos fatos" value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} className="rounded-xl" />
