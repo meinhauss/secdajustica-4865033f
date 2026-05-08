@@ -381,6 +381,8 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
         descricao: form.descricao,
         autor_nome: autorDisplay,
         reu_nome: reuDisplay,
+        autor_label: form.autor_label,
+        reu_label: form.reu_label,
         vara: isSegunda ? form.orgao_julgador : form.vara,
         valor_causa: parseCurrencyToNumber(form.valor_causa),
         juiz_id: juizId,
