@@ -8,10 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import {
-  Search, Scale, Gavel, BookOpen, ChevronRight, ArrowLeft, FileText
+  Search, Scale, Gavel, BookOpen, ChevronRight, ArrowLeft, FileText, Download, Loader2
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import { toast } from "sonner";
 
 const DECISAO_LABELS: Record<string, string> = {
   mantida: "Sentença Mantida",
@@ -153,6 +156,7 @@ function JurisprudenciaList({ onSelect }: { onSelect: (id: string) => void }) {
 }
 
 function JurisprudenciaDetail({ id, onBack }: { id: string; onBack: () => void }) {
+  const [isExporting, setIsExporting] = useState(false);
   const { data: j } = useQuery({
     queryKey: ["jurisprudencia", id],
     queryFn: async () => {
@@ -162,60 +166,107 @@ function JurisprudenciaDetail({ id, onBack }: { id: string; onBack: () => void }
     },
   });
 
+  const exportToPDF = async () => {
+    if (!j) return;
+    setIsExporting(true);
+    const element = document.getElementById("jurisprudencia-content");
+    if (!element) {
+      toast.error("Não foi possível encontrar o conteúdo para exportar.");
+      setIsExporting(false);
+      return;
+    }
+
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+      const imgX = (pdfWidth - imgWidth * ratio) / 2;
+      const imgY = 10;
+
+      pdf.addImage(imgData, "PNG", imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+      pdf.save(`jurisprudencia-${j.numero_acordao.replace(/\//g, "-")}.pdf`);
+      toast.success("PDF gerado com sucesso!");
+    } catch (error) {
+      console.error("PDF Export Error:", error);
+      toast.error("Erro ao gerar PDF.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   if (!j) return <div className="text-center py-16"><p className="text-sm text-muted-foreground">Carregando...</p></div>;
 
   return (
     <div className="space-y-6">
-      <Button variant="ghost" onClick={onBack} className="gap-2"><ArrowLeft className="h-4 w-4" /> Voltar</Button>
-
-      <div className="bg-card rounded-xl p-6 border border-border shadow-institutional">
-        <div className="flex items-center gap-3 flex-wrap mb-4">
-          <BookOpen className="h-6 w-6 text-institutional" />
-          <h2 className="font-display text-xl font-bold text-foreground">{j.numero_acordao}</h2>
-          <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${
-            j.decisao_tipo === "mantida" ? "bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400" :
-            j.decisao_tipo === "anulada" ? "bg-destructive/10 text-destructive" :
-            "bg-gold/10 text-gold-dark"
-          }`}>{DECISAO_LABELS[j.decisao_tipo] || j.decisao_tipo}</span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-          <div>
-            <p className="text-muted-foreground text-xs uppercase tracking-wider">Classe Processual</p>
-            <p className="text-foreground capitalize">{j.classe || "—"}</p>
-          </div>
-          <div>
-            <p className="text-muted-foreground text-xs uppercase tracking-wider">Assunto</p>
-            <p className="text-foreground">{j.assunto || "—"}</p>
-          </div>
-          <div>
-            <p className="text-muted-foreground text-xs uppercase tracking-wider">Relator(a)</p>
-            <p className="text-foreground">{j.desembargador_nome || "—"}</p>
-          </div>
-          <div>
-            <p className="text-muted-foreground text-xs uppercase tracking-wider">Data do Julgamento</p>
-            <p className="text-foreground">{j.data_julgamento ? format(new Date(j.data_julgamento), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "—"}</p>
-          </div>
-        </div>
+      <div className="flex items-center justify-between gap-4">
+        <Button variant="ghost" onClick={onBack} className="gap-2"><ArrowLeft className="h-4 w-4" /> Voltar</Button>
+        <Button variant="outline" size="sm" onClick={exportToPDF} disabled={isExporting} className="gap-2 rounded-xl border-institutional text-institutional hover:bg-institutional hover:text-white">
+          {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+          Exportar PDF
+        </Button>
       </div>
 
-      <div className="bg-card rounded-xl p-5 border border-border space-y-4">
-        <div>
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-            <FileText className="h-3.5 w-3.5" /> Ementa
-          </h3>
-          <p className="text-sm text-foreground mt-2 whitespace-pre-wrap leading-relaxed">{j.ementa}</p>
-        </div>
-      </div>
+      <div id="jurisprudencia-content" className="space-y-6 bg-white p-2">
+        <div className="bg-card rounded-xl p-6 border border-border shadow-institutional">
+          <div className="flex items-center gap-3 flex-wrap mb-4">
+            <BookOpen className="h-6 w-6 text-institutional" />
+            <h2 className="font-display text-xl font-bold text-foreground">{j.numero_acordao}</h2>
+            <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${
+              j.decisao_tipo === "mantida" ? "bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400" :
+              j.decisao_tipo === "anulada" ? "bg-destructive/10 text-destructive" :
+              "bg-gold/10 text-gold-dark"
+            }`}>{DECISAO_LABELS[j.decisao_tipo] || j.decisao_tipo}</span>
+          </div>
 
-      <div className="bg-card rounded-xl p-5 border border-border space-y-4">
-        <div>
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Fundamentação</h3>
-          <RichTextView html={j.decisao_fundamentacao} className="text-sm mt-2" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-muted-foreground text-xs uppercase tracking-wider">Classe Processual</p>
+              <p className="text-foreground capitalize">{j.classe || "—"}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground text-xs uppercase tracking-wider">Assunto</p>
+              <p className="text-foreground">{j.assunto || "—"}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground text-xs uppercase tracking-wider">Relator(a)</p>
+              <p className="text-foreground">{j.desembargador_nome || "—"}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground text-xs uppercase tracking-wider">Data do Julgamento</p>
+              <p className="text-foreground">{j.data_julgamento ? format(new Date(j.data_julgamento), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "—"}</p>
+            </div>
+          </div>
         </div>
-        <div>
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Dispositivo</h3>
-          <RichTextView html={j.decisao_dispositivo} className="text-sm mt-2" />
+
+        <div className="bg-card rounded-xl p-5 border border-border space-y-4">
+          <div>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+              <FileText className="h-3.5 w-3.5" /> Ementa
+            </h3>
+            <p className="text-sm text-foreground mt-2 whitespace-pre-wrap leading-relaxed">{j.ementa}</p>
+          </div>
+        </div>
+
+        <div className="bg-card rounded-xl p-5 border border-border space-y-4">
+          <div>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Fundamentação</h3>
+            <RichTextView html={j.decisao_fundamentacao} className="text-sm mt-2" />
+          </div>
+          <div>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Dispositivo</h3>
+            <RichTextView html={j.decisao_dispositivo} className="text-sm mt-2" />
+          </div>
         </div>
       </div>
     </div>
