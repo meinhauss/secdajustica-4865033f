@@ -1168,7 +1168,7 @@ function OriginarioTribunalDetail({ processoId, onBack }: { processoId: string; 
       <Tabs defaultValue="movimentacoes" className="w-full">
         <TabsList className="bg-secondary/50 rounded-xl p-1">
           <TabsTrigger value="movimentacoes" className="rounded-lg text-xs">
-            <History className="h-3 w-3 mr-1" /> Movimentações
+            <HistoryIcon className="h-3 w-3 mr-1" /> Movimentações
           </TabsTrigger>
           {isDesembargador && (
             <TabsTrigger value="acoes" className="rounded-lg text-xs">
@@ -1265,7 +1265,7 @@ function ProcessoTimeline({ processoId }: { processoId: string }) {
   if (!movimentacoes?.length) {
     return (
       <div className="text-center py-12 bg-muted/30 rounded-xl border border-dashed border-border">
-        <History className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
+        <HistoryIcon className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
         <p className="text-sm text-muted-foreground">Nenhuma movimentação registrada.</p>
       </div>
     );
