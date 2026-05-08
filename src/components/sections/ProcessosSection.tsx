@@ -771,7 +771,7 @@ function EditablePartesSection({ processo, processoId, advAutor, advReu, canEdit
             )}
           </div>
           <div className="bg-secondary/30 rounded-lg p-3">
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-1">Réu(s)</p>
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-1">{processo.reu_label || "Réu"}(s)</p>
             {parsePartesFromString(processo.reu_nome).map((p, idx) => (
               <p key={idx} className="text-sm font-medium text-foreground">
                 {p.nome}{p.id_personagem ? <span className="text-xs text-muted-foreground ml-1">(ID: {p.id_personagem})</span> : ""}
