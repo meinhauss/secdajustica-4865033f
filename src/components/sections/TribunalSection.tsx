@@ -163,7 +163,7 @@ function TribunalDashboard({ onSelect, onOpenProcesso }: { onSelect: (id: string
                       <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{a.apelante_tipo === "reu" ? "Réu" : a.apelante_tipo === "autor" ? "Autor" : a.apelante_tipo === "defesa" ? "Defesa" : a.apelante_tipo === "acusacao" ? "Acusação" : "Ambas as partes"}</span>
                     </div>
                     <p className="text-sm text-foreground mt-1">
-                      Processo: {a.processos?.numero} — {formatPartesShort(a.processos?.autor_nome || "")} vs {formatPartesShort(a.processos?.reu_nome || "")}
+                      Processo: {a.processos?.numero} — {formatPartesShort(a.processos?.autor_nome || "")} ({a.processos?.autor_label || "Autor"}) vs {formatPartesShort(a.processos?.reu_nome || "")} ({a.processos?.reu_label || "Réu"})
                     </p>
                     <p className="text-xs text-muted-foreground">Apelante: {a.apelante_nome}</p>
                   </div>
