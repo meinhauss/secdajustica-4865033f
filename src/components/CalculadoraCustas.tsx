@@ -362,6 +362,11 @@ export default function CalculadoraCustas() {
           if (selectedProcess.id === 'limpeza_ficha' && item.label === 'Ação Judicial') {
             crimesLimpeza.forEach(c => {
               val += GRAVIDADE_CRIMES[c.typeIndex].value;
+              itemizedDetails.push({ 
+                label: `Exclusão: Pena ${GRAVIDADE_CRIMES[c.typeIndex].label}`, 
+                value: GRAVIDADE_CRIMES[c.typeIndex].value, 
+                type: 'custa' 
+              });
             });
           }
 
