@@ -1111,7 +1111,8 @@ function OriginarioTribunalDetail({ processoId, onBack }: { processoId: string; 
     onError: (e: any) => toast.error(e.message),
   });
 
-  if (!processo) return <div className="text-center py-16"><p className="text-sm text-muted-foreground">Carregando...</p></div>;
+  if (isLoadingProcesso) return <div className="text-center py-16"><p className="text-sm text-muted-foreground">Carregando processo...</p></div>;
+  if (!processo) return <div className="text-center py-16"><p className="text-sm text-muted-foreground">Processo não encontrado.</p></div>;
 
   const isRelator = processo.relator_id === user?.id;
 
