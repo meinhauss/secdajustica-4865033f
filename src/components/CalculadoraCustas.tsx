@@ -682,6 +682,59 @@ export default function CalculadoraCustas() {
                       )}
                     </div>
 
+                      {selectedProcessId === 'limpeza_ficha' && (
+                        <div className="space-y-4 pt-2 border-t border-gold/10">
+                          <div className="flex justify-between items-center">
+                            <Label className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground flex items-center gap-2">
+                              <Trash2 className="h-3 w-3 text-gold" />
+                              Passagens para Exclusão
+                            </Label>
+                            <Button size="sm" variant="ghost" onClick={addCrimeLimpeza} className="h-7 text-[10px] text-gold hover:bg-gold/10">
+                              <Plus className="h-3 w-3 mr-1" /> Adicionar Passagem
+                            </Button>
+                          </div>
+                          <div className="space-y-3">
+                            {crimesLimpeza.map((crime) => (
+                              <motion.div 
+                                key={crime.id}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                className="flex gap-2 items-center"
+                              >
+                                <Select 
+                                  value={crime.typeIndex.toString()} 
+                                  onValueChange={(val) => updateCrimeLimpeza(crime.id, parseInt(val))}
+                                >
+                                  <SelectTrigger className="flex-1 bg-background/50 border-gold/20 h-10 text-xs">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {GRAVIDADE_CRIMES.map((gc, idx) => (
+                                      <SelectItem key={idx} value={idx.toString()}>
+                                        Pena: {gc.label} — {formatBRL(gc.value)}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  onClick={() => removeCrimeLimpeza(crime.id)}
+                                  className="text-destructive hover:bg-destructive/10 h-10 w-10 flex-shrink-0"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </motion.div>
+                            ))}
+                            {crimesLimpeza.length === 0 && (
+                              <p className="text-[10px] text-center py-4 border border-dashed border-gold/10 rounded-xl text-muted-foreground">
+                                Nenhuma passagem adicionada para cálculo.
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
                       <div className="space-y-4">
                         <div className="space-y-2">
                           <Label className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Regime de Honorários</Label>
