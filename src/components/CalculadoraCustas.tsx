@@ -155,9 +155,9 @@ const PROCESS_TYPES: ProcessType[] = [
     name: "Exclusão de Antecedentes Criminais", 
     items: [
       { label: "Valor Base do Processo", value: 25000, type: 'custa', required: true },
-      { label: "Ação Judicial", value: 0, type: 'custa', required: true }
+      { label: "Ação Judicial", value: 0, type: 'custa', required: false }
     ],
-    obs: "Soma de Petição Inicial (R$ 25.000) e Valor Base (R$ 25.000).",
+    obs: "Valores calculados conforme gravidade dos crimes (Decreto Lei 003/2024).",
     pisoHonorario: 110000
   },
   { 
