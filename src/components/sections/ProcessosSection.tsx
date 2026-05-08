@@ -688,6 +688,9 @@ function EditablePartesSection({ processo, processoId, advAutor, advReu, canEdit
       const changes: string[] = [];
       if (oldAutores !== newAutores) changes.push(`Autor(es): de "${oldAutores}" para "${newAutores}"`);
       if (oldReus !== newReus) changes.push(`Réu(s): de "${oldReus}" para "${newReus}"`);
+      if (processo.autor_label !== editAutorLabel) changes.push(`Label Autor: de "${processo.autor_label}" para "${editAutorLabel}"`);
+      if (processo.reu_label !== editReuLabel) changes.push(`Label Réu: de "${processo.reu_label}" para "${editReuLabel}"`);
+      
       if (changes.length === 0) { setEditing(false); throw new Error("__no_changes__"); }
 
       if (editAutores.length === 0 || editReus.length === 0) {
