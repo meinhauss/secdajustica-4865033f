@@ -1040,7 +1040,7 @@ function OriginarioTribunalDetail({ processoId, onBack }: { processoId: string; 
   const queryClient = useQueryClient();
   const isDesembargador = roles.some(r => ["desembargador", "presidente_tribunal", "admin", "magistrado"].includes(r));
 
-  const { data: processo } = useQuery({
+  const { data: processo, isLoading: isLoadingProcesso } = useQuery({
     queryKey: ["tribunal-originario", processoId],
     queryFn: async () => {
       const { data, error } = await supabase.from("processos").select("*").eq("id", processoId).single();
