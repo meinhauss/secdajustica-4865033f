@@ -632,7 +632,7 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
           <div>
             <p className="text-muted-foreground text-xs uppercase tracking-wider">Processo Originário</p>
             <p className="font-mono text-foreground">{apelacao.processos?.numero}</p>
-            <p className="text-muted-foreground text-xs">{formatPartesShort(apelacao.processos?.autor_nome || "")} vs {formatPartesShort(apelacao.processos?.reu_nome || "")}</p>
+            <p className="text-muted-foreground text-xs">{formatPartesShort(apelacao.processos?.autor_nome || "")} ({apelacao.processos?.autor_label || "Autor"}) vs {formatPartesShort(apelacao.processos?.reu_nome || "")} ({apelacao.processos?.reu_label || "Réu"})</p>
           </div>
           <div>
             <p className="text-muted-foreground text-xs uppercase tracking-wider">Apelante</p>
