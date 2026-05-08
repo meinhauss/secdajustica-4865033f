@@ -436,7 +436,11 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["processos"] });
       setOpen(false);
-      setForm({ classe: "civil", assunto: "", descricao: "", vara: "1ª Vara Cível", valor_causa: "", sigilo: "publico", instancia: "1", classe_originaria: "", orgao_julgador: "", pedido: "" });
+      setForm({ 
+        classe: "civil", assunto: "", descricao: "", vara: "1ª Vara Cível", valor_causa: "", sigilo: "publico", 
+        instancia: "1", classe_originaria: "", orgao_julgador: "", pedido: "",
+        autor_label: "Autor", reu_label: "Réu"
+      });
       setAutores([]); setReus([]);
       toast.success("Processo cadastrado e distribuído por sorteio!");
     },
