@@ -738,8 +738,12 @@ function EditablePartesSection({ processo, processoId, advAutor, advReu, canEdit
 
       {editing ? (
         <div className="space-y-4">
-          <MultiPartyInput label="Autor" entries={editAutores} onChange={setEditAutores} />
-          <MultiPartyInput label="Réu" entries={editReus} onChange={setEditReus} />
+          <div className="grid grid-cols-2 gap-2">
+            <Input placeholder="Classe do Autor" value={editAutorLabel} onChange={(e) => setEditAutorLabel(e.target.value)} className="rounded-xl" />
+            <Input placeholder="Classe do Réu" value={editReuLabel} onChange={(e) => setEditReuLabel(e.target.value)} className="rounded-xl" />
+          </div>
+          <MultiPartyInput label={editAutorLabel} entries={editAutores} onChange={setEditAutores} />
+          <MultiPartyInput label={editReuLabel} entries={editReus} onChange={setEditReus} />
           <div className="flex gap-2">
             <Button size="sm" onClick={() => savePartes.mutate()} disabled={savePartes.isPending} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
               {savePartes.isPending ? "Salvando..." : "Salvar Alterações"}
