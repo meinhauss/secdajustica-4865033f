@@ -1165,22 +1165,40 @@ function OriginarioTribunalDetail({ processoId, onBack }: { processoId: string; 
         )}
       </div>
 
-      {isDesembargador && (
-        <div className="bg-card rounded-xl p-5 border border-border space-y-4">
-          <h3 className="text-sm font-semibold text-foreground">Ações da Desembargadoria</h3>
-          
-          <div className="flex gap-2 flex-wrap">
-            {isRelator && (
-              <Button onClick={() => setShowDecisao(true)} className="gap-2 bg-institutional hover:bg-institutional-light text-gold-light">
-                <Gavel className="h-4 w-4" /> Proferir Decisão / Acórdão
-              </Button>
-            )}
-            {!processo.relator_id && (
-              <p className="text-xs text-muted-foreground italic">Aguardando sorteio de Relator para permitir movimentações judiciais.</p>
-            )}
-          </div>
-        </div>
-      )}
+      <Tabs defaultValue="movimentacoes" className="w-full">
+        <TabsList className="bg-secondary/50 rounded-xl p-1">
+          <TabsTrigger value="movimentacoes" className="rounded-lg text-xs">
+            <History className="h-3 w-3 mr-1" /> Movimentações
+          </TabsTrigger>
+          {isDesembargador && (
+            <TabsTrigger value="acoes" className="rounded-lg text-xs">
+              <Gavel className="h-3 w-3 mr-1" /> Ações do Tribunal
+            </TabsTrigger>
+          )}
+        </TabsList>
+
+        <TabsContent value="movimentacoes" className="mt-4">
+          <ProcessoTimeline processoId={processoId} />
+        </TabsContent>
+
+        {isDesembargador && (
+          <TabsContent value="acoes" className="mt-4">
+            <div className="bg-card rounded-xl p-5 border border-border space-y-4">
+              <h3 className="text-sm font-semibold text-foreground">Ações da Desembargadoria</h3>
+              <div className="flex gap-2 flex-wrap">
+                {isRelator && (
+                  <Button onClick={() => setShowDecisao(true)} className="gap-2 bg-institutional hover:bg-institutional-light text-gold-light">
+                    <Gavel className="h-4 w-4" /> Proferir Decisão / Acórdão
+                  </Button>
+                )}
+                {!processo.relator_id && (
+                  <p className="text-xs text-muted-foreground italic">Aguardando sorteio de Relator para permitir movimentações judiciais.</p>
+                )}
+              </div>
+            </div>
+          </TabsContent>
+        )}
+      </Tabs>
 
       <Dialog open={showDecisao} onOpenChange={setShowDecisao}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -1226,6 +1244,64 @@ function OriginarioTribunalDetail({ processoId, onBack }: { processoId: string; 
           </div>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function ProcessoTimeline({ processoId }: { processoId: string }) {
+  const { data: movimentacoes } = useQuery({
+    queryKey: ["movimentacoes", processoId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("movimentacoes")
+        .select("*, profiles:autor_id(nome_completo)")
+        .eq("processo_id", processoId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  if (!movimentacoes?.length) {
+    return (
+      <div className="text-center py-12 bg-muted/30 rounded-xl border border-dashed border-border">
+        <History className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
+        <p className="text-sm text-muted-foreground">Nenhuma movimentação registrada.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {movimentacoes.map((m: any, idx: number) => (
+        <motion.div
+          key={m.id}
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: idx * 0.05 }}
+          className="relative pl-6 pb-4 border-l border-border last:pb-0"
+        >
+          <div className="absolute left-[-5px] top-1.5 h-2.5 w-2.5 rounded-full bg-institutional" />
+          <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] uppercase tracking-wider font-bold text-institutional">
+                {m.tipo.replace(/_/g, " ")}
+              </span>
+              <span className="text-[10px] text-muted-foreground">
+                {format(new Date(m.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+              </span>
+            </div>
+            <div className="text-sm text-foreground prose prose-sm dark:prose-invert max-w-none">
+              <RichTextView html={m.descricao} />
+            </div>
+            {m.profiles?.nome_completo && (
+              <p className="mt-2 text-[10px] text-muted-foreground italic">
+                Por: {m.profiles.nome_completo}
+              </p>
+            )}
+          </div>
+        </motion.div>
+      ))}
     </div>
   );
 }
