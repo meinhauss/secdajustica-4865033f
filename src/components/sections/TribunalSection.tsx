@@ -1258,7 +1258,7 @@ function OriginarioTribunalDetail({ processoId, onBack }: { processoId: string; 
 }
 
 function ProcessoTimeline({ processoId }: { processoId: string }) {
-  const { data: movimentacoes } = useQuery({
+  const { data: movimentacoes, isLoading } = useQuery({
     queryKey: ["movimentacoes", processoId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -1270,6 +1270,8 @@ function ProcessoTimeline({ processoId }: { processoId: string }) {
       return data;
     },
   });
+
+  if (isLoading) return <div className="text-center py-12"><p className="text-sm text-muted-foreground">Carregando movimentações...</p></div>;
 
   if (!movimentacoes?.length) {
     return (
