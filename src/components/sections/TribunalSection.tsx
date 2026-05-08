@@ -1260,28 +1260,26 @@ function OriginarioTribunalDetail({ processoId, onBack }: { processoId: string; 
 
 function ProcessoTimeline({ processoId }: { processoId: string }) {
   const { data: movimentacoes, isLoading } = useQuery({
-    queryKey: ["movimentacoes", processoId],
+    queryKey: ["movimentacoes-originario", processoId],
     queryFn: async () => {
       if (!processoId) return [];
-      console.log("Fetching movimentacoes for:", processoId);
       const { data, error } = await supabase
         .from("movimentacoes")
         .select("*, profiles:autor_id(nome_completo)")
         .eq("processo_id", processoId)
         .order("created_at", { ascending: false });
       
-      if (error) {
-        console.error("Error fetching movimentacoes:", error);
-        throw error;
-      }
-      console.log("Movimentacoes found:", data?.length);
+      if (error) throw error;
       return data;
     },
-    staleTime: 0,
-    gcTime: 0,
   });
 
-  if (isLoading) return <div className="text-center py-12"><p className="text-sm text-muted-foreground">Carregando movimentações...</p></div>;
+  if (isLoading) return (
+    <div className="flex flex-col items-center justify-center py-12 space-y-3">
+      <div className="h-6 w-6 animate-spin rounded-full border-2 border-institutional border-t-transparent" />
+      <p className="text-sm text-muted-foreground">Carregando movimentações...</p>
+    </div>
+  );
 
   if (!movimentacoes?.length) {
     return (
