@@ -70,7 +70,7 @@ function TribunalDashboard({ onSelect, onOpenProcesso }: { onSelect: (id: string
     queryKey: ["tribunal-apelacoes", user?.id, isDesembargador],
     queryFn: async () => {
       // All desembargadores can see all appeals (to qualify, vote, accompany)
-      const q = supabase.from("apelacoes").select("*, processos:processo_id(numero, autor_nome, reu_nome, classe, assunto), sentencas:sentenca_id(tipo, ementa, dispositivo)").order("created_at", { ascending: false });
+      const q = supabase.from("apelacoes").select("*, processos:processo_id(numero, autor_nome, reu_nome, autor_label, reu_label, classe, assunto), sentencas:sentenca_id(tipo, ementa, dispositivo)").order("created_at", { ascending: false });
       const { data, error } = await q;
       if (error) throw error;
       return data as any[];
@@ -83,7 +83,7 @@ function TribunalDashboard({ onSelect, onOpenProcesso }: { onSelect: (id: string
     queryFn: async () => {
       const { data, error } = await supabase
         .from("processos")
-        .select("id, numero, autor_nome, reu_nome, classe, classe_originaria, orgao_julgador, assunto, status, created_at, sigilo, prioridade, relator_id")
+        .select("id, numero, autor_nome, reu_nome, autor_label, reu_label, classe, classe_originaria, orgao_julgador, assunto, status, created_at, sigilo, prioridade, relator_id")
         .eq("instancia", 2)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -163,7 +163,7 @@ function TribunalDashboard({ onSelect, onOpenProcesso }: { onSelect: (id: string
                       <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{a.apelante_tipo === "reu" ? "Réu" : a.apelante_tipo === "autor" ? "Autor" : a.apelante_tipo === "defesa" ? "Defesa" : a.apelante_tipo === "acusacao" ? "Acusação" : "Ambas as partes"}</span>
                     </div>
                     <p className="text-sm text-foreground mt-1">
-                      Processo: {a.processos?.numero} — {formatPartesShort(a.processos?.autor_nome || "")} vs {formatPartesShort(a.processos?.reu_nome || "")}
+                      Processo: {a.processos?.numero} — {formatPartesShort(a.processos?.autor_nome || "")} ({a.processos?.autor_label || "Autor"}) vs {formatPartesShort(a.processos?.reu_nome || "")} ({a.processos?.reu_label || "Réu"})
                     </p>
                     <p className="text-xs text-muted-foreground">Apelante: {a.apelante_nome}</p>
                   </div>
@@ -194,7 +194,7 @@ function TribunalDashboard({ onSelect, onOpenProcesso }: { onSelect: (id: string
                     <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{p.orgao_julgador}</span>
                   </div>
                   <p className="text-sm text-foreground mt-1 truncate">{p.assunto}</p>
-                  <p className="text-xs text-muted-foreground">{formatPartesShort(p.autor_nome || "")} vs {formatPartesShort(p.reu_nome || "")}</p>
+                  <p className="text-xs text-muted-foreground">{formatPartesShort(p.autor_nome || "")} ({p.autor_label || "Autor"}) vs {formatPartesShort(p.reu_nome || "")} ({p.reu_label || "Réu"})</p>
                 </div>
                 <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-institutional transition-colors flex-shrink-0" />
               </div>
@@ -217,7 +217,7 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
   const { data: apelacao } = useQuery({
     queryKey: ["tribunal-apelacao", apelacaoId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("apelacoes").select("*, processos:processo_id(numero, autor_nome, reu_nome, classe, assunto, status, vara, sigilo, advogado_autor_id, advogado_reu_id), sentencas:sentenca_id(tipo, ementa, fundamentacao, dispositivo, assinado, data_publicacao, magistrado_id)").eq("id", apelacaoId).single();
+      const { data, error } = await supabase.from("apelacoes").select("*, processos:processo_id(numero, autor_nome, reu_nome, autor_label, reu_label, classe, assunto, status, vara, sigilo, advogado_autor_id, advogado_reu_id), sentencas:sentenca_id(tipo, ementa, fundamentacao, dispositivo, assinado, data_publicacao, magistrado_id)").eq("id", apelacaoId).single();
       if (error) throw error;
       return data as any;
     },
@@ -632,7 +632,7 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
           <div>
             <p className="text-muted-foreground text-xs uppercase tracking-wider">Processo Originário</p>
             <p className="font-mono text-foreground">{apelacao.processos?.numero}</p>
-            <p className="text-muted-foreground text-xs">{formatPartesShort(apelacao.processos?.autor_nome || "")} vs {formatPartesShort(apelacao.processos?.reu_nome || "")}</p>
+            <p className="text-muted-foreground text-xs">{formatPartesShort(apelacao.processos?.autor_nome || "")} ({apelacao.processos?.autor_label || "Autor"}) vs {formatPartesShort(apelacao.processos?.reu_nome || "")} ({apelacao.processos?.reu_label || "Réu"})</p>
           </div>
           <div>
             <p className="text-muted-foreground text-xs uppercase tracking-wider">Apelante</p>
