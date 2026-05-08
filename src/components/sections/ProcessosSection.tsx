@@ -666,11 +666,15 @@ function EditablePartesSection({ processo, processoId, advAutor, advReu, canEdit
   const [editing, setEditing] = useState(false);
   const [editAutores, setEditAutores] = useState<ParteEntry[]>([]);
   const [editReus, setEditReus] = useState<ParteEntry[]>([]);
+  const [editAutorLabel, setEditAutorLabel] = useState("");
+  const [editReuLabel, setEditReuLabel] = useState("");
   const queryClient = useQueryClient();
 
   const startEditing = () => {
     setEditAutores(parsePartesFromString(processo.autor_nome));
     setEditReus(parsePartesFromString(processo.reu_nome));
+    setEditAutorLabel(processo.autor_label || "Autor");
+    setEditReuLabel(processo.reu_label || "Réu");
     setEditing(true);
   };
 
