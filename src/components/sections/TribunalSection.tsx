@@ -1313,3 +1313,55 @@ function ProcessoTimeline({ processoId }: { processoId: string }) {
   );
 }
 
+function ProcessoDocumentos({ processoId }: { processoId: string }) {
+  const { data: documentos, isLoading } = useQuery({
+    queryKey: ["documentos", processoId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("documentos_processo")
+        .select("*")
+        .eq("processo_id", processoId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  if (isLoading) return <div className="text-center py-12"><p className="text-sm text-muted-foreground">Carregando documentos...</p></div>;
+
+  if (!documentos?.length) {
+    return (
+      <div className="text-center py-12 bg-muted/30 rounded-xl border border-dashed border-border">
+        <FileText className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
+        <p className="text-sm text-muted-foreground">Nenhum documento anexado.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      {documentos.map((doc: any) => (
+        <div key={doc.id} className="bg-card rounded-xl p-4 border border-border shadow-sm flex items-start gap-3">
+          <div className="p-2 bg-institutional/10 rounded-lg">
+            <FileText className="h-5 w-5 text-institutional" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-foreground truncate">{doc.nome}</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{doc.tipo}</p>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              {format(new Date(doc.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+            </p>
+          </div>
+          {doc.arquivo_url && (
+            <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+              <a href={doc.arquivo_url} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            </Button>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
