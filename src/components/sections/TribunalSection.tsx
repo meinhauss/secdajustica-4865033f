@@ -1106,6 +1106,7 @@ function OriginarioTribunalDetail({ processoId, onBack }: { processoId: string; 
       toast.success("Decisão proferida e jurisprudência gerada!");
       setShowDecisao(false);
       queryClient.invalidateQueries({ queryKey: ["tribunal-originario"] });
+      queryClient.invalidateQueries({ queryKey: ["movimentacoes", processoId] });
     },
     onError: (e: any) => toast.error(e.message),
   });
