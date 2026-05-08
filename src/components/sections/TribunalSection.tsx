@@ -194,7 +194,7 @@ function TribunalDashboard({ onSelect, onOpenProcesso }: { onSelect: (id: string
                     <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{p.orgao_julgador}</span>
                   </div>
                   <p className="text-sm text-foreground mt-1 truncate">{p.assunto}</p>
-                  <p className="text-xs text-muted-foreground">{formatPartesShort(p.autor_nome || "")} vs {formatPartesShort(p.reu_nome || "")}</p>
+                  <p className="text-xs text-muted-foreground">{formatPartesShort(p.autor_nome || "")} ({p.autor_label || "Autor"}) vs {formatPartesShort(p.reu_nome || "")} ({p.reu_label || "Réu"})</p>
                 </div>
                 <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-institutional transition-colors flex-shrink-0" />
               </div>
