@@ -1099,7 +1099,7 @@ function OriginarioTribunalDetail({ processoId, onBack }: { processoId: string; 
         desembargador_id: user!.id,
         desembargador_nome: profile?.nome_completo || "Relator",
         data_julgamento: new Date().toISOString(),
-      });
+      } as any);
     },
     onSuccess: () => {
       toast.success("Decisão proferida e jurisprudência gerada!");
