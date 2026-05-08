@@ -47,14 +47,22 @@ function StatCard({ label, value, icon: Icon, delay = 0 }: { label: string; valu
 }
 
 export default function TribunalSection({ onOpenProcesso }: { onOpenProcesso?: (id: string) => void } = {}) {
-  const [view, setView] = useState<"dashboard" | "detail">("dashboard");
+  const [view, setView] = useState<"dashboard" | "detail" | "originario">("dashboard");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   if (view === "detail" && selectedId) {
     return <ApelacaoDetail apelacaoId={selectedId} onBack={() => { setView("dashboard"); setSelectedId(null); }} />;
   }
 
-  return <TribunalDashboard onSelect={(id) => { setSelectedId(id); setView("detail"); }} onOpenProcesso={onOpenProcesso} />;
+  if (view === "originario" && selectedId) {
+    return <OriginarioTribunalDetail processoId={selectedId} onBack={() => { setView("dashboard"); setSelectedId(null); }} />;
+  }
+
+  return <TribunalDashboard 
+    onSelect={(id) => { setSelectedId(id); setView("detail"); }} 
+    onSelectOriginario={(id) => { setSelectedId(id); setView("originario"); }}
+    onOpenProcesso={onOpenProcesso} 
+  />;
 }
 
 /* ═══════════════════════════════════════ */
