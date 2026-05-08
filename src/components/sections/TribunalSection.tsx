@@ -1034,3 +1034,199 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
   );
 }
 
+function OriginarioTribunalDetail({ processoId, onBack }: { processoId: string; onBack: () => void }) {
+  const { user, profile, roles } = useAuth();
+  const queryClient = useQueryClient();
+  const isDesembargador = roles.some(r => ["desembargador", "presidente_tribunal", "admin", "magistrado"].includes(r));
+
+  const { data: processo } = useQuery({
+    queryKey: ["tribunal-originario", processoId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("processos").select("*").eq("id", processoId).single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: relatorProfile } = useQuery({
+    queryKey: ["relator-profile", processo?.relator_id],
+    queryFn: async () => {
+      if (!processo?.relator_id) return null;
+      const { data } = await supabase.from("profiles").select("nome_completo").eq("user_id", processo.relator_id).maybeSingle();
+      return data;
+    },
+    enabled: !!processo?.relator_id,
+  });
+
+  const [showDecisao, setShowDecisao] = useState(false);
+  const [decisaoForm, setDecisaoForm] = useState({ tipo: "monocratica", titulo: "", conteudo: "" });
+
+  const proferirDecisao = useMutation({
+    mutationFn: async () => {
+      if (!decisaoForm.titulo || !decisaoForm.conteudo) throw new Error("Preencha o título e o conteúdo.");
+      
+      const { error: atoError } = await supabase.from("atos_judiciais").insert({
+        processo_id: processoId,
+        tipo: decisaoForm.tipo === "monocratica" ? "decisao" : "acordao",
+        titulo: decisaoForm.titulo,
+        conteudo: decisaoForm.conteudo,
+        autor_id: user!.id,
+        autor_nome: profile?.nome_completo || "Desembargador(a)",
+        assinado: true,
+        data_assinatura: new Date().toISOString()
+      });
+      if (atoError) throw atoError;
+
+      await supabase.from("movimentacoes").insert({
+        processo_id: processoId,
+        tipo: "decisao_tribunal",
+        descricao: `<h2>${decisaoForm.tipo === "monocratica" ? "DECISÃO MONOCRÁTICA" : "ACÓRDÃO"}</h2><p><strong>${decisaoForm.titulo}</strong></p>${decisaoForm.conteudo}`,
+        autor_id: user!.id,
+      });
+
+      // Gerar Jurisprudência se for Acórdão ou decisão relevante
+      const ementa = `EMENTA: ${processo.classe_originaria?.replace(/_/g, " ").toUpperCase() || "PROCESSO ORIGINÁRIO"}. ${processo.assunto?.toUpperCase()}. ${decisaoForm.titulo.toUpperCase()}.\n\n1. DECISÃO PROFERIDA PELO TRIBUNAL DE JUSTIÇA.\n2. PROCESSO Nº ${processo.numero}.\n3. RELATOR: ${(profile?.nome_completo || "Desembargador").toUpperCase()}.`;
+      
+      await supabase.from("jurisprudencias").insert({
+        processo_id: processoId,
+        numero_acordao: processo.numero, // Usa o número do processo como referência se não for apelação
+        classe: processo.classe,
+        assunto: processo.assunto,
+        ementa,
+        decisao_tipo: "originaria",
+        decisao_fundamentacao: decisaoForm.conteudo,
+        decisao_dispositivo: "Decisão proferida em processo originário.",
+        desembargador_id: user!.id,
+        desembargador_nome: profile?.nome_completo || "Relator",
+        data_julgamento: new Date().toISOString(),
+      });
+    },
+    onSuccess: () => {
+      toast.success("Decisão proferida e jurisprudência gerada!");
+      setShowDecisao(false);
+      queryClient.invalidateQueries({ queryKey: ["tribunal-originario"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  if (!processo) return <div className="text-center py-16"><p className="text-sm text-muted-foreground">Carregando...</p></div>;
+
+  const isRelator = processo.relator_id === user?.id;
+
+  return (
+    <div className="space-y-6">
+      <Button variant="ghost" onClick={onBack} className="gap-2"><ArrowLeft className="h-4 w-4" /> Voltar</Button>
+
+      <div className="bg-card rounded-xl p-6 border-2 border-institutional/40 shadow-institutional">
+        <div className="flex items-center gap-3 flex-wrap mb-4">
+          <Scale className="h-6 w-6 text-institutional" />
+          <h2 className="font-display text-xl font-bold text-foreground">{processo.numero}</h2>
+          <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-institutional text-gold-light">Processo Originário</span>
+          {processo.classe_originaria && (
+            <span className="text-[10px] uppercase tracking-wider font-medium px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
+              {processo.classe_originaria.replace(/_/g, " ")}
+            </span>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm">
+          <div className="space-y-3">
+            <div>
+              <p className="text-muted-foreground text-[10px] uppercase tracking-wider font-semibold">Partes</p>
+              <p className="text-foreground mt-1">
+                <span className="font-semibold">{processo.autor_label || "Autor"}:</span> {formatPartesShort(processo.autor_nome || "")}
+              </p>
+              <p className="text-foreground">
+                <span className="font-semibold">{processo.reu_label || "Réu"}:</span> {formatPartesShort(processo.reu_nome || "")}
+              </p>
+            </div>
+            <div>
+              <p className="text-muted-foreground text-[10px] uppercase tracking-wider font-semibold">Assunto</p>
+              <p className="text-foreground">{processo.assunto}</p>
+            </div>
+          </div>
+          <div className="space-y-3">
+            <div>
+              <p className="text-muted-foreground text-[10px] uppercase tracking-wider font-semibold">Relator(a)</p>
+              <p className="text-foreground font-medium">{relatorProfile?.nome_completo || "Aguardando distribuição"}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground text-[10px] uppercase tracking-wider font-semibold">Órgão Julgador</p>
+              <p className="text-foreground">{processo.orgao_julgador || processo.vara}</p>
+            </div>
+          </div>
+        </div>
+
+        {processo.descricao && (
+          <div className="mt-4 pt-4 border-t border-border">
+            <p className="text-muted-foreground text-[10px] uppercase tracking-wider font-semibold mb-1">Petição Inicial / Síntese</p>
+            <p className="text-sm text-foreground whitespace-pre-wrap">{processo.descricao}</p>
+          </div>
+        )}
+      </div>
+
+      {isDesembargador && (
+        <div className="bg-card rounded-xl p-5 border border-border space-y-4">
+          <h3 className="text-sm font-semibold text-foreground">Ações da Desembargadoria</h3>
+          
+          <div className="flex gap-2 flex-wrap">
+            {isRelator && (
+              <Button onClick={() => setShowDecisao(true)} className="gap-2 bg-institutional hover:bg-institutional-light text-gold-light">
+                <Gavel className="h-4 w-4" /> Proferir Decisão / Acórdão
+              </Button>
+            )}
+            {!processo.relator_id && (
+              <p className="text-xs text-muted-foreground italic">Aguardando sorteio de Relator para permitir movimentações judiciais.</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      <Dialog open={showDecisao} onOpenChange={setShowDecisao}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>Proferir Decisão no Tribunal</DialogTitle></DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm font-medium">Tipo de Decisão</label>
+                <Select value={decisaoForm.tipo} onValueChange={(v) => setDecisaoForm({ ...decisaoForm, tipo: v })}>
+                  <SelectTrigger className="mt-1 rounded-xl"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="monocratica">Decisão Monocrática</SelectItem>
+                    <SelectItem value="acordao">Acórdão (Colegiado)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Título / Ementa Curta</label>
+                <Input 
+                  placeholder="Ex: Concedo a Segurança" 
+                  value={decisaoForm.titulo} 
+                  onChange={(e) => setDecisaoForm({ ...decisaoForm, titulo: e.target.value })}
+                  className="mt-1 rounded-xl"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Conteúdo da Decisão</label>
+              <RichTextEditor 
+                value={decisaoForm.conteudo} 
+                onChange={(v) => setDecisaoForm({ ...decisaoForm, conteudo: v })} 
+                minHeight="300px" 
+                className="mt-1"
+              />
+            </div>
+            <Button 
+              onClick={() => proferirDecisao.mutate()} 
+              disabled={proferirDecisao.isPending}
+              className="w-full bg-institutional hover:bg-institutional-light text-gold-light rounded-xl"
+            >
+              {proferirDecisao.isPending ? "Processando..." : "Publicar e Gerar Jurisprudência"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
