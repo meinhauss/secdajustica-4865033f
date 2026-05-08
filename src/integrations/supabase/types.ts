@@ -1334,6 +1334,7 @@ export type Database = {
           advogado_autor_id: string | null
           advogado_reu_id: string | null
           assunto: string
+          autor_label: string | null
           autor_nome: string
           classe: Database["public"]["Enums"]["classe_processual"]
           classe_originaria: string | null
@@ -1347,6 +1348,7 @@ export type Database = {
           pedido: string | null
           prioridade: boolean | null
           relator_id: string | null
+          reu_label: string | null
           reu_nome: string
           sigilo: string
           status: Database["public"]["Enums"]["processo_status"]
@@ -1358,6 +1360,7 @@ export type Database = {
           advogado_autor_id?: string | null
           advogado_reu_id?: string | null
           assunto: string
+          autor_label?: string | null
           autor_nome: string
           classe?: Database["public"]["Enums"]["classe_processual"]
           classe_originaria?: string | null
@@ -1371,6 +1374,7 @@ export type Database = {
           pedido?: string | null
           prioridade?: boolean | null
           relator_id?: string | null
+          reu_label?: string | null
           reu_nome: string
           sigilo?: string
           status?: Database["public"]["Enums"]["processo_status"]
@@ -1382,6 +1386,7 @@ export type Database = {
           advogado_autor_id?: string | null
           advogado_reu_id?: string | null
           assunto?: string
+          autor_label?: string | null
           autor_nome?: string
           classe?: Database["public"]["Enums"]["classe_processual"]
           classe_originaria?: string | null
@@ -1395,6 +1400,7 @@ export type Database = {
           pedido?: string | null
           prioridade?: boolean | null
           relator_id?: string | null
+          reu_label?: string | null
           reu_nome?: string
           sigilo?: string
           status?: Database["public"]["Enums"]["processo_status"]
