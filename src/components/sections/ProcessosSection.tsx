@@ -272,6 +272,8 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
     classe_originaria: "",
     orgao_julgador: "",
     pedido: "",
+    autor_label: "Autor",
+    reu_label: "Réu",
   });
 
   const CLASSES_ORIGINARIAS = [
