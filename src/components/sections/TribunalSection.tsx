@@ -83,7 +83,7 @@ function TribunalDashboard({ onSelect, onOpenProcesso }: { onSelect: (id: string
     queryFn: async () => {
       const { data, error } = await supabase
         .from("processos")
-        .select("id, numero, autor_nome, reu_nome, classe, classe_originaria, orgao_julgador, assunto, status, created_at, sigilo, prioridade, relator_id")
+        .select("id, numero, autor_nome, reu_nome, autor_label, reu_label, classe, classe_originaria, orgao_julgador, assunto, status, created_at, sigilo, prioridade, relator_id")
         .eq("instancia", 2)
         .order("created_at", { ascending: false });
       if (error) throw error;
