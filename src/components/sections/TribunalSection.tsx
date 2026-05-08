@@ -191,7 +191,7 @@ function TribunalDashboard({ onSelect, onSelectOriginario, onOpenProcesso }: { o
           </div>
           {originarios.map((p: any, i: number) => (
             <motion.div key={p.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
-              onClick={() => onOpenProcesso?.(p.id)}
+              onClick={() => onSelectOriginario(p.id)}
               className="bg-card rounded-xl p-4 border-2 border-institutional/40 shadow-institutional hover:border-institutional transition-all cursor-pointer group">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex-1 min-w-0">
