@@ -1614,8 +1614,12 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               <p className="text-sm font-medium text-foreground">{processo.vara || "—"}</p>
             </div>
             <div>
-              <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Juiz(a)</p>
-              <p className="text-sm font-medium text-foreground">{juizProfile?.nome_completo || "Não atribuído"}</p>
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">{processo.instancia === 2 ? "Relator(a)" : "Juiz(a)"}</p>
+              <p className="text-sm font-medium text-foreground">
+                {processo.instancia === 2 
+                  ? (relatorProfile?.nome_completo || "Aguardando distribuição") 
+                  : (juizProfile?.nome_completo || "Não atribuído")}
+              </p>
             </div>
             <div>
               <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Classe {processo.instancia === 2 ? "Originária" : "Processual"}</p>
