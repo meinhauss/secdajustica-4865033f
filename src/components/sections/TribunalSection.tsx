@@ -70,7 +70,7 @@ function TribunalDashboard({ onSelect, onOpenProcesso }: { onSelect: (id: string
     queryKey: ["tribunal-apelacoes", user?.id, isDesembargador],
     queryFn: async () => {
       // All desembargadores can see all appeals (to qualify, vote, accompany)
-      const q = supabase.from("apelacoes").select("*, processos:processo_id(numero, autor_nome, reu_nome, classe, assunto), sentencas:sentenca_id(tipo, ementa, dispositivo)").order("created_at", { ascending: false });
+      const q = supabase.from("apelacoes").select("*, processos:processo_id(numero, autor_nome, reu_nome, autor_label, reu_label, classe, assunto), sentencas:sentenca_id(tipo, ementa, dispositivo)").order("created_at", { ascending: false });
       const { data, error } = await q;
       if (error) throw error;
       return data as any[];
