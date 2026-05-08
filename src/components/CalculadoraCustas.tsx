@@ -368,9 +368,11 @@ export default function CalculadoraCustas() {
                 type: 'custa' 
               });
             });
+            // We don't want to push the "Ação Judicial" itself if it's 0 and we have items
+            if (val === 0) itemizedDetails.push({ ...item, value: 0 });
+          } else {
+            itemizedDetails.push({ ...item, value: val });
           }
-
-          itemizedDetails.push({ ...item, value: val });
         }
       });
 
