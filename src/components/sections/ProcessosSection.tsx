@@ -700,6 +700,8 @@ function EditablePartesSection({ processo, processoId, advAutor, advReu, canEdit
       const { error } = await supabase.from("processos").update({
         autor_nome: JSON.stringify(editAutores),
         reu_nome: JSON.stringify(editReus),
+        autor_label: editAutorLabel,
+        reu_label: editReuLabel,
       }).eq("id", processoId);
       if (error) throw error;
 
