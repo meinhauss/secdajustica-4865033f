@@ -1618,8 +1618,10 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               <p className="text-sm font-medium text-foreground">{juizProfile?.nome_completo || "Não atribuído"}</p>
             </div>
             <div>
-              <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Classe Processual</p>
-              <p className="text-sm font-medium text-foreground capitalize">{processo.classe}</p>
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Classe {processo.instancia === 2 ? "Originária" : "Processual"}</p>
+              <p className="text-sm font-medium text-foreground capitalize">
+                {processo.instancia === 2 ? (processo.classe_originaria?.replace(/_/g, " ") || processo.classe) : processo.classe}
+              </p>
             </div>
             <div>
               <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Assunto</p>
