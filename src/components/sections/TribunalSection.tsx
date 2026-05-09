@@ -1337,9 +1337,10 @@ function ProcessoTimeline({ processoId }: { processoId: string }) {
             <div className="text-sm text-foreground prose prose-sm dark:prose-invert max-w-none">
               <RichTextView html={m.descricao} />
             </div>
-            {m.profiles?.nome_completo && (
-              <p className="mt-2 text-[10px] text-muted-foreground italic">
-                Por: {m.profiles.nome_completo}
+            {m.autor_nome && (
+              <p className="mt-2 text-[10px] text-muted-foreground italic flex items-center gap-1">
+                <PenTool className="h-3 w-3" />
+                Por: {m.autor_nome}
               </p>
             )}
           </div>
