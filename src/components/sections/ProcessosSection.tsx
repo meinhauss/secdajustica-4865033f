@@ -1996,13 +1996,13 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             // Movimentações — attach related documents, skip types rendered by dedicated sections
             movimentacoes?.forEach(m => {
               if (duplicatedMovTypes.has(m.tipo)) return;
-
+              
               const mTime = new Date(m.created_at).getTime();
               const relatedDocs = (documentos || []).filter((d: any) => {
                 if (usedDocIds.has(d.id)) return false;
                 const dTime = new Date(d.created_at).getTime();
-                const sameAuthor = d.autor_id && m.autor_id && d.autor_id === m.autor_id;
-                return sameAuthor && Math.abs(dTime - mTime) < 60000; // within 1 minute
+                // Match by close timestamp
+                return Math.abs(dTime - mTime) < 120000; // within 2 minutes
               });
               relatedDocs.forEach((d: any) => usedDocIds.add(d.id));
 
