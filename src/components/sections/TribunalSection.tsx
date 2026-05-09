@@ -75,7 +75,8 @@ function TribunalDashboard({ onSelect, onSelectOriginario, onOpenProcesso }: { o
   const [filterStatus, setFilterStatus] = useState("all");
   const isDesembargador = roles.some(r => ["desembargador", "presidente_tribunal", "admin", "magistrado"].includes(r));
 
-  const { data: apelacoes } = useQuery({
+  const queryClient = useQueryClient();
+  const { data: apelacoes, isLoading: isLoadingApelacoes, isError: isErrorApelacoes } = useQuery({
     queryKey: ["tribunal-apelacoes", user?.id, isDesembargador],
     queryFn: async () => {
       try {
