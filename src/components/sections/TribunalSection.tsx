@@ -1272,6 +1272,7 @@ function ProcessoTimeline({ processoId }: { processoId: string }) {
       if (error) throw error;
       return data;
     },
+    refetchInterval: 5000, // Refresh every 5 seconds to ensure visibility
   });
 
   if (isLoading) return (
