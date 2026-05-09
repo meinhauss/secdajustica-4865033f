@@ -1259,20 +1259,25 @@ function OriginarioTribunalDetail({ processoId, onBack }: { processoId: string; 
 }
 
 function ProcessoTimeline({ processoId }: { processoId: string }) {
-  const { data: movimentacoes, isLoading, isError } = useQuery({
-    queryKey: ["movimentacoes", processoId],
+  const { data: timelineData, isLoading, isError } = useQuery({
+    queryKey: ["movimentacoes-tribunal", processoId],
     queryFn: async () => {
       if (!processoId) return [];
-      const { data, error } = await supabase
-        .from("movimentacoes")
-        .select("*")
-        .eq("processo_id", processoId)
-        .order("created_at", { ascending: false });
       
-      if (error) throw error;
+      const [movRes, atosRes, docsRes] = await Promise.all([
+        supabase.from("movimentacoes").select("*").eq("processo_id", processoId).order("created_at", { ascending: false }),
+        supabase.from("atos_judiciais").select("*").eq("processo_id", processoId).order("created_at", { ascending: false }),
+        supabase.from("documentos_processo").select("*").eq("processo_id", processoId).order("created_at", { ascending: false }),
+      ]);
 
-      // Fetch profile names separately since there's no FK relationship
-      const autorIds = [...new Set((data || []).map(m => m.autor_id).filter(Boolean))];
+      if (movRes.error) throw movRes.error;
+
+      const autorIds = [...new Set([
+        ...(movRes.data || []).map(m => m.autor_id),
+        ...(atosRes.data || []).map(a => a.autor_id),
+        ...(docsRes.data || []).map(d => d.autor_id)
+      ].filter(Boolean))];
+
       let profilesMap: Record<string, string> = {};
       if (autorIds.length > 0) {
         const { data: profiles } = await supabase.from("profiles").select("user_id, nome_completo").in("user_id", autorIds);
@@ -1281,10 +1286,39 @@ function ProcessoTimeline({ processoId }: { processoId: string }) {
         }
       }
 
-      return (data || []).map(m => ({
-        ...m,
-        autor_nome: m.autor_id ? profilesMap[m.autor_id] || "Usuário do sistema" : "Sistema"
-      }));
+      const items: any[] = [];
+
+      (movRes.data || []).forEach(m => {
+        items.push({
+          id: `mov-${m.id}`,
+          date: m.created_at,
+          tipo: m.tipo,
+          descricao: m.descricao,
+          autor_nome: m.autor_id ? profilesMap[m.autor_id] || "Usuário" : "Sistema"
+        });
+      });
+
+      (atosRes.data || []).forEach(a => {
+        items.push({
+          id: `ato-${a.id}`,
+          date: a.created_at,
+          tipo: a.tipo,
+          descricao: `<strong>${a.titulo}</strong><br/>${a.conteudo}`,
+          autor_nome: a.autor_nome || (a.autor_id ? profilesMap[a.autor_id] : "Magistrado")
+        });
+      });
+
+      (docsRes.data || []).forEach(d => {
+        items.push({
+          id: `doc-${d.id}`,
+          date: d.created_at,
+          tipo: "juntada_documento",
+          descricao: `Documento juntado: <strong>${d.nome}</strong>${d.arquivo_url ? `<br/><a href="${d.arquivo_url}" target="_blank" class="text-institutional underline">Ver Documento</a>` : ""}`,
+          autor_nome: d.autor_id ? profilesMap[d.autor_id] : "Usuário"
+        });
+      });
+
+      return items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     },
     staleTime: 1000,
     gcTime: 1000 * 60 * 5,
@@ -1305,7 +1339,7 @@ function ProcessoTimeline({ processoId }: { processoId: string }) {
     </div>
   );
 
-  if (!movimentacoes?.length) {
+  if (!timelineData?.length) {
     return (
       <div className="text-center py-12 bg-muted/30 rounded-xl border border-dashed border-border">
         <HistoryIcon className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
@@ -1316,7 +1350,7 @@ function ProcessoTimeline({ processoId }: { processoId: string }) {
 
   return (
     <div className="space-y-4">
-      {movimentacoes.map((m: any, idx: number) => (
+      {timelineData.map((m: any, idx: number) => (
         <motion.div
           key={m.id}
           initial={{ opacity: 0, x: -10 }}
@@ -1331,7 +1365,7 @@ function ProcessoTimeline({ processoId }: { processoId: string }) {
                 {m.tipo.replace(/_/g, " ")}
               </span>
               <span className="text-[10px] text-muted-foreground">
-                {format(new Date(m.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                {format(new Date(m.date), "dd/MM/yyyy HH:mm", { locale: ptBR })}
               </span>
             </div>
             <div className="text-sm text-foreground prose prose-sm dark:prose-invert max-w-none">
