@@ -78,25 +78,34 @@ function TribunalDashboard({ onSelect, onSelectOriginario, onOpenProcesso }: { o
   const { data: apelacoes } = useQuery({
     queryKey: ["tribunal-apelacoes", user?.id, isDesembargador],
     queryFn: async () => {
-      // All desembargadores can see all appeals (to qualify, vote, accompany)
-      const q = supabase.from("apelacoes").select("*, processos:processo_id(numero, autor_nome, reu_nome, autor_label, reu_label, classe, assunto), sentencas:sentenca_id(tipo, ementa, dispositivo)").order("created_at", { ascending: false });
-      const { data, error } = await q;
-      if (error) throw error;
-      return data as any[];
+      try {
+        const q = supabase.from("apelacoes").select("*, processos:processo_id(numero, autor_nome, reu_nome, autor_label, reu_label, classe, assunto), sentencas:sentenca_id(tipo, ementa, dispositivo)").order("created_at", { ascending: false });
+        const { data, error } = await q;
+        if (error) throw error;
+        return data as any[];
+      } catch (err) {
+        console.error("Erro ao buscar apelações:", err);
+        throw err;
+      }
     },
     enabled: !!user,
   });
 
-  const { data: originarios } = useQuery({
+  const { data: originarios, isLoading: isLoadingOriginarios, isError: isErrorOriginarios } = useQuery({
     queryKey: ["tribunal-originarios"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("processos")
-        .select("id, numero, autor_nome, reu_nome, autor_label, reu_label, classe, classe_originaria, orgao_julgador, assunto, status, created_at, sigilo, prioridade, relator_id")
-        .eq("instancia", 2)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data as any[];
+      try {
+        const { data, error } = await supabase
+          .from("processos")
+          .select("id, numero, autor_nome, reu_nome, autor_label, reu_label, classe, classe_originaria, orgao_julgador, assunto, status, created_at, sigilo, prioridade, relator_id")
+          .eq("instancia", 2)
+          .order("created_at", { ascending: false });
+        if (error) throw error;
+        return data as any[];
+      } catch (err) {
+        console.error("Erro ao buscar processos originários:", err);
+        throw err;
+      }
     },
   });
 
