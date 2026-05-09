@@ -15,7 +15,7 @@ import {
   Scale, FileText, Search, ArrowLeft, ChevronRight,
   Gavel, CheckCircle, Clock, XCircle, BarChart3, Eye,
   BookOpen, AlertTriangle, Scroll, Megaphone, Star, History as HistoryIcon,
-  ExternalLink
+  ExternalLink, PenTool
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
