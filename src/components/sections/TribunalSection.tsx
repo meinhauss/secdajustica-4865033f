@@ -75,28 +75,38 @@ function TribunalDashboard({ onSelect, onSelectOriginario, onOpenProcesso }: { o
   const [filterStatus, setFilterStatus] = useState("all");
   const isDesembargador = roles.some(r => ["desembargador", "presidente_tribunal", "admin", "magistrado"].includes(r));
 
-  const { data: apelacoes } = useQuery({
+  const queryClient = useQueryClient();
+  const { data: apelacoes, isLoading: isLoadingApelacoes, isError: isErrorApelacoes } = useQuery({
     queryKey: ["tribunal-apelacoes", user?.id, isDesembargador],
     queryFn: async () => {
-      // All desembargadores can see all appeals (to qualify, vote, accompany)
-      const q = supabase.from("apelacoes").select("*, processos:processo_id(numero, autor_nome, reu_nome, autor_label, reu_label, classe, assunto), sentencas:sentenca_id(tipo, ementa, dispositivo)").order("created_at", { ascending: false });
-      const { data, error } = await q;
-      if (error) throw error;
-      return data as any[];
+      try {
+        const q = supabase.from("apelacoes").select("*, processos:processo_id(numero, autor_nome, reu_nome, autor_label, reu_label, classe, assunto), sentencas:sentenca_id(tipo, ementa, dispositivo)").order("created_at", { ascending: false });
+        const { data, error } = await q;
+        if (error) throw error;
+        return data as any[];
+      } catch (err) {
+        console.error("Erro ao buscar apelações:", err);
+        throw err;
+      }
     },
     enabled: !!user,
   });
 
-  const { data: originarios } = useQuery({
+  const { data: originarios, isLoading: isLoadingOriginarios, isError: isErrorOriginarios } = useQuery({
     queryKey: ["tribunal-originarios"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("processos")
-        .select("id, numero, autor_nome, reu_nome, autor_label, reu_label, classe, classe_originaria, orgao_julgador, assunto, status, created_at, sigilo, prioridade, relator_id")
-        .eq("instancia", 2)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data as any[];
+      try {
+        const { data, error } = await supabase
+          .from("processos")
+          .select("id, numero, autor_nome, reu_nome, autor_label, reu_label, classe, classe_originaria, orgao_julgador, assunto, status, created_at, sigilo, prioridade, relator_id")
+          .eq("instancia", 2)
+          .order("created_at", { ascending: false });
+        if (error) throw error;
+        return data as any[];
+      } catch (err) {
+        console.error("Erro ao buscar processos originários:", err);
+        throw err;
+      }
     },
   });
 
@@ -151,12 +161,30 @@ function TribunalDashboard({ onSelect, onSelectOriginario, onOpenProcesso }: { o
         </Select>
       </div>
 
-      {!filtered.length ? (
+      {(isLoadingApelacoes || isLoadingOriginarios) && (
+        <div className="flex flex-col items-center justify-center py-16 space-y-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-institutional border-t-transparent" />
+          <p className="text-sm text-muted-foreground animate-pulse">Carregando dados do Tribunal...</p>
+        </div>
+      )}
+
+      {(isErrorApelacoes || isErrorOriginarios) && (
+        <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-6 text-center">
+          <AlertTriangle className="h-10 w-10 text-destructive mx-auto mb-3" />
+          <h3 className="text-lg font-semibold text-foreground mb-1">Falha na Conexão</h3>
+          <p className="text-sm text-muted-foreground mb-4">Não foi possível carregar as informações do Tribunal de Justiça. Verifique sua conexão ou tente novamente.</p>
+          <Button variant="outline" size="sm" onClick={() => queryClient.invalidateQueries({ queryKey: ["tribunal"] })} className="gap-2">
+            <HistoryIcon className="h-4 w-4" /> Tentar Novamente
+          </Button>
+        </div>
+      )}
+
+      {!isLoadingApelacoes && !isErrorApelacoes && !filtered.length ? (
         <div className="text-center py-16">
           <Scale className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
           <p className="text-sm text-muted-foreground">Nenhuma apelação encontrada.</p>
         </div>
-      ) : (
+      ) : !isLoadingApelacoes && !isErrorApelacoes && (
         <div className="space-y-2">
           {filtered.map((a: any, i: number) => {
             const cfg = STATUS_CFG[a.status] || STATUS_CFG.interposta;
@@ -1259,66 +1287,74 @@ function OriginarioTribunalDetail({ processoId, onBack }: { processoId: string; 
 }
 
 function ProcessoTimeline({ processoId }: { processoId: string }) {
-  const { data: timelineData, isLoading, isError } = useQuery({
+  const queryClient = useQueryClient();
+  const { data: timelineData, isLoading, isError, error: queryError } = useQuery({
     queryKey: ["movimentacoes-tribunal", processoId],
     queryFn: async () => {
-      if (!processoId) return [];
-      
-      const [movRes, atosRes, docsRes] = await Promise.all([
-        supabase.from("movimentacoes").select("*").eq("processo_id", processoId).order("created_at", { ascending: false }),
-        supabase.from("atos_judiciais").select("*").eq("processo_id", processoId).order("created_at", { ascending: false }),
-        supabase.from("documentos_processo").select("*").eq("processo_id", processoId).order("created_at", { ascending: false }),
-      ]);
+      try {
+        if (!processoId) return [];
+        
+        const [movRes, atosRes, docsRes] = await Promise.all([
+          supabase.from("movimentacoes").select("*").eq("processo_id", processoId).order("created_at", { ascending: false }),
+          supabase.from("atos_judiciais").select("*").eq("processo_id", processoId).order("created_at", { ascending: false }),
+          supabase.from("documentos_processo").select("*").eq("processo_id", processoId).order("created_at", { ascending: false }),
+        ]);
 
-      if (movRes.error) throw movRes.error;
+        if (movRes.error) throw movRes.error;
+        if (atosRes.error) throw atosRes.error;
+        if (docsRes.error) throw docsRes.error;
 
-      const autorIds = [...new Set([
-        ...(movRes.data || []).map(m => m.autor_id),
-        ...(atosRes.data || []).map(a => a.autor_id),
-        ...(docsRes.data || []).map(d => d.autor_id)
-      ].filter(Boolean))];
+        const autorIds = [...new Set([
+          ...(movRes.data || []).map(m => m.autor_id),
+          ...(atosRes.data || []).map(a => a.autor_id),
+          ...(docsRes.data || []).map(d => d.autor_id)
+        ].filter(Boolean))];
 
-      let profilesMap: Record<string, string> = {};
-      if (autorIds.length > 0) {
-        const { data: profiles } = await supabase.from("profiles").select("user_id, nome_completo").in("user_id", autorIds);
-        if (profiles) {
-          profiles.forEach(p => { profilesMap[p.user_id] = p.nome_completo; });
+        let profilesMap: Record<string, string> = {};
+        if (autorIds.length > 0) {
+          const { data: profiles } = await supabase.from("profiles").select("user_id, nome_completo").in("user_id", autorIds);
+          if (profiles) {
+            profiles.forEach(p => { profilesMap[p.user_id] = p.nome_completo; });
+          }
         }
+
+        const items: any[] = [];
+
+        (movRes.data || []).forEach(m => {
+          items.push({
+            id: `mov-${m.id}`,
+            date: m.created_at,
+            tipo: m.tipo,
+            descricao: m.descricao,
+            autor_nome: m.autor_id ? profilesMap[m.autor_id] || "Usuário" : "Sistema"
+          });
+        });
+
+        (atosRes.data || []).forEach(a => {
+          items.push({
+            id: `ato-${a.id}`,
+            date: a.created_at,
+            tipo: a.tipo,
+            descricao: `<strong>${a.titulo}</strong><br/>${a.conteudo}`,
+            autor_nome: a.autor_nome || (a.autor_id ? profilesMap[a.autor_id] : "Magistrado")
+          });
+        });
+
+        (docsRes.data || []).forEach(d => {
+          items.push({
+            id: `doc-${d.id}`,
+            date: d.created_at,
+            tipo: "juntada_documento",
+            descricao: `Documento juntado: <strong>${d.nome}</strong>${d.arquivo_url ? `<br/><a href="${d.arquivo_url}" target="_blank" class="text-institutional underline">Ver Documento</a>` : ""}`,
+            autor_nome: d.autor_id ? profilesMap[d.autor_id] : "Usuário"
+          });
+        });
+
+        return items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      } catch (err) {
+        console.error("Erro na Timeline do Tribunal:", err);
+        throw err;
       }
-
-      const items: any[] = [];
-
-      (movRes.data || []).forEach(m => {
-        items.push({
-          id: `mov-${m.id}`,
-          date: m.created_at,
-          tipo: m.tipo,
-          descricao: m.descricao,
-          autor_nome: m.autor_id ? profilesMap[m.autor_id] || "Usuário" : "Sistema"
-        });
-      });
-
-      (atosRes.data || []).forEach(a => {
-        items.push({
-          id: `ato-${a.id}`,
-          date: a.created_at,
-          tipo: a.tipo,
-          descricao: `<strong>${a.titulo}</strong><br/>${a.conteudo}`,
-          autor_nome: a.autor_nome || (a.autor_id ? profilesMap[a.autor_id] : "Magistrado")
-        });
-      });
-
-      (docsRes.data || []).forEach(d => {
-        items.push({
-          id: `doc-${d.id}`,
-          date: d.created_at,
-          tipo: "juntada_documento",
-          descricao: `Documento juntado: <strong>${d.nome}</strong>${d.arquivo_url ? `<br/><a href="${d.arquivo_url}" target="_blank" class="text-institutional underline">Ver Documento</a>` : ""}`,
-          autor_nome: d.autor_id ? profilesMap[d.autor_id] : "Usuário"
-        });
-      });
-
-      return items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     },
     staleTime: 1000,
     gcTime: 1000 * 60 * 5,
@@ -1327,15 +1363,19 @@ function ProcessoTimeline({ processoId }: { processoId: string }) {
 
   if (isLoading) return (
     <div className="flex flex-col items-center justify-center py-12 space-y-3">
-      <div className="h-6 w-6 animate-spin rounded-full border-2 border-institutional border-t-transparent" />
-      <p className="text-sm text-muted-foreground">Carregando movimentações...</p>
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-institutional border-t-transparent" />
+      <p className="text-sm text-muted-foreground animate-pulse">Carregando movimentações de 2ª instância...</p>
     </div>
   );
 
   if (isError) return (
-    <div className="text-center py-12">
-      <AlertTriangle className="h-8 w-8 text-destructive mx-auto mb-2" />
-      <p className="text-sm text-muted-foreground">Erro ao carregar movimentações.</p>
+    <div className="bg-destructive/5 border border-destructive/10 rounded-xl p-8 text-center">
+      <AlertTriangle className="h-10 w-10 text-destructive mx-auto mb-3" />
+      <p className="text-sm font-semibold text-foreground mb-1">Ocorreu um erro ao carregar os dados</p>
+      <p className="text-xs text-muted-foreground mb-4">{(queryError as any)?.message || "Erro desconhecido ao acessar o banco de dados."}</p>
+      <Button variant="outline" size="sm" onClick={() => queryClient.invalidateQueries({ queryKey: ["movimentacoes-tribunal"] })} className="gap-2">
+        <HistoryIcon className="h-4 w-4" /> Tentar Novamente
+      </Button>
     </div>
   );
 
@@ -1343,7 +1383,7 @@ function ProcessoTimeline({ processoId }: { processoId: string }) {
     return (
       <div className="text-center py-12 bg-muted/30 rounded-xl border border-dashed border-border">
         <HistoryIcon className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
-        <p className="text-sm text-muted-foreground">Nenhuma movimentação registrada.</p>
+        <p className="text-sm text-muted-foreground">Nenhuma movimentação registrada nesta instância.</p>
       </div>
     );
   }
