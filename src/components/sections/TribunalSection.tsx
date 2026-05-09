@@ -160,12 +160,30 @@ function TribunalDashboard({ onSelect, onSelectOriginario, onOpenProcesso }: { o
         </Select>
       </div>
 
-      {!filtered.length ? (
+      {(isLoadingApelacoes || isLoadingOriginarios) && (
+        <div className="flex flex-col items-center justify-center py-16 space-y-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-institutional border-t-transparent" />
+          <p className="text-sm text-muted-foreground animate-pulse">Carregando dados do Tribunal...</p>
+        </div>
+      )}
+
+      {(isErrorApelacoes || isErrorOriginarios) && (
+        <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-6 text-center">
+          <AlertTriangle className="h-10 w-10 text-destructive mx-auto mb-3" />
+          <h3 className="text-lg font-semibold text-foreground mb-1">Falha na Conexão</h3>
+          <p className="text-sm text-muted-foreground mb-4">Não foi possível carregar as informações do Tribunal de Justiça. Verifique sua conexão ou tente novamente.</p>
+          <Button variant="outline" size="sm" onClick={() => queryClient.invalidateQueries({ queryKey: ["tribunal"] })} className="gap-2">
+            <HistoryIcon className="h-4 w-4" /> Tentar Novamente
+          </Button>
+        </div>
+      )}
+
+      {!isLoadingApelacoes && !isErrorApelacoes && !filtered.length ? (
         <div className="text-center py-16">
           <Scale className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
           <p className="text-sm text-muted-foreground">Nenhuma apelação encontrada.</p>
         </div>
-      ) : (
+      ) : !isLoadingApelacoes && !isErrorApelacoes && (
         <div className="space-y-2">
           {filtered.map((a: any, i: number) => {
             const cfg = STATUS_CFG[a.status] || STATUS_CFG.interposta;
