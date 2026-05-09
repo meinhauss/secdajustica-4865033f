@@ -1259,18 +1259,32 @@ function OriginarioTribunalDetail({ processoId, onBack }: { processoId: string; 
 }
 
 function ProcessoTimeline({ processoId }: { processoId: string }) {
-  const { data: movimentacoes, isLoading } = useQuery({
+  const { data: movimentacoes, isLoading, isError } = useQuery({
     queryKey: ["movimentacoes", processoId],
     queryFn: async () => {
       if (!processoId) return [];
       const { data, error } = await supabase
         .from("movimentacoes")
-        .select("*, profiles:autor_id(nome_completo)")
+        .select("*")
         .eq("processo_id", processoId)
         .order("created_at", { ascending: false });
       
       if (error) throw error;
-      return data;
+
+      // Fetch profile names separately since there's no FK relationship
+      const autorIds = [...new Set((data || []).map(m => m.autor_id).filter(Boolean))];
+      let profilesMap: Record<string, string> = {};
+      if (autorIds.length > 0) {
+        const { data: profiles } = await supabase.from("profiles").select("user_id, nome_completo").in("user_id", autorIds);
+        if (profiles) {
+          profiles.forEach(p => { profilesMap[p.user_id] = p.nome_completo; });
+        }
+      }
+
+      return (data || []).map(m => ({
+        ...m,
+        autor_nome: m.autor_id ? profilesMap[m.autor_id] || "Usuário do sistema" : "Sistema"
+      }));
     },
     staleTime: 1000,
     gcTime: 1000 * 60 * 5,
@@ -1281,6 +1295,13 @@ function ProcessoTimeline({ processoId }: { processoId: string }) {
     <div className="flex flex-col items-center justify-center py-12 space-y-3">
       <div className="h-6 w-6 animate-spin rounded-full border-2 border-institutional border-t-transparent" />
       <p className="text-sm text-muted-foreground">Carregando movimentações...</p>
+    </div>
+  );
+
+  if (isError) return (
+    <div className="text-center py-12">
+      <AlertTriangle className="h-8 w-8 text-destructive mx-auto mb-2" />
+      <p className="text-sm text-muted-foreground">Erro ao carregar movimentações.</p>
     </div>
   );
 
