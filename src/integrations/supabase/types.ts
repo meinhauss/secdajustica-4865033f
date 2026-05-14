@@ -416,6 +416,8 @@ export type Database = {
           criado_por: string | null
           data_abertura: string | null
           data_encerramento_inscricoes: string | null
+          data_fim_prova: string | null
+          data_inicio_prova: string | null
           data_prova: string | null
           data_resultado: string | null
           edital_url: string | null
@@ -435,6 +437,8 @@ export type Database = {
           criado_por?: string | null
           data_abertura?: string | null
           data_encerramento_inscricoes?: string | null
+          data_fim_prova?: string | null
+          data_inicio_prova?: string | null
           data_prova?: string | null
           data_resultado?: string | null
           edital_url?: string | null
@@ -454,6 +458,8 @@ export type Database = {
           criado_por?: string | null
           data_abertura?: string | null
           data_encerramento_inscricoes?: string | null
+          data_fim_prova?: string | null
+          data_inicio_prova?: string | null
           data_prova?: string | null
           data_resultado?: string | null
           edital_url?: string | null
@@ -748,6 +754,7 @@ export type Database = {
           nota_objetiva: number | null
           numero_inscricao: string
           presente: boolean | null
+          prova_iniciada_em: string | null
           status: string
           user_id: string
         }
@@ -763,6 +770,7 @@ export type Database = {
           nota_objetiva?: number | null
           numero_inscricao?: string
           presente?: boolean | null
+          prova_iniciada_em?: string | null
           status?: string
           user_id: string
         }
@@ -778,6 +786,7 @@ export type Database = {
           nota_objetiva?: number | null
           numero_inscricao?: string
           presente?: boolean | null
+          prova_iniciada_em?: string | null
           status?: string
           user_id?: string
         }
