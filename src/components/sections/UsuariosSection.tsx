@@ -13,6 +13,8 @@ const ROLE_LABELS: Record<string, string> = {
   magistrado: "Juiz de Direito",
   ministerio_publico: "Promotor de Justiça",
   delegado: "Delegado(a)",
+  gaeco: "GAECO",
+  chefe_gaeco: "Chefe GAECO",
   policia_civil: "Polícia Civil",
   policia_militar: "Polícia Militar",
   policia_federal: "Polícia Federal",
@@ -29,13 +31,13 @@ const ROLE_LABELS: Record<string, string> = {
   procurador_estado: "Procurador Geral do Estado",
 };
 
-const POLICE_ROLES = ["policia_civil", "policia_militar", "policia_federal"] as const;
+const POLICE_ROLES = ["policia_civil", "policia_militar", "policia_federal", "gaeco"] as const;
 
 export default function UsuariosSection() {
   const { user, roles } = useAuth();
   const queryClient = useQueryClient();
   const isAdmin = roles.includes("admin");
-  const isDelegado = roles.includes("delegado");
+  const isDelegado = roles.includes("delegado") || roles.includes("chefe_gaeco");
   const callerPoliceRoles = roles.filter((r) => (POLICE_ROLES as readonly string[]).includes(r));
   const [search, setSearch] = useState("");
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
@@ -138,7 +140,7 @@ export default function UsuariosSection() {
     if (targetUserId === user?.id) return false;
     if (isAdmin) return true;
     if (!isDelegado) return false;
-    if (!["policia_civil","policia_militar","policia_federal","delegado"].includes(role)) return false;
+    if (!["policia_civil","policia_militar","policia_federal","delegado", "gaeco", "chefe_gaeco"].includes(role)) return false;
     return roles.includes(role);
   };
 
