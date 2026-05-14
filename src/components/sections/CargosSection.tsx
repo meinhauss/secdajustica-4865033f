@@ -79,6 +79,16 @@ const ROLE_HIERARCHY = [
   },
   {
     level: 7,
+    role: "chefe_gaeco",
+    label: "Chefe GAECO",
+    icon: Shield,
+    color: "text-rose-700",
+    bgColor: "bg-rose-700/10",
+    description: "Liderança do GAECO. Responsável por inquéritos de crime organizado, coordenação de investigações e gestão de concursos.",
+    permissions: ["inqueritos", "provas", "relatorios", "remessa_mp", "processos_criminais", "ver_processos", "concursos"],
+  },
+  {
+    level: 7,
     role: "delegado",
     label: "Delegado(a)",
     icon: Shield,
@@ -86,6 +96,16 @@ const ROLE_HIERARCHY = [
     bgColor: "bg-rose-600/10",
     description: "Autoridade policial responsável pela presidência de inquéritos, coordenação de investigações e remessa ao MP. Acesso a processos judiciais.",
     permissions: ["inqueritos", "provas", "relatorios", "remessa_mp", "processos_criminais", "ver_processos"],
+  },
+  {
+    level: 8,
+    role: "gaeco",
+    label: "GAECO",
+    icon: Shield,
+    color: "text-red-700",
+    bgColor: "bg-red-700/10",
+    description: "Grupo de Atuação Especial de Combate ao Crime Organizado. Investigação de alta complexidade e gestão de provas.",
+    permissions: ["inqueritos", "provas", "relatorios", "remessa_mp", "mandados_judiciais", "tco"],
   },
   {
     level: 8,

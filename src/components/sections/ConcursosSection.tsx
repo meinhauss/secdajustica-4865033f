@@ -122,13 +122,14 @@ export default function ConcursosSection() {
 
   useAutoStatusUpdate();
 
-  const isAdmin = roles.some((r) => ["admin", "presidente_tribunal", "ministerio_publico", "procurador_geral"].includes(r));
+  const isAdmin = roles.some((r) => ["admin", "presidente_tribunal", "ministerio_publico", "procurador_geral", "chefe_gaeco"].includes(r));
   const isPresidenteTribunal = roles.includes("presidente_tribunal");
   const isMP = roles.some((r) => ["ministerio_publico", "procurador_geral"].includes(r));
+  const isChefeGaeco = roles.includes("chefe_gaeco");
   const isFullAdmin = roles.includes("admin");
 
   if (view === "detail" && selectedId) {
-    return <ConcursoDetail concursoId={selectedId} onBack={() => { setView("list"); setSelectedId(null); }} isAdmin={isAdmin} isPresidenteTribunal={isPresidenteTribunal} isMP={isMP} isFullAdmin={isFullAdmin} onStartProva={() => setView("prova")} />;
+    return <ConcursoDetail concursoId={selectedId} onBack={() => { setView("list"); setSelectedId(null); }} isAdmin={isAdmin} isPresidenteTribunal={isPresidenteTribunal} isMP={isMP} isFullAdmin={isFullAdmin} isChefeGaeco={isChefeGaeco} onStartProva={() => setView("prova")} />;
   }
   if (view === "prova" && selectedId) {
     return <RealizarProva concursoId={selectedId} onBack={() => { setView("detail"); }} />;
@@ -137,13 +138,13 @@ export default function ConcursosSection() {
     return <ProvaAnterior concursoId={selectedId} onBack={() => { setView("list"); setSelectedId(null); }} />;
   }
 
-  return <ConcursosDashboard isAdmin={isAdmin} isPresidenteTribunal={isPresidenteTribunal} isMP={isMP} isFullAdmin={isFullAdmin} onSelect={(id) => { setSelectedId(id); setView("detail"); }} onViewHistorico={(id) => { setSelectedId(id); setView("historico"); }} />;
+  return <ConcursosDashboard isAdmin={isAdmin} isPresidenteTribunal={isPresidenteTribunal} isMP={isMP} isFullAdmin={isFullAdmin} isChefeGaeco={isChefeGaeco} onSelect={(id) => { setSelectedId(id); setView("detail"); }} onViewHistorico={(id) => { setSelectedId(id); setView("historico"); }} />;
 }
 
 /* ═══════════════════════════════════════════ */
 /*  DASHBOARD                                  */
 /* ═══════════════════════════════════════════ */
-function ConcursosDashboard({ isAdmin, isPresidenteTribunal, isMP, isFullAdmin, onSelect, onViewHistorico }: { isAdmin: boolean; isPresidenteTribunal: boolean; isMP: boolean; isFullAdmin: boolean; onSelect: (id: string) => void; onViewHistorico: (id: string) => void }) {
+function ConcursosDashboard({ isAdmin, isPresidenteTribunal, isMP, isFullAdmin, isChefeGaeco, onSelect, onViewHistorico }: { isAdmin: boolean; isPresidenteTribunal: boolean; isMP: boolean; isFullAdmin: boolean; isChefeGaeco: boolean; onSelect: (id: string) => void; onViewHistorico: (id: string) => void }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -168,7 +169,7 @@ function ConcursosDashboard({ isAdmin, isPresidenteTribunal, isMP, isFullAdmin, 
     },
   });
 
-  const availableCargos = isFullAdmin ? CARGOS_JURIDICOS : isMP ? CARGOS_MP : isPresidenteTribunal ? CARGOS_TJ : CARGOS_JURIDICOS;
+  const availableCargos = isFullAdmin ? CARGOS_JURIDICOS : isMP ? CARGOS_MP : isPresidenteTribunal ? CARGOS_TJ : isChefeGaeco ? CARGOS_TJ : CARGOS_JURIDICOS;
 
   const [form, setForm] = useState({
     titulo: "", cargo: availableCargos[0] || "Juiz de Direito", vagas: "1", requisitos: "", conteudo_programatico: "",
@@ -328,7 +329,7 @@ function ConcursosDashboard({ isAdmin, isPresidenteTribunal, isMP, isFullAdmin, 
 /* ═══════════════════════════════════════════ */
 /*  CONCURSO DETAIL                            */
 /* ═══════════════════════════════════════════ */
-function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isMP, isFullAdmin, onStartProva }: { concursoId: string; onBack: () => void; isAdmin: boolean; isPresidenteTribunal: boolean; isMP: boolean; isFullAdmin: boolean; onStartProva: () => void }) {
+function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isMP, isFullAdmin, isChefeGaeco, onStartProva }: { concursoId: string; onBack: () => void; isAdmin: boolean; isPresidenteTribunal: boolean; isMP: boolean; isFullAdmin: boolean; isChefeGaeco: boolean; onStartProva: () => void }) {
   const { user, profile } = useAuth();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("edital");
@@ -394,6 +395,7 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
     const cargoTJ = CARGOS_TJ.includes(concurso.cargo);
     if (isMP && cargoMP) return true;
     if (isPresidenteTribunal && cargoTJ) return true;
+    if (isChefeGaeco && cargoTJ) return true;
     return false;
   })();
 
