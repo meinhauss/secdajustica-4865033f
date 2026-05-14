@@ -669,7 +669,7 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
             <PenTool className="h-4 w-4 mr-1" /> Realizar Prova
           </Button>
         )}
-        {myInscricao && !alreadySubmitted && concurso.status === "em_andamento" && !isWithinExamWindow && (
+        {myInscricao && !alreadySubmitted && (concurso.status === "em_andamento" || concurso.status === "inscricoes_abertas" || concurso.status === "inscricoes_encerradas") && !isWithinExamWindow && (
           <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 p-2 rounded-lg flex items-center gap-2 text-amber-800 dark:text-amber-400 text-xs">
             <AlertTriangle className="h-4 w-4" />
             <span>
