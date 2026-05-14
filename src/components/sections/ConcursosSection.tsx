@@ -138,7 +138,7 @@ export default function ConcursosSection() {
     return <ProvaAnterior concursoId={selectedId} onBack={() => { setView("list"); setSelectedId(null); }} />;
   }
 
-  return <ConcursosDashboard isAdmin={isAdmin} isPresidenteTribunal={isPresidenteTribunal} isMP={isMP} isFullAdmin={isFullAdmin} onSelect={(id) => { setSelectedId(id); setView("detail"); }} onViewHistorico={(id) => { setSelectedId(id); setView("historico"); }} />;
+  return <ConcursosDashboard isAdmin={isAdmin} isPresidenteTribunal={isPresidenteTribunal} isMP={isMP} isFullAdmin={isFullAdmin} isChefeGaeco={isChefeGaeco} onSelect={(id) => { setSelectedId(id); setView("detail"); }} onViewHistorico={(id) => { setSelectedId(id); setView("historico"); }} />;
 }
 
 /* ═══════════════════════════════════════════ */
@@ -329,7 +329,7 @@ function ConcursosDashboard({ isAdmin, isPresidenteTribunal, isMP, isFullAdmin, 
 /* ═══════════════════════════════════════════ */
 /*  CONCURSO DETAIL                            */
 /* ═══════════════════════════════════════════ */
-function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isMP, isFullAdmin, onStartProva }: { concursoId: string; onBack: () => void; isAdmin: boolean; isPresidenteTribunal: boolean; isMP: boolean; isFullAdmin: boolean; onStartProva: () => void }) {
+function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isMP, isFullAdmin, isChefeGaeco, onStartProva }: { concursoId: string; onBack: () => void; isAdmin: boolean; isPresidenteTribunal: boolean; isMP: boolean; isFullAdmin: boolean; isChefeGaeco: boolean; onStartProva: () => void }) {
   const { user, profile } = useAuth();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("edital");
@@ -395,6 +395,7 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
     const cargoTJ = CARGOS_TJ.includes(concurso.cargo);
     if (isMP && cargoMP) return true;
     if (isPresidenteTribunal && cargoTJ) return true;
+    if (isChefeGaeco && cargoTJ) return true;
     return false;
   })();
 
