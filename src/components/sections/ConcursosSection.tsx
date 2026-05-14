@@ -88,7 +88,7 @@ function useAutoStatusUpdate() {
       if (["publicado", "inscricoes_abertas"].includes(c.status) && c.data_encerramento_inscricoes && new Date(c.data_encerramento_inscricoes) <= now) {
         newStatus = "inscricoes_encerradas";
       }
-      if (["inscricoes_encerradas"].includes(c.status) && c.data_inicio_prova && new Date(c.data_inicio_prova) <= now) {
+      if (["rascunho", "publicado", "inscricoes_abertas", "inscricoes_encerradas"].includes(c.status) && c.data_inicio_prova && new Date(c.data_inicio_prova) <= now && (!c.data_fim_prova || new Date(c.data_fim_prova) > now)) {
         newStatus = "em_andamento";
       }
       if (c.status === "em_andamento" && c.data_fim_prova && new Date(c.data_fim_prova) < now) {
