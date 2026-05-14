@@ -640,7 +640,7 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
     now <= new Date(concurso.data_fim_prova);
 
   const canTakeExam = myInscricao && !alreadySubmitted && 
-    concurso.status === "em_andamento" && 
+    (concurso.status === "em_andamento" || (concurso.status === "inscricoes_abertas" && isWithinExamWindow)) && 
     isWithinExamWindow;
 
   return (
