@@ -58,6 +58,8 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
       presidente_tribunal: "Presidente do Tribunal",
       desembargador: "Desembargador(a)",
       magistrado: "Juiz(a) de Direito",
+      gaeco: "GAECO",
+      chefe_gaeco: "Chefe GAECO",
       ministerio_publico: "Promotor(a)",
       procurador_geral: "Procurador(a)-Geral",
       oficial_justica: "Oficial de Justiça",
