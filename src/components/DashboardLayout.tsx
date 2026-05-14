@@ -62,6 +62,8 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
       chefe_gaeco: "Chefe GAECO",
       ministerio_publico: "Promotor(a)",
       procurador_geral: "Procurador(a)-Geral",
+      gaeco: "GAECO",
+      chefe_gaeco: "Chefe GAECO",
       oficial_justica: "Oficial de Justiça",
       presidente_oab: "Presidente da OAB",
       advogado: "Advogado(a)",
