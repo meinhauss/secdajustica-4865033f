@@ -31,13 +31,13 @@ const CONCURSO_STATUS: Record<string, { label: string; color: string }> = {
 };
 
 const CARGOS_JURIDICOS = [
-  "Juiz de Direito", "Promotor de Justiça", "Polícia Civil", "Polícia Militar", "Polícia Federal",
+  "Juiz de Direito", "Promotor de Justiça", "Delegado", "GAECO", "Chefe GAECO", "Polícia Civil", "Polícia Militar", "Polícia Federal",
   "Defensor Público", "Oficial de Justiça", "Analista Judiciário", "Técnico Judiciário",
   "Escrivão", "Perito Criminal", "Assessor Jurídico", "Bacharel em Direito"
 ];
 
 const CARGOS_MP = ["Promotor de Justiça"];
-const CARGOS_TJ = ["Juiz de Direito", "Polícia Civil", "Polícia Militar", "Polícia Federal", "Defensor Público", "Oficial de Justiça", "Analista Judiciário", "Técnico Judiciário", "Escrivão", "Perito Criminal", "Assessor Jurídico", "Bacharel em Direito"];
+const CARGOS_TJ = ["Juiz de Direito", "GAECO", "Chefe GAECO", "Polícia Civil", "Polícia Militar", "Polícia Federal", "Defensor Público", "Oficial de Justiça", "Analista Judiciário", "Técnico Judiciário", "Escrivão", "Perito Criminal", "Assessor Jurídico", "Bacharel em Direito"];
 
 const TIPO_QUESTAO_LABELS: Record<string, string> = {
   objetiva: "Múltipla Escolha (A-D)",
@@ -557,11 +557,17 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
       const insc = inscricoes?.find((i: any) => i.id === inscricaoId);
       if (!insc) throw new Error("Inscrição não encontrada.");
       const cargoRoleMap: Record<string, string> = {
-        "Juiz de Direito": "magistrado", "Promotor de Justiça": "ministerio_publico",
+        "Juiz de Direito": "magistrado", 
+        "Promotor de Justiça": "ministerio_publico",
         "Procurador-Geral de Justiça": "procurador_geral",
         "Procurador Geral do Estado": "procurador_estado",
-        "Polícia Civil": "policia_civil", "Polícia Militar": "policia_militar",
-        "Polícia Federal": "policia_federal", "Oficial de Justiça": "oficial_justica",
+        "Polícia Civil": "policia_civil", 
+        "Polícia Militar": "policia_militar",
+        "Polícia Federal": "policia_federal", 
+        "Oficial de Justiça": "oficial_justica",
+        "Delegado": "delegado",
+        "GAECO": "gaeco",
+        "Chefe GAECO": "chefe_gaeco",
       };
       const role = cargoRoleMap[concurso?.cargo] || null;
       if (role) {
