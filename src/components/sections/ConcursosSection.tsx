@@ -88,15 +88,22 @@ function useAutoStatusUpdate() {
       if (["publicado", "inscricoes_abertas"].includes(c.status) && c.data_encerramento_inscricoes && new Date(c.data_encerramento_inscricoes) <= now) {
         newStatus = "inscricoes_encerradas";
       }
-      if (["inscricoes_encerradas"].includes(c.status) && c.data_prova && new Date(c.data_prova) <= now) {
+      if (["inscricoes_encerradas"].includes(c.status) && c.data_inicio_prova && new Date(c.data_inicio_prova) <= now) {
         newStatus = "em_andamento";
       }
+      if (c.status === "em_andamento" && c.data_fim_prova && new Date(c.data_fim_prova) < now) {
+        newStatus = "resultado_publicado";
+      }
+      // Individual exam timer logic is handled in the RealizarProva component
+      // and auto-update doesn't necessarily need to close the whole concurso based on individual timers
+      /*
       if (c.status === "em_andamento" && c.data_prova && (c as any).tempo_prova_minutos) {
         const provaEnd = new Date(new Date(c.data_prova).getTime() + ((c as any).tempo_prova_minutos * 60000));
         if (now >= provaEnd) {
           newStatus = "resultado_publicado";
         }
       }
+      */
 
       if (newStatus && newStatus !== c.status) {
         await supabase.from("concursos").update({ status: newStatus } as any).eq("id", c.id);
@@ -174,7 +181,7 @@ function ConcursosDashboard({ isAdmin, isPresidenteTribunal, isMP, isFullAdmin, 
   const [form, setForm] = useState({
     titulo: "", cargo: availableCargos[0] || "Juiz de Direito", vagas: "1", requisitos: "", conteudo_programatico: "",
     regras_classificacao: "", data_abertura: "", data_encerramento_inscricoes: "", data_prova: "", data_resultado: "",
-    tempo_prova_minutos: "60",
+    tempo_prova_minutos: "60", data_inicio_prova: "", data_fim_prova: "",
   });
 
   const criarConcurso = useMutation({
@@ -190,6 +197,8 @@ function ConcursosDashboard({ isAdmin, isPresidenteTribunal, isMP, isFullAdmin, 
         data_abertura: form.data_abertura ? new Date(form.data_abertura).toISOString() : null,
         data_encerramento_inscricoes: form.data_encerramento_inscricoes ? new Date(form.data_encerramento_inscricoes).toISOString() : null,
         data_prova: form.data_prova ? new Date(form.data_prova).toISOString() : null,
+        data_inicio_prova: form.data_inicio_prova ? new Date(form.data_inicio_prova).toISOString() : null,
+        data_fim_prova: form.data_fim_prova ? new Date(form.data_fim_prova).toISOString() : null,
         data_resultado: form.data_resultado ? new Date(form.data_resultado).toISOString() : null,
         criado_por: user!.id,
         status: "rascunho",
@@ -200,7 +209,7 @@ function ConcursosDashboard({ isAdmin, isPresidenteTribunal, isMP, isFullAdmin, 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["concursos"] });
       setOpenConcurso(false);
-      setForm({ titulo: "", cargo: availableCargos[0] || "Juiz de Direito", vagas: "1", requisitos: "", conteudo_programatico: "", regras_classificacao: "", data_abertura: "", data_encerramento_inscricoes: "", data_prova: "", data_resultado: "", tempo_prova_minutos: "60" });
+      setForm({ titulo: "", cargo: availableCargos[0] || "Juiz de Direito", vagas: "1", requisitos: "", conteudo_programatico: "", regras_classificacao: "", data_abertura: "", data_encerramento_inscricoes: "", data_prova: "", data_resultado: "", tempo_prova_minutos: "60", data_inicio_prova: "", data_fim_prova: "" });
       toast.success("Concurso criado com sucesso!");
     },
     onError: (err: any) => toast.error(err.message),
@@ -258,7 +267,8 @@ function ConcursosDashboard({ isAdmin, isPresidenteTribunal, isMP, isFullAdmin, 
                 <div className="grid grid-cols-2 gap-3">
                   <div><label className="text-xs text-muted-foreground">Abertura</label><Input type="datetime-local" value={form.data_abertura} onChange={(e) => setForm({ ...form, data_abertura: e.target.value })} className="rounded-xl" /></div>
                   <div><label className="text-xs text-muted-foreground">Encerramento Inscrições</label><Input type="datetime-local" value={form.data_encerramento_inscricoes} onChange={(e) => setForm({ ...form, data_encerramento_inscricoes: e.target.value })} className="rounded-xl" /></div>
-                  <div><label className="text-xs text-muted-foreground">Data da Prova</label><Input type="datetime-local" value={form.data_prova} onChange={(e) => setForm({ ...form, data_prova: e.target.value })} className="rounded-xl" /></div>
+                  <div><label className="text-xs text-muted-foreground">Início da Janela de Prova</label><Input type="datetime-local" value={form.data_inicio_prova} onChange={(e) => setForm({ ...form, data_inicio_prova: e.target.value })} className="rounded-xl" /></div>
+                  <div><label className="text-xs text-muted-foreground">Fim da Janela de Prova</label><Input type="datetime-local" value={form.data_fim_prova} onChange={(e) => setForm({ ...form, data_fim_prova: e.target.value })} className="rounded-xl" /></div>
                   <div><label className="text-xs text-muted-foreground">Data do Resultado</label><Input type="datetime-local" value={form.data_resultado} onChange={(e) => setForm({ ...form, data_resultado: e.target.value })} className="rounded-xl" /></div>
                 </div>
                 <Button type="submit" disabled={criarConcurso.isPending} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
@@ -623,7 +633,15 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
 
   const cfg = CONCURSO_STATUS[concurso.status] || CONCURSO_STATUS.rascunho;
   const canInscribe = ["publicado", "inscricoes_abertas"].includes(concurso.status) && !myInscricao;
-  const canTakeExam = myInscricao && !alreadySubmitted && concurso.status === "em_andamento";
+  
+  const now = new Date();
+  const isWithinExamWindow = concurso.data_inicio_prova && concurso.data_fim_prova && 
+    now >= new Date(concurso.data_inicio_prova) && 
+    now <= new Date(concurso.data_fim_prova);
+
+  const canTakeExam = myInscricao && !alreadySubmitted && 
+    concurso.status === "em_andamento" && 
+    isWithinExamWindow;
 
   return (
     <div className="space-y-6">
@@ -650,6 +668,16 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
           <Button onClick={onStartProva} variant="outline" className="rounded-xl">
             <PenTool className="h-4 w-4 mr-1" /> Realizar Prova
           </Button>
+        )}
+        {myInscricao && !alreadySubmitted && concurso.status === "em_andamento" && !isWithinExamWindow && (
+          <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 p-2 rounded-lg flex items-center gap-2 text-amber-800 dark:text-amber-400 text-xs">
+            <AlertTriangle className="h-4 w-4" />
+            <span>
+              {concurso.data_inicio_prova && now < new Date(concurso.data_inicio_prova) 
+                ? `A prova estará disponível em ${format(new Date(concurso.data_inicio_prova), "dd/MM HH:mm")}`
+                : "O período para realizar esta prova já se encerrou."}
+            </span>
+          </div>
         )}
         {myInscricao && alreadySubmitted && (
           <span className="text-xs text-green-700 dark:text-green-400 self-center flex items-center gap-1">
@@ -1082,11 +1110,30 @@ function RealizarProva({ concursoId, onBack }: { concursoId: string; onBack: () 
 
   const [respostas, setRespostas] = useState<Record<string, string>>({});
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
-  const [provaStarted] = useState(() => Date.now());
+  const [provaStarted, setProvaStarted] = useState<number | null>(null);
+
+  // Initialize start time from DB or set it now
+  useEffect(() => {
+    if (inscricao && !provaStarted) {
+      if (inscricao.prova_iniciada_em) {
+        setProvaStarted(new Date(inscricao.prova_iniciada_em).getTime());
+      } else {
+        const start = Date.now();
+        setProvaStarted(start);
+        // Save start time to DB
+        supabase.from("inscricoes_concurso")
+          .update({ prova_iniciada_em: new Date(start).toISOString() } as any)
+          .eq("id", inscricao.id)
+          .then(({ error }) => {
+            if (error) toast.error("Erro ao registrar início da prova.");
+          });
+      }
+    }
+  }, [inscricao, provaStarted]);
 
   // Timer
   useEffect(() => {
-    if (!concurso) return;
+    if (!concurso || !provaStarted) return;
     const tempoMinutos = (concurso as any).tempo_prova_minutos || 60;
     const endTime = provaStarted + tempoMinutos * 60000;
 
@@ -1132,7 +1179,7 @@ function RealizarProva({ concursoId, onBack }: { concursoId: string; onBack: () 
     }
   }, [timeLeft]);
 
-  if (!questoes || !inscricao) return <div className="text-center py-12 text-muted-foreground">Carregando prova...</div>;
+  if (!questoes || !inscricao || !provaStarted) return <div className="text-center py-12 text-muted-foreground">Carregando prova...</div>;
 
   if ((existingRespostas?.length || 0) > 0) {
     return (
@@ -1273,7 +1320,8 @@ function ProvaAnterior({ concursoId, onBack }: { concursoId: string; onBack: () 
         <InfoCard label="Cargo" value={concurso.cargo} />
         <InfoCard label="Vagas" value={String(concurso.vagas)} />
         <InfoCard label="Abertura" value={concurso.data_abertura ? format(new Date(concurso.data_abertura), "dd/MM/yyyy", { locale: ptBR }) : "—"} />
-        <InfoCard label="Data Prova" value={concurso.data_prova ? format(new Date(concurso.data_prova), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "—"} />
+        <InfoCard label="Início Prova" value={concurso.data_inicio_prova ? format(new Date(concurso.data_inicio_prova), "dd/MM HH:mm", { locale: ptBR }) : "—"} />
+        <InfoCard label="Fim Prova" value={concurso.data_fim_prova ? format(new Date(concurso.data_fim_prova), "dd/MM HH:mm", { locale: ptBR }) : "—"} />
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <InfoCard label="Tempo de Prova" value={`${concurso.tempo_prova_minutos || 60} minutos`} />
