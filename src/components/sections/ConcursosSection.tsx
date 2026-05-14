@@ -88,7 +88,7 @@ function useAutoStatusUpdate() {
       if (["publicado", "inscricoes_abertas"].includes(c.status) && c.data_encerramento_inscricoes && new Date(c.data_encerramento_inscricoes) <= now) {
         newStatus = "inscricoes_encerradas";
       }
-      if (["inscricoes_encerradas"].includes(c.status) && c.data_inicio_prova && new Date(c.data_inicio_prova) <= now) {
+      if (["rascunho", "publicado", "inscricoes_abertas", "inscricoes_encerradas"].includes(c.status) && c.data_inicio_prova && new Date(c.data_inicio_prova) <= now && (!c.data_fim_prova || new Date(c.data_fim_prova) > now)) {
         newStatus = "em_andamento";
       }
       if (c.status === "em_andamento" && c.data_fim_prova && new Date(c.data_fim_prova) < now) {
@@ -640,7 +640,7 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
     now <= new Date(concurso.data_fim_prova);
 
   const canTakeExam = myInscricao && !alreadySubmitted && 
-    concurso.status === "em_andamento" && 
+    (concurso.status === "em_andamento" || (concurso.status === "inscricoes_abertas" && isWithinExamWindow)) && 
     isWithinExamWindow;
 
   return (
@@ -669,7 +669,7 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
             <PenTool className="h-4 w-4 mr-1" /> Realizar Prova
           </Button>
         )}
-        {myInscricao && !alreadySubmitted && concurso.status === "em_andamento" && !isWithinExamWindow && (
+        {myInscricao && !alreadySubmitted && (concurso.status === "em_andamento" || concurso.status === "inscricoes_abertas" || concurso.status === "inscricoes_encerradas") && !isWithinExamWindow && (
           <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 p-2 rounded-lg flex items-center gap-2 text-amber-800 dark:text-amber-400 text-xs">
             <AlertTriangle className="h-4 w-4" />
             <span>
