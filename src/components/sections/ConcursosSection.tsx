@@ -1023,6 +1023,7 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
 /*  INSCRICAO RESPOSTAS (inline view)          */
 /* ═══════════════════════════════════════════ */
 function InscricaoRespostas({ inscricaoId, questoes }: { inscricaoId: string; questoes: any[] }) {
+  const queryClient = useQueryClient();
   const { data: respostas } = useQuery({
     queryKey: ["inscricao-respostas", inscricaoId],
     queryFn: async () => {
@@ -1031,31 +1032,76 @@ function InscricaoRespostas({ inscricaoId, questoes }: { inscricaoId: string; qu
     },
   });
 
+  const lancarNotaDiscursiva = useMutation({
+    mutationFn: async ({ respostaId, nota }: { respostaId: string; nota: number }) => {
+      const { error } = await supabase.from("respostas_concurso").update({ nota, correta: nota > 0 } as any).eq("id", respostaId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["inscricao-respostas", inscricaoId] });
+      toast.success("Nota atribuída!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
   if (!respostas?.length) return <p className="text-xs text-muted-foreground mt-3 italic">Nenhuma resposta enviada.</p>;
 
   return (
-    <div className="mt-3 space-y-2 border-t border-border pt-3">
+    <div className="mt-3 space-y-3 border-t border-border pt-3">
       {questoes.map((q: any) => {
         const resp = respostas.find((r: any) => r.questao_id === q.id);
         return (
-          <div key={q.id} className="flex items-center gap-2 text-xs">
-            <span className="font-semibold text-institutional w-16">Q{q.numero}</span>
-            <span className="text-foreground flex-1">
+          <div key={q.id} className="bg-secondary/20 rounded-lg p-3 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-semibold text-institutional text-xs">Questão {q.numero} ({TIPO_QUESTAO_LABELS[q.tipo]})</span>
+              <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tighter">Peso: {q.peso}</span>
+            </div>
+            
+            <p className="text-xs text-foreground font-medium">{q.enunciado}</p>
+
+            <div className="bg-card border border-border rounded p-2 mt-1">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1 font-bold">Resposta do Candidato:</p>
               {resp ? (
-                q.tipo === "discursiva" ? (
-                  <span className="italic">{resp.resposta?.substring(0, 80)}...</span>
+                <p className="text-xs text-foreground whitespace-pre-wrap">{resp.resposta || "—"}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground italic">Sem resposta</p>
+              )}
+            </div>
+
+            {resp && (
+              <div className="flex items-center justify-between gap-4 mt-2">
+                {q.tipo === "discursiva" ? (
+                  <div className="flex items-center gap-2 flex-1">
+                    <label className="text-[10px] font-bold text-muted-foreground whitespace-nowrap">ATRIBUIR NOTA (0-{q.peso}):</label>
+                    <div className="flex gap-1 items-center">
+                      <Input 
+                        type="number" 
+                        step="0.1" 
+                        min="0" 
+                        max={q.peso}
+                        placeholder="0.0"
+                        defaultValue={resp.nota || ""}
+                        className="h-7 w-20 text-xs rounded-lg"
+                        onBlur={(e) => {
+                          const val = parseFloat(e.target.value);
+                          if (!isNaN(val) && val !== resp.nota) {
+                            lancarNotaDiscursiva.mutate({ respostaId: resp.id, nota: val });
+                          }
+                        }}
+                      />
+                      <span className="text-[10px] text-muted-foreground">/ {q.peso}</span>
+                    </div>
+                  </div>
                 ) : (
-                  <span>
-                    Resp: <strong>{q.tipo === "certo_errado" ? (resp.resposta === "a" ? "Certo" : "Errado") : resp.resposta?.toUpperCase()}</strong>
-                    {" "}(Gab: {q.tipo === "certo_errado" ? (q.gabarito === "a" ? "Certo" : "Errado") : q.gabarito?.toUpperCase()})
-                  </span>
-                )
-              ) : <span className="text-muted-foreground">Sem resposta</span>}
-            </span>
-            {resp && q.tipo !== "discursiva" && (
-              <span className={resp.correta ? "text-green-700 font-semibold" : resp.correta === false ? "text-destructive font-semibold" : "text-muted-foreground"}>
-                {resp.correta ? "✓" : resp.correta === false ? "✗" : "—"}
-              </span>
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-muted-foreground">Gabarito: <strong>{q.tipo === "certo_errado" ? (q.gabarito === "a" ? "Certo" : "Errado") : q.gabarito?.toUpperCase()}</strong></span>
+                    <span className={resp.correta ? "text-green-700 font-bold" : "text-destructive font-bold"}>
+                      {resp.correta ? "✓ ACERTOU" : "✗ ERROU"}
+                    </span>
+                    <span className="text-muted-foreground font-medium">Nota: {resp.nota || 0}</span>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         );
