@@ -1189,7 +1189,7 @@ function TabConcursos({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
     supabase
       .from("concursos")
       .select("id, titulo, cargo, vagas, status, data_abertura, data_encerramento_inscricoes, data_prova")
-      .eq("status", "inscricoes_abertas")
+      .in("status", ["inscricoes_abertas", "em_andamento"])
       .order("data_abertura", { ascending: false })
       .then(({ data }) => {
         setConcursos(data || []);
@@ -1227,13 +1227,13 @@ function TabConcursos({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
       <div className="mb-8">
         <h3 className="font-display text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
           <GraduationCap className="h-5 w-5 text-gold" />
-          Concursos com Inscrições Abertas
+          Concursos em Destaque
         </h3>
         {loadingConcursos ? (
           <div className="text-sm text-muted-foreground text-center py-8">Carregando concursos...</div>
         ) : concursos.length === 0 ? (
           <div className="bg-card rounded-xl p-6 border border-border text-center">
-            <p className="text-sm text-muted-foreground">Nenhum concurso com inscrições abertas no momento.</p>
+            <p className="text-sm text-muted-foreground">Nenhum concurso aberto ou em andamento no momento.</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -1266,11 +1266,15 @@ function TabConcursos({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-                      Inscrições Abertas
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                      c.status === 'em_andamento' 
+                        ? 'bg-blue-100 text-blue-800' 
+                        : 'bg-emerald-100 text-emerald-800'
+                    }`}>
+                      {c.status === 'em_andamento' ? 'Em Andamento' : 'Inscrições Abertas'}
                     </span>
                     <span className="text-[10px] text-gold font-semibold flex items-center gap-1 group-hover:underline">
-                      Inscrever-se <ChevronRight className="h-3 w-3" />
+                      {c.status === 'em_andamento' ? 'Ver Detalhes' : 'Inscrever-se'} <ChevronRight className="h-3 w-3" />
                     </span>
                   </div>
                 </div>
