@@ -548,25 +548,47 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
   const corrigirTodas = useMutation({
     mutationFn: async () => {
       if (!inscricoes?.length || !questoes?.length) throw new Error("Sem inscritos ou questões.");
-      const autoCorrectQuestions = questoes.filter((q: any) => q.tipo !== "discursiva");
-      const totalPeso = autoCorrectQuestions.reduce((sum: number, q: any) => sum + (q.peso || 1), 0);
+      
+      let pesoTotalMaximo = 0;
+      for (const q of questoes) {
+        pesoTotalMaximo += q.peso || 1;
+      }
 
       for (const insc of inscricoes) {
         const { data: respostas } = await supabase.from("respostas_concurso").select("*").eq("inscricao_id", insc.id);
         if (!respostas?.length) continue;
-        let nota = 0;
-        for (const q of autoCorrectQuestions) {
-          const resp = respostas?.find((r: any) => r.questao_id === q.id);
-          if (resp && resp.resposta === q.gabarito) {
-            nota += q.peso || 1;
-            await supabase.from("respostas_concurso").update({ correta: true, nota: q.peso || 1 } as any).eq("id", resp.id);
-          } else if (resp) {
-            await supabase.from("respostas_concurso").update({ correta: false, nota: 0 } as any).eq("id", resp.id);
+        
+        let notaObjetivaTotal = 0;
+        let notaDiscursivaTotal = 0;
+
+        for (const q of questoes) {
+          const resp = respostas.find((r: any) => r.questao_id === q.id);
+          
+          if (q.tipo !== "discursiva") {
+            if (resp && resp.resposta === q.gabarito) {
+              notaObjetivaTotal += q.peso || 1;
+              await supabase.from("respostas_concurso").update({ correta: true, nota: q.peso || 1 } as any).eq("id", resp.id);
+            } else if (resp) {
+              await supabase.from("respostas_concurso").update({ correta: false, nota: 0 } as any).eq("id", resp.id);
+            }
+          } else {
+            if (resp && resp.nota != null) {
+              notaDiscursivaTotal += Number(resp.nota);
+            }
           }
         }
-        const notaFinal = totalPeso > 0 ? (nota / totalPeso) * 100 : 0;
-        await supabase.from("inscricoes_concurso").update({ nota_objetiva: nota, nota_final: notaFinal, presente: true } as any).eq("id", insc.id);
+
+        const notaFinalNumerica = notaObjetivaTotal + notaDiscursivaTotal;
+        const notaFinalPercentual = pesoTotalMaximo > 0 ? (notaFinalNumerica / pesoTotalMaximo) * 100 : 0;
+
+        await supabase.from("inscricoes_concurso").update({ 
+          nota_objetiva: notaObjetivaTotal,
+          nota_discursiva: notaDiscursivaTotal,
+          nota_final: notaFinalPercentual, 
+          presente: true 
+        } as any).eq("id", insc.id);
       }
+
       // Classificação
       const { data: updated } = await supabase.from("inscricoes_concurso").select("*").eq("concurso_id", concursoId).order("nota_final", { ascending: false });
       if (updated) {
