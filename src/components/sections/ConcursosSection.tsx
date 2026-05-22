@@ -13,7 +13,7 @@ import {
   BookOpen, FileText, Users, Clock, Search, Plus, CheckCircle,
   ChevronRight, Award, BarChart3, Megaphone, ArrowLeft, Eye,
   ClipboardList, GraduationCap, Trophy, AlertTriangle, PenTool,
-  UserCheck, Timer, Star, Trash2, History, Lock
+  UserCheck, Timer, Star, Trash2, History, Lock, Copy
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -346,6 +346,8 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
   const [openQuestao, setOpenQuestao] = useState(false);
   const [openComunicado, setOpenComunicado] = useState(false);
   const [selectedInscricaoId, setSelectedInscricaoId] = useState<string | null>(null);
+  const [openImportarQuestao, setOpenImportarQuestao] = useState(false);
+
 
   const { data: concurso } = useQuery({
     queryKey: ["concurso", concursoId],
@@ -484,6 +486,57 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
   });
 
   const deleteQuestao = useMutation({
+    mutationFn: async (questaoId: string) => {
+      const { error } = await supabase.from("questoes_concurso").delete().eq("id", questaoId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["concurso-questoes", concursoId] });
+      toast.success("Questão removida!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  const importarQuestao = useMutation({
+    mutationFn: async (sourceConcursoId: string) => {
+      // Fetch questions from source
+      const { data: sourceQuestoes, error: fetchError } = await supabase
+        .from("questoes_concurso")
+        .select("*")
+        .eq("concurso_id", sourceConcursoId)
+        .order("numero");
+      
+      if (fetchError) throw fetchError;
+      if (!sourceQuestoes || sourceQuestoes.length === 0) throw new Error("O concurso selecionado não possui questões.");
+
+      // Calculate current max number
+      const nextNum = (questoes?.length || 0) + 1;
+
+      // Prepare new questions (mapping and adjusting numbers)
+      const newQuestoes = sourceQuestoes.map((q, index) => ({
+        concurso_id: concursoId,
+        numero: nextNum + index,
+        tipo: q.tipo,
+        enunciado: q.enunciado,
+        alternativa_a: q.alternativa_a,
+        alternativa_b: q.alternativa_b,
+        alternativa_c: q.alternativa_c,
+        alternativa_d: q.alternativa_d,
+        gabarito: q.gabarito,
+        peso: q.peso,
+      }));
+
+      const { error: insertError } = await supabase.from("questoes_concurso").insert(newQuestoes);
+      if (insertError) throw insertError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["concurso-questoes", concursoId] });
+      setOpenImportarQuestao(false);
+      toast.success("Questões importadas com sucesso!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
     mutationFn: async (questaoId: string) => {
       const { error } = await supabase.from("questoes_concurso").delete().eq("id", questaoId);
       if (error) throw error;
@@ -860,12 +913,34 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
           <TabsContent value="questoes" className="mt-4 space-y-4">
             <div className="flex justify-between items-center">
               <p className="text-sm text-muted-foreground">{questoes?.length || 0} questões cadastradas</p>
-              <Dialog open={openQuestao} onOpenChange={setOpenQuestao}>
-                <DialogTrigger asChild>
-                  <Button size="sm" className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light text-xs">
-                    <Plus className="h-3 w-3 mr-1" /> Adicionar Questão
-                  </Button>
-                </DialogTrigger>
+              <div className="flex gap-2">
+                <Dialog open={openImportarQuestao} onOpenChange={setOpenImportarQuestao}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" variant="outline" className="rounded-xl text-xs">
+                      <Copy className="h-3 w-3 mr-1" /> Importar de outro concurso
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader><DialogTitle className="font-display">Importar Questões</DialogTitle></DialogHeader>
+                    <div className="mt-4 space-y-4">
+                      <p className="text-sm text-muted-foreground">Selecione um concurso anterior para copiar todas as suas questões para este certame.</p>
+                      <div className="max-h-[300px] overflow-y-auto space-y-2 pr-2">
+                        {/* We use a sub-query/component or just filter from existing concursos list if available. 
+                            Since we are in ConcursoDetail, we might need to fetch all concursos again or pass them down.
+                            Actually, let's just fetch them here for simplicity. */}
+                        <ImportarQuestoesList onSelect={(id) => importarQuestao.mutate(id)} isPending={importarQuestao.isPending} currentConcursoId={concursoId} />
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+                <Dialog open={openQuestao} onOpenChange={setOpenQuestao}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light text-xs">
+                      <Plus className="h-3 w-3 mr-1" /> Adicionar Questão
+                    </Button>
+                  </DialogTrigger>
+
                 <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                   <DialogHeader><DialogTitle className="font-display">Adicionar Questão</DialogTitle></DialogHeader>
                   <form onSubmit={(e) => { e.preventDefault(); addQuestao.mutate(); }} className="space-y-4 mt-4">
