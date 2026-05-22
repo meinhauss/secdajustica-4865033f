@@ -83,7 +83,7 @@ export const CODIGO_PENAL: ArtigoPenal[] = [
   { artigo: "Art. 307", crime: "Passar-se por funcionário", penaMeses: 50, multa: 40000, fianca: 80000, descricao: "Atribuir-se falsa identidade pública para obter vantagem.", categoria: "Administração Pública" },
   { artigo: "Art. 400", crime: "Uso de equipamento policial", penaMeses: 40, multa: 30000, fianca: "sem_fianca", descricao: "Posse ou uso não autorizado de viaturas/equipamentos táticos.", categoria: "Administração Pública" },
   { artigo: "Art. 401", crime: "Posse de dinheiro ilícito (< 75k)", penaMeses: 30, multa: 25000, fianca: 30000, descricao: "Portar consigo até R$ 75.000,00 em dinheiro sujo.", categoria: "Administração Pública" },
-  { artigo: "Art. 402", crime: "Posse de ferramentas ilícitas (<10)", penaMeses: 20, multa: 15000, fianca: 30000, descricao: "Portar mais de 10 unidades de: algema, lockpick, bolsa de droga, capuz, placa clonada, ticket de corrida ilegal, chave mixa, explosivos C4, bloqueador de sinal, cartão hacking.", categoria: "Administração Pública" },
+  { artigo: "Art. 402", crime: "Posse de ferramentas ilícitas (<10)", penaMeses: 20, multa: 15000, fianca: 30000, descricao: "Portar ATÉ 10 unidades de: algema, lockpick, bolsa de droga, capuz, placa clonada, ticket de corrida ilegal, chave mixa, explosivos C4, bloqueador de sinal, cartão hacking.", categoria: "Administração Pública" },
 
   // Armas e Tráfico
   { artigo: "Art. 12", crime: "Posse ilegal de arma de fogo", penaMeses: 25, multa: 25000, fianca: 50000, descricao: "Manter sob guarda arma de fogo de uso permitido ilegalmente.", categoria: "Armas e Tráfico" },
