@@ -1574,3 +1574,29 @@ function InfoCard({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+
+function ImportarQuestoesList({ onSelect, isPending, currentConcursoId }: { onSelect: (id: string) => void; isPending: boolean; currentConcursoId: string }) {
+  const { data: concursos } = useQuery({
+    queryKey: ["concursos-import"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("concursos").select("id, titulo, cargo, created_at").neq("id", currentConcursoId).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  if (!concursos?.length) return <p className="text-center py-4 text-xs text-muted-foreground">Nenhum outro concurso encontrado.</p>;
+
+  return (
+    <div className="space-y-2">
+      {concursos.map((c) => (
+        <Button key={c.id} variant="ghost" className="w-full justify-start text-left h-auto py-3 px-4 border border-border rounded-xl hover:bg-secondary flex-col items-start gap-1"
+          onClick={() => onSelect(c.id)} disabled={isPending}>
+          <span className="font-semibold text-sm">{c.titulo}</span>
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{c.cargo} • {format(new Date(c.created_at), "dd/MM/yyyy")}</span>
+        </Button>
+      ))}
+    </div>
+  );
+}
+
