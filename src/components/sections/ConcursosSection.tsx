@@ -987,8 +987,10 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
                     </Button>
                   </form>
                 </DialogContent>
-              </Dialog>
+                </Dialog>
+              </div>
             </div>
+
 
             {questoes?.map((q: any) => (
               <div key={q.id} className="bg-card rounded-xl p-4 border border-border shadow-institutional">
