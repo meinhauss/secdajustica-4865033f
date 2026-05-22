@@ -537,16 +537,6 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
     onError: (err: any) => toast.error(err.message),
   });
 
-    mutationFn: async (questaoId: string) => {
-      const { error } = await supabase.from("questoes_concurso").delete().eq("id", questaoId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["concurso-questoes", concursoId] });
-      toast.success("Questão removida!");
-    },
-    onError: (err: any) => toast.error(err.message),
-  });
 
   // Corrigir prova INDIVIDUAL
   const corrigirProvaIndividual = useMutation({
