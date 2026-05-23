@@ -85,7 +85,7 @@ function useAutoStatusUpdate() {
       if (["rascunho", "publicado"].includes(c.status) && c.data_encerramento_inscricoes && c.data_abertura && new Date(c.data_abertura) <= now && new Date(c.data_encerramento_inscricoes) > now) {
         newStatus = "inscricoes_abertas";
       }
-      if (["publicado", "inscricoes_abertas"].includes(c.status) && c.data_encerramento_inscricoes && new Date(c.data_encerramento_inscricoes) <= now) {
+      if (["publicado", "inscricoes_abertas"].includes(c.status) && c.data_encerramento_inscricoes && new Date(c.data_encerramento_inscricoes) <= now && (!c.data_inicio_prova || new Date(c.data_inicio_prova) > now)) {
         newStatus = "inscricoes_encerradas";
       }
       if (["rascunho", "publicado", "inscricoes_abertas", "inscricoes_encerradas"].includes(c.status) && c.data_inicio_prova && new Date(c.data_inicio_prova) <= now && (!c.data_fim_prova || new Date(c.data_fim_prova) > now)) {
@@ -718,7 +718,10 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
   if (!concurso) return <div className="text-center py-12 text-muted-foreground">Carregando...</div>;
 
   const cfg = CONCURSO_STATUS[concurso.status] || CONCURSO_STATUS.rascunho;
-  const canInscribe = ["publicado", "inscricoes_abertas"].includes(concurso.status) && !myInscricao;
+  const canInscribe = ["publicado", "inscricoes_abertas", "em_andamento", "inscricoes_encerradas"].includes(concurso.status) && 
+    concurso.data_encerramento_inscricoes && 
+    new Date() < new Date(concurso.data_encerramento_inscricoes) && 
+    !myInscricao;
   
   const now = new Date();
   const isWithinExamWindow = concurso.data_inicio_prova && concurso.data_fim_prova && 
