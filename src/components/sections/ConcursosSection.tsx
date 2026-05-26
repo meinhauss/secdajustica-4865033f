@@ -1183,7 +1183,13 @@ function InscricaoRespostas({ inscricaoId, questoes }: { inscricaoId: string; qu
             <div className="bg-card border border-border rounded p-2 mt-1">
               <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1 font-bold">Resposta do Candidato:</p>
               {resp ? (
-                <p className="text-xs text-foreground whitespace-pre-wrap">{resp.resposta || "—"}</p>
+                <p className="text-xs text-foreground whitespace-pre-wrap">
+                  {q.tipo === "certo_errado"
+                    ? (resp.resposta === "a" ? "Certo" : resp.resposta === "b" ? "Errado" : "—")
+                    : q.tipo === "objetiva"
+                      ? (resp.resposta ? resp.resposta.toUpperCase() : "—")
+                      : (resp.resposta || "—")}
+                </p>
               ) : (
                 <p className="text-xs text-muted-foreground italic">Sem resposta</p>
               )}
