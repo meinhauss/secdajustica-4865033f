@@ -325,7 +325,15 @@ function ConcursosDashboard({ isAdmin, isPresidenteTribunal, isMP, isFullAdmin, 
                       {showTab === "anteriores" && <span className="text-institutional font-semibold">📋 Ver prova e gabarito</span>}
                     </div>
                   </div>
-                  <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-institutional transition-colors flex-shrink-0" />
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {showTab === "anteriores" && isAdmin && (
+                      <Button size="sm" variant="outline" className="rounded-lg h-8 text-xs"
+                        onClick={(e) => { e.stopPropagation(); onSelect(c.id); }}>
+                        <CheckCircle className="h-3 w-3 mr-1" /> Gerenciar / Corrigir
+                      </Button>
+                    )}
+                    <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-institutional transition-colors" />
+                  </div>
                 </div>
               </motion.div>
             );
