@@ -1064,7 +1064,7 @@ export type Database = {
       }
       jurisprudencias: {
         Row: {
-          apelacao_id: string
+          apelacao_id: string | null
           assunto: string | null
           classe: string | null
           created_at: string
@@ -1077,11 +1077,13 @@ export type Database = {
           ementa: string
           id: string
           numero_acordao: string
-          processo_id: string
+          origem: string
+          processo_id: string | null
+          sessao_descricao: string | null
           tags: string[] | null
         }
         Insert: {
-          apelacao_id: string
+          apelacao_id?: string | null
           assunto?: string | null
           classe?: string | null
           created_at?: string
@@ -1094,11 +1096,13 @@ export type Database = {
           ementa: string
           id?: string
           numero_acordao: string
-          processo_id: string
+          origem?: string
+          processo_id?: string | null
+          sessao_descricao?: string | null
           tags?: string[] | null
         }
         Update: {
-          apelacao_id?: string
+          apelacao_id?: string | null
           assunto?: string | null
           classe?: string | null
           created_at?: string
@@ -1111,7 +1115,9 @@ export type Database = {
           ementa?: string
           id?: string
           numero_acordao?: string
-          processo_id?: string
+          origem?: string
+          processo_id?: string | null
+          sessao_descricao?: string | null
           tags?: string[] | null
         }
         Relationships: [
