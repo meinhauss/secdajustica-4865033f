@@ -285,3 +285,111 @@ function JurisprudenciaDetail({ id, onBack }: { id: string; onBack: () => void }
     </div>
   );
 }
+
+function NovaJurisprudenciaPlenariaDialog() {
+  const { user, profile } = useAuth();
+  const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({
+    numero_acordao: "",
+    classe: "criminal",
+    assunto: "",
+    ementa: "",
+    sessao_descricao: "",
+    decisao_fundamentacao: "",
+    decisao_dispositivo: "",
+  });
+
+  const mutation = useMutation({
+    mutationFn: async () => {
+      if (!form.numero_acordao.trim()) throw new Error("Informe o número do acórdão/enunciado.");
+      if (!form.ementa.trim()) throw new Error("Informe a ementa.");
+      if (!form.sessao_descricao.trim()) throw new Error("Descreva a discussão da sessão plenária.");
+
+      const { error } = await supabase.from("jurisprudencias").insert({
+        numero_acordao: form.numero_acordao,
+        classe: form.classe,
+        assunto: form.assunto || null,
+        ementa: form.ementa,
+        decisao_tipo: "sessao_plenaria",
+        decisao_fundamentacao: form.decisao_fundamentacao || null,
+        decisao_dispositivo: form.decisao_dispositivo || null,
+        desembargador_id: user!.id,
+        desembargador_nome: profile?.nome_completo || "Desembargador(a)",
+        data_julgamento: new Date().toISOString(),
+        origem: "sessao_plenaria",
+        sessao_descricao: form.sessao_descricao,
+      } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Jurisprudência registrada a partir da sessão plenária.");
+      queryClient.invalidateQueries({ queryKey: ["jurisprudencias"] });
+      setOpen(false);
+      setForm({ numero_acordao: "", classe: "criminal", assunto: "", ementa: "", sessao_descricao: "", decisao_fundamentacao: "", decisao_dispositivo: "" });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button className="gap-2 rounded-xl">
+          <Users className="h-4 w-4" /> Nova jurisprudência (Sessão Plenária)
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5 text-institutional" />
+            Registrar jurisprudência de sessão plenária
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 mt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <Label>Número do Acórdão / Enunciado</Label>
+              <Input value={form.numero_acordao} onChange={(e) => setForm({ ...form, numero_acordao: e.target.value })} placeholder="Ex: SP-2026/001" />
+            </div>
+            <div>
+              <Label>Classe</Label>
+              <Select value={form.classe} onValueChange={(v) => setForm({ ...form, classe: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="criminal">Criminal</SelectItem>
+                  <SelectItem value="civil">Civil</SelectItem>
+                  <SelectItem value="administrativo">Administrativo</SelectItem>
+                  <SelectItem value="constitucional">Constitucional</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div>
+            <Label>Assunto</Label>
+            <Input value={form.assunto} onChange={(e) => setForm({ ...form, assunto: e.target.value })} placeholder="Tema discutido na sessão" />
+          </div>
+          <div>
+            <Label>Resumo da discussão em sessão plenária</Label>
+            <Textarea value={form.sessao_descricao} onChange={(e) => setForm({ ...form, sessao_descricao: e.target.value })} placeholder="Descreva o debate, divergências e consenso firmado..." rows={4} />
+          </div>
+          <div>
+            <Label>Ementa</Label>
+            <Textarea value={form.ementa} onChange={(e) => setForm({ ...form, ementa: e.target.value })} placeholder="EMENTA: ..." rows={5} />
+          </div>
+          <div>
+            <Label>Fundamentação</Label>
+            <RichTextEditor value={form.decisao_fundamentacao} onChange={(v) => setForm({ ...form, decisao_fundamentacao: v })} minHeight="140px" />
+          </div>
+          <div>
+            <Label>Dispositivo / Tese firmada</Label>
+            <RichTextEditor value={form.decisao_dispositivo} onChange={(v) => setForm({ ...form, decisao_dispositivo: v })} minHeight="100px" />
+          </div>
+          <Button onClick={() => mutation.mutate()} disabled={mutation.isPending} className="w-full gap-2">
+            {mutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+            Publicar jurisprudência
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
