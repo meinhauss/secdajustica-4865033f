@@ -42,6 +42,8 @@ function JurisprudenciaList({ onSelect }: { onSelect: (id: string) => void }) {
   const [search, setSearch] = useState("");
   const [filterDecisao, setFilterDecisao] = useState("all");
   const [filterClasse, setFilterClasse] = useState("all");
+  const { roles } = useAuth();
+  const podeCriar = roles.some(r => ["desembargador", "presidente_tribunal", "admin"].includes(r));
 
   const { data: items } = useQuery({
     queryKey: ["jurisprudencias"],
@@ -69,10 +71,14 @@ function JurisprudenciaList({ onSelect }: { onSelect: (id: string) => void }) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="font-display text-2xl font-bold text-foreground">Jurisprudência</h2>
-        <p className="text-sm text-muted-foreground">Consulta de ementas e acórdãos do Tribunal de Justiça</p>
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h2 className="font-display text-2xl font-bold text-foreground">Jurisprudência</h2>
+          <p className="text-sm text-muted-foreground">Consulta de ementas e acórdãos do Tribunal de Justiça</p>
+        </div>
+        {podeCriar && <NovaJurisprudenciaPlenariaDialog />}
       </div>
+
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
