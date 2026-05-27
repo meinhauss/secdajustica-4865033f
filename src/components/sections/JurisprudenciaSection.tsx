@@ -114,6 +114,8 @@ function JurisprudenciaList({ onSelect }: { onSelect: (id: string) => void }) {
             <SelectItem value="reformada_parcial">Reformada Parcial</SelectItem>
             <SelectItem value="reformada_total">Reformada Total</SelectItem>
             <SelectItem value="anulada">Anulada</SelectItem>
+            <SelectItem value="originaria">Decisão Originária</SelectItem>
+            <SelectItem value="sessao_plenaria">Sessão Plenária</SelectItem>
           </SelectContent>
         </Select>
         <Select value={filterClasse} onValueChange={setFilterClasse}>
