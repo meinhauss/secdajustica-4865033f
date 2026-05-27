@@ -375,6 +375,7 @@ function LinksInput({ label, links, onChange }: {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addLink(); } }}
+            onBlur={addLink}
             placeholder="https://..."
             className="pl-10"
           />
