@@ -1,14 +1,17 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { RichTextView } from "@/components/ui/rich-text-editor";
-import { useQuery } from "@tanstack/react-query";
+import { RichTextView, RichTextEditor } from "@/components/ui/rich-text-editor";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
-  Search, Scale, Gavel, BookOpen, ChevronRight, ArrowLeft, FileText, Download, Loader2
+  Search, Scale, Gavel, BookOpen, ChevronRight, ArrowLeft, FileText, Download, Loader2, Plus, Users,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -21,6 +24,8 @@ const DECISAO_LABELS: Record<string, string> = {
   reformada_parcial: "Reformada Parcialmente",
   reformada_total: "Reformada Totalmente",
   anulada: "Sentença Anulada",
+  originaria: "Decisão Originária",
+  sessao_plenaria: "Sessão Plenária",
 };
 
 export default function JurisprudenciaSection() {
