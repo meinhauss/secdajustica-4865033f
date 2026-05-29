@@ -357,8 +357,6 @@ export default function AudienciasSection() {
       if (error) throw error;
 
       // Vincular audiência ao processo recém-criado
-      await supabase.from("audiencias").update({ processo_id: processoId }).eq("id", audienciaId);
-
       // Movimentação única formatada com o termo completo da audiência
       const termo = `TERMO DE AUDIÊNCIA DE CUSTÓDIA\n\n${aud.ata || ""}`;
       await supabase.from("movimentacoes").insert({
@@ -366,6 +364,18 @@ export default function AudienciasSection() {
         tipo: "termo_audiencia_custodia",
         descricao: termo,
         autor_id: user?.id,
+      });
+
+      // Boletim de ocorrência em evento separado
+      if (custForm.boletim_ocorrencia.trim()) {
+        await supabase.from("movimentacoes").insert({
+          processo_id: processoId,
+          tipo: "boletim_ocorrencia",
+          descricao: `BOLETIM DE OCORRÊNCIA\n\n${custForm.boletim_ocorrencia}`,
+          autor_id: user?.id,
+        });
+      }
+
       });
 
       return processoId;
