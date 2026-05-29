@@ -226,6 +226,7 @@ export default function AudienciasSection() {
     local: "Fórum da Comarca de São Paulo",
     autoridade_prisao: "",
     data_prisao: "",
+    boletim_ocorrencia: "",
     termo_assentada: "",
     qualificacao_entrevista: "",
     manifestacao_mp: "",
@@ -241,10 +242,11 @@ export default function AudienciasSection() {
     autos_bopm: "", data_hora_abertura: "",
     custodiados: [{ nome: "", id_personagem: "" }],
     capitulacao_provisoria: "", local: "Fórum da Comarca de São Paulo",
-    autoridade_prisao: "", data_prisao: "", termo_assentada: "",
+    autoridade_prisao: "", data_prisao: "", boletim_ocorrencia: "", termo_assentada: "",
     qualificacao_entrevista: "", manifestacao_mp: "", manifestacao_defesa: "",
     decisao_tipo: "preventiva", decisao_texto: "", observacoes: "", data_hora_encerramento: "",
   });
+
 
   const createCustodiaMutation = useMutation({
     mutationFn: async () => {
@@ -365,6 +367,17 @@ export default function AudienciasSection() {
         descricao: termo,
         autor_id: user?.id,
       });
+
+      // Boletim de ocorrência em evento separado
+      if (custForm.boletim_ocorrencia.trim()) {
+        await supabase.from("movimentacoes").insert({
+          processo_id: processoId,
+          tipo: "boletim_ocorrencia",
+          descricao: `BOLETIM DE OCORRÊNCIA\n\n${custForm.boletim_ocorrencia}`,
+          autor_id: user?.id,
+        });
+      }
+
 
       return processoId;
     },
@@ -568,6 +581,17 @@ export default function AudienciasSection() {
                 <Input type="datetime-local" value={custForm.data_prisao} onChange={e => setCustForm(f => ({ ...f, data_prisao: e.target.value }))} />
               </div>
             </div>
+
+            <div className="space-y-1.5">
+              <Label>Boletim de Ocorrência</Label>
+              <RichTextEditor
+                value={custForm.boletim_ocorrencia}
+                onChange={(v) => setCustForm(f => ({ ...f, boletim_ocorrencia: v }))}
+                placeholder="Cole aqui o conteúdo do boletim de ocorrência. Será registrado como evento separado no processo."
+              />
+              <p className="text-xs text-muted-foreground">Será juntado ao processo em movimentação própria ao abrir o processo criminal.</p>
+            </div>
+
 
             <div className="space-y-1.5">
               <Label>Termo de assentada</Label>
