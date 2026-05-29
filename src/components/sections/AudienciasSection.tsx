@@ -583,6 +583,17 @@ export default function AudienciasSection() {
             </div>
 
             <div className="space-y-1.5">
+              <Label>Boletim de Ocorrência</Label>
+              <RichTextEditor
+                value={custForm.boletim_ocorrencia}
+                onChange={(v) => setCustForm(f => ({ ...f, boletim_ocorrencia: v }))}
+                placeholder="Cole aqui o conteúdo do boletim de ocorrência. Será registrado como evento separado no processo."
+              />
+              <p className="text-xs text-muted-foreground">Será juntado ao processo em movimentação própria ao abrir o processo criminal.</p>
+            </div>
+
+
+            <div className="space-y-1.5">
               <Label>Termo de assentada</Label>
               <RichTextEditor value={custForm.termo_assentada} onChange={(v) => setCustForm(f => ({ ...f, termo_assentada: v }))} placeholder="Abertura, presentes, formalidades..." />
             </div>
