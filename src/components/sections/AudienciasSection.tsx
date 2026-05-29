@@ -226,6 +226,7 @@ export default function AudienciasSection() {
     local: "Fórum da Comarca de São Paulo",
     autoridade_prisao: "",
     data_prisao: "",
+    boletim_ocorrencia: "",
     termo_assentada: "",
     qualificacao_entrevista: "",
     manifestacao_mp: "",
@@ -241,10 +242,11 @@ export default function AudienciasSection() {
     autos_bopm: "", data_hora_abertura: "",
     custodiados: [{ nome: "", id_personagem: "" }],
     capitulacao_provisoria: "", local: "Fórum da Comarca de São Paulo",
-    autoridade_prisao: "", data_prisao: "", termo_assentada: "",
+    autoridade_prisao: "", data_prisao: "", boletim_ocorrencia: "", termo_assentada: "",
     qualificacao_entrevista: "", manifestacao_mp: "", manifestacao_defesa: "",
     decisao_tipo: "preventiva", decisao_texto: "", observacoes: "", data_hora_encerramento: "",
   });
+
 
   const createCustodiaMutation = useMutation({
     mutationFn: async () => {
