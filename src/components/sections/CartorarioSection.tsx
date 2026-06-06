@@ -578,7 +578,7 @@ export default function CartorarioSection() {
             if (isAutor) return "Autor";
             return "Réu";
           })();
-          const statusMap: Record<string, string> = { novo: "Novo", em_andamento: "Em Andamento", concluso: "Concluso", sentenciado: "Sentenciado", arquivado: "Arquivado", suspenso: "Suspenso" };
+          const statusMap: Record<string, string> = { novo: "Novo", em_andamento: "Em Andamento", concluso: "Concluso", sentenciado: "Sentenciado", arquivado: "Arquivado", suspenso: "Suspenso", prescrito: "Prescrito" };
           return `• ${p.numero} | ${p.classe?.toUpperCase()} | ${statusMap[p.status] || p.status} | Polo: ${polo} | ${p.assunto}`;
         });
         observacoesData = `PROCESSOS ENCONTRADOS: ${processosDoSolicitante.length}\n\n${lines.join("\n")}`;
