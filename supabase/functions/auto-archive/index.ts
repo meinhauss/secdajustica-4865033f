@@ -77,11 +77,12 @@ Deno.serve(async () => {
 <p>Em consequência, <strong>todos os atos praticados perdem sua validade</strong>, inclusive eventuais mandados expedidos, que ficam automaticamente <strong>revogados</strong>.</p>
 <p>Arquivem-se os autos.</p>`;
 
-      // 1. Arquivar o processo
+      // 1. Arquivar o processo como prescrito e tornar público
       const { error: updErr } = await supabase
         .from("processos")
-        .update({ status: "arquivado" })
+        .update({ status: "prescrito", sigilo: "publico" })
         .eq("id", proc.id);
+
 
       if (updErr) continue;
 
