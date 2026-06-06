@@ -57,25 +57,45 @@ Deno.serve(async () => {
 
   // ========================================================================
   // PARTE 2: Prescrição criminal — Decreto-Lei 011/2024, Art. 2º
-  // 30 dias após abertura de processo criminal sem sentença => prescrição
+  // 30 dias após o RECEBIMENTO DO INQUÉRITO (remessa_inquerito) sem sentença
+  // O prazo é ZERADO quando há nova informação/remessa policial:
+  //   tipos: remessa_inquerito, informacao_policial, relatorio_policial, boletim_ocorrencia
   // ========================================================================
-  const trintaDiasAtras = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const TRIGGER_TIPOS = ["remessa_inquerito", "informacao_policial", "relatorio_policial", "boletim_ocorrencia"];
+  const trintaDiasMs = 30 * 24 * 60 * 60 * 1000;
 
   const { data: criminais } = await supabase
     .from("processos")
     .select("id, numero, juiz_id, advogado_autor_id, advogado_reu_id, autor_nome, reu_nome, created_at")
     .eq("classe", "criminal")
-    .not("status", "in", '("arquivado","sentenciado","prescrito")')
-    .lte("created_at", trintaDiasAtras);
+    .not("status", "in", '("arquivado","sentenciado","prescrito")');
 
   if (criminais?.length) {
     for (const proc of criminais) {
+      // Marco zero da prescrição: data mais recente de evento policial gatilho.
+      // Se nenhum existir, o processo criminal ainda não recebeu inquérito — NÃO prescreve.
+      const { data: ultimaRemessa } = await supabase
+        .from("movimentacoes")
+        .select("created_at, tipo")
+        .eq("processo_id", proc.id)
+        .in("tipo", TRIGGER_TIPOS)
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      if (!ultimaRemessa?.length) continue;
+
+      const marcoZero = new Date(ultimaRemessa[0].created_at).getTime();
+      if (Date.now() - marcoZero < trintaDiasMs) continue;
+
+      const dataMarco = new Date(marcoZero).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
+
       // Texto da prescrição
       const descricaoPrescricao = `<h2>PRESCRIÇÃO DA PRETENSÃO PUNITIVA</h2>
-<p>Decorrido o prazo de <strong>30 (trinta) dias</strong> desde a abertura do presente processo criminal sem prolação de sentença, declara-se de ofício a <strong>PRESCRIÇÃO</strong> da pretensão punitiva estatal, nos termos do <strong>art. 2º do Decreto-Lei nº 011, de 2024</strong>:</p>
+<p>Decorrido o prazo de <strong>30 (trinta) dias</strong> desde o último ato policial relevante (<em>${ultimaRemessa[0].tipo.replace(/_/g, " ").toUpperCase()}</em> em ${dataMarco}) sem prolação de sentença, declara-se de ofício a <strong>PRESCRIÇÃO</strong> da pretensão punitiva estatal, nos termos do <strong>art. 2º do Decreto-Lei nº 011, de 2024</strong>:</p>
 <p><em>"Art. 2º Prescreve-se o direito de punir em 30 dias para qualquer crime cometido pelo infrator."</em></p>
 <p>Em consequência, <strong>todos os atos praticados perdem sua validade</strong>, inclusive eventuais mandados expedidos, que ficam automaticamente <strong>revogados</strong>.</p>
 <p>Arquivem-se os autos.</p>`;
+
 
       // 1. Arquivar o processo como prescrito e tornar público
       const { error: updErr } = await supabase
