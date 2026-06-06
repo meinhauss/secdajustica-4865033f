@@ -2056,6 +2056,7 @@ export type Database = {
         | "sentenciado"
         | "arquivado"
         | "suspenso"
+        | "prescrito"
       user_role:
         | "admin"
         | "magistrado"
@@ -2218,6 +2219,7 @@ export const Constants = {
         "sentenciado",
         "arquivado",
         "suspenso",
+        "prescrito",
       ],
       user_role: [
         "admin",
