@@ -2736,6 +2736,8 @@ function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles
   }
 
   const [tipo, setTipo] = useState(tiposPermitidos[0]?.value || "peticao");
+  const draftKey = processo?.id ? `draft:mov:${processo.id}:${tipo}` : null;
+  const { value: desc, setValue: setDesc, clear: clearDraft, savedAt } = useDraft(draftKey);
 
   const addAnexo = () => {
     if (!novoAnexoNome.trim() || !novoAnexoUrl.trim()) {
