@@ -1054,6 +1054,15 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
 
   const cfg = PROC_STATUS[processo.status] || PROC_STATUS.novo;
 
+  const modeloCtx: ModeloContext = {
+    numero_processo: processo?.numero,
+    nome_autor: extrairNomes(processo?.autor_nome),
+    nome_reu: extrairNomes(processo?.reu_nome),
+    nome_usuario: profile?.nome_completo || "",
+    juiz: profile?.nome_completo || "",
+    classe: processo?.classe,
+  };
+
   return (
     <div className="space-y-6">
       {/* Back button */}
