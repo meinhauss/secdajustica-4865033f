@@ -1333,6 +1333,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               </SelectContent>
             </Select>
             <Input placeholder="Título do despacho" value={despachoForm.titulo} onChange={(e) => setDespachoForm({ ...despachoForm, titulo: e.target.value })} className="rounded-xl" required />
+            <div className="flex justify-end"><ModeloPicker categoria="despacho" context={modeloCtx} onInsert={(t) => setDespachoForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))} /></div>
             <RichTextEditor placeholder="Conteúdo do despacho..." value={despachoForm.conteudo} onChange={(html) => setDespachoForm({ ...despachoForm, conteudo: html })} minHeight="160px" />
             <Button type="submit" disabled={criarDespacho.isPending} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
               {criarDespacho.isPending ? "Processando..." : "Proferir e Assinar Despacho"}
