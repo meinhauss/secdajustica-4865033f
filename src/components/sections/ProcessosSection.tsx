@@ -2787,6 +2787,23 @@ function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles
               ))}
             </SelectContent>
           </Select>
+          <div className="flex justify-end">
+            <ModeloPicker
+              size="sm"
+              context={{
+                numero_processo: processo?.numero,
+                nome_autor: extrairNomes(processo?.autor_nome),
+                nome_reu: extrairNomes(processo?.reu_nome),
+                nome_usuario: userNome || "",
+                juiz: juizNome || "",
+                classe: processo?.classe,
+              }}
+              onInsert={(texto) => {
+                const html = texto.split(/\n{2,}/).map((p) => `<p>${p.replace(/\n/g, "<br/>")}</p>`).join("");
+                setDesc((prev) => (prev && prev !== "<p></p>" ? prev + html : html));
+              }}
+            />
+          </div>
           <RichTextEditor placeholder="Descrição da movimentação..." value={desc} onChange={setDesc} minHeight="160px" />
 
           {/* Seção de Anexos */}
