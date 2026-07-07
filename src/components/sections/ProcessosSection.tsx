@@ -1570,7 +1570,11 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
       {/* Back button */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <Button variant="ghost" size="sm" onClick={onBack} className="rounded-lg"><ArrowLeft className="h-4 w-4 mr-1" /> Voltar</Button>
-        <AIResumoProcesso processo={processo} movimentacoes={movimentacoes} />
+        <div className="flex items-center gap-2 flex-wrap">
+          <AIResumoProcesso processo={processo} movimentacoes={movimentacoes} />
+          <AIClassificarPeticao />
+          <AIAssistente processo={processo} movimentacoes={movimentacoes} />
+        </div>
       </div>
 
       {/* ═══ CABEÇALHO DO PROCESSO ═══ */}
