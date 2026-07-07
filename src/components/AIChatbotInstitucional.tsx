@@ -68,6 +68,41 @@ export default function AIChatbotInstitucional({
 
   const [open, setOpen] = useState(false);
   const [showGreeting, setShowGreeting] = useState(false);
+
+  // Posição persistente do botão flutuante
+  const posKey = "vademecum:pos";
+  const [pos, setPos] = useState<{ side: "left" | "right"; y: number; hidden: boolean }>(() => {
+    if (typeof window === "undefined") return { side: "right", y: window?.innerHeight - 96 || 600, hidden: false };
+    try {
+      const raw = localStorage.getItem(posKey);
+      if (raw) return JSON.parse(raw);
+    } catch { /* ignore */ }
+    return { side: "right", y: Math.max(80, window.innerHeight - 96), hidden: false };
+  });
+  useEffect(() => {
+    try { localStorage.setItem(posKey, JSON.stringify(pos)); } catch { /* ignore */ }
+  }, [pos]);
+
+  const dragRef = useRef<{ startY: number; startPosY: number; moved: boolean } | null>(null);
+  const onDragStart = (e: React.PointerEvent) => {
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    dragRef.current = { startY: e.clientY, startPosY: pos.y, moved: false };
+  };
+  const onDragMove = (e: React.PointerEvent) => {
+    if (!dragRef.current) return;
+    const dy = e.clientY - dragRef.current.startY;
+    if (Math.abs(dy) > 4) dragRef.current.moved = true;
+    const y = Math.max(16, Math.min(window.innerHeight - 80, dragRef.current.startPosY + dy));
+    const side = e.clientX < window.innerWidth / 2 ? "left" : "right";
+    setPos((p) => ({ ...p, y, side }));
+  };
+  const onDragEnd = (e: React.PointerEvent, onClick: () => void) => {
+    const moved = dragRef.current?.moved;
+    dragRef.current = null;
+    try { (e.target as HTMLElement).releasePointerCapture(e.pointerId); } catch { /* ignore */ }
+    if (!moved) onClick();
+  };
+
   const [messages, setMessages] = useState<AIMessage[]>(() => {
     if (typeof window === "undefined") return [];
     try {
