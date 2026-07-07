@@ -18,6 +18,7 @@ import ConcursosSection from "@/components/sections/ConcursosSection";
 import MeuPerfilSection from "@/components/sections/MeuPerfilSection";
 import TCOSection from "@/components/sections/TCOSection";
 import JuradosSection from "@/components/sections/JuradosSection";
+import ModelosSection from "@/components/sections/ModelosSection";
 import { ListSkeleton } from "@/components/ui/list-skeleton";
 
 // Seções pesadas — carregadas sob demanda
