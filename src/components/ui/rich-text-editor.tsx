@@ -52,6 +52,7 @@ export function RichTextEditor({
     { open: false, top: 0, left: 0, query: "", from: 0 }
   );
   const [varIdx, setVarIdx] = useState(0);
+  const [aiBusy, setAiBusy] = useState<null | "melhorar" | "corrigir">(null);
   const snippetMap = { ...SNIPPETS_PADRAO, ...(snippets || {}) };
   const editor = useEditor({
     extensions: [
