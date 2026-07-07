@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { formatTelefoneIngame } from "@/lib/formatPhone";
 const ROLE_LABELS: Record<string, string> = {
   admin: "Administrador",
   magistrado: "Juiz de Direito",
@@ -249,7 +250,7 @@ export default function UsuariosSection() {
             </div>
             <div>
               <label className="text-xs text-muted-foreground">Telefone In-Game</label>
-              <Input value={editForm.telefone_ingame} onChange={(e) => setEditForm({ ...editForm, telefone_ingame: e.target.value })} className="rounded-xl" />
+              <Input value={editForm.telefone_ingame} onChange={(e) => setEditForm({ ...editForm, telefone_ingame: formatTelefoneIngame(e.target.value) })} placeholder="(14) 9 0000-0000" maxLength={16} className="rounded-xl" />
             </div>
             <Button type="submit" disabled={updateProfile.isPending} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
               <Save className="h-4 w-4 mr-1" /> {updateProfile.isPending ? "Salvando..." : "Salvar Alterações"}

@@ -18,6 +18,7 @@ import logoSjc from "@/assets/logo-sjc.jpg";
 import govLogo from "@/assets/gov-logo.png";
 import logoCartorio from "@/assets/logo-cartorio-sp.png";
 import { toast } from "sonner";
+import { formatTelefoneIngame } from "@/lib/formatPhone";
 
 type Tab = "inicio" | "institucional" | "transparencia" | "concursos" | "login" | "credencial" | "ouvidoria" | "unisp";
 
@@ -1000,7 +1001,7 @@ function TabLogin(props: LoginProps) {
                   <label className="text-[11px] uppercase tracking-widest font-semibold text-muted-foreground mb-1 block">
                     Tel. In-Game
                   </label>
-                  <Input value={telefoneIngame} onChange={(e) => setTelefoneIngame(e.target.value)} placeholder="Telefone RP" required className="rounded-lg h-11" />
+                  <Input value={telefoneIngame} onChange={(e) => setTelefoneIngame(formatTelefoneIngame(e.target.value))} placeholder="(14) 9 0000-0000" maxLength={16} required className="rounded-lg h-11" />
                 </div>
               </div>
 
