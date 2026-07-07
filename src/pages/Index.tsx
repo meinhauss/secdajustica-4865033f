@@ -1,4 +1,5 @@
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import LoginPage from "@/components/LoginPage";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -31,9 +32,29 @@ const LazyFallback = () => (
 );
 
 const Index = () => {
-  const { user, loading, profile } = useAuth();
+  const { user, loading, profile, roles } = useAuth();
   const [activeSection, setActiveSection] = useState("dashboard");
   const [openProcessoId, setOpenProcessoId] = useState<string | null>(null);
+
+  // Aviso de foto de perfil para advogados+
+  useEffect(() => {
+    if (!user || !profile || profile.avatar_url) return;
+    const advogadoPlus = new Set([
+      "advogado", "magistrado", "desembargador", "presidente_tribunal",
+      "ministerio_publico", "procurador_geral", "procurador_estado",
+      "delegado", "presidente_oab", "bacharel_direito", "admin",
+    ]);
+    if (!roles.some((r) => advogadoPlus.has(r))) return;
+    const key = `avatar-reminder-${user.id}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+    toast.warning("Adicione uma foto de perfil", {
+      description: "Como membro togado, é obrigatório manter sua foto de perfil atualizada.",
+      action: { label: "Adicionar agora", onClick: () => setActiveSection("meu-perfil") },
+      duration: 10000,
+    });
+  }, [user, profile, roles]);
+
 
   if (loading) {
     return (
