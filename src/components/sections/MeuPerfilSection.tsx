@@ -112,8 +112,8 @@ export default function MeuPerfilSection() {
         .eq("user_id", user.id);
 
       if (error) throw error;
+      await refreshProfile();
       toast.success("Perfil atualizado com sucesso!");
-      window.location.reload();
     } catch (err: any) {
       toast.error("Erro ao salvar: " + (err.message || "Tente novamente."));
     } finally {
