@@ -30,6 +30,9 @@ import { useDraft } from "@/hooks/useDraft";
 import { agendarPrazoAutomatico, getPrazoAutomatico } from "@/lib/prazosAutomaticos";
 import { getChecklist } from "@/lib/checklists";
 import { cn } from "@/lib/utils";
+import AIResumoProcesso from "@/components/AIResumoProcesso";
+import AIResumirTexto from "@/components/AIResumirTexto";
+import AIExplicarSelecao from "@/components/AIExplicarSelecao";
 
 /* ─── Currency helpers ─── */
 const formatCurrency = (value: string) => {
