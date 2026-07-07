@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
+import { ListSkeleton } from "@/components/ui/list-skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -447,8 +449,9 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
     onError: (err: any) => toast.error(err.message),
   });
 
+  const debouncedSearch = useDebounce(search, 300);
   const filtered = processos?.filter((p) => {
-    const term = search.trim().toLowerCase();
+    const term = debouncedSearch.trim().toLowerCase();
     const autorPartes = parsePartesFromString(p.autor_nome);
     const reuPartes = parsePartesFromString(p.reu_nome);
     const partesText = [...autorPartes, ...reuPartes]
@@ -606,7 +609,7 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
 
       {/* List */}
       {isLoading ? (
-        <div className="text-center py-12 text-muted-foreground">Carregando processos...</div>
+        <ListSkeleton rows={6} />
       ) : !filtered?.length ? (
         <div className="text-center py-12 text-muted-foreground">
           <FileText className="h-12 w-12 mx-auto mb-3 opacity-30" />
