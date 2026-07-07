@@ -195,42 +195,63 @@ export default function AIFerramentas({ processo, movimentacoes }: Props) {
 
           <div className="space-y-3">
             {tool === "minuta" && (
-              <div className="grid gap-2 sm:grid-cols-2">
-                <Select value={minutaTipo} onValueChange={(v: any) => setMinutaTipo(v)}>
-                  <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="sentenca">Sentença</SelectItem>
-                    <SelectItem value="decisao">Decisão interlocutória</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Input placeholder="Tese/orientação (opcional)" value={minutaTese} onChange={(e) => setMinutaTese(e.target.value)} className="rounded-xl" />
+              <div className="space-y-2">
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <Select value={minutaTipo} onValueChange={(v: any) => setMinutaTipo(v)}>
+                    <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="sentenca">Sentença</SelectItem>
+                      <SelectItem value="decisao">Decisão interlocutória</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input placeholder="Tese/orientação principal (opcional)" value={minutaTese} onChange={(e) => setMinutaTese(e.target.value)} className="rounded-xl" />
+                </div>
+                <Textarea placeholder="Orientações adicionais (opcional) — ex: julgar procedente por prescrição, aplicar pena mínima, deferir gratuidade..." value={minutaInstrucao} onChange={(e) => setMinutaInstrucao(e.target.value)} className="rounded-xl min-h-[70px] text-xs" />
+                <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                  <input type="checkbox" checked={minutaExtenso} onChange={(e) => setMinutaExtenso(e.target.checked)} className="rounded" />
+                  Gerar versão extensa e detalhada (padrão: curta e objetiva)
+                </label>
               </div>
             )}
 
             {tool === "parecer" && (
-              <Select value={parecerTipo} onValueChange={(v: any) => setParecerTipo(v)}>
-                <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="denuncia">Denúncia</SelectItem>
-                  <SelectItem value="arquivamento">Promoção de arquivamento</SelectItem>
-                  <SelectItem value="manifestacao">Manifestação ministerial</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="space-y-2">
+                <Select value={parecerTipo} onValueChange={(v: any) => setParecerTipo(v)}>
+                  <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="denuncia">Denúncia</SelectItem>
+                    <SelectItem value="arquivamento">Promoção de arquivamento</SelectItem>
+                    <SelectItem value="manifestacao">Manifestação ministerial</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Textarea placeholder="Orientações adicionais (opcional) — ex: requerer diligências, capitular no art. X, pugnar pela absolvição..." value={parecerInstrucao} onChange={(e) => setParecerInstrucao(e.target.value)} className="rounded-xl min-h-[70px] text-xs" />
+                <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                  <input type="checkbox" checked={parecerExtenso} onChange={(e) => setParecerExtenso(e.target.checked)} className="rounded" />
+                  Gerar versão extensa e detalhada (padrão: curta e objetiva)
+                </label>
+              </div>
             )}
 
             {tool === "documento" && (
-              <div className="grid gap-2 sm:grid-cols-2">
-                <Select value={docTipo} onValueChange={(v: any) => setDocTipo(v)}>
-                  <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="mandado">Mandado</SelectItem>
-                    <SelectItem value="oficio">Ofício</SelectItem>
-                    <SelectItem value="certidao">Certidão</SelectItem>
-                    <SelectItem value="alvara">Alvará</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Input placeholder="Destinatário (opcional)" value={docDestinatario} onChange={(e) => setDocDestinatario(e.target.value)} className="rounded-xl" />
-                <Input placeholder="Finalidade (opcional)" value={docFinalidade} onChange={(e) => setDocFinalidade(e.target.value)} className="rounded-xl sm:col-span-2" />
+              <div className="space-y-2">
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <Select value={docTipo} onValueChange={(v: any) => setDocTipo(v)}>
+                    <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="mandado">Mandado</SelectItem>
+                      <SelectItem value="oficio">Ofício</SelectItem>
+                      <SelectItem value="certidao">Certidão</SelectItem>
+                      <SelectItem value="alvara">Alvará</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input placeholder="Destinatário (opcional)" value={docDestinatario} onChange={(e) => setDocDestinatario(e.target.value)} className="rounded-xl" />
+                  <Input placeholder="Finalidade (opcional)" value={docFinalidade} onChange={(e) => setDocFinalidade(e.target.value)} className="rounded-xl sm:col-span-2" />
+                </div>
+                <Textarea placeholder="Orientações adicionais (opcional)" value={docInstrucao} onChange={(e) => setDocInstrucao(e.target.value)} className="rounded-xl min-h-[60px] text-xs" />
+                <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                  <input type="checkbox" checked={docExtenso} onChange={(e) => setDocExtenso(e.target.checked)} className="rounded" />
+                  Gerar versão extensa e detalhada (padrão: curta e objetiva)
+                </label>
               </div>
             )}
 
