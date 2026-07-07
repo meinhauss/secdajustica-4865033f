@@ -247,7 +247,7 @@ export default function ConsultaPublicaSection() {
                 </div>
 
                 {/* Card Body with watermark */}
-                <div className="bg-white p-5 flex gap-5 relative min-h-[140px]">
+                <div className="bg-white p-5 flex gap-5 relative min-h-[140px] text-neutral-900 [&_.text-foreground]:text-neutral-900 [&_.text-muted-foreground]:text-neutral-500">
                   {/* Watermark — full logo, no cropping */}
                   <img
                     src={institution.logo}
