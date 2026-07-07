@@ -9,14 +9,14 @@ export const AI_CONFIG = {
   temperature: 0.7,
   topP: 0.95,
   topK: 40,
-  maxOutputTokens: 8192,
+  maxOutputTokens: 2048,
   timeoutMs: 60_000,
   maxRetries: 2,
   retryBaseDelayMs: 800,
   cache: {
     enabled: true,
-    ttlMs: 30 * 60 * 1000, // 30 min
-    maxEntries: 100,
+    ttlMs: 2 * 60 * 60 * 1000, // 2h — reduz chamadas repetidas
+    maxEntries: 300,
   },
   safety: [
     { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" },
