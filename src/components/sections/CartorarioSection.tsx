@@ -1015,6 +1015,7 @@ export default function CartorarioSection() {
                     </ul>
                   </div>
                 )}
+              </div>
 
               <PersonInput
                 label={fieldConfig.requerenteLabel}
