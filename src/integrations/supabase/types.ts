@@ -2099,6 +2099,7 @@ export type Database = {
         Args: { _processo_id: string }
         Returns: number
       }
+      notificar_prazos_proximos: { Args: never; Returns: undefined }
       notify_cargo_intimacao: {
         Args: {
           _autor_id: string
