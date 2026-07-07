@@ -13,7 +13,9 @@ import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/ui/toggle";
 import { cn } from "@/lib/utils";
 import { sanitizeRichHtml } from "@/lib/sanitize";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+import { aplicarVariaveis, VARIAVEIS_DISPONIVEIS, type ModeloContext } from "@/lib/modelosVars";
+import { SNIPPETS_PADRAO, SNIPPETS_INFO } from "@/lib/snippets";
 
 export interface RichTextEditorProps {
   value: string;
@@ -22,6 +24,12 @@ export interface RichTextEditorProps {
   className?: string;
   minHeight?: string;
   disabled?: boolean;
+  /** Habilita atalhos /desp, /sent etc. e autocompletar {{variavel}}. */
+  smart?: boolean;
+  /** Contexto para substituir variáveis dos snippets. */
+  context?: ModeloContext;
+  /** Snippets adicionais (mesclados aos padrão). Chave sem a barra. */
+  snippets?: Record<string, string>;
 }
 
 export function RichTextEditor({
