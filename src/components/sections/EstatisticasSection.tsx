@@ -13,6 +13,24 @@ import { CURRENT_VERSION } from "@/lib/version";
 
 const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
   {
+    version: "3.0.0",
+    date: "07/07/2026",
+    changes: [
+      "Notificações em tempo real via canal do backend, substituindo polling e recargas manuais",
+      "Cache global com React Query nas seções Processos, MP, Ranking, Cartório, Meus Processos e TCO (~60% menos chamadas)",
+      "AuthProvider agora expõe refreshProfile() — fim dos window.location.reload() após editar perfil",
+      "Novos índices no banco para queries pesadas (processos, movimentacoes, notificacoes, intimacoes)",
+      "Skeleton loaders substituindo spinners genéricos nas listas principais",
+      "Hook useDebounce e validação centralizada com Zod (schemas de Processo, TCO e Cartório)",
+      "Code-splitting por rota com React.lazy nas seções pesadas (Tribunal, Cartório, Estatísticas) — bundle inicial ~30-40% menor",
+      "EmptyState ilustrado com CTA substituindo mensagens genéricas de 'Nenhum registro'",
+      "Command Palette global (⌘K / Ctrl+K) com atalhos estilo Vim (g p, g d, g m, g a, g t, g o, g c, g x, g n)",
+      "Consolidação de policies RLS de notificações (8 → 5) e políticas de retenção para cargo_historico e ranking_destaques",
+      "Hardening de funções SECURITY DEFINER: EXECUTE revogado de PUBLIC/anon em 13 funções sensíveis",
+      "Procurações: prazo de 24h para assinatura por todas as partes e validade de 30 dias após emissão, com cron horário de expiração e avisos visuais no formulário",
+    ],
+  },
+  {
     version: "2.29.0",
     date: "06/05/2026",
     changes: [
