@@ -26,8 +26,9 @@ interface Props {
 
 const DEFAULT_DESTINOS: ChatbotDestino[] = [
   { id: "dashboard", label: "Painel Geral" },
-  { id: "processos", label: "Processos", desc: "consulta e gestão de processos judiciais" },
-  { id: "meus-processos", label: "Meus Processos", desc: "processos em que o usuário é parte ou tem interesse" },
+  { id: "processos", label: "Consulta de Processos", desc: "buscar e acompanhar processos judiciais (por número, parte, etc.)" },
+  { id: "meus-processos", label: "Meus Processos", desc: "processos em que o usuário logado é parte ou tem interesse" },
+  { id: "consulta", label: "Consulta de Credenciais", desc: "verificar carteira/credencial de servidor, advogado, promotor, juiz (NÃO serve para consultar processos)" },
   { id: "audiencias", label: "Audiências" },
   { id: "cartorio", label: "Cartório Civil", desc: "certidões, procurações, registros" },
   { id: "oab", label: "Portal OAB", desc: "advogados, carteira, honorários" },

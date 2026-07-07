@@ -5,7 +5,7 @@ import { useTheme } from "@/hooks/useTheme";
 import {
   Scale, Gavel, BookOpen, FileText, Users, BarChart3,
   LogOut, Menu, X, Home, Briefcase, Calendar, Crown, GraduationCap, Stamp, ClipboardList, UsersRound,
-  Sun, Moon, FileStack
+  Sun, Moon, FileStack, IdCard
  } from "lucide-react";
 import logoSjc from "@/assets/logo-sjc.jpg";
 import logoMpsp from "@/assets/logo-mpsp.png";
@@ -26,7 +26,7 @@ interface DashboardLayoutProps {
 const menuItems = [
   { id: "dashboard", label: "Painel Geral", icon: Home, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "procurador_estado", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal", "delegado", "gaeco", "chefe_gaeco", "hospital", "detran"] },
   { id: "meu-perfil", label: "Meu Perfil", icon: Users, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "procurador_estado", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal", "delegado", "gaeco", "chefe_gaeco", "hospital", "detran"] },
-  { id: "processos", label: "Processos", icon: FileText, roles: ["admin", "magistrado", "desembargador", "ministerio_publico", "procurador_geral", "procurador_estado", "advogado", "oficial_justica", "delegado", "chefe_gaeco"] },
+  { id: "processos", label: "Consulta de Processos", icon: FileText, roles: ["admin", "magistrado", "desembargador", "ministerio_publico", "procurador_geral", "procurador_estado", "advogado", "oficial_justica", "delegado", "chefe_gaeco"] },
   { id: "meus-processos", label: "Meus Processos", icon: FileText, roles: ["advogado", "ministerio_publico", "procurador_geral", "procurador_estado", "oficial_justica", "cidadao", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal", "delegado", "gaeco", "chefe_gaeco", "hospital", "detran", "admin", "magistrado", "desembargador", "presidente_tribunal"] },
   { id: "magistrado", label: "Portal do Juiz", icon: Gavel, roles: ["admin", "magistrado", "presidente_tribunal", "desembargador"] },
   { id: "tribunal", label: "Tribunal de Justiça", icon: Scale, roles: ["admin", "desembargador", "presidente_tribunal", "magistrado"] },
@@ -35,7 +35,7 @@ const menuItems = [
   { id: "oab", label: "Portal OAB", icon: Briefcase, roles: ["admin", "advogado", "presidente_oab", "bacharel_direito"] },
   { id: "audiencias", label: "Audiências", icon: Calendar, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "procurador_estado", "advogado", "presidente_tribunal", "desembargador", "delegado", "chefe_gaeco"] },
   { id: "jurisprudencia", label: "Jurisprudência", icon: BookOpen, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "procurador_estado", "advogado", "presidente_tribunal", "desembargador", "presidente_oab", "chefe_gaeco"] },
-  { id: "consulta", label: "Consulta Pública", icon: BookOpen, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "procurador_estado", "oficial_justica", "advogado", "presidente_tribunal", "desembargador", "presidente_oab", "delegado", "chefe_gaeco"] },
+  { id: "consulta", label: "Consulta de Credenciais", icon: IdCard, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "procurador_estado", "oficial_justica", "advogado", "presidente_tribunal", "desembargador", "presidente_oab", "delegado", "chefe_gaeco"] },
   { id: "concursos", label: "Concursos", icon: GraduationCap, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "procurador_estado", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal", "delegado", "gaeco", "chefe_gaeco", "hospital", "detran"] },
   { id: "cartorio", label: "Cartório Civil", icon: Stamp, roles: ["admin", "oficial_justica", "magistrado", "ministerio_publico", "procurador_geral", "procurador_estado", "advogado", "presidente_tribunal", "desembargador", "cidadao", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal", "delegado", "gaeco", "chefe_gaeco", "hospital", "detran"] },
   { id: "tco", label: "TCO", icon: ClipboardList, roles: ["admin", "policia_civil", "policia_militar", "policia_federal", "delegado", "gaeco", "chefe_gaeco"] },

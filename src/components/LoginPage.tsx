@@ -244,7 +244,7 @@ export default function LoginPage() {
           { id: "inicio", label: "Página Inicial" },
           { id: "institucional", label: "Institucional", desc: "sobre a Secretaria e a Comarca" },
           { id: "ouvidoria", label: "Ouvidoria do MP", desc: "denúncias ao Ministério Público, sem login" },
-          { id: "credencial", label: "Consultar Credencial", desc: "verificar carteira/credencial de servidor" },
+          { id: "credencial", label: "Consulta de Credenciais", desc: "verificar carteira/credencial de servidor, advogado, promotor, juiz (NÃO consulta processos)" },
           { id: "transparencia", label: "Transparência" },
           { id: "concursos", label: "Concursos Públicos" },
           { id: "unisp", label: "UNISP", desc: "inscrição na universidade da segurança pública" },
@@ -260,7 +260,7 @@ export default function LoginPage() {
 
 function TabInicio({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
   const cards = [
-  { icon: FileText, title: "Consulta Processual", desc: "Acompanhe processos judiciais em andamento na Comarca.", action: "Consultar", tab: "login" as Tab },
+  { icon: FileText, title: "Consulta de Processos", desc: "Acompanhe processos judiciais em andamento na Comarca (requer login).", action: "Consultar", tab: "login" as Tab },
   { icon: Stamp, title: "Cartório Civil", desc: "Certidões de nascimento, casamento, óbito, escrituras e mais.", action: "Saiba Mais", tab: "login" as Tab },
   { icon: Scale, title: "Ministério Público", desc: "Portal do Ministério Público para denúncias e pareceres.", action: "Acessar", tab: "login" as Tab },
   { icon: GraduationCap, title: "Concursos Públicos", desc: "Editais abertos, inscrições e resultados de concursos.", action: "Ver Editais", tab: "concursos" as Tab },
