@@ -11,6 +11,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, nomeCompleto: string, extra?: { discord?: string; id_personagem?: string; telefone_ingame?: string }) => Promise<any>;
   signIn: (email: string, password: string) => Promise<any>;
   signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
