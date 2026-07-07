@@ -34,7 +34,7 @@ function cropToSquare(file: File): Promise<Blob> {
 }
 
 export default function MeuPerfilSection() {
-  const { profile, user } = useAuth();
+  const { profile, user, refreshProfile } = useAuth();
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
