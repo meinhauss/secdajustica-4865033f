@@ -104,31 +104,36 @@ Deno.serve(async (req: Request) => {
     payload.response_format = { type: "json_object" };
   }
 
-  // Cadeia de fallback: se o modelo pedido esgotar quota (429) ou faltar crédito (402),
-  // tentamos automaticamente o próximo. Usa modelos diferentes do gateway — mesma chave.
-  const FALLBACK_CHAIN = [
-    model,
-    "google/gemini-2.5-flash-lite",
-    "google/gemini-2.5-flash",
-    "openai/gpt-5-nano",
-  ].filter((m, i, a) => a.indexOf(m) === i); // dedupe
+  // Cadeia de fallback: gateway Lovable primeiro; se esgotar (429/402), cai para OpenAI direto.
+  const openaiKey = Deno.env.get("OPENAI_API_KEY");
+  type ChainStep = { endpoint: string; model: string; key: string; provider: string };
+  const FALLBACK_CHAIN: ChainStep[] = [
+    { endpoint: GATEWAY_URL, model, key: apiKey, provider: "lovable-ai" },
+    { endpoint: GATEWAY_URL, model: "google/gemini-2.5-flash-lite", key: apiKey, provider: "lovable-ai" },
+    { endpoint: GATEWAY_URL, model: "google/gemini-2.5-flash", key: apiKey, provider: "lovable-ai" },
+    ...(openaiKey ? [
+      { endpoint: "https://api.openai.com/v1/chat/completions", model: "gpt-4o-mini", key: openaiKey, provider: "openai" },
+      { endpoint: "https://api.openai.com/v1/chat/completions", model: "gpt-4o", key: openaiKey, provider: "openai" },
+    ] : []),
+  ].filter((s, i, a) => a.findIndex((x) => x.endpoint === s.endpoint && x.model === s.model) === i);
+
 
   const started = Date.now();
   let lastErr: unknown = null;
   let lastStatus = 0;
   let usedModel = model;
 
-  outer: for (const currentModel of FALLBACK_CHAIN) {
-    usedModel = currentModel;
-    const currentPayload = { ...payload, model: currentModel };
+  outer: for (const step of FALLBACK_CHAIN) {
+    usedModel = step.model;
+    const currentPayload = { ...payload, model: step.model };
 
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       try {
         const res = await withTimeout(
-          fetch(GATEWAY_URL, {
+          fetch(step.endpoint, {
             method: "POST",
             headers: {
-              Authorization: `Bearer ${apiKey}`,
+              Authorization: `Bearer ${step.key}`,
               "Content-Type": "application/json",
             },
             body: JSON.stringify(currentPayload),
@@ -137,19 +142,17 @@ Deno.serve(async (req: Request) => {
         );
         lastStatus = res.status;
 
-        // 429/402 = esgotou este modelo → pula para o próximo da cadeia
-        if (res.status === 429 || res.status === 402) {
+        if (res.status === 429 || res.status === 402 || res.status === 401) {
           const errText = await res.text().catch(() => "");
-          lastErr = new Error(`gateway ${res.status}: ${errText.slice(0, 200)}`);
-          console.warn(`[gemini] model=${currentModel} status=${res.status} → fallback próximo`);
+          lastErr = new Error(`${step.provider} ${res.status}: ${errText.slice(0, 200)}`);
+          console.warn(`[gemini] provider=${step.provider} model=${step.model} status=${res.status} → fallback`);
           continue outer;
         }
 
-        // 5xx = tenta retry no mesmo modelo antes de trocar
         if (res.status >= 500) {
           const errText = await res.text().catch(() => "");
-          lastErr = new Error(`gateway ${res.status}: ${errText.slice(0, 200)}`);
-          console.error(`[gemini] model=${currentModel} attempt=${attempt} status=${res.status}`);
+          lastErr = new Error(`${step.provider} ${res.status}: ${errText.slice(0, 200)}`);
+          console.error(`[gemini] provider=${step.provider} model=${step.model} attempt=${attempt} status=${res.status}`);
           if (attempt === MAX_RETRIES) continue outer;
           await new Promise((r) => setTimeout(r, RETRY_BASE * Math.pow(2, attempt)));
           continue;
@@ -160,8 +163,8 @@ Deno.serve(async (req: Request) => {
           return json({
             ok: false,
             data: "",
-            model: currentModel,
-            provider: "lovable-ai",
+            model: step.model,
+            provider: step.provider,
             operation: body.operation,
             cached: false,
             latencyMs: Date.now() - started,
@@ -186,18 +189,19 @@ Deno.serve(async (req: Request) => {
             }
           : undefined;
 
-        console.log(`[gemini] op=${body.operation} model=${currentModel} ms=${Date.now() - started} tokens=${usage?.totalTokens ?? "?"}`);
+        console.log(`[gemini] op=${body.operation} provider=${step.provider} model=${step.model} ms=${Date.now() - started} tokens=${usage?.totalTokens ?? "?"}`);
 
         return json({
           ok: true,
           data: text,
           json: parsedJson,
-          model: currentModel,
-          provider: "lovable-ai",
+          model: step.model,
+          provider: step.provider,
           operation: body.operation,
           usage,
           cached: false,
           latencyMs: Date.now() - started,
+
         });
       } catch (err) {
         lastErr = err;
