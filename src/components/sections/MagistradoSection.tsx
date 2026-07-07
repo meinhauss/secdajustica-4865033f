@@ -24,6 +24,11 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { PodiumDestaque } from "@/components/PodiumDestaque";
 import { normalizeRichText } from "@/lib/sanitize";
+import ModeloPicker from "@/components/ModeloPicker";
+import { extrairNomes, type ModeloContext } from "@/lib/modelosVars";
+
+const textoToHtml = (t: string) => t.split(/\n{2,}/).map(p => `<p>${p.replace(/\n/g, "<br/>")}</p>`).join("");
+const appendHtml = (prev: string, add: string) => (prev && prev !== "<p></p>" ? prev + add : add);
 
 /* ─── Profile Lookup Hook ─── */
 function useProfileLookup() {
