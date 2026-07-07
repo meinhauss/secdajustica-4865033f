@@ -34,7 +34,7 @@ function cropToSquare(file: File): Promise<Blob> {
 }
 
 export default function MeuPerfilSection() {
-  const { profile, user } = useAuth();
+  const { profile, user, refreshProfile } = useAuth();
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -81,6 +81,7 @@ export default function MeuPerfilSection() {
 
       await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("user_id", user.id);
       setAvatarUrl(publicUrl);
+      await refreshProfile();
       toast.success("Foto de perfil atualizada!");
     } catch (err: any) {
       toast.error("Erro ao enviar foto: " + (err.message || "Tente novamente."));
@@ -111,8 +112,8 @@ export default function MeuPerfilSection() {
         .eq("user_id", user.id);
 
       if (error) throw error;
+      await refreshProfile();
       toast.success("Perfil atualizado com sucesso!");
-      window.location.reload();
     } catch (err: any) {
       toast.error("Erro ao salvar: " + (err.message || "Tente novamente."));
     } finally {
