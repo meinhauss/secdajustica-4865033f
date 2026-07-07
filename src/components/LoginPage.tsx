@@ -18,6 +18,7 @@ import logoSjc from "@/assets/logo-sjc.jpg";
 import govLogo from "@/assets/gov-logo.png";
 import logoCartorio from "@/assets/logo-cartorio-sp.png";
 import { toast } from "sonner";
+import { formatTelefoneIngame } from "@/lib/formatPhone";
 
 type Tab = "inicio" | "institucional" | "transparencia" | "concursos" | "login" | "credencial" | "ouvidoria" | "unisp";
 
