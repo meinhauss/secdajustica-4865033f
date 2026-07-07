@@ -28,10 +28,16 @@ export default function AIFerramentas({ processo, movimentacoes }: Props) {
   // Config por ferramenta
   const [minutaTipo, setMinutaTipo] = useState<"sentenca" | "decisao">("sentenca");
   const [minutaTese, setMinutaTese] = useState("");
+  const [minutaInstrucao, setMinutaInstrucao] = useState("");
+  const [minutaExtenso, setMinutaExtenso] = useState(false);
   const [parecerTipo, setParecerTipo] = useState<"denuncia" | "arquivamento" | "manifestacao">("manifestacao");
+  const [parecerInstrucao, setParecerInstrucao] = useState("");
+  const [parecerExtenso, setParecerExtenso] = useState(false);
   const [docTipo, setDocTipo] = useState<"mandado" | "oficio" | "certidao" | "alvara">("mandado");
   const [docDestinatario, setDocDestinatario] = useState("");
   const [docFinalidade, setDocFinalidade] = useState("");
+  const [docInstrucao, setDocInstrucao] = useState("");
+  const [docExtenso, setDocExtenso] = useState(false);
   const [prazosJson, setPrazosJson] = useState<any>(null);
   const [tema, setTema] = useState("");
   // Fase 3
