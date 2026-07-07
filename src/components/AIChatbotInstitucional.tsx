@@ -4,7 +4,7 @@ import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Send, Loader2, X, ArrowRight } from "lucide-react";
+import { Send, Loader2, X, ArrowRight, RotateCcw } from "lucide-react";
 import { useAI } from "@/hooks/useAI";
 import { useAuth } from "@/hooks/useAuth";
 import { PROMPTS_FASE4 } from "@/lib/ai/prompts";
@@ -62,18 +62,61 @@ export default function AIChatbotInstitucional({
   destinos,
   onNavigate,
 }: Props) {
+  const { profile, user } = useAuth();
+  const storageKey = `vademecum:chat:${user?.id || "guest"}`;
+  const greetKey = `vademecum:greeted:${user?.id || "guest"}`;
+
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<AIMessage[]>([]);
+  const [showGreeting, setShowGreeting] = useState(false);
+  const [messages, setMessages] = useState<AIMessage[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const raw = localStorage.getItem(storageKey);
+      return raw ? (JSON.parse(raw) as AIMessage[]) : [];
+    } catch {
+      return [];
+    }
+  });
   const [input, setInput] = useState("");
   const { run, loading } = useAI();
-  const { profile, user } = useAuth();
   const endRef = useRef<HTMLDivElement>(null);
 
   const destinosFinal = destinos ?? DEFAULT_DESTINOS;
 
-  const userName = user ? (profile?.nome_completo || "Você") : "Cidadão";
+  const userName = user ? profile?.nome_completo || "Você" : "Cidadão";
   const userAvatar = user ? profile?.avatar_url : logoSjc;
   const userInitial = (userName?.[0] || "C").toUpperCase();
+
+  // Persist chat
+  useEffect(() => {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(messages));
+    } catch {
+      /* ignore quota */
+    }
+  }, [messages, storageKey]);
+
+  // Greeting bubble on first visit of the session
+  useEffect(() => {
+    if (open) return;
+    if (sessionStorage.getItem(greetKey)) return;
+    const t = setTimeout(() => setShowGreeting(true), 1200);
+    return () => clearTimeout(t);
+  }, [open, greetKey]);
+
+  const dismissGreeting = () => {
+    setShowGreeting(false);
+    sessionStorage.setItem(greetKey, "1");
+  };
+
+  const resetChat = () => {
+    setMessages([]);
+    try {
+      localStorage.removeItem(storageKey);
+    } catch {
+      /* ignore */
+    }
+  };
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -83,6 +126,7 @@ export default function AIChatbotInstitucional({
     () => PROMPTS_FASE4.chatbotInstitucional(comarca, destinosFinal),
     [comarca, destinosFinal],
   );
+
 
   const send = async (override?: string) => {
     const q = (override ?? input).trim();
@@ -122,13 +166,31 @@ export default function AIChatbotInstitucional({
   return (
     <>
       {!open && (
-        <button
-          onClick={() => setOpen(true)}
-          className="fixed bottom-6 right-6 rounded-full h-16 w-16 shadow-2xl z-50 overflow-hidden ring-2 ring-gold/50 hover:ring-gold transition-all hover:scale-105 bg-institutional"
-          aria-label="Abrir assistente Vade MeCum"
-        >
-          <img src={vadeAvatar.url} alt="Vade MeCum" className="w-full h-full object-cover" />
-        </button>
+        <div className="fixed bottom-6 right-6 z-50 flex items-end gap-2">
+          {showGreeting && (
+            <div className="relative mb-1 max-w-[240px] rounded-2xl rounded-br-sm bg-card border border-border shadow-lg px-3 py-2 text-xs animate-in fade-in slide-in-from-right-2">
+              <button
+                onClick={dismissGreeting}
+                aria-label="Fechar saudação"
+                className="absolute -top-2 -left-2 h-5 w-5 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-3 w-3" />
+              </button>
+              <p className="font-medium text-foreground">Oi{profile?.nome_completo ? `, ${profile.nome_completo.split(" ")[0]}` : ""}! 👋</p>
+              <p className="text-muted-foreground mt-0.5">Sou o {BOT_NAME}, o assistente da Secretaria. Clique aqui se precisar de ajuda.</p>
+            </div>
+          )}
+          <button
+            onClick={() => { setOpen(true); dismissGreeting(); }}
+            className="rounded-full h-16 w-16 shadow-2xl overflow-hidden ring-2 ring-gold/50 hover:ring-gold transition-all hover:scale-105 bg-institutional relative"
+            aria-label="Abrir assistente Vade MeCum"
+          >
+            <img src={vadeAvatar.url} alt="Vade MeCum" className="w-full h-full object-cover" />
+            {showGreeting && (
+              <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-gold ring-2 ring-background animate-pulse" />
+            )}
+          </button>
+        </div>
       )}
       {open && (
         <div className="fixed bottom-6 right-6 w-[380px] max-w-[calc(100vw-2rem)] h-[560px] max-h-[calc(100vh-3rem)] bg-card border border-border rounded-2xl shadow-2xl z-50 flex flex-col">
@@ -138,10 +200,23 @@ export default function AIChatbotInstitucional({
               <p className="font-semibold text-sm leading-tight">{BOT_NAME}</p>
               <p className="text-[10px] text-muted-foreground truncate">Atendente virtual · {comarca}</p>
             </div>
-            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setOpen(false)}>
+            {messages.length > 0 && (
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8"
+                onClick={resetChat}
+                title="Reiniciar conversa"
+                aria-label="Reiniciar conversa"
+              >
+                <RotateCcw className="h-4 w-4" />
+              </Button>
+            )}
+            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setOpen(false)} aria-label="Fechar">
               <X className="h-4 w-4" />
             </Button>
           </div>
+
 
           <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
             {messages.length === 0 && (
