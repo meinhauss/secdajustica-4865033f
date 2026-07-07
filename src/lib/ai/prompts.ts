@@ -40,4 +40,55 @@ Formato da resposta (markdown):
 
   explicarTermo: (termo: string, contexto?: string) =>
     `Explique de forma objetiva (máximo 3 frases) o termo jurídico "${termo}" em português.${contexto ? ` Considere o contexto: "${contexto.slice(0, 400)}"` : ""} Se aplicável, cite o dispositivo legal principal. Não invente jurisprudência.`,
+
+  sugerirDespacho: (ctx: {
+    tipoAto: string;
+    tituloAto?: string;
+    numero?: string; classe?: string; assunto?: string;
+    autor?: string; reu?: string; status?: string;
+    movimentacoes?: { tipo: string; descricao: string }[];
+    rascunhoAtual?: string;
+    instrucao?: string;
+  }) => `Gere o texto do ato judicial abaixo em português, tom formal, técnico, pronto para ser publicado. NÃO invente fatos, nomes, valores, artigos ou jurisprudência que não estejam no contexto. Use marcadores como [data] apenas quando o dado for realmente desconhecido.
+
+Tipo do ato: ${ctx.tipoAto}
+${ctx.tituloAto ? `Título proposto: ${ctx.tituloAto}\n` : ""}Processo nº ${ctx.numero || "-"} — Classe: ${ctx.classe || "-"} — Assunto: ${ctx.assunto || "-"}
+Autor(es): ${ctx.autor || "-"}
+Réu(s): ${ctx.reu || "-"}
+Status: ${ctx.status || "-"}
+
+Últimas movimentações:
+${(ctx.movimentacoes || []).slice(0, 10).map((m, i) => `${i + 1}. [${m.tipo}] ${(m.descricao || "").replace(/<[^>]+>/g, " ").slice(0, 400)}`).join("\n") || "(nenhuma)"}
+
+${ctx.rascunhoAtual ? `Rascunho atual do usuário (aprimore se pertinente):\n${ctx.rascunhoAtual.replace(/<[^>]+>/g, "\n")}\n` : ""}${ctx.instrucao ? `Instrução adicional: ${ctx.instrucao}\n` : ""}
+Devolva APENAS o texto do ato, sem cabeçalhos "Aqui está", sem markdown de código.`,
+
+  classificarPeticao: (texto: string) =>
+    `Classifique a petição jurídica abaixo. Devolva JSON estrito no formato:
+{"tipo":"...","urgencia":"baixa|media|alta","resumo":"...","pedidos":["..."],"encaminhamento":"..."}
+
+- tipo: classificação processual (ex.: Contestação, Petição de juntada, Requerimento de liminar, Embargos de declaração, Manifestação, Recurso, etc.).
+- urgencia: baixa/média/alta conforme o pedido.
+- resumo: 1–2 frases objetivas.
+- pedidos: até 5 pedidos formulados.
+- encaminhamento: sugestão prática (ex.: "Concluso ao juiz para despacho", "Intime-se a parte contrária em 15 dias").
+
+TEXTO:
+${texto.replace(/<[^>]+>/g, "\n").slice(0, 12000)}`,
+
+  assistenteSystem: (ctx: {
+    numero?: string; classe?: string; assunto?: string; autor?: string; reu?: string; status?: string;
+    movimentacoes?: { tipo: string; descricao: string }[];
+  }) => `${SYSTEM_JURIDICO}
+
+Você é o assistente jurídico deste sistema (SecDaJustiça). Responda apenas com base no contexto abaixo e em conhecimento jurídico geral. Se faltar dado, diga qual dado falta. Não invente jurisprudência nem números de artigo.
+
+CONTEXTO DO PROCESSO EM ANÁLISE:
+- Nº ${ctx.numero || "-"} — Classe ${ctx.classe || "-"} — Assunto ${ctx.assunto || "-"}
+- Autor(es): ${ctx.autor || "-"}
+- Réu(s): ${ctx.reu || "-"}
+- Status: ${ctx.status || "-"}
+
+Últimas movimentações:
+${(ctx.movimentacoes || []).slice(0, 15).map((m, i) => `${i + 1}. [${m.tipo}] ${(m.descricao || "").replace(/<[^>]+>/g, " ").slice(0, 300)}`).join("\n") || "(nenhuma)"}`,
 };
