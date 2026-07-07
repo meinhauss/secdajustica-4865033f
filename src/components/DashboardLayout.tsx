@@ -161,11 +161,11 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
       {/* Main */}
       <div className="flex-1 flex flex-col min-h-screen min-w-0">
         {/* Top bar */}
-        <header className="h-14 bg-card border-b border-border flex items-center px-3 sm:px-4 gap-2 sm:gap-4 shadow-institutional">
-          <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-foreground flex-shrink-0">
+        <header className="h-14 bg-card/80 backdrop-blur-md border-b border-border flex items-center px-3 sm:px-4 gap-2 sm:gap-4 shadow-institutional sticky top-0 z-30">
+          <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-foreground flex-shrink-0" aria-label="Abrir menu">
             <Menu className="h-5 w-5" />
           </button>
-          <h1 className="font-display text-base sm:text-lg font-semibold text-foreground truncate min-w-0">
+          <h1 className="font-display text-lg sm:text-xl font-semibold text-foreground truncate min-w-0 tracking-tight">
             {filteredItems.find((i) => i.id === activeSection)?.label || "Painel"}
           </h1>
           <div className="ml-auto flex items-center gap-1 sm:gap-2 flex-shrink-0">
@@ -173,7 +173,7 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
               onClick={toggleTheme}
               aria-label={theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"}
               title={theme === "dark" ? "Modo claro" : "Modo escuro"}
-              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/20 transition-colors"
             >
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
@@ -183,14 +183,14 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
               }
               onSectionChange(section);
             }} />
-            <span className="text-xs text-muted-foreground hidden md:block">
-              Sistema Judiciário v{CURRENT_VERSION}
+            <span className="text-[10px] uppercase tracking-widest text-gold/70 hidden md:block font-medium">
+              SJC · v{CURRENT_VERSION}
             </span>
           </div>
         </header>
 
         {/* Content */}
-        <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-auto min-w-0">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto min-w-0 pb-24 lg:pb-8">
           <motion.div
             key={activeSection}
             initial={{ opacity: 0, y: 10 }}
@@ -201,7 +201,7 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
             {children}
           </motion.div>
         </main>
-        <footer className="py-3 px-4 border-t border-border bg-card text-center">
+        <footer className="py-3 px-4 border-t border-border bg-card text-center hidden lg:block">
           <p className="text-xs text-muted-foreground">
             Sistema produzido por:{" "}
             <a href="https://discord.com/users/meinhaus" target="_blank" rel="noopener noreferrer" className="text-gold hover:underline font-medium">
@@ -211,6 +211,72 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
           </p>
         </footer>
       </div>
+
+      {/* Mobile bottom tab bar */}
+      <MobileBottomNav
+        items={filteredItems}
+        activeSection={activeSection}
+        onSectionChange={onSectionChange}
+        onOpenMenu={() => setSidebarOpen(true)}
+      />
     </div>
+  );
+}
+
+// ============ Mobile Bottom Nav ============
+function MobileBottomNav({
+  items,
+  activeSection,
+  onSectionChange,
+  onOpenMenu,
+}: {
+  items: { id: string; label: string; icon: any }[];
+  activeSection: string;
+  onSectionChange: (s: string) => void;
+  onOpenMenu: () => void;
+}) {
+  // Prioritize the 4 most useful shortcuts if present, fallback to first items
+  const priority = ["dashboard", "meus-processos", "processos", "cartorio", "audiencias", "meu-perfil"];
+  const primary = priority
+    .map((id) => items.find((i) => i.id === id))
+    .filter(Boolean)
+    .slice(0, 4) as typeof items;
+  const fill = items.filter((i) => !primary.some((p) => p.id === i.id)).slice(0, 4 - primary.length);
+  const tabs = [...primary, ...fill].slice(0, 4);
+
+  return (
+    <nav
+      className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-sidebar/95 backdrop-blur-xl border-t border-sidebar-border"
+      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      aria-label="Navegação principal"
+    >
+      <div className="grid grid-cols-5 h-16">
+        {tabs.map((item) => {
+          const Icon = item.icon;
+          const active = activeSection === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => onSectionChange(item.id)}
+              className={`flex flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition-colors ${
+                active ? "text-gold" : "text-sidebar-foreground/60 hover:text-sidebar-foreground"
+              }`}
+            >
+              <Icon className={`h-5 w-5 ${active ? "scale-110" : ""} transition-transform`} />
+              <span className="truncate max-w-[64px] leading-tight">{item.label}</span>
+              {active && <span className="absolute top-0 w-8 h-0.5 bg-gold rounded-full" />}
+            </button>
+          );
+        })}
+        <button
+          onClick={onOpenMenu}
+          className="flex flex-col items-center justify-center gap-0.5 text-[10px] font-medium text-sidebar-foreground/60 hover:text-gold transition-colors"
+          aria-label="Abrir mais opções"
+        >
+          <Menu className="h-5 w-5" />
+          <span>Mais</span>
+        </button>
+      </div>
+    </nav>
   );
 }
