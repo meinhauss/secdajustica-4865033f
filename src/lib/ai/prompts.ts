@@ -111,20 +111,24 @@ Status: ${ctx.status || "-"}
 ${(ctx.movimentacoes || []).slice(0, 15).map((m, i) => `${i + 1}. [${m.tipo}] ${(m.descricao || "").replace(/<[^>]+>/g, " ").slice(0, 400)}`).join("\n") || "(nenhuma)"}`;
 
 export const PROMPTS_EXTRA = {
-  minutaJudicial: (ctx: ProcCtx & { tipo: "sentenca" | "decisao"; tese?: string; instrucao?: string }) =>
+  minutaJudicial: (ctx: ProcCtx & { tipo: "sentenca" | "decisao"; tese?: string; instrucao?: string; extenso?: boolean }) =>
     `Gere a minuta de ${ctx.tipo === "sentenca" ? "SENTENÇA" : "DECISÃO INTERLOCUTÓRIA"} em português formal, com estrutura clássica:
 
 I – RELATÓRIO
 II – FUNDAMENTAÇÃO
 III – DISPOSITIVO
 
-Não invente fatos, valores, artigos ou jurisprudência que não estejam no contexto. Use [colchetes] para dados faltantes. ${ctx.tese ? `Adote a seguinte tese/orientação principal: ${ctx.tese}` : "Adote posicionamento neutro compatível com o contexto."} ${ctx.instrucao ? `Instrução adicional: ${ctx.instrucao}` : ""}
+${ctx.extenso
+  ? "Elabore de forma DETALHADA e EXTENSA, com fundamentação aprofundada."
+  : "IMPORTANTE: seja o mais CURTO, OBJETIVO e DIRETO possível. Relatório em 2-4 linhas. Fundamentação enxuta (1-2 parágrafos). Dispositivo sucinto. Sem prolixidade, sem repetições, sem citações longas."}
 
+Não invente fatos, valores, artigos ou jurisprudência que não estejam no contexto. Use [colchetes] para dados faltantes. ${ctx.tese ? `Adote a seguinte tese/orientação principal: ${ctx.tese}` : "Adote posicionamento neutro compatível com o contexto."}
+${ctx.instrucao ? `\nORIENTAÇÕES DO USUÁRIO (siga rigorosamente): ${ctx.instrucao}\n` : ""}
 ${ctxBlock(ctx)}
 
 Devolva APENAS o texto da minuta, sem markdown de código.`,
 
-  parecerMP: (ctx: ProcCtx & { tipo: "denuncia" | "arquivamento" | "manifestacao"; instrucao?: string }) => {
+  parecerMP: (ctx: ProcCtx & { tipo: "denuncia" | "arquivamento" | "manifestacao"; instrucao?: string; extenso?: boolean }) => {
     const titulo = ctx.tipo === "denuncia" ? "DENÚNCIA (art. 41 CPP)"
       : ctx.tipo === "arquivamento" ? "PROMOÇÃO DE ARQUIVAMENTO"
       : "MANIFESTAÇÃO MINISTERIAL";
@@ -134,20 +138,28 @@ Devolva APENAS o texto da minuta, sem markdown de código.`,
 - Fundamentação jurídica (indicar dispositivos aplicáveis)
 - Pedido/Promoção final
 
-Não invente fatos, valores, artigos ou jurisprudência que não estejam no contexto. Use [colchetes] para dados faltantes. ${ctx.instrucao ? `Instrução: ${ctx.instrucao}` : ""}
+${ctx.extenso
+  ? "Elabore de forma DETALHADA e EXTENSA."
+  : "IMPORTANTE: seja o mais CURTO, OBJETIVO e DIRETO possível. Sem prolixidade, sem citações longas. Vá direto ao ponto."}
 
+Não invente fatos, valores, artigos ou jurisprudência que não estejam no contexto. Use [colchetes] para dados faltantes.
+${ctx.instrucao ? `\nORIENTAÇÕES DO USUÁRIO (siga rigorosamente): ${ctx.instrucao}\n` : ""}
 ${ctxBlock(ctx)}
 
 Devolva APENAS o texto da peça, sem markdown de código.`;
   },
 
-  documentoCartorio: (ctx: ProcCtx & { tipo: "mandado" | "oficio" | "certidao" | "alvara"; destinatario?: string; finalidade?: string }) => {
+  documentoCartorio: (ctx: ProcCtx & { tipo: "mandado" | "oficio" | "certidao" | "alvara"; destinatario?: string; finalidade?: string; instrucao?: string; extenso?: boolean }) => {
     const titulo = { mandado: "MANDADO", oficio: "OFÍCIO", certidao: "CERTIDÃO", alvara: "ALVARÁ JUDICIAL" }[ctx.tipo];
     return `Gere ${titulo} judicial em português formal, com estrutura oficial (cabeçalho, corpo, dispositivo, fecho). Preencha automaticamente partes, endereços e dispositivo quando o dado existir no contexto; use [colchetes] para o que faltar.
 
+${ctx.extenso
+  ? "Elabore de forma DETALHADA."
+  : "IMPORTANTE: seja o mais CURTO e OBJETIVO possível. Apenas o essencial, sem redundâncias."}
+
 ${ctx.destinatario ? `Destinatário: ${ctx.destinatario}` : ""}
 ${ctx.finalidade ? `Finalidade: ${ctx.finalidade}` : ""}
-
+${ctx.instrucao ? `\nORIENTAÇÕES DO USUÁRIO (siga rigorosamente): ${ctx.instrucao}\n` : ""}
 ${ctxBlock(ctx)}
 
 Devolva APENAS o texto do documento, sem markdown de código.`;
