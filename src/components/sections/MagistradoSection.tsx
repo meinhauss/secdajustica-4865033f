@@ -1455,6 +1455,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                 {CARGOS_INTIMAVEIS.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
               </SelectContent>
             </Select>
+            <div className="flex justify-end"><ModeloPicker context={modeloCtx} onInsert={(t) => setCargoIntForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))} /></div>
             <RichTextEditor
               placeholder="Conteúdo da intimação..."
               value={cargoIntForm.conteudo}
