@@ -2289,7 +2289,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
 
         {/* ATOS JUDICIAIS */}
         <TabsContent value="atos" className="mt-4 space-y-4">
-          {isJudicial && <AddAto onAdd={(ato) => createAto.mutate(ato)} />}
+          {isJudicial && <AddAto processo={processo} movimentacoes={movimentacoes} onAdd={(ato) => createAto.mutate(ato)} />}
           {!atos?.length ? (
             <p className="text-center py-8 text-sm text-muted-foreground">Nenhum ato judicial registrado.</p>
           ) : (
