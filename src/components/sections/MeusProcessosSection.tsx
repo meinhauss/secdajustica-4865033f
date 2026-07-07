@@ -233,6 +233,39 @@ export default function MeusProcessosSection({ onOpenProcesso }: MeusProcessosSe
         </Select>
       </div>
 
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => setOnlyVencendo((v) => !v)}
+          className={cn(
+            "text-xs px-3 py-1.5 rounded-full border inline-flex items-center gap-1 transition",
+            onlyVencendo ? "bg-amber-500/10 border-amber-500 text-amber-700 dark:text-amber-300" : "border-border text-muted-foreground hover:border-amber-500/50"
+          )}
+        >
+          <Clock className="h-3 w-3" /> Só prazo vencendo (≤24h)
+        </button>
+        <button
+          type="button"
+          onClick={() => setOnlyPrioritarios((v) => !v)}
+          className={cn(
+            "text-xs px-3 py-1.5 rounded-full border inline-flex items-center gap-1 transition",
+            onlyPrioritarios ? "bg-red-500/10 border-red-500 text-red-700 dark:text-red-300" : "border-border text-muted-foreground hover:border-red-500/50"
+          )}
+        >
+          <Zap className="h-3 w-3" /> Só prioritários
+        </button>
+        {(onlyVencendo || onlyPrioritarios) && (
+          <button
+            type="button"
+            onClick={() => { setOnlyVencendo(false); setOnlyPrioritarios(false); }}
+            className="text-xs px-3 py-1.5 rounded-full text-muted-foreground hover:text-foreground"
+          >
+            Limpar filtros
+          </button>
+        )}
+      </div>
+
+
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
         {Object.entries(STATUS_CONFIG).map(([key, cfg]) => {
           const count = meusProcessos?.filter((p) => p.status === key).length || 0;
