@@ -1994,6 +1994,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      cleanup_cargo_historico: { Args: never; Returns: number }
+      cleanup_ranking_destaques: { Args: never; Returns: number }
       cleanup_read_notifications: { Args: never; Returns: number }
       delegado_remove_police_role: {
         Args: { p_role_id: string }
