@@ -156,7 +156,9 @@ export default function MeusProcessosSection({ onOpenProcesso }: MeusProcessosSe
       autorDisplay.toLowerCase().includes(search.toLowerCase()) ||
       reuDisplay.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === "all" || p.status === statusFilter;
-    return matchSearch && matchStatus;
+    const matchVencendo = !onlyVencendo || (p.horasAte !== null && p.horasAte <= 24);
+    const matchPri = !onlyPrioritarios || !!p.prioridade;
+    return matchSearch && matchStatus && matchVencendo && matchPri;
   });
 
   const ordered = [...filtered].sort((a, b) => {
