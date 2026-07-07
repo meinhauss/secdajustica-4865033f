@@ -489,12 +489,17 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
           <h2 className="font-display text-2xl font-bold text-foreground">Processos Eletrônicos</h2>
           <p className="text-sm text-muted-foreground">Sistema Processual da Comarca</p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
-              <Plus className="h-4 w-4 mr-2" /> Novo Processo
-            </Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-2 flex-wrap">
+          <AIBuscaSemantica onOpen={(numero) => {
+            const p = (processos || []).find((x: any) => x.numero === numero);
+            if (p) onSelect(p.id);
+          }} />
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
+                <Plus className="h-4 w-4 mr-2" /> Novo Processo
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle className="font-display">Cadastrar Novo Processo</DialogTitle></DialogHeader>
             <form onSubmit={(e) => { e.preventDefault(); createProcesso.mutate(); }} className="space-y-4 mt-4">
