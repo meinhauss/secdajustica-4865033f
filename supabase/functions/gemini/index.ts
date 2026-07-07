@@ -104,84 +104,108 @@ Deno.serve(async (req: Request) => {
     payload.response_format = { type: "json_object" };
   }
 
+  // Cadeia de fallback: se o modelo pedido esgotar quota (429) ou faltar crédito (402),
+  // tentamos automaticamente o próximo. Usa modelos diferentes do gateway — mesma chave.
+  const FALLBACK_CHAIN = [
+    model,
+    "google/gemini-2.5-flash-lite",
+    "google/gemini-2.5-flash",
+    "openai/gpt-5-nano",
+  ].filter((m, i, a) => a.indexOf(m) === i); // dedupe
+
   const started = Date.now();
   let lastErr: unknown = null;
   let lastStatus = 0;
+  let usedModel = model;
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      const res = await withTimeout(
-        fetch(GATEWAY_URL, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        }),
-        DEFAULT_TIMEOUT,
-      );
-      lastStatus = res.status;
+  outer: for (const currentModel of FALLBACK_CHAIN) {
+    usedModel = currentModel;
+    const currentPayload = { ...payload, model: currentModel };
 
-      if (res.status === 429 || res.status === 402 || res.status >= 500) {
-        const errText = await res.text().catch(() => "");
-        lastErr = new Error(`gateway ${res.status}: ${errText.slice(0, 300)}`);
-        console.error(`[gemini] op=${body.operation} attempt=${attempt} status=${res.status}`);
-        if (attempt === MAX_RETRIES) break;
-        await new Promise((r) => setTimeout(r, RETRY_BASE * Math.pow(2, attempt)));
-        continue;
-      }
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        const res = await withTimeout(
+          fetch(GATEWAY_URL, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(currentPayload),
+          }),
+          DEFAULT_TIMEOUT,
+        );
+        lastStatus = res.status;
 
-      if (!res.ok) {
-        const errText = await res.text().catch(() => "");
+        // 429/402 = esgotou este modelo → pula para o próximo da cadeia
+        if (res.status === 429 || res.status === 402) {
+          const errText = await res.text().catch(() => "");
+          lastErr = new Error(`gateway ${res.status}: ${errText.slice(0, 200)}`);
+          console.warn(`[gemini] model=${currentModel} status=${res.status} → fallback próximo`);
+          continue outer;
+        }
+
+        // 5xx = tenta retry no mesmo modelo antes de trocar
+        if (res.status >= 500) {
+          const errText = await res.text().catch(() => "");
+          lastErr = new Error(`gateway ${res.status}: ${errText.slice(0, 200)}`);
+          console.error(`[gemini] model=${currentModel} attempt=${attempt} status=${res.status}`);
+          if (attempt === MAX_RETRIES) continue outer;
+          await new Promise((r) => setTimeout(r, RETRY_BASE * Math.pow(2, attempt)));
+          continue;
+        }
+
+        if (!res.ok) {
+          const errText = await res.text().catch(() => "");
+          return json({
+            ok: false,
+            data: "",
+            model: currentModel,
+            provider: "lovable-ai",
+            operation: body.operation,
+            cached: false,
+            latencyMs: Date.now() - started,
+            error: { code: `gateway_${res.status}`, message: errText.slice(0, 500), retriable: false },
+          }, 200);
+        }
+
+        const result: any = await res.json();
+        const text: string = result?.choices?.[0]?.message?.content ?? "";
+
+        let parsedJson: unknown = undefined;
+        if (opts.responseSchema && text) {
+          try { parsedJson = JSON.parse(text); } catch { /* keep raw */ }
+        }
+
+        const u = result?.usage;
+        const usage = u
+          ? {
+              promptTokens: u.prompt_tokens ?? 0,
+              outputTokens: u.completion_tokens ?? 0,
+              totalTokens: u.total_tokens ?? 0,
+            }
+          : undefined;
+
+        console.log(`[gemini] op=${body.operation} model=${currentModel} ms=${Date.now() - started} tokens=${usage?.totalTokens ?? "?"}`);
+
         return json({
-          ok: false,
-          data: "",
-          model,
+          ok: true,
+          data: text,
+          json: parsedJson,
+          model: currentModel,
           provider: "lovable-ai",
           operation: body.operation,
+          usage,
           cached: false,
           latencyMs: Date.now() - started,
-          error: { code: `gateway_${res.status}`, message: errText.slice(0, 500), retriable: false },
-        }, 200);
+        });
+      } catch (err) {
+        lastErr = err;
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error(`[gemini] model=${currentModel} attempt=${attempt} err=${msg}`);
+        if (attempt === MAX_RETRIES) continue outer;
+        await new Promise((r) => setTimeout(r, RETRY_BASE * Math.pow(2, attempt)));
       }
-
-      const result: any = await res.json();
-      const text: string = result?.choices?.[0]?.message?.content ?? "";
-
-      let parsedJson: unknown = undefined;
-      if (opts.responseSchema && text) {
-        try { parsedJson = JSON.parse(text); } catch { /* keep raw */ }
-      }
-
-      const u = result?.usage;
-      const usage = u
-        ? {
-            promptTokens: u.prompt_tokens ?? 0,
-            outputTokens: u.completion_tokens ?? 0,
-            totalTokens: u.total_tokens ?? 0,
-          }
-        : undefined;
-
-      console.log(`[gemini] op=${body.operation} model=${model} attempt=${attempt} ms=${Date.now() - started} tokens=${usage?.totalTokens ?? "?"}`);
-
-      return json({
-        ok: true,
-        data: text,
-        json: parsedJson,
-        model,
-        provider: "lovable-ai",
-        operation: body.operation,
-        usage,
-        cached: false,
-        latencyMs: Date.now() - started,
-      });
-    } catch (err) {
-      lastErr = err;
-      const msg = err instanceof Error ? err.message : String(err);
-      console.error(`[gemini] op=${body.operation} attempt=${attempt} err=${msg}`);
-      if (attempt === MAX_RETRIES) break;
-      await new Promise((r) => setTimeout(r, RETRY_BASE * Math.pow(2, attempt)));
     }
   }
 
