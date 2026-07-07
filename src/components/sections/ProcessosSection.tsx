@@ -30,6 +30,9 @@ import { useDraft } from "@/hooks/useDraft";
 import { agendarPrazoAutomatico, getPrazoAutomatico } from "@/lib/prazosAutomaticos";
 import { getChecklist } from "@/lib/checklists";
 import { cn } from "@/lib/utils";
+import AIResumoProcesso from "@/components/AIResumoProcesso";
+import AIResumirTexto from "@/components/AIResumirTexto";
+import AIExplicarSelecao from "@/components/AIExplicarSelecao";
 
 /* ─── Currency helpers ─── */
 const formatCurrency = (value: string) => {
@@ -1562,7 +1565,10 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   return (
     <div className="space-y-6">
       {/* Back button */}
-      <Button variant="ghost" size="sm" onClick={onBack} className="rounded-lg"><ArrowLeft className="h-4 w-4 mr-1" /> Voltar</Button>
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <Button variant="ghost" size="sm" onClick={onBack} className="rounded-lg"><ArrowLeft className="h-4 w-4 mr-1" /> Voltar</Button>
+        <AIResumoProcesso processo={processo} movimentacoes={movimentacoes} />
+      </div>
 
       {/* ═══ CABEÇALHO DO PROCESSO ═══ */}
       <div className="bg-card rounded-xl border border-border shadow-institutional overflow-hidden">
@@ -2228,17 +2234,20 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                         </Button>
                       </div>
                       {item.titulo && <p className="text-sm font-semibold text-foreground mb-1">{item.titulo}</p>}
-                      {/^<.*>/.test((item.descricao || "").trim()) || /<\/(p|strong|em|u|s|ul|ol|li|h[1-4]|blockquote|span|div)>/i.test(item.descricao || "") ? (
-                        <RichTextView html={item.descricao} className="text-sm text-foreground" />
-                      ) : (
-                        <p className="text-sm text-foreground whitespace-pre-wrap">{item.descricao.split(/(https?:\/\/[^\s<>]+)/gi).map((part, i) =>
-                          /^https?:\/\//i.test(part) ? (
-                            <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80 break-all inline-flex items-center gap-1">
-                              <ExternalLink className="h-3 w-3 inline flex-shrink-0" />{part}
-                            </a>
-                          ) : part
-                        )}</p>
-                      )}
+                      <AIExplicarSelecao>
+                        {/^<.*>/.test((item.descricao || "").trim()) || /<\/(p|strong|em|u|s|ul|ol|li|h[1-4]|blockquote|span|div)>/i.test(item.descricao || "") ? (
+                          <RichTextView html={item.descricao} className="text-sm text-foreground" />
+                        ) : (
+                          <p className="text-sm text-foreground whitespace-pre-wrap">{item.descricao.split(/(https?:\/\/[^\s<>]+)/gi).map((part, i) =>
+                            /^https?:\/\//i.test(part) ? (
+                              <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80 break-all inline-flex items-center gap-1">
+                                <ExternalLink className="h-3 w-3 inline flex-shrink-0" />{part}
+                              </a>
+                            ) : part
+                          )}</p>
+                        )}
+                      </AIExplicarSelecao>
+                      <AIResumirTexto texto={item.descricao} cacheKey={`mov-tldr:${item.id}`} />
                       {item.link && (
                         <a href={item.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-2 text-xs text-primary hover:underline">
                           <ExternalLink className="h-3 w-3" /> Abrir documento

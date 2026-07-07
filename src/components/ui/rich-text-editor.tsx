@@ -8,11 +8,15 @@ import {
   Bold, Italic, Underline as UnderlineIcon, Strikethrough,
   List, ListOrdered, Quote, Heading1, Heading2,
   AlignLeft, AlignCenter, AlignRight, AlignJustify, Indent, Outdent, Undo, Redo,
+  Sparkles, SpellCheck, Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/ui/toggle";
 import { cn } from "@/lib/utils";
 import { sanitizeRichHtml } from "@/lib/sanitize";
+import { toast } from "sonner";
+import { ai } from "@/lib/ai";
+import { PROMPTS, SYSTEM_JURIDICO } from "@/lib/ai/prompts";
 import { useEffect, useRef, useState } from "react";
 import { aplicarVariaveis, VARIAVEIS_DISPONIVEIS, type ModeloContext } from "@/lib/modelosVars";
 import { SNIPPETS_PADRAO, SNIPPETS_INFO } from "@/lib/snippets";
@@ -48,6 +52,7 @@ export function RichTextEditor({
     { open: false, top: 0, left: 0, query: "", from: 0 }
   );
   const [varIdx, setVarIdx] = useState(0);
+  const [aiBusy, setAiBusy] = useState<null | "melhorar" | "corrigir">(null);
   const snippetMap = { ...SNIPPETS_PADRAO, ...(snippets || {}) };
   const editor = useEditor({
     extensions: [
@@ -137,7 +142,30 @@ export function RichTextEditor({
     setVarMenu((v) => ({ ...v, open: false }));
   };
 
+  const runAI = async (kind: "melhorar" | "corrigir") => {
+    if (!editor) return;
+    const plain = editor.getText().trim();
+    if (!plain) { toast.error("Escreva algo antes."); return; }
+    setAiBusy(kind);
+    const prompt = kind === "melhorar" ? PROMPTS.melhorarRedacao(plain) : PROMPTS.corrigirGramatica(plain);
+    const res = await ai.run({
+      operation: kind === "melhorar" ? "custom" : "revisar_gramatica",
+      prompt,
+      options: { systemInstruction: SYSTEM_JURIDICO, temperature: kind === "corrigir" ? 0.2 : 0.4 },
+    });
+    setAiBusy(null);
+    if (!res.ok) { toast.error(res.error?.message || "Falha na IA."); return; }
+    const html = (res.data as string)
+      .split(/\n{2,}/)
+      .map((p) => `<p>${p.replace(/\n/g, "<br/>")}</p>`)
+      .join("");
+    editor.commands.setContent(sanitizeRichHtml(html));
+    onChange(sanitizeRichHtml(html));
+    toast.success(kind === "melhorar" ? "Redação melhorada." : "Texto corrigido.");
+  };
+
   if (!editor) return null;
+
 
   return (
     <div
@@ -223,6 +251,27 @@ export function RichTextEditor({
         </Button>
         <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => editor.chain().focus().redo().run()} aria-label="Refazer">
           <Redo className="h-3.5 w-3.5" />
+        </Button>
+        <span className="mx-1 h-5 w-px bg-border" />
+        <Button
+          type="button" variant="ghost" size="sm"
+          className="h-8 px-2 gap-1 text-primary hover:text-primary hover:bg-primary/10"
+          onClick={() => runAI("melhorar")}
+          disabled={!!aiBusy}
+          title="Reescreve mantendo sentido jurídico"
+        >
+          {aiBusy === "melhorar" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+          <span className="text-xs">Melhorar</span>
+        </Button>
+        <Button
+          type="button" variant="ghost" size="sm"
+          className="h-8 px-2 gap-1 text-primary hover:text-primary hover:bg-primary/10"
+          onClick={() => runAI("corrigir")}
+          disabled={!!aiBusy}
+          title="Corrige ortografia e gramática"
+        >
+          {aiBusy === "corrigir" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <SpellCheck className="h-3.5 w-3.5" />}
+          <span className="text-xs">Corrigir</span>
         </Button>
       </div>
       <div className="relative bg-background">
