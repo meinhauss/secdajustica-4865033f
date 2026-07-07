@@ -39,7 +39,16 @@ export function RichTextEditor({
   className,
   minHeight = "120px",
   disabled,
+  smart,
+  context,
+  snippets,
 }: RichTextEditorProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [varMenu, setVarMenu] = useState<{ open: boolean; top: number; left: number; query: string; from: number }>(
+    { open: false, top: 0, left: 0, query: "", from: 0 }
+  );
+  const [varIdx, setVarIdx] = useState(0);
+  const snippetMap = { ...SNIPPETS_PADRAO, ...(snippets || {}) };
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
