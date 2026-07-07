@@ -15,7 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Label } from "@/components/ui/label";
 import {
   FileText, Plus, Search, CheckCircle, Clock, Eye, Stamp,
-  Heart, Home, Users, ScrollText, FileSignature, Baby, BarChart3, User, Link, X, Trash2, ExternalLink, Download, Scale
+  Heart, Home, Users, ScrollText, FileSignature, Baby, BarChart3, User, Link, X, Trash2, ExternalLink, Download, Scale, AlertTriangle
 } from "lucide-react";
 import { generateCartorioPDF, imageToBase64 } from "@/lib/pdfGenerator";
 import logoCartorio from "@/assets/logo-cartorio-sp.png";
@@ -626,7 +626,12 @@ export default function CartorarioSection() {
     if (fieldConfig.autoEmit) {
       toast({ title: "Certidão emitida automaticamente!" });
     } else if (fieldConfig.confirmByParties) {
-      toast({ title: "Procuração registrada — aguardando confirmação das partes" });
+      toast({
+        title: "Procuração registrada — aguardando confirmação",
+        description:
+          "⚠️ Todas as partes devem assinar em até 24 horas, sob pena de CANCELAMENTO automático. Após emitida, a procuração terá validade de 30 dias.",
+        duration: 12000,
+      });
     } else {
       toast({ title: "Solicitação registrada com sucesso" });
     }
@@ -1000,9 +1005,15 @@ export default function CartorarioSection() {
                   </p>
                 )}
                 {fieldConfig.confirmByParties && (
-                  <p className="text-xs text-purple-600 mt-1 flex items-center gap-1">
-                    <Users className="h-3 w-3" /> Será emitido automaticamente após confirmação de todas as partes.
-                  </p>
+                  <div className="mt-2 rounded-lg border border-amber-400/40 bg-amber-50 dark:bg-amber-950/30 p-3 text-xs space-y-1">
+                    <p className="flex items-center gap-1 font-semibold text-amber-800 dark:text-amber-300">
+                      <AlertTriangle className="h-3.5 w-3.5" /> Regras da procuração
+                    </p>
+                    <ul className="list-disc pl-4 text-amber-900/90 dark:text-amber-100/90 space-y-0.5">
+                      <li>Todas as partes devem confirmar em até <strong>24 horas</strong>, ou o pedido será <strong>cancelado</strong> automaticamente.</li>
+                      <li>Após emitida, a procuração terá <strong>validade de 30 dias</strong> e depois expirará.</li>
+                    </ul>
+                  </div>
                 )}
               </div>
 
