@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import forumSuzano from "@/assets/forum-suzano.png.asset.json";
 
 const JUDICIAL_ROLES = ["admin", "magistrado", "presidente_tribunal", "desembargador", "ministerio_publico", "advogado", "procurador_estado", "delegado"];
 
@@ -73,13 +74,25 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="font-display text-2xl font-bold text-foreground">
-          Bem-vindo, {profile?.nome_completo?.split(" ")[0] || "Usuário"}
-        </h2>
-        <p className="text-muted-foreground text-sm mt-1">
-          Painel de controle — Secretaria da Justiça e Cidadania — SP
-        </p>
+      <div className="relative overflow-hidden rounded-2xl border border-border shadow-institutional">
+        <img
+          src={forumSuzano.url}
+          alt="Fórum da Comarca de Suzano — Tribunal de Justiça do Estado de São Paulo"
+          className="w-full h-48 sm:h-64 md:h-80 object-cover"
+          loading="lazy"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6">
+          <p className="text-[10px] sm:text-xs uppercase tracking-widest text-gold/90 font-semibold">
+            Fórum da Comarca de Suzano
+          </p>
+          <h2 className="font-display text-xl sm:text-3xl font-bold text-white mt-1">
+            Bem-vindo, {profile?.nome_completo?.split(" ")[0] || "Usuário"}
+          </h2>
+          <p className="text-white/70 text-xs sm:text-sm mt-1">
+            Painel de controle — Secretaria da Justiça e Cidadania — SP
+          </p>
+        </div>
       </div>
 
       <motion.button
