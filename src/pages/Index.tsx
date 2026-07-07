@@ -38,6 +38,18 @@ const Index = () => {
   const { user, loading, profile, roles } = useAuth();
   const [activeSection, setActiveSection] = useState("dashboard");
   const [openProcessoId, setOpenProcessoId] = useState<string | null>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
+
+  useGlobalShortcuts((section) => {
+    if (section !== "processos") setOpenProcessoId(null);
+    setActiveSection(section);
+  });
+
+  useEffect(() => {
+    const h = () => setHelpOpen(true);
+    window.addEventListener("shortcut:show-help", h);
+    return () => window.removeEventListener("shortcut:show-help", h);
+  }, []);
 
   // Aviso de foto de perfil para advogados+
   useEffect(() => {
