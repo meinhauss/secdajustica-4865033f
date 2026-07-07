@@ -74,6 +74,43 @@ export function RichTextEditor({
       const html = sanitizeRichHtml(editor.getHTML());
       // Treat empty editor (just <p></p>) as empty string
       onChange(html === "<p></p>" ? "" : html);
+
+      if (!smart) return;
+
+      // Detectar padrão de variável: {{query
+      const { from } = editor.state.selection;
+      const $pos = editor.state.doc.resolve(from);
+      const textBefore = $pos.parent.textBetween(0, $pos.parentOffset, "\n", "\0");
+      const varMatch = textBefore.match(/\{\{(\w*)$/);
+      if (varMatch) {
+        const coords = editor.view.coordsAtPos(from);
+        const rect = containerRef.current?.getBoundingClientRect();
+        setVarMenu({
+          open: true,
+          top: coords.bottom - (rect?.top || 0) + 4,
+          left: coords.left - (rect?.left || 0),
+          query: varMatch[1],
+          from: from - varMatch[0].length,
+        });
+        setVarIdx(0);
+      } else if (varMenu.open) {
+        setVarMenu((v) => ({ ...v, open: false }));
+      }
+
+      // Detectar snippet: /atalho seguido de espaço
+      const snipMatch = textBefore.match(/(?:^|\s)\/(\w+)\s$/);
+      if (snipMatch) {
+        const key = snipMatch[1].toLowerCase();
+        const template = snippetMap[key];
+        if (template) {
+          const expanded = aplicarVariaveis(template, context || {});
+          const startDel = from - snipMatch[0].length + (snipMatch[0].startsWith(" ") ? 1 : 0);
+          editor.chain().focus()
+            .deleteRange({ from: startDel, to: from })
+            .insertContent(expanded.replace(/\n/g, "<br/>"))
+            .run();
+        }
+      }
     },
   });
 
@@ -86,6 +123,19 @@ export function RichTextEditor({
       editor.commands.setContent(next, { emitUpdate: false });
     }
   }, [value, editor]);
+
+  const varsFiltradas = smart
+    ? VARIAVEIS_DISPONIVEIS.filter((v) => v.key.toLowerCase().includes(varMenu.query.toLowerCase()))
+    : [];
+
+  const insertVariable = (key: string) => {
+    if (!editor) return;
+    editor.chain().focus()
+      .deleteRange({ from: varMenu.from, to: editor.state.selection.from })
+      .insertContent(`{{${key}}} `)
+      .run();
+    setVarMenu((v) => ({ ...v, open: false }));
+  };
 
   if (!editor) return null;
 
