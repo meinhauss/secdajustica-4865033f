@@ -24,6 +24,8 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { normalizeRichText } from "@/lib/sanitize";
+import ModeloPicker from "@/components/ModeloPicker";
+import { extrairNomes } from "@/lib/modelosVars";
 
 /* ─── Currency helpers ─── */
 const formatCurrency = (value: string) => {
@@ -1928,7 +1930,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         {/* TIMELINE — unified view */}
         <TabsContent value="timeline" className="mt-4 space-y-4">
           <div className="flex flex-wrap gap-2">
-            {canAddMovimentacao && <AddMovimentacao roles={roles} onAdd={(tipo, desc) => addMovimentacao.mutate({ tipo, descricao: desc })} />}
+            {canAddMovimentacao && <AddMovimentacao roles={roles} processo={processo} juizNome={juizProfile?.nome_completo} userNome={profile?.nome_completo} onAdd={(tipo, desc) => addMovimentacao.mutate({ tipo, descricao: desc })} />}
             {isJudicialReadOnly && <AddAtoCartorio onAdd={(ato) => createAtoCartorio.mutate(ato)} isPending={createAtoCartorio.isPending} />}
           </div>
           {isSentenciado && !prazoApelacaoExpirado && (
@@ -2645,7 +2647,7 @@ function InfoCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-function AddMovimentacao({ roles, onAdd }: { roles: string[]; onAdd: (tipo: string, desc: string) => void }) {
+function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles: string[]; onAdd: (tipo: string, desc: string) => void; processo?: any; juizNome?: string | null; userNome?: string | null }) {
   const [open, setOpen] = useState(false);
   const [desc, setDesc] = useState("");
   const [anexos, setAnexos] = useState<{ nome: string; url: string }[]>([]);
@@ -2785,6 +2787,23 @@ function AddMovimentacao({ roles, onAdd }: { roles: string[]; onAdd: (tipo: stri
               ))}
             </SelectContent>
           </Select>
+          <div className="flex justify-end">
+            <ModeloPicker
+              size="sm"
+              context={{
+                numero_processo: processo?.numero,
+                nome_autor: extrairNomes(processo?.autor_nome),
+                nome_reu: extrairNomes(processo?.reu_nome),
+                nome_usuario: userNome || "",
+                juiz: juizNome || "",
+                classe: processo?.classe,
+              }}
+              onInsert={(texto) => {
+                const html = texto.split(/\n{2,}/).map((p) => `<p>${p.replace(/\n/g, "<br/>")}</p>`).join("");
+                setDesc((prev) => (prev && prev !== "<p></p>" ? prev + html : html));
+              }}
+            />
+          </div>
           <RichTextEditor placeholder="Descrição da movimentação..." value={desc} onChange={setDesc} minHeight="160px" />
 
           {/* Seção de Anexos */}
