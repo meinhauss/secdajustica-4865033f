@@ -32,6 +32,9 @@ import { getChecklist } from "@/lib/checklists";
 import { cn } from "@/lib/utils";
 import AIResumoProcesso from "@/components/AIResumoProcesso";
 import AIResumirTexto from "@/components/AIResumirTexto";
+import AIAssistente from "@/components/AIAssistente";
+import AIClassificarPeticao from "@/components/AIClassificarPeticao";
+import AISugerirDespacho from "@/components/AISugerirDespacho";
 import AIExplicarSelecao from "@/components/AIExplicarSelecao";
 
 /* ─── Currency helpers ─── */
