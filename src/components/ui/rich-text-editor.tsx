@@ -252,6 +252,27 @@ export function RichTextEditor({
         <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => editor.chain().focus().redo().run()} aria-label="Refazer">
           <Redo className="h-3.5 w-3.5" />
         </Button>
+        <span className="mx-1 h-5 w-px bg-border" />
+        <Button
+          type="button" variant="ghost" size="sm"
+          className="h-8 px-2 gap-1 text-primary hover:text-primary hover:bg-primary/10"
+          onClick={() => runAI("melhorar")}
+          disabled={!!aiBusy}
+          title="Reescreve mantendo sentido jurídico"
+        >
+          {aiBusy === "melhorar" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+          <span className="text-xs">Melhorar</span>
+        </Button>
+        <Button
+          type="button" variant="ghost" size="sm"
+          className="h-8 px-2 gap-1 text-primary hover:text-primary hover:bg-primary/10"
+          onClick={() => runAI("corrigir")}
+          disabled={!!aiBusy}
+          title="Corrige ortografia e gramática"
+        >
+          {aiBusy === "corrigir" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <SpellCheck className="h-3.5 w-3.5" />}
+          <span className="text-xs">Corrigir</span>
+        </Button>
       </div>
       <div className="relative bg-background">
         {(!value || value === "") && placeholder && (
