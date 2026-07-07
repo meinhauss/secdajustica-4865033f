@@ -22,17 +22,17 @@ export default function AIResumoSemanal() {
     const seteDias = new Date(agora.getTime() - 7 * 24 * 60 * 60 * 1000);
     const periodo = `${seteDias.toLocaleDateString("pt-BR")} a ${agora.toLocaleDateString("pt-BR")}`;
 
-    // Processos do usuário
+    // Processos do usuário (magistrado como juiz)
     const { data: processos } = await supabase
       .from("processos")
-      .select("id,numero,status,prazo_final")
-      .or(`juiz_id.eq.${user.id},promotor_id.eq.${user.id}`)
+      .select("id,numero,status")
+      .eq("juiz_id", user.id)
       .limit(500);
 
     const procList = (processos || []).map((p: any) => ({
       numero: p.numero,
       status: p.status,
-      atrasado: p.prazo_final ? new Date(p.prazo_final) < agora : false,
+      atrasado: false,
     }));
 
     // Movimentações da semana
