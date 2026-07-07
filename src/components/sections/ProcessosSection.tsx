@@ -594,6 +594,7 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Filters */}
