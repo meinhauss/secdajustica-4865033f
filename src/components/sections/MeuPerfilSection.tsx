@@ -81,6 +81,7 @@ export default function MeuPerfilSection() {
 
       await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("user_id", user.id);
       setAvatarUrl(publicUrl);
+      await refreshProfile();
       toast.success("Foto de perfil atualizada!");
     } catch (err: any) {
       toast.error("Erro ao enviar foto: " + (err.message || "Tente novamente."));
