@@ -626,7 +626,12 @@ export default function CartorarioSection() {
     if (fieldConfig.autoEmit) {
       toast({ title: "Certidão emitida automaticamente!" });
     } else if (fieldConfig.confirmByParties) {
-      toast({ title: "Procuração registrada — aguardando confirmação das partes" });
+      toast({
+        title: "Procuração registrada — aguardando confirmação",
+        description:
+          "⚠️ Todas as partes devem assinar em até 24 horas, sob pena de CANCELAMENTO automático. Após emitida, a procuração terá validade de 30 dias.",
+        duration: 12000,
+      });
     } else {
       toast({ title: "Solicitação registrada com sucesso" });
     }
