@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CalendarRange, Loader2, Copy, Check } from "lucide-react";
@@ -122,8 +123,18 @@ export default function AIResumoSemanal() {
             )}
             {!loading && texto && (
               <>
-                <div className="prose prose-sm max-w-none whitespace-pre-wrap text-sm border border-border rounded-xl p-4 bg-muted/30">
-                  {texto}
+                <div className="rounded-xl border border-border bg-muted/30 p-5 text-sm text-foreground leading-relaxed space-y-3
+                  [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:text-foreground [&_h1]:mt-4 [&_h1]:mb-2
+                  [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-foreground [&_h2]:mt-4 [&_h2]:mb-2
+                  [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:text-primary [&_h3]:mt-3 [&_h3]:mb-1
+                  [&_strong]:text-foreground [&_strong]:font-semibold
+                  [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1
+                  [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:space-y-1
+                  [&_li]:text-foreground/90
+                  [&_p]:text-foreground/90
+                  [&_hr]:my-3 [&_hr]:border-border
+                  [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs">
+                  <ReactMarkdown>{texto}</ReactMarkdown>
                 </div>
                 <div className="flex justify-between items-center">
                   <Button size="sm" variant="outline" className="rounded-xl" onClick={gerar}>Gerar novamente</Button>
