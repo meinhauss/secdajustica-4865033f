@@ -89,8 +89,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setProfile(null);
   };
 
+  const refreshProfile = async () => {
+    if (user) await fetchUserData(user.id);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, session, loading, roles, profile, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, roles, profile, signUp, signIn, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
