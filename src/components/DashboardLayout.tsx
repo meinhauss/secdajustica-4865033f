@@ -244,6 +244,9 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
 
       {/* Command palette global — ⌘K / Ctrl+K + sequências "g <letra>" */}
       <CommandPalette items={paletteItems} onSelect={onSectionChange} />
+
+      {/* Vade MeCum — assistente flutuante global */}
+      <AIChatbotInstitucional />
     </div>
   );
 }
