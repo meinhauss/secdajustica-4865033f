@@ -2787,7 +2787,31 @@ function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles
               ))}
             </SelectContent>
           </Select>
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={async () => {
+                if (!processo?.id) return;
+                const { data } = await supabase
+                  .from("movimentacoes")
+                  .select("descricao, tipo")
+                  .eq("processo_id", processo.id)
+                  .eq("tipo", tipo)
+                  .order("created_at", { ascending: false })
+                  .limit(1)
+                  .maybeSingle();
+                if (!data?.descricao) {
+                  toast.error("Nenhuma movimentação anterior deste tipo encontrada.");
+                  return;
+                }
+                setDesc(data.descricao);
+                toast.success("Última movimentação carregada como rascunho.");
+              }}
+            >
+              <History className="h-4 w-4 mr-1" /> Repetir último
+            </Button>
             <ModeloPicker
               size="sm"
               context={{
@@ -2804,7 +2828,21 @@ function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles
               }}
             />
           </div>
-          <RichTextEditor placeholder="Descrição da movimentação..." value={desc} onChange={setDesc} minHeight="160px" />
+          <RichTextEditor
+            placeholder="Descrição da movimentação..."
+            value={desc}
+            onChange={setDesc}
+            minHeight="160px"
+            smart
+            context={{
+              numero_processo: processo?.numero,
+              nome_autor: extrairNomes(processo?.autor_nome),
+              nome_reu: extrairNomes(processo?.reu_nome),
+              nome_usuario: userNome || "",
+              juiz: juizNome || "",
+              classe: processo?.classe,
+            }}
+          />
 
           {/* Seção de Anexos */}
           <div className="space-y-3 border border-border rounded-xl p-3 bg-muted/30">
