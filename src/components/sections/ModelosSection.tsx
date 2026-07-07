@@ -160,6 +160,13 @@ export default function ModelosSection() {
           <h2 className="text-2xl font-display font-bold">Modelos de Documentos</h2>
         </div>
         <div className="flex gap-2">
+          <AIQAModelos
+            modelos={modelos.map(m => ({ id: m.id, titulo: m.titulo, categoria: m.categoria, descricao: m.descricao }))}
+            onSelect={(id) => {
+              const m = modelos.find(x => x.id === id);
+              if (m) setPreview({ titulo: m.titulo, texto: m.conteudo });
+            }}
+          />
           <Button variant="outline" size="sm" onClick={() => setOpenNewFav(true)}>
             <Star className="h-4 w-4 mr-1" /> Novo favorito
           </Button>
