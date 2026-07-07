@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.get_processo_stats() TO anon;
