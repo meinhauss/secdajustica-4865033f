@@ -26,6 +26,8 @@ import { ptBR } from "date-fns/locale";
 import { normalizeRichText } from "@/lib/sanitize";
 import ModeloPicker from "@/components/ModeloPicker";
 import { extrairNomes } from "@/lib/modelosVars";
+import { useDraft } from "@/hooks/useDraft";
+import { agendarPrazoAutomatico, getPrazoAutomatico } from "@/lib/prazosAutomaticos";
 
 /* ─── Currency helpers ─── */
 const formatCurrency = (value: string) => {
@@ -2649,7 +2651,6 @@ function InfoCard({ label, value }: { label: string; value: string }) {
 
 function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles: string[]; onAdd: (tipo: string, desc: string) => void; processo?: any; juizNome?: string | null; userNome?: string | null }) {
   const [open, setOpen] = useState(false);
-  const [desc, setDesc] = useState("");
   const [anexos, setAnexos] = useState<{ nome: string; url: string }[]>([]);
   const [novoAnexoNome, setNovoAnexoNome] = useState("");
   const [novoAnexoUrl, setNovoAnexoUrl] = useState("");
@@ -2737,6 +2738,8 @@ function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles
   }
 
   const [tipo, setTipo] = useState(tiposPermitidos[0]?.value || "peticao");
+  const draftKey = processo?.id ? `draft:mov:${processo.id}:${tipo}` : null;
+  const { value: desc, setValue: setDesc, clear: clearDraft, savedAt } = useDraft(draftKey);
 
   const addAnexo = () => {
     if (!novoAnexoNome.trim() || !novoAnexoUrl.trim()) {
@@ -2754,7 +2757,7 @@ function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles
     setNovoAnexoUrl("");
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Warn if attachment fields have content but weren't added
     if ((novoAnexoNome.trim() || novoAnexoUrl.trim()) && anexos.every(a => a.nome !== novoAnexoNome.trim() || a.url !== novoAnexoUrl.trim())) {
@@ -2766,10 +2769,17 @@ function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles
       descFinal += "\n\n📎 DOCUMENTOS ANEXOS:\n" + anexos.map((a, i) => `${i + 1}. ${a.nome}: ${a.url}`).join("\n");
     }
     onAdd(tipo, descFinal);
-    setDesc("");
+    // Agendar prazo automático (silencioso)
+    if (processo?.id) {
+      const prazo = await agendarPrazoAutomatico(processo.id, tipo);
+      if (prazo) toast.success(`Prazo automático de ${prazo.horas}h agendado.`);
+    }
+    clearDraft();
     setAnexos([]);
     setOpen(false);
   };
+
+  const prazoInfo = getPrazoAutomatico(tipo);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -2787,6 +2797,20 @@ function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles
               ))}
             </SelectContent>
           </Select>
+          <div className="flex items-center justify-between text-xs text-muted-foreground -mt-2">
+            <span>
+              {prazoInfo ? (
+                <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400">
+                  <Timer className="h-3 w-3" /> Prazo automático: {prazoInfo.horas}h ({prazoInfo.descricao})
+                </span>
+              ) : null}
+            </span>
+            {savedAt && desc && desc !== "<p></p>" && (
+              <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                <CheckCircle className="h-3 w-3" /> Rascunho salvo
+              </span>
+            )}
+          </div>
           <div className="flex justify-end gap-2">
             <Button
               type="button"
