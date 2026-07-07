@@ -53,6 +53,25 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
     ? []
     : menuItems.filter((item) => item.roles.some((r) => roles.includes(r)));
 
+  const shortcuts: Record<string, string> = {
+    dashboard: "g d",
+    processos: "g p",
+    "meus-processos": "g m",
+    audiencias: "g a",
+    "meu-perfil": "g u",
+    tribunal: "g t",
+    oab: "g o",
+    cartorio: "g c",
+    tco: "g x",
+    concursos: "g n",
+  };
+  const paletteItems: PaletteItem[] = filteredItems.map((i) => ({
+    id: i.id,
+    label: i.label,
+    icon: i.icon,
+    shortcut: shortcuts[i.id],
+  }));
+
   const getRoleLabel = (role: string) => {
     const labels: Record<string, string> = {
       admin: "Administrador",
