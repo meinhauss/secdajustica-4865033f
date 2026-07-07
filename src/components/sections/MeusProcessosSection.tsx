@@ -53,6 +53,8 @@ export default function MeusProcessosSection({ onOpenProcesso }: MeusProcessosSe
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState<"urgencia" | "recentes">("urgencia");
+  const [onlyVencendo, setOnlyVencendo] = useState(false);
+  const [onlyPrioritarios, setOnlyPrioritarios] = useState(false);
   const [selecionados, setSelecionados] = useState<Set<string>>(new Set());
   const [batchOpen, setBatchOpen] = useState(false);
   const [batchTipo, setBatchTipo] = useState("despacho");
