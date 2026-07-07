@@ -57,8 +57,8 @@ export default function AIChatbotInstitucional({ comarca = "Comarca de Suzano" }
         <div className="fixed bottom-6 right-6 w-[360px] max-w-[calc(100vw-2rem)] h-[520px] max-h-[calc(100vh-3rem)] bg-card border border-border rounded-2xl shadow-2xl z-50 flex flex-col">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <div>
-              <p className="font-semibold text-sm">Atendimento Institucional</p>
-              <p className="text-[10px] text-muted-foreground">{comarca}</p>
+              <p className="font-semibold text-sm">Vade MeCum</p>
+              <p className="text-[10px] text-muted-foreground">Atendente virtual · {comarca}</p>
             </div>
             <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setOpen(false)}>
               <X className="h-4 w-4" />
@@ -67,7 +67,7 @@ export default function AIChatbotInstitucional({ comarca = "Comarca de Suzano" }
           <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2">
             {messages.length === 0 && (
               <div className="space-y-2">
-                <p className="text-xs text-muted-foreground">Olá! Como posso ajudar?</p>
+                <p className="text-xs text-muted-foreground">Oi! Sou o Vade MeCum 👋 Em que posso ajudar hoje?</p>
                 {sugestoes.map((s) => (
                   <button
                     key={s}
