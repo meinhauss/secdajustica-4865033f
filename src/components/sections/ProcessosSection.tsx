@@ -2797,6 +2797,20 @@ function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles
               ))}
             </SelectContent>
           </Select>
+          <div className="flex items-center justify-between text-xs text-muted-foreground -mt-2">
+            <span>
+              {prazoInfo ? (
+                <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400">
+                  <Timer className="h-3 w-3" /> Prazo automático: {prazoInfo.horas}h ({prazoInfo.descricao})
+                </span>
+              ) : null}
+            </span>
+            {savedAt && desc && desc !== "<p></p>" && (
+              <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                <CheckCircle className="h-3 w-3" /> Rascunho salvo
+              </span>
+            )}
+          </div>
           <div className="flex justify-end gap-2">
             <Button
               type="button"
