@@ -246,7 +246,11 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
       <CommandPalette items={paletteItems} onSelect={onSectionChange} />
 
       {/* Vade MeCum — assistente flutuante global */}
-      <AIChatbotInstitucional />
+      <AIChatbotInstitucional
+        destinos={filteredItems.map((i) => ({ id: i.id, label: i.label }))}
+        onNavigate={(id) => onSectionChange(id)}
+      />
+
     </div>
   );
 }

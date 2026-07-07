@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import ConsultaPublicaSection from "@/components/sections/ConsultaPublicaSection";
+import AIChatbotInstitucional from "@/components/AIChatbotInstitucional";
 import {
   Scale, Shield, Gavel, BookOpen, Building2, Users, FileText, Briefcase,
   Phone, MapPin, Clock, ChevronRight, ExternalLink, GraduationCap, Stamp, Heart, Home, ScrollText, FileSignature, Baby, AlertTriangle } from
@@ -237,6 +238,20 @@ export default function LoginPage() {
           </p>
         </div>
       </footer>
+
+      <AIChatbotInstitucional
+        destinos={[
+          { id: "inicio", label: "Página Inicial" },
+          { id: "institucional", label: "Institucional", desc: "sobre a Secretaria e a Comarca" },
+          { id: "ouvidoria", label: "Ouvidoria do MP", desc: "denúncias ao Ministério Público, sem login" },
+          { id: "credencial", label: "Consultar Credencial", desc: "verificar carteira/credencial de servidor" },
+          { id: "transparencia", label: "Transparência" },
+          { id: "concursos", label: "Concursos Públicos" },
+          { id: "unisp", label: "UNISP", desc: "inscrição na universidade da segurança pública" },
+          { id: "login", label: "Acesso ao Sistema", desc: "login e cadastro" },
+        ]}
+        onNavigate={(id) => setActiveTab(id as Tab)}
+      />
     </div>);
 
 }
