@@ -8,11 +8,15 @@ import {
   Bold, Italic, Underline as UnderlineIcon, Strikethrough,
   List, ListOrdered, Quote, Heading1, Heading2,
   AlignLeft, AlignCenter, AlignRight, AlignJustify, Indent, Outdent, Undo, Redo,
+  Sparkles, SpellCheck, Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/ui/toggle";
 import { cn } from "@/lib/utils";
 import { sanitizeRichHtml } from "@/lib/sanitize";
+import { toast } from "sonner";
+import { ai } from "@/lib/ai";
+import { PROMPTS, SYSTEM_JURIDICO } from "@/lib/ai/prompts";
 import { useEffect, useRef, useState } from "react";
 import { aplicarVariaveis, VARIAVEIS_DISPONIVEIS, type ModeloContext } from "@/lib/modelosVars";
 import { SNIPPETS_PADRAO, SNIPPETS_INFO } from "@/lib/snippets";
