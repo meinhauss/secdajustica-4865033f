@@ -177,3 +177,73 @@ ${ctxBlock(ctx)}`,
 Tema: ${tema}
 ${ctx ? `\nContexto do processo:\n${ctxBlock(ctx)}` : ""}`,
 };
+
+// ═══════════ Prompts – Fase 3 ═══════════
+
+export const PROMPTS_FASE3 = {
+  triagemPeticao: (texto: string) =>
+    `Faça a TRIAGEM da petição abaixo. Devolva JSON estrito:
+{"tipo":"...","fila":"urgente|liminar|comum","prioridade":"alta|media|baixa","justificativa":"...","prazoSugerido":"...","resumo":"...","pedidos":["..."]}
+
+Regras da fila:
+- "liminar": pedido de tutela de urgência, liminar, medida cautelar, habeas corpus.
+- "urgente": prazo iminente, risco à vida/saúde, réu preso, ordem judicial pendente.
+- "comum": demais casos.
+
+TEXTO:
+${texto.replace(/<[^>]+>/g, "\n").slice(0, 12000)}`,
+
+  extrairDados: (texto: string) =>
+    `Extraia dados estruturados do texto abaixo (transcrição de PDF ou documento jurídico). Devolva JSON estrito:
+{"valores":[{"descricao":"...","valor":"R$ ..."}],
+ "cpfs":[{"nome":"...","cpf":"..."}],
+ "cnpjs":[{"nome":"...","cnpj":"..."}],
+ "datas":[{"descricao":"...","data":"DD/MM/AAAA"}],
+ "enderecos":[{"parte":"...","endereco":"..."}],
+ "pedidos":["..."],
+ "partes":{"autores":["..."],"reus":["..."]},
+ "outros":[{"campo":"...","valor":"..."}]}
+
+Só inclua dados presentes no texto. Não invente. Se um campo não tiver dados, devolva array vazio.
+
+TEXTO:
+${texto.replace(/<[^>]+>/g, "\n").slice(0, 14000)}`,
+
+  compararPecas: (a: string, b: string, rotuloA = "Peça A", rotuloB = "Peça B") =>
+    `Faça um DIFF SEMÂNTICO entre as duas peças jurídicas abaixo. Não faça diff linha-a-linha — compare argumentos, pedidos, fundamentos e fatos.
+
+Estrutura da resposta (markdown):
+**Objeto de cada peça:** 1 frase cada.
+**Pontos em comum:** bullets.
+**Divergências:** bullets com "${rotuloA} sustenta X, ${rotuloB} sustenta Y".
+**Novos argumentos em ${rotuloB}:** bullets.
+**Argumentos abandonados/refutados:** bullets.
+**Conclusão prática:** 2–3 frases sobre o que efetivamente mudou.
+
+═══ ${rotuloA} ═══
+${a.replace(/<[^>]+>/g, "\n").slice(0, 8000)}
+
+═══ ${rotuloB} ═══
+${b.replace(/<[^>]+>/g, "\n").slice(0, 8000)}`,
+
+  detectarDuplicidade: (
+    alvo: { numero?: string; classe?: string; assunto?: string; autor?: string; reu?: string },
+    candidatos: { numero: string; classe?: string; assunto?: string; autor?: string; reu?: string }[],
+  ) =>
+    `Analise se algum processo candidato configura DUPLICIDADE ou LITISPENDÊNCIA com o processo-alvo. Devolva JSON estrito:
+{"resultados":[{"numero":"...","similaridade":0-100,"tipo":"duplicidade|litispendencia|conexao|continencia|nenhum","motivo":"..."}]}
+
+Critérios:
+- duplicidade: mesmas partes + mesmo pedido + mesma causa de pedir.
+- litispendência: mesma ação em curso em outro juízo/processo.
+- conexão: mesmo objeto OU mesma causa de pedir.
+- continência: uma engloba a outra.
+- nenhum: sem relação relevante.
+
+PROCESSO-ALVO:
+Nº ${alvo.numero || "-"} | Classe: ${alvo.classe || "-"} | Assunto: ${alvo.assunto || "-"}
+Autor(es): ${alvo.autor || "-"} | Réu(s): ${alvo.reu || "-"}
+
+CANDIDATOS:
+${candidatos.map((c, i) => `${i + 1}. Nº ${c.numero} | Classe: ${c.classe || "-"} | Assunto: ${c.assunto || "-"} | Autor: ${c.autor || "-"} | Réu: ${c.reu || "-"}`).join("\n")}`,
+};
