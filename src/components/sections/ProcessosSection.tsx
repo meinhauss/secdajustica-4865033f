@@ -1562,7 +1562,10 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   return (
     <div className="space-y-6">
       {/* Back button */}
-      <Button variant="ghost" size="sm" onClick={onBack} className="rounded-lg"><ArrowLeft className="h-4 w-4 mr-1" /> Voltar</Button>
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <Button variant="ghost" size="sm" onClick={onBack} className="rounded-lg"><ArrowLeft className="h-4 w-4 mr-1" /> Voltar</Button>
+        <AIResumoProcesso processo={processo} movimentacoes={movimentacoes} />
+      </div>
 
       {/* ═══ CABEÇALHO DO PROCESSO ═══ */}
       <div className="bg-card rounded-xl border border-border shadow-institutional overflow-hidden">
