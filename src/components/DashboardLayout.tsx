@@ -12,6 +12,7 @@ import logoMpsp from "@/assets/logo-mpsp.png";
 import logoOabsp from "@/assets/logo-oabsp.png";
 import NotificationBell from "@/components/NotificationBell";
 import CommandPalette, { type PaletteItem } from "@/components/CommandPalette";
+import AIChatbotInstitucional from "@/components/AIChatbotInstitucional";
 import { CURRENT_VERSION } from "@/lib/version";
 
 
@@ -243,6 +244,9 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
 
       {/* Command palette global — ⌘K / Ctrl+K + sequências "g <letra>" */}
       <CommandPalette items={paletteItems} onSelect={onSectionChange} />
+
+      {/* Vade MeCum — assistente flutuante global */}
+      <AIChatbotInstitucional />
     </div>
   );
 }

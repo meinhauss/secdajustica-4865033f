@@ -1,5 +1,4 @@
 import { useState } from "react";
-import AIChatbotInstitucional from "@/components/AIChatbotInstitucional";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
@@ -188,7 +187,7 @@ export default function ConsultaPublicaSection() {
 
   return (
     <div className="space-y-6">
-      <AIChatbotInstitucional />
+      
       <div>
         <h2 className="font-display text-2xl font-bold text-foreground">Consulta de Credenciais</h2>
         <p className="text-sm text-muted-foreground">
