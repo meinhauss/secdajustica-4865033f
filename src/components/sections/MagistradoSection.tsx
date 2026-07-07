@@ -1492,6 +1492,10 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               </SelectContent>
             </Select>
             <Input placeholder="Ementa (opcional)" value={sentencaForm.ementa} onChange={(e) => setSentencaForm({ ...sentencaForm, ementa: e.target.value })} className="rounded-xl" />
+            <div className="flex justify-end gap-2">
+              <ModeloPicker categoria="sentenca" context={modeloCtx} label="Modelo p/ fundamentação" onInsert={(t) => setSentencaForm(f => ({ ...f, fundamentacao: appendHtml(f.fundamentacao, textoToHtml(t)) }))} />
+              <ModeloPicker categoria="sentenca" context={modeloCtx} label="Modelo p/ dispositivo" onInsert={(t) => setSentencaForm(f => ({ ...f, dispositivo: appendHtml(f.dispositivo, textoToHtml(t)) }))} />
+            </div>
             <RichTextEditor placeholder="Fundamentação jurídica..." value={sentencaForm.fundamentacao} onChange={(html) => setSentencaForm({ ...sentencaForm, fundamentacao: html })} minHeight="200px" />
             <RichTextEditor placeholder="Dispositivo (decisão)..." value={sentencaForm.dispositivo} onChange={(html) => setSentencaForm({ ...sentencaForm, dispositivo: html })} minHeight="140px" />
             <Button type="submit" disabled={proferirSentenca.isPending} className="rounded-xl bg-gold hover:bg-gold/90 text-foreground">
