@@ -2645,7 +2645,7 @@ function InfoCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-function AddMovimentacao({ roles, onAdd }: { roles: string[]; onAdd: (tipo: string, desc: string) => void }) {
+function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles: string[]; onAdd: (tipo: string, desc: string) => void; processo?: any; juizNome?: string | null; userNome?: string | null }) {
   const [open, setOpen] = useState(false);
   const [desc, setDesc] = useState("");
   const [anexos, setAnexos] = useState<{ nome: string; url: string }[]>([]);
