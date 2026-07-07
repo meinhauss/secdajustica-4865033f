@@ -172,6 +172,10 @@ export default function AIFerramentas({ processo, movimentacoes }: Props) {
           <DropdownMenuLabel>Análise</DropdownMenuLabel>
           <DropdownMenuItem onClick={() => abrir("prazos")}><AlertTriangle className="h-4 w-4 mr-2" /> Checar prazos e riscos</DropdownMenuItem>
           <DropdownMenuItem onClick={() => abrir("fundamentacao")}><BookOpen className="h-4 w-4 mr-2" /> Sugerir fundamentação</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => abrir("triagem")}><Inbox className="h-4 w-4 mr-2" /> Triagem de petição</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => abrir("extracao")}><FileSearch className="h-4 w-4 mr-2" /> Extrair dados de PDF</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => abrir("comparar")}><GitCompare className="h-4 w-4 mr-2" /> Comparar peças</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => abrir("duplicidade")}><Copyright className="h-4 w-4 mr-2" /> Detectar duplicidade</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
