@@ -20,6 +20,8 @@ import TCOSection from "@/components/sections/TCOSection";
 import JuradosSection from "@/components/sections/JuradosSection";
 import ModelosSection from "@/components/sections/ModelosSection";
 import { ListSkeleton } from "@/components/ui/list-skeleton";
+import { useGlobalShortcuts, SHORTCUTS_LIST } from "@/hooks/useGlobalShortcuts";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 // Seções pesadas — carregadas sob demanda
 const TribunalSection = lazy(() => import("@/components/sections/TribunalSection"));
