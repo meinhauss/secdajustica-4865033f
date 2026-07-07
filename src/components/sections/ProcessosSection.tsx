@@ -28,6 +28,7 @@ import ModeloPicker from "@/components/ModeloPicker";
 import { extrairNomes } from "@/lib/modelosVars";
 import { useDraft } from "@/hooks/useDraft";
 import { agendarPrazoAutomatico, getPrazoAutomatico } from "@/lib/prazosAutomaticos";
+import { getChecklist } from "@/lib/checklists";
 
 /* ─── Currency helpers ─── */
 const formatCurrency = (value: string) => {
