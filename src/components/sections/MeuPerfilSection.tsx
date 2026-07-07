@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { User, Save, Loader2, Camera } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { formatTelefoneIngame } from "@/lib/formatPhone";
 
 function cropToSquare(file: File): Promise<Blob> {
   return new Promise((resolve, reject) => {
