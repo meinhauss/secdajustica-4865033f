@@ -347,3 +347,73 @@ function Bloco({ titulo, children }: { titulo: string; children: React.ReactNode
     </div>
   );
 }
+
+function TriagemView({ data }: { data: any }) {
+  const filaCor = data.fila === "liminar" ? "bg-destructive/10 text-destructive" : data.fila === "urgente" ? "bg-orange-500/10 text-orange-600" : "bg-muted text-foreground";
+  return (
+    <div className="space-y-3 text-sm">
+      <div className="flex gap-2 flex-wrap">
+        <span className={`px-2 py-1 rounded-lg text-xs font-semibold uppercase ${filaCor}`}>Fila: {data.fila}</span>
+        <span className="px-2 py-1 rounded-lg text-xs font-semibold uppercase bg-muted">Prioridade: {data.prioridade}</span>
+        {data.tipo && <span className="px-2 py-1 rounded-lg text-xs bg-muted">{data.tipo}</span>}
+      </div>
+      {data.resumo && <Bloco titulo="Resumo"><p className="text-sm">{data.resumo}</p></Bloco>}
+      {data.justificativa && <Bloco titulo="Justificativa"><p className="text-sm">{data.justificativa}</p></Bloco>}
+      {data.prazoSugerido && <Bloco titulo="Prazo sugerido"><p className="text-sm">{data.prazoSugerido}</p></Bloco>}
+      {data.pedidos?.length > 0 && <Bloco titulo="Pedidos"><ul className="list-disc pl-5 text-sm space-y-1">{data.pedidos.map((p: string, i: number) => <li key={i}>{p}</li>)}</ul></Bloco>}
+    </div>
+  );
+}
+
+function ExtracaoView({ data }: { data: any }) {
+  const secoes: { titulo: string; itens: any[]; render: (x: any) => string }[] = [
+    { titulo: "Valores", itens: data.valores || [], render: (x) => `${x.descricao}: ${x.valor}` },
+    { titulo: "CPFs", itens: data.cpfs || [], render: (x) => `${x.nome} — ${x.cpf}` },
+    { titulo: "CNPJs", itens: data.cnpjs || [], render: (x) => `${x.nome} — ${x.cnpj}` },
+    { titulo: "Datas", itens: data.datas || [], render: (x) => `${x.descricao}: ${x.data}` },
+    { titulo: "Endereços", itens: data.enderecos || [], render: (x) => `${x.parte}: ${x.endereco}` },
+    { titulo: "Pedidos", itens: data.pedidos || [], render: (x) => x },
+    { titulo: "Outros", itens: data.outros || [], render: (x) => `${x.campo}: ${x.valor}` },
+  ];
+  return (
+    <div className="space-y-3 text-sm">
+      {data.partes && (
+        <Bloco titulo="Partes">
+          <p className="text-xs"><strong>Autor(es):</strong> {(data.partes.autores || []).join(", ") || "—"}</p>
+          <p className="text-xs"><strong>Réu(s):</strong> {(data.partes.reus || []).join(", ") || "—"}</p>
+        </Bloco>
+      )}
+      {secoes.filter(s => s.itens.length > 0).map(s => (
+        <Bloco key={s.titulo} titulo={s.titulo}>
+          <ul className="list-disc pl-5 space-y-0.5 text-xs">
+            {s.itens.map((it, i) => <li key={i}>{s.render(it)}</li>)}
+          </ul>
+        </Bloco>
+      ))}
+      <p className="text-[10px] text-muted-foreground">⚠️ Dados extraídos por IA — confira antes de preencher.</p>
+    </div>
+  );
+}
+
+function DuplicidadeView({ data }: { data: any }) {
+  const resultados = (data.resultados || []).filter((r: any) => r.tipo !== "nenhum");
+  if (resultados.length === 0) return <p className="text-sm text-muted-foreground">Nenhuma duplicidade ou conexão detectada nos processos analisados.</p>;
+  const cor = (t: string) => t === "duplicidade" ? "text-destructive" : t === "litispendencia" ? "text-destructive" : t === "conexao" ? "text-orange-600" : "text-foreground";
+  return (
+    <div className="space-y-2 text-sm">
+      {resultados.map((r: any, i: number) => (
+        <div key={i} className="border border-border rounded-xl p-3">
+          <div className="flex justify-between items-center gap-2 flex-wrap">
+            <span className="font-mono text-xs">{r.numero}</span>
+            <div className="flex gap-2">
+              <span className={`text-xs font-semibold uppercase ${cor(r.tipo)}`}>{r.tipo}</span>
+              <span className="text-xs text-muted-foreground">Similaridade: {r.similaridade}%</span>
+            </div>
+          </div>
+          <p className="text-xs mt-1 text-muted-foreground">{r.motivo}</p>
+        </div>
+      ))}
+      <p className="text-[10px] text-muted-foreground">⚠️ Análise assistida por IA — confirme manualmente antes de reunir/redistribuir os processos.</p>
+    </div>
+  );
+}
