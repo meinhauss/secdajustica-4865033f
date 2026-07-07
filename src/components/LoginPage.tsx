@@ -260,7 +260,7 @@ export default function LoginPage() {
 
 function TabInicio({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
   const cards = [
-  { icon: FileText, title: "Consulta Processual", desc: "Acompanhe processos judiciais em andamento na Comarca.", action: "Consultar", tab: "login" as Tab },
+  { icon: FileText, title: "Consulta de Processos", desc: "Acompanhe processos judiciais em andamento na Comarca (requer login).", action: "Consultar", tab: "login" as Tab },
   { icon: Stamp, title: "Cartório Civil", desc: "Certidões de nascimento, casamento, óbito, escrituras e mais.", action: "Saiba Mais", tab: "login" as Tab },
   { icon: Scale, title: "Ministério Público", desc: "Portal do Ministério Público para denúncias e pareceres.", action: "Acessar", tab: "login" as Tab },
   { icon: GraduationCap, title: "Concursos Públicos", desc: "Editais abertos, inscrições e resultados de concursos.", action: "Ver Editais", tab: "concursos" as Tab },
