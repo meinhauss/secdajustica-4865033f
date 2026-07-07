@@ -815,6 +815,7 @@ export default function CartorarioSection() {
               <Button onClick={() => setShowNovoRegistro(true)}>
                 <Plus className="h-4 w-4 mr-1" /> Nova Solicitação
               </Button>
+              <AIProcuracaoCertidao />
             </div>
           )}
 
