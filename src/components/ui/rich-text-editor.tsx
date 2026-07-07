@@ -231,6 +231,38 @@ export function RichTextEditor({
         )}
         <EditorContent editor={editor} />
       </div>
+      {smart && varMenu.open && varsFiltradas.length > 0 && (
+        <div
+          className="absolute z-50 min-w-[220px] rounded-md border border-border bg-popover shadow-lg py-1 text-sm"
+          style={{ top: varMenu.top, left: varMenu.left }}
+        >
+          <div className="px-2 py-1 text-[10px] uppercase tracking-wide text-muted-foreground">Variáveis</div>
+          {varsFiltradas.slice(0, 8).map((v, i) => (
+            <button
+              key={v.key}
+              type="button"
+              onMouseDown={(e) => { e.preventDefault(); insertVariable(v.key); }}
+              onMouseEnter={() => setVarIdx(i)}
+              className={cn(
+                "w-full text-left px-3 py-1.5 hover:bg-accent",
+                i === varIdx && "bg-accent"
+              )}
+            >
+              <span className="font-mono text-xs text-primary">{`{{${v.key}}}`}</span>
+              <span className="ml-2 text-muted-foreground text-xs">{v.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {smart && (
+        <div className="border-t border-border bg-muted/20 px-2 py-1 text-[10px] text-muted-foreground flex flex-wrap gap-x-3 gap-y-0.5">
+          <span className="font-medium">Atalhos:</span>
+          {SNIPPETS_INFO.slice(0, 6).map((s) => (
+            <span key={s.atalho}><code className="font-mono">{s.atalho}</code> {s.descricao}</span>
+          ))}
+          <span>· digite <code className="font-mono">{`{{`}</code> para variáveis</span>
+        </div>
+      )}
     </div>
   );
 }
