@@ -1190,6 +1190,75 @@ export type Database = {
           },
         ]
       }
+      modelos_documentos: {
+        Row: {
+          cargos: string[]
+          categoria: string
+          conteudo: string
+          created_at: string
+          created_by: string | null
+          descricao: string | null
+          id: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          cargos?: string[]
+          categoria: string
+          conteudo: string
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          id?: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          cargos?: string[]
+          categoria?: string
+          conteudo?: string
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          id?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      modelos_favoritos: {
+        Row: {
+          categoria: string | null
+          conteudo: string
+          created_at: string
+          descricao: string | null
+          id: string
+          titulo: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          categoria?: string | null
+          conteudo: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          titulo: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          categoria?: string | null
+          conteudo?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          titulo?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       movimentacoes: {
         Row: {
           autor_id: string | null
