@@ -34,6 +34,16 @@ export default function AIFerramentas({ processo, movimentacoes }: Props) {
   const [docFinalidade, setDocFinalidade] = useState("");
   const [prazosJson, setPrazosJson] = useState<any>(null);
   const [tema, setTema] = useState("");
+  // Fase 3
+  const [pecaInput, setPecaInput] = useState("");
+  const [pecaA, setPecaA] = useState("");
+  const [pecaB, setPecaB] = useState("");
+  const [rotuloA, setRotuloA] = useState("Contestação");
+  const [rotuloB, setRotuloB] = useState("Réplica");
+  const [extracaoJson, setExtracaoJson] = useState<any>(null);
+  const [triagemJson, setTriagemJson] = useState<any>(null);
+  const [duplicidadeJson, setDuplicidadeJson] = useState<any>(null);
+  const [buscandoDup, setBuscandoDup] = useState(false);
 
   const ctx = () => ({
     numero: processo?.numero,
