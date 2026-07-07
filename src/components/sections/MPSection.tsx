@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { ListSkeleton } from "@/components/ui/list-skeleton";
 import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -142,7 +143,7 @@ function PromotorRanking() {
     procurador_geral: "Procurador(a)-Geral",
   };
 
-  if (isLoading) return <div className="text-center py-8 text-muted-foreground">Carregando ranking...</div>;
+  if (isLoading) return <ListSkeleton rows={5} />;
   if (!ranking?.length) return <EmptyState icon={Scale} text="Nenhum promotor com atividade registrada." />;
 
   return (

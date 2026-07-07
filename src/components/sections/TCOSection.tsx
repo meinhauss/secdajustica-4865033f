@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ListSkeleton } from "@/components/ui/list-skeleton";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -637,10 +638,7 @@ export default function TCOSection() {
       </div>
 
       {isLoading ? (
-        <div className="text-center py-8">
-          <div className="w-6 h-6 border-2 border-institutional border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground">Carregando...</p>
-        </div>
+        <ListSkeleton rows={5} />
       ) : filteredTcos.length === 0 ? (
         <div className="text-center py-12">
           <FileText className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />

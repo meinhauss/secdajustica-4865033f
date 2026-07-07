@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ListSkeleton } from "@/components/ui/list-skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -164,10 +165,7 @@ export default function MeusProcessosSection({ onOpenProcesso }: MeusProcessosSe
 
       {/* List */}
       {isLoading ? (
-        <div className="text-center py-12">
-          <div className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-sm text-muted-foreground">Carregando seus processos...</p>
-        </div>
+        <ListSkeleton rows={5} />
       ) : !filtered?.length ? (
         <div className="text-center py-12 bg-card rounded-xl border border-border">
           <Scale className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
