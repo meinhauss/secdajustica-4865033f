@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import AIProcuracaoCertidao from "@/components/AIProcuracaoCertidao";
 import { ListSkeleton } from "@/components/ui/list-skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
