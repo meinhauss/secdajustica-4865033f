@@ -247,3 +247,109 @@ Autor(es): ${alvo.autor || "-"} | Réu(s): ${alvo.reu || "-"}
 CANDIDATOS:
 ${candidatos.map((c, i) => `${i + 1}. Nº ${c.numero} | Classe: ${c.classe || "-"} | Assunto: ${c.assunto || "-"} | Autor: ${c.autor || "-"} | Réu: ${c.reu || "-"}`).join("\n")}`,
 };
+
+// ═══════════ Prompts – Fase 4 ═══════════
+
+export const PROMPTS_FASE4 = {
+  buscaSemanticaProcessos: (
+    consulta: string,
+    candidatos: { numero: string; classe?: string; assunto?: string; autor?: string; reu?: string; status?: string }[],
+  ) =>
+    `Ranqueie os processos candidatos por RELEVÂNCIA SEMÂNTICA em relação à consulta do usuário. Considere partes, classe, assunto e temas jurídicos implícitos. Devolva JSON estrito:
+{"resultados":[{"numero":"...","relevancia":0-100,"motivo":"..."}]}
+
+Ordene do mais relevante para o menos. Inclua apenas processos com relevancia >= 30. Se nenhum for relevante, devolva {"resultados":[]}.
+
+CONSULTA: ${consulta}
+
+CANDIDATOS:
+${candidatos.map((c, i) => `${i + 1}. Nº ${c.numero} | Classe: ${c.classe || "-"} | Assunto: ${c.assunto || "-"} | Autor: ${c.autor || "-"} | Réu: ${c.reu || "-"} | Status: ${c.status || "-"}`).join("\n")}`,
+
+  chatbotInstitucional: (comarcaContexto: string) =>
+    `Você é o assistente institucional público da ${comarcaContexto || "Comarca"}. Responda dúvidas de cidadãos sobre:
+- Como consultar processos (públicos vs. em segredo de justiça).
+- Serviços da Ouvidoria, cartório, atendimento ao público.
+- Horários, endereços e canais de contato oficiais (só informe se souber; caso contrário, oriente procurar o site oficial).
+- Orientações gerais sobre direitos (sem dar consultoria jurídica personalizada).
+- Como localizar advogado, defensor público, MP, delegacia.
+
+REGRAS:
+- Tom cordial, claro, sem juridiquês.
+- NÃO faça consultoria jurídica individual — sempre recomende procurar advogado(a) ou Defensoria.
+- NÃO invente endereços, telefones ou datas.
+- NÃO acesse dados de processos sigilosos.
+- Se a pergunta for fora do escopo, oriente para o canal correto.`,
+
+  qaModelos: (
+    pergunta: string,
+    modelos: { id: string; titulo: string; categoria?: string; descricao?: string }[],
+  ) =>
+    `O usuário precisa de um modelo de documento jurídico. Analise a pergunta e recomende os modelos mais adequados da biblioteca abaixo. Devolva JSON estrito:
+{"recomendacoes":[{"id":"...","titulo":"...","porque":"..."}],"observacao":"..."}
+
+Inclua no máximo 5 recomendações, ordenadas por adequação. Se nenhum modelo servir, devolva recomendacoes=[] e explique em observacao o que faltou.
+
+PERGUNTA: ${pergunta}
+
+MODELOS DISPONÍVEIS:
+${modelos.map((m) => `- id=${m.id} | ${m.titulo}${m.categoria ? ` [${m.categoria}]` : ""}${m.descricao ? ` — ${m.descricao.slice(0, 200)}` : ""}`).join("\n")}`,
+
+  procuracaoCartorio: (dados: {
+    outorgante?: string; outorganteCpf?: string; outorganteEndereco?: string;
+    outorgado?: string; outorgadoOab?: string;
+    poderes?: string; finalidade?: string;
+  }) =>
+    `Gere PROCURAÇÃO AD JUDICIA ET EXTRA em português formal, estrutura oficial (qualificação do outorgante, do outorgado, cláusula de poderes, cláusula ad judicia, foro, data, assinatura). Use [colchetes] para dados faltantes.
+
+Outorgante: ${dados.outorgante || "[nome]"} — CPF ${dados.outorganteCpf || "[cpf]"} — ${dados.outorganteEndereco || "[endereço]"}
+Outorgado(a): ${dados.outorgado || "[advogado]"} — OAB ${dados.outorgadoOab || "[oab]"}
+Poderes específicos: ${dados.poderes || "poderes gerais da cláusula ad judicia et extra"}
+Finalidade: ${dados.finalidade || "[finalidade]"}
+
+Devolva APENAS o texto da procuração, sem markdown.`,
+
+  certidaoDistribuicao: (dados: {
+    nome?: string; cpf?: string; periodo?: string; resultado?: "nada_consta" | "consta";
+    processos?: { numero: string; classe?: string; status?: string }[];
+  }) =>
+    `Gere CERTIDÃO DE DISTRIBUIÇÃO em português formal, estrutura oficial (cabeçalho do cartório, qualificação, período, resultado, fecho com data e assinatura do escrevente). Use [colchetes] para dados faltantes.
+
+Requerente: ${dados.nome || "[nome]"} — CPF ${dados.cpf || "[cpf]"}
+Período pesquisado: ${dados.periodo || "[período]"}
+Resultado: ${dados.resultado === "consta" ? "CONSTA distribuição" : "NADA CONSTA"}
+${dados.processos?.length ? `Processos localizados:\n${dados.processos.map((p, i) => `${i + 1}. ${p.numero} — ${p.classe || "-"} — ${p.status || "-"}`).join("\n")}` : ""}
+
+Devolva APENAS o texto da certidão, sem markdown.`,
+
+  resumoSemanalGabinete: (dados: {
+    nome?: string; cargo?: string; periodo: string;
+    processos?: { numero: string; status?: string; atrasado?: boolean }[];
+    movimentacoesSemana?: { tipo: string; total: number }[];
+    pendencias?: { descricao: string; prazo?: string }[];
+    audiencias?: { data: string; processo: string }[];
+  }) =>
+    `Gere um RESUMO SEMANAL DE GABINETE em português, formato executivo (markdown), para ${dados.nome || "o(a) magistrado(a)"}${dados.cargo ? ` (${dados.cargo})` : ""}. Período: ${dados.periodo}.
+
+Estrutura:
+**📊 Produtividade**
+- Total de processos ativos, atos praticados na semana (por tipo), destaque.
+
+**⚠️ Pendências críticas**
+- Prazos vencidos/iminentes, processos parados.
+
+**📅 Semana seguinte**
+- Audiências agendadas, prazos que vencem.
+
+**🎯 Destaques**
+- 1-3 pontos positivos.
+
+**💡 Sugestões de foco**
+- 2-3 recomendações objetivas.
+
+Não invente números. Use apenas os dados fornecidos:
+
+Processos ativos (amostra): ${dados.processos?.length || 0} processos${dados.processos?.filter(p => p.atrasado).length ? `, ${dados.processos.filter(p => p.atrasado).length} atrasados` : ""}.
+Movimentações da semana: ${(dados.movimentacoesSemana || []).map(m => `${m.tipo}=${m.total}`).join(", ") || "nenhuma"}.
+Pendências: ${(dados.pendencias || []).map(p => `${p.descricao}${p.prazo ? ` (${p.prazo})` : ""}`).join("; ") || "nenhuma"}.
+Audiências: ${(dados.audiencias || []).map(a => `${a.data} — ${a.processo}`).join("; ") || "nenhuma"}.`,
+};
