@@ -1574,6 +1574,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         <div className="flex items-center gap-2 flex-wrap">
           <AIResumoProcesso processo={processo} movimentacoes={movimentacoes} />
           <AIClassificarPeticao />
+          <AIFerramentas processo={processo} movimentacoes={movimentacoes} />
           <AIAssistente processo={processo} movimentacoes={movimentacoes} />
         </div>
       </div>
