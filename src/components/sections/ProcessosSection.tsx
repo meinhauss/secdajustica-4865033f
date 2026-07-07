@@ -2658,6 +2658,12 @@ function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles
   const [novoAnexoUrl, setNovoAnexoUrl] = useState("");
   const [showInstrucoes, setShowInstrucoes] = useState(false);
 
+  useEffect(() => {
+    const h = () => setOpen(true);
+    window.addEventListener("shortcut:nova-movimentacao", h);
+    return () => window.removeEventListener("shortcut:nova-movimentacao", h);
+  }, []);
+
   const isJudicial = roles.some((r) => ["admin", "presidente_tribunal"].includes(r));
   const isMP = roles.includes("ministerio_publico");
   const isAdvogado = roles.includes("advogado");

@@ -20,6 +20,8 @@ import TCOSection from "@/components/sections/TCOSection";
 import JuradosSection from "@/components/sections/JuradosSection";
 import ModelosSection from "@/components/sections/ModelosSection";
 import { ListSkeleton } from "@/components/ui/list-skeleton";
+import { useGlobalShortcuts, SHORTCUTS_LIST } from "@/hooks/useGlobalShortcuts";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 // Seções pesadas — carregadas sob demanda
 const TribunalSection = lazy(() => import("@/components/sections/TribunalSection"));
@@ -36,6 +38,18 @@ const Index = () => {
   const { user, loading, profile, roles } = useAuth();
   const [activeSection, setActiveSection] = useState("dashboard");
   const [openProcessoId, setOpenProcessoId] = useState<string | null>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
+
+  useGlobalShortcuts((section) => {
+    if (section !== "processos") setOpenProcessoId(null);
+    setActiveSection(section);
+  });
+
+  useEffect(() => {
+    const h = () => setHelpOpen(true);
+    window.addEventListener("shortcut:show-help", h);
+    return () => window.removeEventListener("shortcut:show-help", h);
+  }, []);
 
   // Aviso de foto de perfil para advogados+
   useEffect(() => {
@@ -114,9 +128,29 @@ const Index = () => {
   };
 
   return (
-    <DashboardLayout activeSection={activeSection} onSectionChange={(s) => { if (s !== "processos") setOpenProcessoId(null); setActiveSection(s); }} onNavigateToProcesso={(id) => { setOpenProcessoId(id); setActiveSection("processos"); }}>
-      {renderSection()}
-    </DashboardLayout>
+    <>
+      <DashboardLayout activeSection={activeSection} onSectionChange={(s) => { if (s !== "processos") setOpenProcessoId(null); setActiveSection(s); }} onNavigateToProcesso={(id) => { setOpenProcessoId(id); setActiveSection("processos"); }}>
+        {renderSection()}
+      </DashboardLayout>
+      <Dialog open={helpOpen} onOpenChange={setHelpOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Atalhos de teclado</DialogTitle>
+          </DialogHeader>
+          <ul className="space-y-2 mt-2 text-sm">
+            {SHORTCUTS_LIST.map((s) => (
+              <li key={s.keys} className="flex items-center justify-between">
+                <span className="text-muted-foreground">{s.desc}</span>
+                <kbd className="px-2 py-1 rounded bg-muted font-mono text-xs">{s.keys}</kbd>
+              </li>
+            ))}
+          </ul>
+          <p className="text-xs text-muted-foreground mt-3">
+            Digite as teclas em sequência (ex.: pressione <kbd>g</kbd> e depois <kbd>p</kbd>). Atalhos são ignorados em campos de texto.
+          </p>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
