@@ -1,7 +1,7 @@
 // deno-lint-ignore-file no-explicit-any
-// Edge function: única origem de chamadas ao Google Gemini.
-// Recebe requisições padronizadas do GeminiService (frontend) e devolve AIResponse.
-import { GoogleGenAI } from "npm:@google/genai@^1.0.0";
+// Edge function: única origem de chamadas ao modelo Gemini via Lovable AI Gateway.
+// Migrado de Google Gemini direto → Lovable AI Gateway para eliminar quotas de free-tier
+// e permitir fallback automático. Mantém contrato de resposta (AIResponse) do frontend.
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -9,6 +9,7 @@ const CORS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const DEFAULT_TIMEOUT = 60_000;
 const MAX_RETRIES = 2;
 const RETRY_BASE = 800;
@@ -18,7 +19,6 @@ interface Options {
   model?: string;
   temperature?: number;
   topP?: number;
-  topK?: number;
   maxOutputTokens?: number;
   systemInstruction?: string;
   responseSchema?: Record<string, unknown>;
@@ -38,16 +38,12 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   });
 }
 
-function isRetriable(err: unknown): boolean {
-  const msg = err instanceof Error ? err.message.toLowerCase() : String(err).toLowerCase();
-  return (
-    msg.includes("timeout") ||
-    msg.includes("503") ||
-    msg.includes("500") ||
-    msg.includes("429") ||
-    msg.includes("network") ||
-    msg.includes("fetch")
-  );
+// Mapeia modelos "gemini-*" (legado) para os ids do gateway ("google/gemini-*").
+function normalizeModel(input?: string): string {
+  const m = (input || "gemini-2.5-flash").trim();
+  if (m.startsWith("google/") || m.startsWith("openai/") || m.startsWith("anthropic/")) return m;
+  if (m.startsWith("gemini-")) return `google/${m}`;
+  return `google/${m}`;
 }
 
 Deno.serve(async (req: Request) => {
@@ -56,13 +52,13 @@ Deno.serve(async (req: Request) => {
     return new Response("Method not allowed", { status: 405, headers: CORS });
   }
 
-  const apiKey = Deno.env.get("GEMINI_API_KEY");
+  const apiKey = Deno.env.get("LOVABLE_API_KEY");
   if (!apiKey) {
     return json({
       ok: false,
       data: "",
-      error: { code: "no_api_key", message: "GEMINI_API_KEY não configurada.", retriable: false },
-    }, 500);
+      error: { code: "no_api_key", message: "LOVABLE_API_KEY não configurada.", retriable: false },
+    }, 200);
   }
 
   let body: Body;
@@ -80,65 +76,90 @@ Deno.serve(async (req: Request) => {
   }
 
   const opts = body.options || {};
-  const model = opts.model || "gemini-2.5-flash";
+  const model = normalizeModel(opts.model);
   const systemInstruction =
     opts.systemInstruction ||
     body.messages?.find((m) => m.role === "system")?.content;
 
-  // Monta contents no formato do SDK.
-  const contents = body.messages
-    ? body.messages
-        .filter((m) => m.role !== "system")
-        .map((m) => ({ role: m.role === "model" ? "model" : "user", parts: [{ text: m.content }] }))
-    : [{ role: "user", parts: [{ text: body.prompt! }] }];
+  // Converte "model" (Gemini) → "assistant" (OpenAI-compat) e injeta system.
+  const chatMessages: { role: "system" | "user" | "assistant"; content: string }[] = [];
+  if (systemInstruction) chatMessages.push({ role: "system", content: systemInstruction });
+  if (body.messages?.length) {
+    for (const m of body.messages) {
+      if (m.role === "system") continue;
+      chatMessages.push({ role: m.role === "model" ? "assistant" : "user", content: m.content });
+    }
+  } else if (body.prompt) {
+    chatMessages.push({ role: "user", content: body.prompt });
+  }
 
-  const genAI = new GoogleGenAI({ apiKey });
-
-  const generationConfig: Record<string, unknown> = {
+  const payload: Record<string, unknown> = {
+    model,
+    messages: chatMessages,
     temperature: opts.temperature ?? 0.7,
-    topP: opts.topP ?? 0.95,
-    topK: opts.topK ?? 40,
-    maxOutputTokens: opts.maxOutputTokens ?? 8192,
+    top_p: opts.topP ?? 0.95,
+    max_tokens: opts.maxOutputTokens ?? 8192,
   };
   if (opts.responseSchema) {
-    generationConfig.responseMimeType = "application/json";
-    generationConfig.responseSchema = opts.responseSchema;
+    payload.response_format = { type: "json_object" };
   }
 
   const started = Date.now();
   let lastErr: unknown = null;
+  let lastStatus = 0;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
-      const result: any = await withTimeout(
-        genAI.models.generateContent({
-          model,
-          contents,
-          config: {
-            ...generationConfig,
-            ...(systemInstruction ? { systemInstruction } : {}),
+      const res = await withTimeout(
+        fetch(GATEWAY_URL, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
           },
+          body: JSON.stringify(payload),
         }),
         DEFAULT_TIMEOUT,
       );
+      lastStatus = res.status;
 
-      const text: string =
-        result?.text ??
-        result?.response?.text?.() ??
-        result?.candidates?.[0]?.content?.parts?.map((p: any) => p.text || "").join("") ??
-        "";
+      if (res.status === 429 || res.status === 402 || res.status >= 500) {
+        const errText = await res.text().catch(() => "");
+        lastErr = new Error(`gateway ${res.status}: ${errText.slice(0, 300)}`);
+        console.error(`[gemini] op=${body.operation} attempt=${attempt} status=${res.status}`);
+        if (attempt === MAX_RETRIES) break;
+        await new Promise((r) => setTimeout(r, RETRY_BASE * Math.pow(2, attempt)));
+        continue;
+      }
+
+      if (!res.ok) {
+        const errText = await res.text().catch(() => "");
+        return json({
+          ok: false,
+          data: "",
+          model,
+          provider: "lovable-ai",
+          operation: body.operation,
+          cached: false,
+          latencyMs: Date.now() - started,
+          error: { code: `gateway_${res.status}`, message: errText.slice(0, 500), retriable: false },
+        }, 200);
+      }
+
+      const result: any = await res.json();
+      const text: string = result?.choices?.[0]?.message?.content ?? "";
 
       let parsedJson: unknown = undefined;
       if (opts.responseSchema && text) {
         try { parsedJson = JSON.parse(text); } catch { /* keep raw */ }
       }
 
-      const usageMeta = result?.usageMetadata || result?.response?.usageMetadata;
-      const usage = usageMeta
+      const u = result?.usage;
+      const usage = u
         ? {
-            promptTokens: usageMeta.promptTokenCount ?? 0,
-            outputTokens: usageMeta.candidatesTokenCount ?? 0,
-            totalTokens: usageMeta.totalTokenCount ?? 0,
+            promptTokens: u.prompt_tokens ?? 0,
+            outputTokens: u.completion_tokens ?? 0,
+            totalTokens: u.total_tokens ?? 0,
           }
         : undefined;
 
@@ -149,7 +170,7 @@ Deno.serve(async (req: Request) => {
         data: text,
         json: parsedJson,
         model,
-        provider: "gemini",
+        provider: "lovable-ai",
         operation: body.operation,
         usage,
         cached: false,
@@ -159,22 +180,36 @@ Deno.serve(async (req: Request) => {
       lastErr = err;
       const msg = err instanceof Error ? err.message : String(err);
       console.error(`[gemini] op=${body.operation} attempt=${attempt} err=${msg}`);
-      if (!isRetriable(err) || attempt === MAX_RETRIES) break;
+      if (attempt === MAX_RETRIES) break;
       await new Promise((r) => setTimeout(r, RETRY_BASE * Math.pow(2, attempt)));
     }
   }
 
   const message = lastErr instanceof Error ? lastErr.message : String(lastErr);
+  const isRateLimit = lastStatus === 429;
+  const isPayment = lastStatus === 402;
+  const friendly = isRateLimit
+    ? "Muitas requisições no momento — aguarde alguns instantes e tente novamente."
+    : isPayment
+      ? "Créditos de IA esgotados no workspace. Adicione créditos para continuar."
+      : "Serviço de IA indisponível no momento. Tente novamente em instantes.";
+
+  // Retorna 200 para não quebrar o cliente com blank screen; o frontend usa `ok:false` + `data:""`.
   return json({
     ok: false,
     data: "",
     model,
-    provider: "gemini",
+    provider: "lovable-ai",
     operation: body.operation,
     cached: false,
     latencyMs: Date.now() - started,
-    error: { code: "gemini_error", message, retriable: isRetriable(lastErr) },
-  }, 502);
+    error: {
+      code: isRateLimit ? "rate_limited" : isPayment ? "payment_required" : "gateway_error",
+      message: friendly,
+      detail: message.slice(0, 500),
+      retriable: isRateLimit || lastStatus >= 500,
+    },
+  }, 200);
 });
 
 function json(payload: unknown, status = 200): Response {
