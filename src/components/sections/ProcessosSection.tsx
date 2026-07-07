@@ -35,6 +35,7 @@ import AIResumirTexto from "@/components/AIResumirTexto";
 import AIAssistente from "@/components/AIAssistente";
 import AIClassificarPeticao from "@/components/AIClassificarPeticao";
 import AISugerirDespacho from "@/components/AISugerirDespacho";
+import AIFerramentas from "@/components/AIFerramentas";
 import AIExplicarSelecao from "@/components/AIExplicarSelecao";
 
 /* ─── Currency helpers ─── */
