@@ -244,7 +244,7 @@ export default function LoginPage() {
           { id: "inicio", label: "Página Inicial" },
           { id: "institucional", label: "Institucional", desc: "sobre a Secretaria e a Comarca" },
           { id: "ouvidoria", label: "Ouvidoria do MP", desc: "denúncias ao Ministério Público, sem login" },
-          { id: "credencial", label: "Consultar Credencial", desc: "verificar carteira/credencial de servidor" },
+          { id: "credencial", label: "Consulta de Credenciais", desc: "verificar carteira/credencial de servidor, advogado, promotor, juiz (NÃO consulta processos)" },
           { id: "transparencia", label: "Transparência" },
           { id: "concursos", label: "Concursos Públicos" },
           { id: "unisp", label: "UNISP", desc: "inscrição na universidade da segurança pública" },
