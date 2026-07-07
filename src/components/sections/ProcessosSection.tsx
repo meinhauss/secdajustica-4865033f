@@ -28,6 +28,8 @@ import ModeloPicker from "@/components/ModeloPicker";
 import { extrairNomes } from "@/lib/modelosVars";
 import { useDraft } from "@/hooks/useDraft";
 import { agendarPrazoAutomatico, getPrazoAutomatico } from "@/lib/prazosAutomaticos";
+import { getChecklist } from "@/lib/checklists";
+import { cn } from "@/lib/utils";
 
 /* ─── Currency helpers ─── */
 const formatCurrency = (value: string) => {
@@ -2867,6 +2869,34 @@ function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles
               classe: processo?.classe,
             }}
           />
+
+          {/* Checklist do tipo */}
+          {(() => {
+            const items = getChecklist(tipo);
+            if (!items.length) return null;
+            const plain = (desc || "").replace(/<[^>]+>/g, " ");
+            return (
+              <div className="rounded-xl border border-border bg-muted/30 p-3">
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1">
+                  <CheckCircle className="h-3.5 w-3.5" /> Checklist ({tiposPermitidos.find(t => t.value === tipo)?.label})
+                </h4>
+                <ul className="space-y-1 text-sm">
+                  {items.map((it) => {
+                    const ok = it.regex ? it.regex.test(plain) : false;
+                    return (
+                      <li key={it.id} className={cn("flex items-start gap-2", ok ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground")}>
+                        <span className={cn("mt-0.5 h-4 w-4 rounded border flex items-center justify-center text-[10px]", ok ? "bg-emerald-500 border-emerald-500 text-white" : "border-border")}>
+                          {ok ? "✓" : ""}
+                        </span>
+                        <span>{it.label}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            );
+          })()}
+
 
           {/* Seção de Anexos */}
           <div className="space-y-3 border border-border rounded-xl p-3 bg-muted/30">
