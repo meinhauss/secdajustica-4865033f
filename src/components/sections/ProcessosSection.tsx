@@ -24,6 +24,8 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { normalizeRichText } from "@/lib/sanitize";
+import ModeloPicker from "@/components/ModeloPicker";
+import { extrairNomes } from "@/lib/modelosVars";
 
 /* ─── Currency helpers ─── */
 const formatCurrency = (value: string) => {
