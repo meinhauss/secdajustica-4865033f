@@ -72,7 +72,7 @@ export default function AIChatbotInstitucional({
   // Posição persistente do botão flutuante
   const posKey = "vademecum:pos";
   const [pos, setPos] = useState<{ side: "left" | "right"; y: number; hidden: boolean }>(() => {
-    if (typeof window === "undefined") return { side: "right", y: window?.innerHeight - 96 || 600, hidden: false };
+    if (typeof window === "undefined") return { side: "right" as const, y: 600, hidden: false };
     try {
       const raw = localStorage.getItem(posKey);
       if (raw) return JSON.parse(raw);
