@@ -13,7 +13,9 @@ import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/ui/toggle";
 import { cn } from "@/lib/utils";
 import { sanitizeRichHtml } from "@/lib/sanitize";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+import { aplicarVariaveis, VARIAVEIS_DISPONIVEIS, type ModeloContext } from "@/lib/modelosVars";
+import { SNIPPETS_PADRAO, SNIPPETS_INFO } from "@/lib/snippets";
 
 export interface RichTextEditorProps {
   value: string;
@@ -22,6 +24,12 @@ export interface RichTextEditorProps {
   className?: string;
   minHeight?: string;
   disabled?: boolean;
+  /** Habilita atalhos /desp, /sent etc. e autocompletar {{variavel}}. */
+  smart?: boolean;
+  /** Contexto para substituir variáveis dos snippets. */
+  context?: ModeloContext;
+  /** Snippets adicionais (mesclados aos padrão). Chave sem a barra. */
+  snippets?: Record<string, string>;
 }
 
 export function RichTextEditor({
@@ -31,7 +39,16 @@ export function RichTextEditor({
   className,
   minHeight = "120px",
   disabled,
+  smart,
+  context,
+  snippets,
 }: RichTextEditorProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [varMenu, setVarMenu] = useState<{ open: boolean; top: number; left: number; query: string; from: number }>(
+    { open: false, top: 0, left: 0, query: "", from: 0 }
+  );
+  const [varIdx, setVarIdx] = useState(0);
+  const snippetMap = { ...SNIPPETS_PADRAO, ...(snippets || {}) };
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
@@ -57,6 +74,43 @@ export function RichTextEditor({
       const html = sanitizeRichHtml(editor.getHTML());
       // Treat empty editor (just <p></p>) as empty string
       onChange(html === "<p></p>" ? "" : html);
+
+      if (!smart) return;
+
+      // Detectar padrão de variável: {{query
+      const { from } = editor.state.selection;
+      const $pos = editor.state.doc.resolve(from);
+      const textBefore = $pos.parent.textBetween(0, $pos.parentOffset, "\n", "\0");
+      const varMatch = textBefore.match(/\{\{(\w*)$/);
+      if (varMatch) {
+        const coords = editor.view.coordsAtPos(from);
+        const rect = containerRef.current?.getBoundingClientRect();
+        setVarMenu({
+          open: true,
+          top: coords.bottom - (rect?.top || 0) + 4,
+          left: coords.left - (rect?.left || 0),
+          query: varMatch[1],
+          from: from - varMatch[0].length,
+        });
+        setVarIdx(0);
+      } else if (varMenu.open) {
+        setVarMenu((v) => ({ ...v, open: false }));
+      }
+
+      // Detectar snippet: /atalho seguido de espaço
+      const snipMatch = textBefore.match(/(?:^|\s)\/(\w+)\s$/);
+      if (snipMatch) {
+        const key = snipMatch[1].toLowerCase();
+        const template = snippetMap[key];
+        if (template) {
+          const expanded = aplicarVariaveis(template, context || {});
+          const startDel = from - snipMatch[0].length + (snipMatch[0].startsWith(" ") ? 1 : 0);
+          editor.chain().focus()
+            .deleteRange({ from: startDel, to: from })
+            .insertContent(expanded.replace(/\n/g, "<br/>"))
+            .run();
+        }
+      }
     },
   });
 
@@ -70,12 +124,26 @@ export function RichTextEditor({
     }
   }, [value, editor]);
 
+  const varsFiltradas = smart
+    ? VARIAVEIS_DISPONIVEIS.filter((v) => v.key.toLowerCase().includes(varMenu.query.toLowerCase()))
+    : [];
+
+  const insertVariable = (key: string) => {
+    if (!editor) return;
+    editor.chain().focus()
+      .deleteRange({ from: varMenu.from, to: editor.state.selection.from })
+      .insertContent(`{{${key}}} `)
+      .run();
+    setVarMenu((v) => ({ ...v, open: false }));
+  };
+
   if (!editor) return null;
 
   return (
     <div
+      ref={containerRef}
       className={cn(
-        "rounded-xl border border-input bg-background text-foreground overflow-hidden",
+        "relative rounded-xl border border-input bg-background text-foreground overflow-visible",
         "focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
         className,
       )}
@@ -163,6 +231,38 @@ export function RichTextEditor({
         )}
         <EditorContent editor={editor} />
       </div>
+      {smart && varMenu.open && varsFiltradas.length > 0 && (
+        <div
+          className="absolute z-50 min-w-[220px] rounded-md border border-border bg-popover shadow-lg py-1 text-sm"
+          style={{ top: varMenu.top, left: varMenu.left }}
+        >
+          <div className="px-2 py-1 text-[10px] uppercase tracking-wide text-muted-foreground">Variáveis</div>
+          {varsFiltradas.slice(0, 8).map((v, i) => (
+            <button
+              key={v.key}
+              type="button"
+              onMouseDown={(e) => { e.preventDefault(); insertVariable(v.key); }}
+              onMouseEnter={() => setVarIdx(i)}
+              className={cn(
+                "w-full text-left px-3 py-1.5 hover:bg-accent",
+                i === varIdx && "bg-accent"
+              )}
+            >
+              <span className="font-mono text-xs text-primary">{`{{${v.key}}}`}</span>
+              <span className="ml-2 text-muted-foreground text-xs">{v.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {smart && (
+        <div className="border-t border-border bg-muted/20 px-2 py-1 text-[10px] text-muted-foreground flex flex-wrap gap-x-3 gap-y-0.5">
+          <span className="font-medium">Atalhos:</span>
+          {SNIPPETS_INFO.slice(0, 6).map((s) => (
+            <span key={s.atalho}><code className="font-mono">{s.atalho}</code> {s.descricao}</span>
+          ))}
+          <span>· digite <code className="font-mono">{`{{`}</code> para variáveis</span>
+        </div>
+      )}
     </div>
   );
 }
