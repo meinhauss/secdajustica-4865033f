@@ -142,7 +142,30 @@ export function RichTextEditor({
     setVarMenu((v) => ({ ...v, open: false }));
   };
 
+  const runAI = async (kind: "melhorar" | "corrigir") => {
+    if (!editor) return;
+    const plain = editor.getText().trim();
+    if (!plain) { toast.error("Escreva algo antes."); return; }
+    setAiBusy(kind);
+    const prompt = kind === "melhorar" ? PROMPTS.melhorarRedacao(plain) : PROMPTS.corrigirGramatica(plain);
+    const res = await ai.run({
+      operation: kind === "melhorar" ? "custom" : "revisar_gramatica",
+      prompt,
+      options: { systemInstruction: SYSTEM_JURIDICO, temperature: kind === "corrigir" ? 0.2 : 0.4 },
+    });
+    setAiBusy(null);
+    if (!res.ok) { toast.error(res.error?.message || "Falha na IA."); return; }
+    const html = (res.data as string)
+      .split(/\n{2,}/)
+      .map((p) => `<p>${p.replace(/\n/g, "<br/>")}</p>`)
+      .join("");
+    editor.commands.setContent(sanitizeRichHtml(html));
+    onChange(sanitizeRichHtml(html));
+    toast.success(kind === "melhorar" ? "Redação melhorada." : "Texto corrigido.");
+  };
+
   if (!editor) return null;
+
 
   return (
     <div
