@@ -1626,6 +1626,7 @@ export type Database = {
           created_at: string
           descricao: string
           documento_url: string | null
+          emitido_em: string | null
           emitido_por: string | null
           emitido_por_nome: string | null
           id: string
@@ -1644,6 +1645,7 @@ export type Database = {
           created_at?: string
           descricao: string
           documento_url?: string | null
+          emitido_em?: string | null
           emitido_por?: string | null
           emitido_por_nome?: string | null
           id?: string
@@ -1662,6 +1664,7 @@ export type Database = {
           created_at?: string
           descricao?: string
           documento_url?: string | null
+          emitido_em?: string | null
           emitido_por?: string | null
           emitido_por_nome?: string | null
           id?: string
@@ -2001,6 +2004,7 @@ export type Database = {
         Args: { p_role_id: string }
         Returns: undefined
       }
+      expirar_procuracoes_cartorio: { Args: never; Returns: Json }
       get_advogado_ranking: { Args: never; Returns: Json }
       get_last_friday: { Args: never; Returns: string }
       get_magistrado_ranking: { Args: never; Returns: Json }
