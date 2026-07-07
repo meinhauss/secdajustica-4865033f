@@ -11,6 +11,7 @@ import logoSjc from "@/assets/logo-sjc.jpg";
 import logoMpsp from "@/assets/logo-mpsp.png";
 import logoOabsp from "@/assets/logo-oabsp.png";
 import NotificationBell from "@/components/NotificationBell";
+import CommandPalette, { type PaletteItem } from "@/components/CommandPalette";
 import { CURRENT_VERSION } from "@/lib/version";
 
 
