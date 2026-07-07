@@ -207,9 +207,9 @@ export default function MeuPerfilSection() {
             <Label>Telefone (In-Game)</Label>
             <Input
               value={form.telefone_ingame}
-              onChange={(e) => setForm({ ...form, telefone_ingame: e.target.value })}
-              placeholder="Ex: 555-1234"
-              maxLength={20}
+              onChange={(e) => setForm({ ...form, telefone_ingame: formatTelefoneIngame(e.target.value) })}
+              placeholder="(14) 9 0000-0000"
+              maxLength={16}
             />
           </div>
 
