@@ -4,7 +4,7 @@ import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Send, Loader2, X, ArrowRight, RotateCcw } from "lucide-react";
+import { Send, Loader2, X, ArrowRight, RotateCcw, ChevronRight, ChevronLeft, GripVertical } from "lucide-react";
 import { useAI } from "@/hooks/useAI";
 import { useAuth } from "@/hooks/useAuth";
 import { PROMPTS_FASE4 } from "@/lib/ai/prompts";
@@ -68,6 +68,41 @@ export default function AIChatbotInstitucional({
 
   const [open, setOpen] = useState(false);
   const [showGreeting, setShowGreeting] = useState(false);
+
+  // Posição persistente do botão flutuante
+  const posKey = "vademecum:pos";
+  const [pos, setPos] = useState<{ side: "left" | "right"; y: number; hidden: boolean }>(() => {
+    if (typeof window === "undefined") return { side: "right" as const, y: 600, hidden: false };
+    try {
+      const raw = localStorage.getItem(posKey);
+      if (raw) return JSON.parse(raw);
+    } catch { /* ignore */ }
+    return { side: "right", y: Math.max(80, window.innerHeight - 96), hidden: false };
+  });
+  useEffect(() => {
+    try { localStorage.setItem(posKey, JSON.stringify(pos)); } catch { /* ignore */ }
+  }, [pos]);
+
+  const dragRef = useRef<{ startY: number; startPosY: number; moved: boolean } | null>(null);
+  const onDragStart = (e: React.PointerEvent) => {
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    dragRef.current = { startY: e.clientY, startPosY: pos.y, moved: false };
+  };
+  const onDragMove = (e: React.PointerEvent) => {
+    if (!dragRef.current) return;
+    const dy = e.clientY - dragRef.current.startY;
+    if (Math.abs(dy) > 4) dragRef.current.moved = true;
+    const y = Math.max(16, Math.min(window.innerHeight - 80, dragRef.current.startPosY + dy));
+    const side = e.clientX < window.innerWidth / 2 ? "left" : "right";
+    setPos((p) => ({ ...p, y, side }));
+  };
+  const onDragEnd = (e: React.PointerEvent, onClick: () => void) => {
+    const moved = dragRef.current?.moved;
+    dragRef.current = null;
+    try { (e.target as HTMLElement).releasePointerCapture(e.pointerId); } catch { /* ignore */ }
+    if (!moved) onClick();
+  };
+
   const [messages, setMessages] = useState<AIMessage[]>(() => {
     if (typeof window === "undefined") return [];
     try {
@@ -165,14 +200,34 @@ export default function AIChatbotInstitucional({
 
   return (
     <>
-      {!open && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-end gap-2">
+      {!open && pos.hidden && (
+        <button
+          onClick={() => setPos((p) => ({ ...p, hidden: false }))}
+          aria-label="Mostrar assistente Vade MeCum"
+          className={`fixed z-50 h-14 w-6 bg-institutional text-gold shadow-lg flex items-center justify-center hover:w-8 transition-all ${
+            pos.side === "right" ? "right-0 rounded-l-lg" : "left-0 rounded-r-lg"
+          }`}
+          style={{ top: pos.y }}
+        >
+          {pos.side === "right" ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+        </button>
+      )}
+      {!open && !pos.hidden && (
+        <div
+          className="fixed z-50 flex items-end gap-2"
+          style={{
+            top: pos.y,
+            left: pos.side === "left" ? 16 : undefined,
+            right: pos.side === "right" ? 16 : undefined,
+            flexDirection: pos.side === "left" ? "row-reverse" : "row",
+          }}
+        >
           {showGreeting && (
-            <div className="relative mb-1 max-w-[240px] rounded-2xl rounded-br-sm bg-card border border-border shadow-lg px-3 py-2 text-xs animate-in fade-in slide-in-from-right-2">
+            <div className="relative mb-1 max-w-[240px] rounded-2xl bg-card border border-border shadow-lg px-3 py-2 text-xs animate-in fade-in">
               <button
                 onClick={dismissGreeting}
                 aria-label="Fechar saudação"
-                className="absolute -top-2 -left-2 h-5 w-5 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground"
+                className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground"
               >
                 <X className="h-3 w-3" />
               </button>
@@ -180,18 +235,41 @@ export default function AIChatbotInstitucional({
               <p className="text-muted-foreground mt-0.5">Sou o {BOT_NAME}, o assistente da Secretaria. Clique aqui se precisar de ajuda.</p>
             </div>
           )}
-          <button
-            onClick={() => { setOpen(true); dismissGreeting(); }}
-            className="rounded-full h-16 w-16 shadow-2xl overflow-hidden ring-2 ring-gold/50 hover:ring-gold transition-all hover:scale-105 bg-institutional relative"
-            aria-label="Abrir assistente Vade MeCum"
-          >
-            <img src={vadeAvatar.url} alt="Vade MeCum" className="w-full h-full object-cover" />
-            {showGreeting && (
-              <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-gold ring-2 ring-background animate-pulse" />
-            )}
-          </button>
+          <div className="relative">
+            <button
+              onPointerDown={onDragStart}
+              onPointerMove={onDragMove}
+              onPointerUp={(e) => onDragEnd(e, () => { setOpen(true); dismissGreeting(); })}
+              className="rounded-full h-16 w-16 shadow-2xl overflow-hidden ring-2 ring-gold/50 hover:ring-gold transition-shadow bg-institutional relative touch-none select-none cursor-grab active:cursor-grabbing"
+              aria-label="Abrir assistente Vade MeCum (arraste para mover)"
+              title="Arraste para reposicionar · clique para abrir"
+            >
+              <img src={vadeAvatar.url} alt="Vade MeCum" className="w-full h-full object-cover pointer-events-none" draggable={false} />
+              {showGreeting && (
+                <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-gold ring-2 ring-background animate-pulse" />
+              )}
+            </button>
+            <button
+              onClick={() => setPos((p) => ({ ...p, hidden: true }))}
+              aria-label="Ocultar na lateral"
+              title="Ocultar na lateral"
+              className={`absolute -top-1 h-6 w-6 rounded-full bg-card border border-border shadow flex items-center justify-center text-muted-foreground hover:text-foreground ${
+                pos.side === "right" ? "-left-1" : "-right-1"
+              }`}
+            >
+              {pos.side === "right" ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
+            </button>
+            <div
+              className={`absolute top-1/2 -translate-y-1/2 text-muted-foreground/40 pointer-events-none ${
+                pos.side === "right" ? "-left-3" : "-right-3"
+              }`}
+            >
+              <GripVertical className="h-3 w-3" />
+            </div>
+          </div>
         </div>
       )}
+
       {open && (
         <div className="fixed bottom-6 right-6 w-[380px] max-w-[calc(100vw-2rem)] h-[560px] max-h-[calc(100vh-3rem)] bg-card border border-border rounded-2xl shadow-2xl z-50 flex flex-col">
           <div className="flex items-center gap-3 border-b border-border px-4 py-3">
