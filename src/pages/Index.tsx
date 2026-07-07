@@ -128,9 +128,29 @@ const Index = () => {
   };
 
   return (
-    <DashboardLayout activeSection={activeSection} onSectionChange={(s) => { if (s !== "processos") setOpenProcessoId(null); setActiveSection(s); }} onNavigateToProcesso={(id) => { setOpenProcessoId(id); setActiveSection("processos"); }}>
-      {renderSection()}
-    </DashboardLayout>
+    <>
+      <DashboardLayout activeSection={activeSection} onSectionChange={(s) => { if (s !== "processos") setOpenProcessoId(null); setActiveSection(s); }} onNavigateToProcesso={(id) => { setOpenProcessoId(id); setActiveSection("processos"); }}>
+        {renderSection()}
+      </DashboardLayout>
+      <Dialog open={helpOpen} onOpenChange={setHelpOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Atalhos de teclado</DialogTitle>
+          </DialogHeader>
+          <ul className="space-y-2 mt-2 text-sm">
+            {SHORTCUTS_LIST.map((s) => (
+              <li key={s.keys} className="flex items-center justify-between">
+                <span className="text-muted-foreground">{s.desc}</span>
+                <kbd className="px-2 py-1 rounded bg-muted font-mono text-xs">{s.keys}</kbd>
+              </li>
+            ))}
+          </ul>
+          <p className="text-xs text-muted-foreground mt-3">
+            Digite as teclas em sequência (ex.: pressione <kbd>g</kbd> e depois <kbd>p</kbd>). Atalhos são ignorados em campos de texto.
+          </p>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
