@@ -25,28 +25,51 @@ export default function AIBuscaSemantica({ onOpen }: Props) {
     setBuscando(true);
     setResultados([]);
     try {
-      const { data } = await supabase
+      // Pré-filtro por texto para reduzir a lista antes de mandar à IA.
+      const termo = q.trim();
+      let query = supabase
         .from("processos")
         .select("id,numero,classe,assunto,autor_nome,reu_nome,status")
-        .limit(300);
+        .limit(60);
+      if (termo.length >= 3) {
+        query = query.or(
+          `assunto.ilike.%${termo}%,autor_nome.ilike.%${termo}%,reu_nome.ilike.%${termo}%,numero.ilike.%${termo}%`,
+        );
+      }
+      let { data } = await query;
+      // Fallback: se filtro não trouxe nada, pega os 60 mais recentes.
+      if (!data || data.length === 0) {
+        const r = await supabase
+          .from("processos")
+          .select("id,numero,classe,assunto,autor_nome,reu_nome,status")
+          .order("created_at", { ascending: false })
+          .limit(60);
+        data = r.data || [];
+      }
       const candidatos = (data || []).map((p: any) => ({
         numero: p.numero,
         classe: p.classe,
-        assunto: p.assunto,
-        autor: extrairNomes(p.autor_nome),
-        reu: extrairNomes(p.reu_nome),
+        assunto: (p.assunto || "").slice(0, 120),
+        autor: extrairNomes(p.autor_nome).slice(0, 80),
+        reu: extrairNomes(p.reu_nome).slice(0, 80),
         status: p.status,
       }));
       if (candidatos.length === 0) { toast.info("Nenhum processo disponível."); return; }
       const res = await run({
         operation: "custom",
-        prompt: PROMPTS_FASE4.buscaSemanticaProcessos(q, candidatos),
-        options: { responseSchema: { type: "object" }, temperature: 0.2 },
+        prompt: PROMPTS_FASE4.buscaSemanticaProcessos(termo, candidatos),
+        options: { temperature: 0.2, maxOutputTokens: 2048 },
       });
       if (res.ok) {
-        const json: any = res.json ?? (() => { try { return JSON.parse(res.data as string); } catch { return null; } })();
+        const raw = String(res.data || "");
+        const match = raw.match(/\{[\s\S]*\}/);
+        let json: any = null;
+        try { json = match ? JSON.parse(match[0]) : JSON.parse(raw); } catch { json = null; }
         setResultados(json?.resultados || []);
+        if (!json) toast.error("Não consegui interpretar o resultado. Tente refinar a busca.");
       }
+    } catch (e: any) {
+      toast.error(e?.message || "Falha na busca.");
     } finally {
       setBuscando(false);
     }
