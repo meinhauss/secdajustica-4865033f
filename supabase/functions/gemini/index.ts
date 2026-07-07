@@ -104,13 +104,19 @@ Deno.serve(async (req: Request) => {
     payload.response_format = { type: "json_object" };
   }
 
-  // Cadeia de fallback: gateway Lovable primeiro; se esgotar (429/402), cai para OpenAI direto.
+  // Cadeia de fallback: Lovable → Gemini direto (chave do usuário) → OpenAI direto.
   const openaiKey = Deno.env.get("OPENAI_API_KEY");
+  const geminiKey = Deno.env.get("GEMINI_API_KEY");
+  const GEMINI_OAI = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
   type ChainStep = { endpoint: string; model: string; key: string; provider: string };
   const FALLBACK_CHAIN: ChainStep[] = [
     { endpoint: GATEWAY_URL, model, key: apiKey, provider: "lovable-ai" },
     { endpoint: GATEWAY_URL, model: "google/gemini-2.5-flash-lite", key: apiKey, provider: "lovable-ai" },
     { endpoint: GATEWAY_URL, model: "google/gemini-2.5-flash", key: apiKey, provider: "lovable-ai" },
+    ...(geminiKey ? [
+      { endpoint: GEMINI_OAI, model: "gemini-2.5-flash", key: geminiKey, provider: "gemini-direct" },
+      { endpoint: GEMINI_OAI, model: "gemini-2.5-flash-lite", key: geminiKey, provider: "gemini-direct" },
+    ] : []),
     ...(openaiKey ? [
       { endpoint: "https://api.openai.com/v1/chat/completions", model: "gpt-4o-mini", key: openaiKey, provider: "openai" },
       { endpoint: "https://api.openai.com/v1/chat/completions", model: "gpt-4o", key: openaiKey, provider: "openai" },
