@@ -232,24 +232,51 @@ export default function AIFerramentas({ processo, movimentacoes }: Props) {
               <Textarea placeholder="Descreva o tema jurídico (ex: prescrição da pretensão punitiva em crime tributário)" value={tema} onChange={(e) => setTema(e.target.value)} className="rounded-xl min-h-[80px]" />
             )}
 
-            <div className="flex justify-end">
-              <Button size="sm" className="rounded-xl" onClick={gerar} disabled={loading}>
-                {loading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <RefreshCw className="h-3 w-3 mr-1" />}
-                {texto || prazosJson ? "Gerar novamente" : "Gerar"}
-              </Button>
-            </div>
+            {(tool === "triagem" || tool === "extracao") && (
+              <Textarea
+                placeholder={tool === "triagem" ? "Cole o texto integral da petição..." : "Cole o texto extraído do PDF (partes, valores, datas, pedidos)..."}
+                value={pecaInput}
+                onChange={(e) => setPecaInput(e.target.value)}
+                className="rounded-xl min-h-[180px] text-xs"
+              />
+            )}
 
-            {loading && (
-              <div className="py-8 flex items-center justify-center text-muted-foreground gap-2 text-sm">
-                <Loader2 className="h-4 w-4 animate-spin" /> Gerando...
+            {tool === "comparar" && (
+              <div className="grid gap-2 sm:grid-cols-2">
+                <div>
+                  <Input placeholder="Rótulo A" value={rotuloA} onChange={(e) => setRotuloA(e.target.value)} className="rounded-xl mb-1" />
+                  <Textarea placeholder="Texto da peça A..." value={pecaA} onChange={(e) => setPecaA(e.target.value)} className="rounded-xl min-h-[200px] text-xs" />
+                </div>
+                <div>
+                  <Input placeholder="Rótulo B" value={rotuloB} onChange={(e) => setRotuloB(e.target.value)} className="rounded-xl mb-1" />
+                  <Textarea placeholder="Texto da peça B..." value={pecaB} onChange={(e) => setPecaB(e.target.value)} className="rounded-xl min-h-[200px] text-xs" />
+                </div>
               </div>
             )}
 
-            {tool === "prazos" && prazosJson && !loading && (
-              <PrazosView data={prazosJson} />
+            {tool === "duplicidade" && !duplicidadeJson && !buscandoDup && (
+              <p className="text-xs text-muted-foreground">Clique em <strong>Gerar</strong> para buscar processos semelhantes por partes/objeto e analisar duplicidade, litispendência, conexão e continência.</p>
             )}
 
-            {tool !== "prazos" && texto && !loading && (
+            <div className="flex justify-end">
+              <Button size="sm" className="rounded-xl" onClick={gerar} disabled={loading || buscandoDup}>
+                {(loading || buscandoDup) ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <RefreshCw className="h-3 w-3 mr-1" />}
+                {texto || prazosJson || extracaoJson || triagemJson || duplicidadeJson ? "Gerar novamente" : "Gerar"}
+              </Button>
+            </div>
+
+            {(loading || buscandoDup) && (
+              <div className="py-8 flex items-center justify-center text-muted-foreground gap-2 text-sm">
+                <Loader2 className="h-4 w-4 animate-spin" /> {buscandoDup ? "Buscando processos semelhantes..." : "Gerando..."}
+              </div>
+            )}
+
+            {tool === "prazos" && prazosJson && !loading && <PrazosView data={prazosJson} />}
+            {tool === "triagem" && triagemJson && !loading && <TriagemView data={triagemJson} />}
+            {tool === "extracao" && extracaoJson && !loading && <ExtracaoView data={extracaoJson} />}
+            {tool === "duplicidade" && duplicidadeJson && !loading && !buscandoDup && <DuplicidadeView data={duplicidadeJson} />}
+
+            {(tool === "minuta" || tool === "parecer" || tool === "documento" || tool === "fundamentacao" || tool === "comparar") && texto && !loading && (
               <>
                 <Textarea value={texto} onChange={(e) => setTexto(e.target.value)} className="rounded-xl min-h-[360px] font-mono text-xs" />
                 <div className="flex justify-between items-center">
