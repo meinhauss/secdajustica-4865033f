@@ -108,6 +108,7 @@ const Index = () => {
       case "cartorio": return <Suspense fallback={<LazyFallback />}><CartorarioSection /></Suspense>;
       case "tco": return <TCOSection />;
       case "jurados": return <JuradosSection onOpenProcesso={(id) => { setOpenProcessoId(id); setActiveSection("processos"); }} />;
+      case "modelos": return <ModelosSection />;
       default: return <DashboardHome />;
     }
   };
