@@ -1,51 +1,39 @@
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
+import { lazy, Suspense, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import LoginPage from "@/components/LoginPage";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardHome from "@/components/sections/DashboardHome";
 import ProcessosSection from "@/components/sections/ProcessosSection";
 import MeusProcessosSection from "@/components/sections/MeusProcessosSection";
-
 import ConsultaPublicaSection from "@/components/sections/ConsultaPublicaSection";
 import MagistradoSection from "@/components/sections/MagistradoSection";
-import TribunalSection from "@/components/sections/TribunalSection";
 import JurisprudenciaSection from "@/components/sections/JurisprudenciaSection";
 import MPSection from "@/components/sections/MPSection";
 import AudienciasSection from "@/components/sections/AudienciasSection";
 import OABSection from "@/components/sections/OABSection";
 import UsuariosSection from "@/components/sections/UsuariosSection";
 import CargosSection from "@/components/sections/CargosSection";
-import EstatisticasSection from "@/components/sections/EstatisticasSection";
 import ConcursosSection from "@/components/sections/ConcursosSection";
-import CartorarioSection from "@/components/sections/CartorarioSection";
 import MeuPerfilSection from "@/components/sections/MeuPerfilSection";
 import TCOSection from "@/components/sections/TCOSection";
 import JuradosSection from "@/components/sections/JuradosSection";
+import { ListSkeleton } from "@/components/ui/list-skeleton";
+
+// Seções pesadas — carregadas sob demanda
+const TribunalSection = lazy(() => import("@/components/sections/TribunalSection"));
+const CartorarioSection = lazy(() => import("@/components/sections/CartorarioSection"));
+const EstatisticasSection = lazy(() => import("@/components/sections/EstatisticasSection"));
+
+const LazyFallback = () => (
+  <div className="py-6">
+    <ListSkeleton rows={6} />
+  </div>
+);
 
 const Index = () => {
-  const { user, loading, profile, roles } = useAuth();
+  const { user, loading, profile } = useAuth();
   const [activeSection, setActiveSection] = useState("dashboard");
   const [openProcessoId, setOpenProcessoId] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!user || !profile || profile.avatar_url) return;
-    const advogadoPlus = new Set([
-      "advogado", "magistrado", "desembargador", "presidente_tribunal",
-      "ministerio_publico", "procurador_geral", "procurador_estado",
-      "delegado", "presidente_oab", "bacharel_direito", "admin",
-    ]);
-    if (!roles.some((r) => advogadoPlus.has(r))) return;
-    const key = `avatar-reminder-${user.id}`;
-    if (sessionStorage.getItem(key)) return;
-    sessionStorage.setItem(key, "1");
-    toast.warning("Adicione uma foto de perfil", {
-      description: "Como membro togado, é obrigatório manter sua foto de perfil atualizada.",
-      action: { label: "Adicionar agora", onClick: () => setActiveSection("meu-perfil") },
-      duration: 10000,
-    });
-  }, [user, profile, roles]);
-
 
   if (loading) {
     return (
@@ -78,7 +66,6 @@ const Index = () => {
     );
   }
 
-
   const renderSection = () => {
     switch (activeSection) {
       case "dashboard": return <DashboardHome onNavigate={setActiveSection} />;
@@ -87,16 +74,16 @@ const Index = () => {
       case "meus-processos": return <MeusProcessosSection onOpenProcesso={(id) => { setOpenProcessoId(id); setActiveSection("processos"); }} />;
       case "consulta": return <ConsultaPublicaSection />;
       case "magistrado": return <MagistradoSection />;
-      case "tribunal": return <TribunalSection onOpenProcesso={(id) => { setOpenProcessoId(id); setActiveSection("processos"); }} />;
+      case "tribunal": return <Suspense fallback={<LazyFallback />}><TribunalSection onOpenProcesso={(id) => { setOpenProcessoId(id); setActiveSection("processos"); }} /></Suspense>;
       case "jurisprudencia": return <JurisprudenciaSection />;
       case "mp": return <MPSection />;
       case "audiencias": return <AudienciasSection />;
       case "oab": return <OABSection />;
       case "cargos": return <CargosSection />;
       case "usuarios": return <UsuariosSection />;
-      case "estatisticas": return <EstatisticasSection />;
+      case "estatisticas": return <Suspense fallback={<LazyFallback />}><EstatisticasSection /></Suspense>;
       case "concursos": return <ConcursosSection />;
-      case "cartorio": return <CartorarioSection />;
+      case "cartorio": return <Suspense fallback={<LazyFallback />}><CartorarioSection /></Suspense>;
       case "tco": return <TCOSection />;
       case "jurados": return <JuradosSection onOpenProcesso={(id) => { setOpenProcessoId(id); setActiveSection("processos"); }} />;
       default: return <DashboardHome />;
