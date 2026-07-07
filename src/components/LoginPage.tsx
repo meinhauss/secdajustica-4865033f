@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import ConsultaPublicaSection from "@/components/sections/ConsultaPublicaSection";
+import AIChatbotInstitucional from "@/components/AIChatbotInstitucional";
 import {
   Scale, Shield, Gavel, BookOpen, Building2, Users, FileText, Briefcase,
   Phone, MapPin, Clock, ChevronRight, ExternalLink, GraduationCap, Stamp, Heart, Home, ScrollText, FileSignature, Baby, AlertTriangle } from
