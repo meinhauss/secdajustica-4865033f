@@ -187,7 +187,7 @@ export default function ConsultaPublicaSection() {
 
   return (
     <div className="space-y-6">
-      <AIChatbotInstitucional />
+      
       <div>
         <h2 className="font-display text-2xl font-bold text-foreground">Consulta de Credenciais</h2>
         <p className="text-sm text-muted-foreground">
