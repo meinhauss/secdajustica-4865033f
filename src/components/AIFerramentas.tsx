@@ -72,12 +72,12 @@ export default function AIFerramentas({ processo, movimentacoes }: Props) {
     reset();
     let req: any = null;
     if (tool === "minuta") {
-      req = { operation: "gerar_sentenca", prompt: PROMPTS_EXTRA.minutaJudicial({ ...ctx(), tipo: minutaTipo, tese: minutaTese.trim() || undefined }) };
+      req = { operation: "gerar_sentenca", prompt: PROMPTS_EXTRA.minutaJudicial({ ...ctx(), tipo: minutaTipo, tese: minutaTese.trim() || undefined, instrucao: minutaInstrucao.trim() || undefined, extenso: minutaExtenso }) };
     } else if (tool === "parecer") {
-      req = { operation: "gerar_parecer_mp", prompt: PROMPTS_EXTRA.parecerMP({ ...ctx(), tipo: parecerTipo }) };
+      req = { operation: "gerar_parecer_mp", prompt: PROMPTS_EXTRA.parecerMP({ ...ctx(), tipo: parecerTipo, instrucao: parecerInstrucao.trim() || undefined, extenso: parecerExtenso }) };
     } else if (tool === "documento") {
       const opMap: any = { mandado: "gerar_mandado", oficio: "gerar_oficio", certidao: "gerar_certidao", alvara: "gerar_alvara" };
-      req = { operation: opMap[docTipo], prompt: PROMPTS_EXTRA.documentoCartorio({ ...ctx(), tipo: docTipo, destinatario: docDestinatario, finalidade: docFinalidade }) };
+      req = { operation: opMap[docTipo], prompt: PROMPTS_EXTRA.documentoCartorio({ ...ctx(), tipo: docTipo, destinatario: docDestinatario, finalidade: docFinalidade, instrucao: docInstrucao.trim() || undefined, extenso: docExtenso }) };
     } else if (tool === "prazos") {
       req = { operation: "custom", prompt: PROMPTS_EXTRA.analisePrazosRiscos(ctx()), options: { responseSchema: { type: "object" }, temperature: 0.2 } };
     } else if (tool === "fundamentacao") {
