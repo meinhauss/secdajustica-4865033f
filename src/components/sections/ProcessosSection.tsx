@@ -26,6 +26,8 @@ import { ptBR } from "date-fns/locale";
 import { normalizeRichText } from "@/lib/sanitize";
 import ModeloPicker from "@/components/ModeloPicker";
 import { extrairNomes } from "@/lib/modelosVars";
+import { useDraft } from "@/hooks/useDraft";
+import { agendarPrazoAutomatico, getPrazoAutomatico } from "@/lib/prazosAutomaticos";
 
 /* ─── Currency helpers ─── */
 const formatCurrency = (value: string) => {
