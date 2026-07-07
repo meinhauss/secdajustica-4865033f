@@ -95,6 +95,12 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
         </div>
       </div>
 
+      {(isMagistrado || isMP) && (
+        <div className="flex justify-end">
+          <AIResumoSemanal />
+        </div>
+      )}
+
       <motion.button
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
