@@ -18,6 +18,7 @@ import {
   FileText, Plus, Search, Star, Copy, Pencil, Trash2, Loader2, Info,
 } from "lucide-react";
 import { toast } from "sonner";
+import AIQAModelos from "@/components/AIQAModelos";
 import { VARIAVEIS_DISPONIVEIS, aplicarVariaveis } from "@/lib/modelosVars";
 
 type Modelo = {
