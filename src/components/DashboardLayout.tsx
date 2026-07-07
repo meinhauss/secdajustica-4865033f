@@ -239,6 +239,9 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
         onSectionChange={onSectionChange}
         onOpenMenu={() => setSidebarOpen(true)}
       />
+
+      {/* Command palette global — ⌘K / Ctrl+K + sequências "g <letra>" */}
+      <CommandPalette items={paletteItems} onSelect={onSectionChange} />
     </div>
   );
 }
