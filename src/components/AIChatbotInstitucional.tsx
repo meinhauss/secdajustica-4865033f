@@ -62,18 +62,61 @@ export default function AIChatbotInstitucional({
   destinos,
   onNavigate,
 }: Props) {
+  const { profile, user } = useAuth();
+  const storageKey = `vademecum:chat:${user?.id || "guest"}`;
+  const greetKey = `vademecum:greeted:${user?.id || "guest"}`;
+
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<AIMessage[]>([]);
+  const [showGreeting, setShowGreeting] = useState(false);
+  const [messages, setMessages] = useState<AIMessage[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const raw = localStorage.getItem(storageKey);
+      return raw ? (JSON.parse(raw) as AIMessage[]) : [];
+    } catch {
+      return [];
+    }
+  });
   const [input, setInput] = useState("");
   const { run, loading } = useAI();
-  const { profile, user } = useAuth();
   const endRef = useRef<HTMLDivElement>(null);
 
   const destinosFinal = destinos ?? DEFAULT_DESTINOS;
 
-  const userName = user ? (profile?.nome_completo || "Você") : "Cidadão";
+  const userName = user ? profile?.nome_completo || "Você" : "Cidadão";
   const userAvatar = user ? profile?.avatar_url : logoSjc;
   const userInitial = (userName?.[0] || "C").toUpperCase();
+
+  // Persist chat
+  useEffect(() => {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(messages));
+    } catch {
+      /* ignore quota */
+    }
+  }, [messages, storageKey]);
+
+  // Greeting bubble on first visit of the session
+  useEffect(() => {
+    if (open) return;
+    if (sessionStorage.getItem(greetKey)) return;
+    const t = setTimeout(() => setShowGreeting(true), 1200);
+    return () => clearTimeout(t);
+  }, [open, greetKey]);
+
+  const dismissGreeting = () => {
+    setShowGreeting(false);
+    sessionStorage.setItem(greetKey, "1");
+  };
+
+  const resetChat = () => {
+    setMessages([]);
+    try {
+      localStorage.removeItem(storageKey);
+    } catch {
+      /* ignore */
+    }
+  };
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -83,6 +126,7 @@ export default function AIChatbotInstitucional({
     () => PROMPTS_FASE4.chatbotInstitucional(comarca, destinosFinal),
     [comarca, destinosFinal],
   );
+
 
   const send = async (override?: string) => {
     const q = (override ?? input).trim();
