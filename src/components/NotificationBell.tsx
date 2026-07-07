@@ -46,18 +46,18 @@ export default function NotificationBell({ onNavigate }: NotificationBellProps) 
       return data || [];
     },
     enabled: !!user,
-    refetchInterval: 30000,
+    staleTime: 60_000,
   });
 
-  // Realtime subscription
+  // Realtime subscription (INSERT/UPDATE/DELETE)
   useEffect(() => {
     if (!user) return;
     const channel = supabase
-      .channel("notificacoes-realtime")
+      .channel(`notificacoes-${user.id}`)
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*",
           schema: "public",
           table: "notificacoes",
           filter: `user_id=eq.${user.id}`,
