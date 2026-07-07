@@ -2757,7 +2757,7 @@ function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles
     setNovoAnexoUrl("");
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Warn if attachment fields have content but weren't added
     if ((novoAnexoNome.trim() || novoAnexoUrl.trim()) && anexos.every(a => a.nome !== novoAnexoNome.trim() || a.url !== novoAnexoUrl.trim())) {
@@ -2769,10 +2769,17 @@ function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles
       descFinal += "\n\n📎 DOCUMENTOS ANEXOS:\n" + anexos.map((a, i) => `${i + 1}. ${a.nome}: ${a.url}`).join("\n");
     }
     onAdd(tipo, descFinal);
-    setDesc("");
+    // Agendar prazo automático (silencioso)
+    if (processo?.id) {
+      const prazo = await agendarPrazoAutomatico(processo.id, tipo);
+      if (prazo) toast.success(`Prazo automático de ${prazo.horas}h agendado.`);
+    }
+    clearDraft();
     setAnexos([]);
     setOpen(false);
   };
+
+  const prazoInfo = getPrazoAutomatico(tipo);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
