@@ -29,6 +29,7 @@ import { extrairNomes } from "@/lib/modelosVars";
 import { useDraft } from "@/hooks/useDraft";
 import { agendarPrazoAutomatico, getPrazoAutomatico } from "@/lib/prazosAutomaticos";
 import { getChecklist } from "@/lib/checklists";
+import { cn } from "@/lib/utils";
 
 /* ─── Currency helpers ─── */
 const formatCurrency = (value: string) => {
