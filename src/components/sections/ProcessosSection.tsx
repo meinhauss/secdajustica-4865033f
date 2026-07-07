@@ -3033,7 +3033,7 @@ function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles
   );
 }
 
-function AddAto({ onAdd }: { onAdd: (ato: { tipo: string; titulo: string; conteudo: string }) => void }) {
+function AddAto({ onAdd, processo, movimentacoes }: { onAdd: (ato: { tipo: string; titulo: string; conteudo: string }) => void; processo?: any; movimentacoes?: any[] }) {
   const [open, setOpen] = useState(false);
   const [tipo, setTipo] = useState("despacho");
   const [titulo, setTitulo] = useState("");
@@ -3060,6 +3060,16 @@ function AddAto({ onAdd }: { onAdd: (ato: { tipo: string; titulo: string; conteu
             </SelectContent>
           </Select>
           <Input placeholder="Título do ato" value={titulo} onChange={(e) => setTitulo(e.target.value)} required className="rounded-xl" />
+          <div className="flex justify-end">
+            <AISugerirDespacho
+              tipoAto={ATO_TIPOS.find((a) => a.value === tipo)?.label || tipo}
+              tituloAto={titulo}
+              rascunhoAtual={conteudo}
+              processo={processo}
+              movimentacoes={movimentacoes}
+              onInsert={(t) => setConteudo(t)}
+            />
+          </div>
           <RichTextEditor placeholder="Conteúdo do ato judicial..." value={conteudo} onChange={setConteudo} minHeight="280px" />
           <Button type="submit" className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">Registrar Ato</Button>
         </form>
