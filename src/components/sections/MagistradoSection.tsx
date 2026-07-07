@@ -24,6 +24,11 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { PodiumDestaque } from "@/components/PodiumDestaque";
 import { normalizeRichText } from "@/lib/sanitize";
+import ModeloPicker from "@/components/ModeloPicker";
+import { extrairNomes, type ModeloContext } from "@/lib/modelosVars";
+
+const textoToHtml = (t: string) => t.split(/\n{2,}/).map(p => `<p>${p.replace(/\n/g, "<br/>")}</p>`).join("");
+const appendHtml = (prev: string, add: string) => (prev && prev !== "<p></p>" ? prev + add : add);
 
 /* ─── Profile Lookup Hook ─── */
 function useProfileLookup() {
@@ -1049,6 +1054,15 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
 
   const cfg = PROC_STATUS[processo.status] || PROC_STATUS.novo;
 
+  const modeloCtx: ModeloContext = {
+    numero_processo: processo?.numero,
+    nome_autor: extrairNomes(processo?.autor_nome),
+    nome_reu: extrairNomes(processo?.reu_nome),
+    nome_usuario: profile?.nome_completo || "",
+    juiz: profile?.nome_completo || "",
+    classe: processo?.classe,
+  };
+
   return (
     <div className="space-y-6">
       {/* Back button */}
@@ -1319,6 +1333,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               </SelectContent>
             </Select>
             <Input placeholder="Título do despacho" value={despachoForm.titulo} onChange={(e) => setDespachoForm({ ...despachoForm, titulo: e.target.value })} className="rounded-xl" required />
+            <div className="flex justify-end"><ModeloPicker categoria="despacho" context={modeloCtx} onInsert={(t) => setDespachoForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))} /></div>
             <RichTextEditor placeholder="Conteúdo do despacho..." value={despachoForm.conteudo} onChange={(html) => setDespachoForm({ ...despachoForm, conteudo: html })} minHeight="160px" />
             <Button type="submit" disabled={criarDespacho.isPending} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
               {criarDespacho.isPending ? "Processando..." : "Proferir e Assinar Despacho"}
@@ -1415,6 +1430,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                 </div>
               ))}
             </div>
+            <div className="flex justify-end"><ModeloPicker context={modeloCtx} onInsert={(t) => setMandadoForm(f => ({ ...f, descricao: appendHtml(f.descricao, textoToHtml(t)) }))} /></div>
             <RichTextEditor placeholder="Descrição e determinações do mandado..." value={mandadoForm.descricao} onChange={(html) => setMandadoForm({ ...mandadoForm, descricao: html })} minHeight="140px" />
             <Button type="submit" disabled={expedirMandado.isPending} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
               {expedirMandado.isPending ? "Processando..." : "Expedir Mandado"}
@@ -1439,6 +1455,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                 {CARGOS_INTIMAVEIS.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
               </SelectContent>
             </Select>
+            <div className="flex justify-end"><ModeloPicker context={modeloCtx} onInsert={(t) => setCargoIntForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))} /></div>
             <RichTextEditor
               placeholder="Conteúdo da intimação..."
               value={cargoIntForm.conteudo}
@@ -1475,6 +1492,10 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               </SelectContent>
             </Select>
             <Input placeholder="Ementa (opcional)" value={sentencaForm.ementa} onChange={(e) => setSentencaForm({ ...sentencaForm, ementa: e.target.value })} className="rounded-xl" />
+            <div className="flex justify-end gap-2">
+              <ModeloPicker categoria="sentenca" context={modeloCtx} label="Modelo p/ fundamentação" onInsert={(t) => setSentencaForm(f => ({ ...f, fundamentacao: appendHtml(f.fundamentacao, textoToHtml(t)) }))} />
+              <ModeloPicker categoria="sentenca" context={modeloCtx} label="Modelo p/ dispositivo" onInsert={(t) => setSentencaForm(f => ({ ...f, dispositivo: appendHtml(f.dispositivo, textoToHtml(t)) }))} />
+            </div>
             <RichTextEditor placeholder="Fundamentação jurídica..." value={sentencaForm.fundamentacao} onChange={(html) => setSentencaForm({ ...sentencaForm, fundamentacao: html })} minHeight="200px" />
             <RichTextEditor placeholder="Dispositivo (decisão)..." value={sentencaForm.dispositivo} onChange={(html) => setSentencaForm({ ...sentencaForm, dispositivo: html })} minHeight="140px" />
             <Button type="submit" disabled={proferirSentenca.isPending} className="rounded-xl bg-gold hover:bg-gold/90 text-foreground">
@@ -1512,6 +1533,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               </SelectContent>
             </Select>
             <Input placeholder="Título do ato" value={cartorioForm.titulo} onChange={(e) => setCartorioForm({ ...cartorioForm, titulo: e.target.value })} className="rounded-xl" required />
+            <div className="flex justify-end"><ModeloPicker context={modeloCtx} onInsert={(t) => setCartorioForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))} /></div>
             <RichTextEditor placeholder="Conteúdo..." value={cartorioForm.conteudo} onChange={(html) => setCartorioForm({ ...cartorioForm, conteudo: html })} minHeight="160px" />
             <div className="space-y-2">
               <label className="text-xs font-medium text-foreground">Anexos (links opcionais)</label>
