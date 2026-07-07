@@ -11,6 +11,7 @@ import logoSjc from "@/assets/logo-sjc.jpg";
 import logoMpsp from "@/assets/logo-mpsp.png";
 import logoOabsp from "@/assets/logo-oabsp.png";
 import NotificationBell from "@/components/NotificationBell";
+import CommandPalette, { type PaletteItem } from "@/components/CommandPalette";
 import { CURRENT_VERSION } from "@/lib/version";
 
 
@@ -51,6 +52,25 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
   const filteredItems = roles.length === 0
     ? []
     : menuItems.filter((item) => item.roles.some((r) => roles.includes(r)));
+
+  const shortcuts: Record<string, string> = {
+    dashboard: "g d",
+    processos: "g p",
+    "meus-processos": "g m",
+    audiencias: "g a",
+    "meu-perfil": "g u",
+    tribunal: "g t",
+    oab: "g o",
+    cartorio: "g c",
+    tco: "g x",
+    concursos: "g n",
+  };
+  const paletteItems: PaletteItem[] = filteredItems.map((i) => ({
+    id: i.id,
+    label: i.label,
+    icon: i.icon,
+    shortcut: shortcuts[i.id],
+  }));
 
   const getRoleLabel = (role: string) => {
     const labels: Record<string, string> = {
@@ -219,6 +239,9 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
         onSectionChange={onSectionChange}
         onOpenMenu={() => setSidebarOpen(true)}
       />
+
+      {/* Command palette global — ⌘K / Ctrl+K + sequências "g <letra>" */}
+      <CommandPalette items={paletteItems} onSelect={onSectionChange} />
     </div>
   );
 }
