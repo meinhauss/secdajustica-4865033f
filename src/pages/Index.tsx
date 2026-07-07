@@ -23,7 +23,7 @@ import TCOSection from "@/components/sections/TCOSection";
 import JuradosSection from "@/components/sections/JuradosSection";
 
 const Index = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, profile } = useAuth();
   const [activeSection, setActiveSection] = useState("dashboard");
   const [openProcessoId, setOpenProcessoId] = useState<string | null>(null);
 
@@ -39,6 +39,25 @@ const Index = () => {
   }
 
   if (!user) return <LoginPage />;
+
+  // Obrigatório atualizar cadastro antes de acessar o sistema
+  if (profile?.precisa_atualizar_cadastro) {
+    return (
+      <div className="min-h-screen bg-background p-4 sm:p-8">
+        <div className="max-w-2xl mx-auto">
+          <div className="mb-6 p-4 rounded-xl border border-gold/40 bg-gold/10 text-sm text-foreground">
+            <p className="font-semibold text-gold-dark mb-1">Atualização de cadastro obrigatória</p>
+            <p className="text-muted-foreground">
+              Para continuar utilizando o sistema, revise e confirme suas informações pessoais.
+              Preencha corretamente todos os campos e clique em <strong>Salvar Alterações</strong>.
+            </p>
+          </div>
+          <MeuPerfilSection />
+        </div>
+      </div>
+    );
+  }
+
 
   const renderSection = () => {
     switch (activeSection) {
