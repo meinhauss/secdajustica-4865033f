@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import AIProcuracaoCertidao from "@/components/AIProcuracaoCertidao";
 import { ListSkeleton } from "@/components/ui/list-skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -815,6 +816,7 @@ export default function CartorarioSection() {
               <Button onClick={() => setShowNovoRegistro(true)}>
                 <Plus className="h-4 w-4 mr-1" /> Nova Solicitação
               </Button>
+              <AIProcuracaoCertidao />
             </div>
           )}
 

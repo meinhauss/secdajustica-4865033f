@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import forumSuzano from "@/assets/forum-suzano.png.asset.json";
+import AIResumoSemanal from "@/components/AIResumoSemanal";
 
 const JUDICIAL_ROLES = ["admin", "magistrado", "presidente_tribunal", "desembargador", "ministerio_publico", "advogado", "procurador_estado", "delegado"];
 
@@ -94,6 +95,12 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
           </p>
         </div>
       </div>
+
+      {(isMagistrado || isMP) && (
+        <div className="flex justify-end">
+          <AIResumoSemanal />
+        </div>
+      )}
 
       <motion.button
         initial={{ opacity: 0, scale: 0.95 }}
