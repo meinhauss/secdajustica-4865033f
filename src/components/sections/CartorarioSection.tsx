@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ListSkeleton } from "@/components/ui/list-skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
@@ -768,8 +769,8 @@ export default function CartorarioSection() {
 
   if (loading)
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="py-6">
+        <ListSkeleton rows={5} />
       </div>
     );
 
