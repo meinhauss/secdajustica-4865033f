@@ -5,14 +5,15 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Wand2, Loader2, Copy, Check, Gavel, Scale, FileText, AlertTriangle, BookOpen, RefreshCw, Inbox, FileSearch, GitCompare, Copyright } from "lucide-react";
+import { Wand2, Loader2, Copy, Check, Gavel, Scale, FileText, AlertTriangle, BookOpen, RefreshCw, Inbox, FileSearch, GitCompare, Copyright, Briefcase } from "lucide-react";
 import { useAI } from "@/hooks/useAI";
 import { PROMPTS_EXTRA, PROMPTS, PROMPTS_FASE3 } from "@/lib/ai/prompts";
 import { extrairNomes } from "@/lib/modelosVars";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
-type Tool = "minuta" | "parecer" | "documento" | "prazos" | "fundamentacao" | "triagem" | "extracao" | "comparar" | "duplicidade" | null;
+type Tool = "minuta" | "parecer" | "documento" | "peca" | "prazos" | "fundamentacao" | "triagem" | "extracao" | "comparar" | "duplicidade" | null;
 
 interface Props {
   processo?: any;
