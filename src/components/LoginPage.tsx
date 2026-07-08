@@ -127,23 +127,58 @@ export default function LoginPage() {
     <div className="min-h-screen flex flex-col bg-background">
 
       {/* Header */}
-      <header className="bg-institutional border-b border-sidebar-border">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <img src={logoSjc} alt="SJC-SP" className="h-14 rounded-lg drop-shadow" />
-            <div>
-              <h1 className="font-display text-xl lg:text-2xl font-bold text-sidebar-foreground leading-tight">
+      <header className="bg-institutional border-b border-sidebar-border sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 py-3 sm:py-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <img src={logoSjc} alt="SJC-SP" className="h-10 sm:h-14 rounded-lg drop-shadow flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <h1 className="font-display text-sm sm:text-xl lg:text-2xl font-bold text-sidebar-foreground leading-tight truncate">
                 Secretaria da Justiça e Cidadania
               </h1>
-              <p className="text-[11px] text-sidebar-foreground/50 uppercase tracking-[0.2em]">
+              <p className="text-[9px] sm:text-[11px] text-sidebar-foreground/50 uppercase tracking-[0.15em] sm:tracking-[0.2em] truncate">
                 Estado de São Paulo — Jaguaré RP
               </p>
             </div>
+
+            {/* Mobile menu trigger */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="lg:hidden text-sidebar-foreground hover:bg-sidebar-foreground/10 flex-shrink-0">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[85vw] sm:max-w-sm bg-institutional border-sidebar-border p-0 flex flex-col">
+                <SheetHeader className="p-5 border-b border-sidebar-border">
+                  <SheetTitle className="text-sidebar-foreground font-display text-left">Menu</SheetTitle>
+                </SheetHeader>
+                <nav className="flex-1 overflow-y-auto p-3 flex flex-col gap-1">
+                  {tabs.map((tab) => (
+                    <SheetClose key={tab.id} onClick={() => setActiveTab(tab.id)} isActive={activeTab === tab.id}>
+                      {tab.label}
+                    </SheetClose>
+                  ))}
+                  <div className="my-2 border-t border-sidebar-border" />
+                  <SheetClose onClick={() => setActiveTab("login")} isActive={activeTab === "login"} highlight>
+                    <img src={govLogo} alt="" className="h-4 mr-2 inline" />
+                    Acesso ao Sistema
+                  </SheetClose>
+                  <a href="/codigo-penal" target="_blank" rel="noopener noreferrer" className="mt-1 px-4 py-3 rounded-lg text-sm text-sidebar-foreground/80 hover:bg-sidebar-foreground/10 flex items-center gap-2">
+                    <BookOpen className="h-4 w-4 text-gold" /> Código Penal
+                  </a>
+                  <a href="/ordenamento" target="_blank" rel="noopener noreferrer" className="px-4 py-3 rounded-lg text-sm text-sidebar-foreground/80 hover:bg-sidebar-foreground/10 flex items-center gap-2">
+                    <Landmark className="h-4 w-4 text-gold" /> Ordenamento Jurídico
+                  </a>
+                  <a href="/calculadora" target="_blank" rel="noopener noreferrer" className="px-4 py-3 rounded-lg text-sm text-sidebar-foreground/80 hover:bg-sidebar-foreground/10 flex items-center gap-2">
+                    <Calculator className="h-4 w-4 text-gold" /> Calculadora Penal
+                  </a>
+                </nav>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="max-w-7xl mx-auto px-4">
+        {/* Navigation Tabs — desktop only */}
+        <div className="max-w-7xl mx-auto px-4 hidden lg:block">
           <nav className="flex gap-0 overflow-x-auto">
             {tabs.map((tab) =>
             <button
@@ -154,7 +189,6 @@ export default function LoginPage() {
               "border-gold text-gold" :
               "border-transparent text-sidebar-foreground/60 hover:text-sidebar-foreground/80 hover:border-sidebar-foreground/30"}`
               }>
-              
                 {tab.label}
               </button>
             )}
@@ -165,7 +199,6 @@ export default function LoginPage() {
               "border-gold text-gold" :
               "border-transparent text-gold/70 hover:text-gold"}`
               }>
-              
               <img src={govLogo} alt="" className="h-4" />
               Acesso ao Sistema
             </button>
@@ -175,6 +208,7 @@ export default function LoginPage() {
 
       {/* Content */}
       <main className="flex-1">
+
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
