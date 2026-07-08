@@ -38,6 +38,26 @@ Formato da resposta (markdown):
   corrigirGramatica: (texto: string) =>
     `Corrija apenas ortografia, pontuação, concordância e regência do texto abaixo. NÃO reescreva, NÃO altere estilo, NÃO adicione conteúdo. Devolva APENAS o texto corrigido, mantendo quebras de linha.\n\nTEXTO:\n${texto.replace(/<[^>]+>/g, "\n").trim()}`,
 
+  gerarEmenta: (ctx: {
+    fundamentacao: string; dispositivo: string;
+    classe?: string; assunto?: string;
+  }) => `Gere a EMENTA de uma sentença brasileira, no padrão do TJSP, com base APENAS no que consta na fundamentação e no dispositivo abaixo. NÃO invente fatos, teses, artigos ou jurisprudência que não estejam nos textos.
+
+Formato obrigatório (texto puro, sem HTML, sem markdown):
+- Linha 1: cabeçalho em MAIÚSCULAS com 3 a 6 palavras-chave separadas por ". " (ex.: "AÇÃO DE COBRANÇA. CONTRATO. JUROS MORATÓRIOS. PROCEDÊNCIA.").
+- Depois, um parágrafo único de 3 a 6 frases resumindo tese acolhida/rejeitada, fundamento jurídico principal e o dispositivo (procedência/improcedência/parcial).
+- Encerre com "Sentença de procedência." / "Sentença de improcedência." / "Procedência parcial." conforme o caso.
+
+Classe: ${ctx.classe || "-"} — Assunto: ${ctx.assunto || "-"}
+
+FUNDAMENTAÇÃO:
+${(ctx.fundamentacao || "").replace(/<[^>]+>/g, "\n").trim()}
+
+DISPOSITIVO:
+${(ctx.dispositivo || "").replace(/<[^>]+>/g, "\n").trim()}
+
+Devolva APENAS o texto da ementa.`,
+
   explicarTermo: (termo: string, contexto?: string) =>
     `Explique de forma objetiva (máximo 3 frases) o termo jurídico "${termo}" em português.${contexto ? ` Considere o contexto: "${contexto.slice(0, 400)}"` : ""} Se aplicável, cite o dispositivo legal principal. Não invente jurisprudência.`,
 
