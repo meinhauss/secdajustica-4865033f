@@ -24,7 +24,7 @@ export default function AIGerarEmenta({ fundamentacao, dispositivo, classe, assu
       return;
     }
     const res = await run({
-      operation: "gerar_ementa",
+      operation: "gerar_sentenca",
       prompt: PROMPTS.gerarEmenta({ fundamentacao, dispositivo, classe, assunto }),
       options: { temperature: 0.4 },
     });
