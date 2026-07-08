@@ -505,14 +505,20 @@ export default function CartorarioSection() {
       toast({ title: "Informe o(s) requerente(s) antes de gerar." });
       return;
     }
+    const cfg = getFieldConfig(formTipo);
     const tipoLabel = getTipoLabel(formTipo);
-    const outorgantes = formRequerentes.map(p => `${p.nome} (ID ${p.id_personagem})`).join(", ");
-    const outorgados = formEnvolvidos.map(p => `${p.nome} (ID ${p.id_personagem})`).join(", ");
-    const extra = formDescricao.trim() ? `\nInstruções adicionais do escrevente: ${formDescricao.trim()}` : "";
-    const prompt = `Gere o TEXTO OFICIAL de "${tipoLabel}" em português formal, com estrutura de cartório (cabeçalho, qualificação das partes, corpo do ato, cláusulas pertinentes, foro, data e assinatura). Use [colchetes] apenas para dados realmente faltantes. Devolva APENAS o texto do documento, sem markdown.
+    const campo = cfg.descricaoLabel.replace(" *", "");
+    const requerentes = formRequerentes.map(p => `${p.nome} (ID ${p.id_personagem})`).join(", ");
+    const envolvidos = formEnvolvidos.map(p => `${p.nome} (ID ${p.id_personagem})`).join(", ");
+    const extra = formDescricao.trim() ? `\nObservação do escrevente: ${formDescricao.trim()}` : "";
+    const prompt = `Você preencherá APENAS o campo "${campo}" de uma solicitação de "${tipoLabel}" em cartório. NÃO gere o documento inteiro, NÃO inclua cabeçalho, qualificação das partes, foro, data ou assinatura. Gere somente o conteúdo textual que deve ir DENTRO deste campo, em português formal, direto e objetivo. Use [colchetes] apenas para dados faltantes. Devolva APENAS o texto do campo, sem markdown, sem títulos.
 
-Requerente(s)/Outorgante(s): ${outorgantes || "[não informado]"}
-${formEnvolvidos.length ? `Envolvido(s)/Outorgado(s): ${outorgados}` : ""}${extra}`;
+Contexto (não repita nas respostas):
+- Tipo do ato: ${tipoLabel}
+- ${cfg.requerenteLabel?.replace(" *","") || "Requerente(s)"}: ${requerentes}
+${formEnvolvidos.length ? `- ${cfg.envolvidosLabel?.replace(" *","") || "Envolvido(s)"}: ${envolvidos}` : ""}${extra}
+
+Campo a preencher: ${campo}`;
     const res = await runAI({ operation: "gerar_certidao", prompt });
     if (res.ok) setFormDescricao(res.data as string);
   };
