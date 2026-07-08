@@ -1972,7 +1972,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                 </div>
               )}
             </div>
-            <Button className="w-full rounded-xl" onClick={() => juntarProcuracao.mutate()} disabled={juntarProcuracao.isPending || procForm.selectedPartes.length === 0}>
+            <Button className="w-full rounded-xl" onClick={() => juntarProcuracao.mutate()} disabled={juntarProcuracao.isPending || procForm.selectedPartes.length === 0 || !procForm.cartorio_id}>
               {juntarProcuracao.isPending ? "Juntando..." : `Juntar Procuração${procForm.selectedPartes.length > 1 ? ` (${procForm.selectedPartes.length} partes)` : ''}`}
             </Button>
           </div>
