@@ -163,9 +163,15 @@ export default function AIChatbotInstitucional({
   }, [messages, loading]);
 
   const system = useMemo(
-    () => PROMPTS_FASE4.chatbotInstitucional(comarca, destinosFinal, primaryRole),
-    [comarca, destinosFinal, primaryRole],
+    () => PROMPTS_FASE4.chatbotInstitucional(comarca, destinosFinal, primaryRole, {
+      nome: profile?.nome_completo,
+      roles: roles && roles.length ? roles : [primaryRole],
+      activeSection,
+      oab: (profile as any)?.oab,
+    }),
+    [comarca, destinosFinal, primaryRole, roles, profile?.nome_completo, activeSection],
   );
+
 
 
   const send = async (override?: string) => {

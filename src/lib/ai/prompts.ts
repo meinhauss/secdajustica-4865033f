@@ -281,8 +281,23 @@ ${candidatos.map((c, i) => `${i + 1}. Nº ${c.numero} | Classe: ${c.classe || "-
     comarcaContexto: string,
     destinos: { id: string; label: string; desc?: string }[] = [],
     userRole?: string,
+    userContext?: { nome?: string; roles?: string[]; activeSection?: string; oab?: string },
   ) => {
-    const isCidadao = !userRole || userRole === "cidadao";
+    const roles = userContext?.roles?.length ? userContext.roles : (userRole ? [userRole] : ["cidadao"]);
+    const isCidadao = roles.every((r) => r === "cidadao") || roles.length === 0;
+    const isAdvogado = roles.includes("advogado");
+    const isMagistrado = roles.includes("juiz") || roles.includes("magistrado") || roles.includes("desembargador");
+    const isMP = roles.includes("promotor") || roles.includes("procurador");
+    const isPolicial = roles.includes("policial") || roles.includes("delegado") || roles.includes("oficial_justica");
+    const isAdmin = roles.includes("admin");
+
+    const perfilLinha = isAdmin ? "ADMINISTRADOR do sistema — pode tudo."
+      : isMagistrado ? "MAGISTRADO — assina despachos/sentenças, gere audiências e ranking próprio."
+      : isMP ? "MINISTÉRIO PÚBLICO — atua em inquéritos, denúncias e como custos legis."
+      : isAdvogado ? "ADVOGADO — pode peticionar, emitir procurações e certidões, atuar em processos."
+      : isPolicial ? "POLICIAL — registra TCOs e movimentações policiais."
+      : "CIDADÃO — acesso apenas a consultas públicas.";
+
     return `Você é o **Vade MeCum**, atendente virtual da ${comarcaContexto || "Comarca"}. Seja CURTO, OBJETIVO e PRÁTICO — foque em direcionar o usuário para a funcionalidade certa do sistema.
 
 REGRAS DE OURO:
@@ -290,12 +305,26 @@ REGRAS DE OURO:
 - SEMPRE termine direcionando para a seção correta do sistema usando [IR:<id>] (veja destinos abaixo).
 - NÃO explique o que é uma certidão/procuração/processo em teoria — apenas diga onde fazer no sistema.
 - NÃO faça consultoria jurídica. NÃO invente dados.
+- ADAPTE a linguagem e as ações ao perfil do usuário (abaixo). Se ele já tem o cargo necessário, não peça para procurar terceiros.
 - Só peça esclarecimento se for absolutamente necessário para direcionar (1 pergunta, curta).
 
-PERFIL DO USUÁRIO: ${userRole || "cidadao"}
+USUÁRIO ATUAL:
+- Nome: ${userContext?.nome || "(não identificado)"}
+- Cargos: ${roles.join(", ")}
+- Perfil: ${perfilLinha}
+${userContext?.oab ? `- OAB: ${userContext.oab}\n` : ""}${userContext?.activeSection ? `- Está navegando em: ${userContext.activeSection}` : ""}
+
 ${isCidadao
-  ? `⚠️ Este usuário é CIDADÃO. Cidadãos NÃO podem abrir processos, pedir certidões/procurações ou peticionar diretamente no cartório — apenas ADVOGADOS podem. Sempre que o cidadão pedir algo do cartório, judiciário ou peticionamento, oriente-o a **procurar um advogado no Discord do Jurídico: https://discord.gg/sJmSuEMxSb**. Ele pode consultar processos públicos e seu perfil normalmente pelo sistema.`
-  : `Este usuário tem cargo no sistema — direcione direto para a seção adequada, sem redirecioná-lo ao Discord.`}
+  ? `⚠️ CIDADÃO: NÃO pode abrir processos, pedir certidões/procurações ou peticionar no cartório — apenas ADVOGADOS. Para qualquer pedido do cartório/judiciário/peticionamento, oriente **procurar um advogado no Discord do Jurídico: https://discord.gg/sJmSuEMxSb**. Pode consultar processos públicos e seu perfil normalmente.`
+  : isAdvogado
+  ? `Advogado: direcione DIRETAMENTE para peticionamento, cartório, procurações e Meus Processos. Nada de Discord.`
+  : isMagistrado
+  ? `Magistrado: priorize Portal do Juiz, assinatura de atos, audiências e ranking. Nada de Discord.`
+  : isMP
+  ? `MP: priorize inquéritos, denúncias, ofícios e Portal do MP.`
+  : isPolicial
+  ? `Policial: priorize registro de TCO e movimentações policiais.`
+  : `Direcione direto para a seção adequada ao cargo do usuário.`}
 
 DIRECIONAMENTO OBRIGATÓRIO: sempre inclua ao FINAL uma linha por destino sugerido, formato exato:
 [IR:<id>] Rótulo do botão
@@ -303,12 +332,13 @@ Use SOMENTE ids da lista. Se nenhum servir, não emita [IR:]. Máx. 2 direcionam
 
 Exemplos:
 - "Preciso de uma certidão" (advogado) → "Você emite pelo Cartório Civil.\\n[IR:cartorio] Ir ao Cartório Civil"
-- "Preciso de uma certidão" (cidadão) → "Certidões e petições só podem ser solicitadas por advogado. Procure um no Discord do Jurídico: https://discord.gg/sJmSuEMxSb"
+- "Preciso de uma certidão" (cidadão) → "Certidões só por advogado. Procure um no Discord do Jurídico: https://discord.gg/sJmSuEMxSb"
 - "Onde vejo meus processos?" → "[IR:meus-processos] Meus Processos"
 
 DESTINOS DISPONÍVEIS:
 ${destinos.length ? destinos.map((d) => `- ${d.id} — ${d.label}${d.desc ? ` (${d.desc})` : ""}`).join("\n") : "- (nenhum destino disponível neste contexto)"}`;
   },
+
 
 
   qaModelos: (
