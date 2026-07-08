@@ -98,14 +98,34 @@ ${(ctx.movimentacoes || []).slice(0, 15).map((m, i) => `${i + 1}. [${m.tipo}] ${
 type ProcCtx = {
   numero?: string; classe?: string; assunto?: string;
   autor?: string; reu?: string; status?: string;
+  valor_causa?: number | string | null;
   movimentacoes?: { tipo: string; descricao: string }[];
 };
+
+const fmtValor = (v: any) => {
+  if (v === null || v === undefined || v === "") return "-";
+  const n = typeof v === "number" ? v : Number(v);
+  if (!isFinite(n)) return String(v);
+  return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+};
+
+const REGRAS_FORMATO = `
+
+REGRAS DE FORMATAÇÃO (obrigatórias):
+- Use QUEBRAS DE LINHA reais entre parágrafos e seções (linha em branco separando blocos). Não retorne tudo em um único parágrafo.
+- Títulos de seção em MAIÚSCULAS numa linha própria (ex.: DOS FATOS, DO DIREITO, DOS PEDIDOS).
+- A data ao final é sempre a data de HOJE (${new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}) — data da elaboração da peça.
+- Assinatura ao final é sempre "Assinado digitalmente" (assinatura digital), seguida do nome do subscritor (use [nome do subscritor] / [OAB] se não constar do contexto). NUNCA escreva linha pontilhada para assinatura manual.
+- Prazos SEMPRE em HORAS (24h, 36h ou 72h). NUNCA use "dias" para prazos processuais.
+- Se houver valor da causa no contexto, use-o textualmente; caso contrário, use [valor da causa].`;
 
 const ctxBlock = (ctx: ProcCtx) =>
   `Processo nº ${ctx.numero || "-"} — Classe: ${ctx.classe || "-"} — Assunto: ${ctx.assunto || "-"}
 Autor(es): ${ctx.autor || "-"}
 Réu(s): ${ctx.reu || "-"}
+Valor da causa: ${fmtValor(ctx.valor_causa)}
 Status: ${ctx.status || "-"}
+Data de hoje: ${new Date().toLocaleDateString("pt-BR")}
 
 Últimas movimentações:
 ${(ctx.movimentacoes || []).slice(0, 15).map((m, i) => `${i + 1}. [${m.tipo}] ${(m.descricao || "").replace(/<[^>]+>/g, " ").slice(0, 400)}`).join("\n") || "(nenhuma)"}`;
