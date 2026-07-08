@@ -496,11 +496,13 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
             if (p) onSelect(p.id);
           }} />
           <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
-                <Plus className="h-4 w-4 mr-2" /> Novo Processo
-              </Button>
-            </DialogTrigger>
+            {!isCidadao && (
+              <DialogTrigger asChild>
+                <Button className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
+                  <Plus className="h-4 w-4 mr-2" /> Novo Processo
+                </Button>
+              </DialogTrigger>
+            )}
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle className="font-display">Cadastrar Novo Processo</DialogTitle></DialogHeader>
             <form onSubmit={(e) => { e.preventDefault(); createProcesso.mutate(); }} className="space-y-4 mt-4">
