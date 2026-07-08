@@ -25,6 +25,7 @@ import { ptBR } from "date-fns/locale";
 import { PodiumDestaque } from "@/components/PodiumDestaque";
 import { normalizeRichText } from "@/lib/sanitize";
 import ModeloPicker from "@/components/ModeloPicker";
+import AISugerirDespacho from "@/components/AISugerirDespacho";
 import { extrairNomes, type ModeloContext } from "@/lib/modelosVars";
 import { analisarDespacho } from "@/lib/assistente/bus";
 
