@@ -1958,8 +1958,14 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                         <p className="text-xs font-semibold text-foreground">
                           Procuração {pc.numero_registro ? `nº ${pc.numero_registro}` : ""}
                         </p>
-                        <p className="text-[10px] text-muted-foreground line-clamp-2">
-                          Partes: {pc.partes_envolvidas || "—"}
+                        <p className="text-[11px] text-muted-foreground line-clamp-2">
+                          Partes: {(() => {
+                            try {
+                              const arr = typeof pc.partes_envolvidas === "string" ? JSON.parse(pc.partes_envolvidas) : pc.partes_envolvidas;
+                              if (Array.isArray(arr) && arr.length) return arr.map((p: any) => p?.nome || p).join(", ");
+                            } catch {}
+                            return pc.partes_envolvidas || "—";
+                          })()}
                         </p>
                         {pc.emitido_em && (
                           <p className="text-[10px] text-muted-foreground">
