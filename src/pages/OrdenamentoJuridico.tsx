@@ -189,6 +189,9 @@ export default function OrdenamentoJuridicoPage() {
         );
       })
       .sort((a, b) => {
+        // Ao filtrar por uma categoria específica, ordena apenas pelo número
+        // para manter a sequência (ex.: DL 001, DL 002, ..., DL 022).
+        if (categoria !== "Todas") return collator.compare(a.numero, b.numero);
         const ci = catIndex(a.categoria) - catIndex(b.categoria);
         if (ci !== 0) return ci;
         if (a.categoria !== b.categoria) return collator.compare(a.categoria, b.categoria);
