@@ -901,12 +901,8 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
       const match = (viewProcuracao || "").match(/([A-Z]{1,3}-?\d{3,}\/\d{4})/i);
       const numero = match?.[1];
       if (!numero) return null;
-      const { data } = await supabase
-        .from("registros_cartorio")
-        .select("*")
-        .eq("numero_registro", numero)
-        .maybeSingle();
-      return data;
+      const { data } = await supabase.rpc("get_procuracao_publica", { _numero: numero });
+      return Array.isArray(data) ? data[0] : data;
     },
   });
 
