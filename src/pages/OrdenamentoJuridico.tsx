@@ -51,7 +51,7 @@ function categoriasDaLei(l: { numero: string; titulo: string; categoria: string 
   const set = new Set<string>();
   if (l.categoria) set.add(l.categoria);
   const alvo = `${l.numero} ${l.titulo}`.toLowerCase();
-  if (/decreto[-\s]?lei/.test(alvo)) set.add("Decretos-Lei");
+  if (/decreto[-\s]?lei|(^|\s)dl\s/.test(alvo)) set.add("Decretos-Lei");
   if (/constitui[cç][aã]o/.test(alvo)) set.add("Constituição da República de Jaguaré");
   if (/c[oó]digo\s+de\s+[ée]tica|c[oó]digo\s+de\s+conduta/.test(alvo)) set.add("Código de Ética e Conduta");
   if (/processo\s+penal/.test(alvo)) set.add("Processo Penal");
