@@ -1,5 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import LoginPage from "@/components/LoginPage";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -39,6 +41,7 @@ const Index = () => {
   const [activeSection, setActiveSection] = useState("dashboard");
   const [openProcessoId, setOpenProcessoId] = useState<string | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [avatarReminderOpen, setAvatarReminderOpen] = useState(false);
 
   useGlobalShortcuts((section) => {
     if (section !== "processos") setOpenProcessoId(null);
@@ -73,11 +76,7 @@ const Index = () => {
     const key = `avatar-reminder-${user.id}`;
     if (sessionStorage.getItem(key)) return;
     sessionStorage.setItem(key, "1");
-    toast.warning("Adicione uma foto de perfil", {
-      description: "Como membro togado, é obrigatório manter sua foto de perfil atualizada.",
-      action: { label: "Adicionar agora", onClick: () => setActiveSection("meu-perfil") },
-      duration: 10000,
-    });
+    setAvatarReminderOpen(true);
   }, [user, profile, roles]);
 
 
@@ -158,6 +157,33 @@ const Index = () => {
           <p className="text-xs text-muted-foreground mt-3">
             Digite as teclas em sequência (ex.: pressione <kbd>g</kbd> e depois <kbd>p</kbd>). Atalhos são ignorados em campos de texto.
           </p>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={avatarReminderOpen} onOpenChange={setAvatarReminderOpen}>
+        <DialogContent className="max-w-md" onInteractOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-gold" />
+              Foto de perfil obrigatória
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Como membro togado, é obrigatório manter sua foto de perfil atualizada no sistema.
+            Adicione ou atualize sua foto agora para continuar utilizando as funcionalidades da plataforma.
+          </p>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="ghost" onClick={() => setAvatarReminderOpen(false)}>
+              Depois
+            </Button>
+            <Button
+              onClick={() => {
+                setAvatarReminderOpen(false);
+                setActiveSection("meu-perfil");
+              }}
+            >
+              Adicionar agora
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </>
