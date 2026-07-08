@@ -143,6 +143,20 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
         </Link>
       </motion.div>
 
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+      >
+        <Link
+          to="/ordenamento"
+          className="w-full flex items-center justify-center gap-3 bg-card border border-border text-foreground rounded-xl px-6 py-3 shadow-institutional hover:border-accent hover:text-accent transition-colors font-semibold tracking-wide"
+        >
+          <Landmark className="h-5 w-5" />
+          ORDENAMENTO JURÍDICO
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+      </motion.div>
+
       {stats.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           {stats.map((stat, i) => (
