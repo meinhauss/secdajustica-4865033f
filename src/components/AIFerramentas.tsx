@@ -166,6 +166,7 @@ export default function AIFerramentas({ processo, movimentacoes }: Props) {
     minuta: "Minuta de Sentença/Decisão",
     parecer: "Parecer do MP",
     documento: "Documento Cartorário",
+    peca: "Peça Advocatícia",
     prazos: "Análise de Prazos e Riscos",
     fundamentacao: "Sugerir Fundamentação Jurídica",
     triagem: "Triagem de Petição",
