@@ -196,6 +196,7 @@ export default function OrdenamentoJuridicoPage() {
         if (ci !== 0) return ci;
         if (a.categoria !== b.categoria) return collator.compare(a.categoria, b.categoria);
         return collator.compare(a.numero, b.numero);
+      });
   }, [leis, busca, categoria]);
 
 
