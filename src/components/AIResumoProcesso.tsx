@@ -5,7 +5,7 @@ import { Sparkles, Loader2, RefreshCw } from "lucide-react";
 import { useAI } from "@/hooks/useAI";
 import { PROMPTS } from "@/lib/ai/prompts";
 import { extrairNomes } from "@/lib/modelosVars";
-import { RichTextView } from "@/components/ui/rich-text-editor";
+import ReactMarkdown from "react-markdown";
 
 interface Props {
   processo: any;
