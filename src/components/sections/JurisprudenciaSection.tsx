@@ -230,7 +230,7 @@ function JurisprudenciaDetail({ id, onBack }: { id: string; onBack: () => void }
         </Button>
       </div>
 
-      <div id="jurisprudencia-content" className="space-y-6 bg-white p-2">
+      <div id="jurisprudencia-content" className="space-y-6">
         <div className="bg-card rounded-xl p-6 border border-border shadow-institutional">
           <div className="flex items-center gap-3 flex-wrap mb-4">
             <BookOpen className="h-6 w-6 text-institutional" />
