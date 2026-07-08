@@ -15,6 +15,8 @@ import logoTjsp from "@/assets/logo-tjsp.png";
 import logoMpsp from "@/assets/logo-mpsp.png";
 import logoOabsp from "@/assets/logo-oabsp.png";
 import logoSjc from "@/assets/logo-sjc.jpg";
+import logoDefensoriaAsset from "@/assets/logo-defensoria-sp.jpg.asset.json";
+const logoDefensoria = logoDefensoriaAsset.url;
 
 const ROLE_LABELS: Record<string, string> = {
   admin: "Administrador",
@@ -29,6 +31,8 @@ const ROLE_LABELS: Record<string, string> = {
   procurador_geral: "Procurador(a)-Geral",
   bacharel_direito: "Bacharel em Direito",
   procurador_estado: "Procurador(a) Geral do Estado",
+  defensor_publico: "Defensor(a) Público(a)",
+  defensor_publico_geral: "Defensor(a) Público(a)-Geral",
 };
 
 interface InstitutionInfo {
@@ -46,6 +50,9 @@ function getInstitutionForRole(role: string): InstitutionInfo {
     case "ministerio_publico":
     case "procurador_geral":
       return { name: "Ministério Público de São Paulo", logo: logoMpsp };
+    case "defensor_publico":
+    case "defensor_publico_geral":
+      return { name: "Defensoria Pública do Estado de São Paulo", logo: logoDefensoria };
     case "procurador_estado":
       return { name: "Procuradoria Geral do Estado", logo: logoSjc };
     case "advogado":
@@ -61,6 +68,7 @@ function getPrimaryRole(roles: string[]): string {
   const priority = [
     "presidente_tribunal", "desembargador", "magistrado",
     "procurador_geral", "procurador_estado", "ministerio_publico",
+    "defensor_publico_geral", "defensor_publico",
     "presidente_oab", "advogado",
     "oficial_justica", "bacharel_direito",
     "admin", "cidadao",
