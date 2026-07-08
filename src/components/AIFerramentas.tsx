@@ -5,14 +5,15 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Wand2, Loader2, Copy, Check, Gavel, Scale, FileText, AlertTriangle, BookOpen, RefreshCw, Inbox, FileSearch, GitCompare, Copyright } from "lucide-react";
+import { Wand2, Loader2, Copy, Check, Gavel, Scale, FileText, AlertTriangle, BookOpen, RefreshCw, Inbox, FileSearch, GitCompare, Copyright, Briefcase } from "lucide-react";
 import { useAI } from "@/hooks/useAI";
 import { PROMPTS_EXTRA, PROMPTS, PROMPTS_FASE3 } from "@/lib/ai/prompts";
 import { extrairNomes } from "@/lib/modelosVars";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
-type Tool = "minuta" | "parecer" | "documento" | "prazos" | "fundamentacao" | "triagem" | "extracao" | "comparar" | "duplicidade" | null;
+type Tool = "minuta" | "parecer" | "documento" | "peca" | "prazos" | "fundamentacao" | "triagem" | "extracao" | "comparar" | "duplicidade" | null;
 
 interface Props {
   processo?: any;
@@ -20,6 +21,12 @@ interface Props {
 }
 
 export default function AIFerramentas({ processo, movimentacoes }: Props) {
+  const { roles } = useAuth();
+  const isAdvogado = roles.includes("advogado") || roles.includes("presidente_oab") || roles.includes("bacharel_direito");
+  const isMagistrado = roles.some((r) => ["admin", "magistrado", "desembargador", "presidente_tribunal"].includes(r));
+  const isMP = roles.some((r) => ["ministerio_publico", "procurador_geral", "procurador_estado"].includes(r));
+  const isCartorio = roles.includes("oficial_justica") || isMagistrado;
+
   const [tool, setTool] = useState<Tool>(null);
   const [texto, setTexto] = useState("");
   const [copiado, setCopiado] = useState(false);
@@ -38,6 +45,10 @@ export default function AIFerramentas({ processo, movimentacoes }: Props) {
   const [docFinalidade, setDocFinalidade] = useState("");
   const [docInstrucao, setDocInstrucao] = useState("");
   const [docExtenso, setDocExtenso] = useState(false);
+  const [pecaTipo, setPecaTipo] = useState<"peticao_inicial" | "contestacao" | "replica" | "recurso_apelacao" | "alegacoes_finais" | "embargos_declaracao" | "agravo">("peticao_inicial");
+  const [pecaTese, setPecaTese] = useState("");
+  const [pecaInstrucao, setPecaInstrucao] = useState("");
+  const [pecaExtenso, setPecaExtenso] = useState(false);
   const [prazosJson, setPrazosJson] = useState<any>(null);
   const [tema, setTema] = useState("");
   // Fase 3
@@ -92,6 +103,8 @@ export default function AIFerramentas({ processo, movimentacoes }: Props) {
     } else if (tool === "comparar") {
       if (!pecaA.trim() || !pecaB.trim()) { toast.error("Cole o texto das duas peças."); return; }
       req = { operation: "custom", prompt: PROMPTS_FASE3.compararPecas(pecaA, pecaB, rotuloA, rotuloB) };
+    } else if (tool === "peca") {
+      req = { operation: "custom", prompt: PROMPTS_EXTRA.pecaAdvogado({ ...ctx(), tipo: pecaTipo, tese: pecaTese.trim() || undefined, instrucao: pecaInstrucao.trim() || undefined, extenso: pecaExtenso }) };
     } else if (tool === "duplicidade") {
       await rodarDuplicidade(); return;
     }
@@ -153,6 +166,7 @@ export default function AIFerramentas({ processo, movimentacoes }: Props) {
     minuta: "Minuta de Sentença/Decisão",
     parecer: "Parecer do MP",
     documento: "Documento Cartorário",
+    peca: "Peça Advocatícia",
     prazos: "Análise de Prazos e Riscos",
     fundamentacao: "Sugerir Fundamentação Jurídica",
     triagem: "Triagem de Petição",
@@ -171,9 +185,18 @@ export default function AIFerramentas({ processo, movimentacoes }: Props) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-64">
           <DropdownMenuLabel>Gerar com IA</DropdownMenuLabel>
-          <DropdownMenuItem onClick={() => abrir("minuta")}><Gavel className="h-4 w-4 mr-2" /> Minuta de sentença/decisão</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => abrir("parecer")}><Scale className="h-4 w-4 mr-2" /> Parecer do MP</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => abrir("documento")}><FileText className="h-4 w-4 mr-2" /> Mandado / Ofício / Certidão / Alvará</DropdownMenuItem>
+          {isMagistrado && (
+            <DropdownMenuItem onClick={() => abrir("minuta")}><Gavel className="h-4 w-4 mr-2" /> Minuta de sentença/decisão</DropdownMenuItem>
+          )}
+          {isMP && (
+            <DropdownMenuItem onClick={() => abrir("parecer")}><Scale className="h-4 w-4 mr-2" /> Parecer do MP</DropdownMenuItem>
+          )}
+          {isAdvogado && (
+            <DropdownMenuItem onClick={() => abrir("peca")}><Briefcase className="h-4 w-4 mr-2" /> Petição inicial / Contestação / Recurso</DropdownMenuItem>
+          )}
+          {isCartorio && (
+            <DropdownMenuItem onClick={() => abrir("documento")}><FileText className="h-4 w-4 mr-2" /> Mandado / Ofício / Certidão / Alvará</DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuLabel>Análise</DropdownMenuLabel>
           <DropdownMenuItem onClick={() => abrir("prazos")}><AlertTriangle className="h-4 w-4 mr-2" /> Checar prazos e riscos</DropdownMenuItem>
@@ -181,7 +204,9 @@ export default function AIFerramentas({ processo, movimentacoes }: Props) {
           <DropdownMenuItem onClick={() => abrir("triagem")}><Inbox className="h-4 w-4 mr-2" /> Triagem de petição</DropdownMenuItem>
           <DropdownMenuItem onClick={() => abrir("extracao")}><FileSearch className="h-4 w-4 mr-2" /> Extrair dados de PDF</DropdownMenuItem>
           <DropdownMenuItem onClick={() => abrir("comparar")}><GitCompare className="h-4 w-4 mr-2" /> Comparar peças</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => abrir("duplicidade")}><Copyright className="h-4 w-4 mr-2" /> Detectar duplicidade</DropdownMenuItem>
+          {(isMagistrado || isMP) && (
+            <DropdownMenuItem onClick={() => abrir("duplicidade")}><Copyright className="h-4 w-4 mr-2" /> Detectar duplicidade</DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -255,6 +280,32 @@ export default function AIFerramentas({ processo, movimentacoes }: Props) {
               </div>
             )}
 
+            {tool === "peca" && (
+              <div className="space-y-2">
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <Select value={pecaTipo} onValueChange={(v: any) => setPecaTipo(v)}>
+                    <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="peticao_inicial">Petição inicial</SelectItem>
+                      <SelectItem value="contestacao">Contestação</SelectItem>
+                      <SelectItem value="replica">Réplica</SelectItem>
+                      <SelectItem value="alegacoes_finais">Alegações finais / Memoriais</SelectItem>
+                      <SelectItem value="recurso_apelacao">Recurso de apelação</SelectItem>
+                      <SelectItem value="agravo">Agravo de instrumento</SelectItem>
+                      <SelectItem value="embargos_declaracao">Embargos de declaração</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input placeholder="Tese/orientação principal (opcional)" value={pecaTese} onChange={(e) => setPecaTese(e.target.value)} className="rounded-xl" />
+                </div>
+                <Textarea placeholder="Orientações adicionais (opcional) — ex: pedido de tutela de urgência, danos morais, gratuidade..." value={pecaInstrucao} onChange={(e) => setPecaInstrucao(e.target.value)} className="rounded-xl min-h-[70px] text-xs" />
+                <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                  <input type="checkbox" checked={pecaExtenso} onChange={(e) => setPecaExtenso(e.target.checked)} className="rounded" />
+                  Gerar versão extensa e detalhada (padrão: curta e objetiva)
+                </label>
+              </div>
+            )}
+
+
             {tool === "fundamentacao" && (
               <Textarea placeholder="Descreva o tema jurídico (ex: prescrição da pretensão punitiva em crime tributário)" value={tema} onChange={(e) => setTema(e.target.value)} className="rounded-xl min-h-[80px]" />
             )}
@@ -303,7 +354,7 @@ export default function AIFerramentas({ processo, movimentacoes }: Props) {
             {tool === "extracao" && extracaoJson && !loading && <ExtracaoView data={extracaoJson} />}
             {tool === "duplicidade" && duplicidadeJson && !loading && !buscandoDup && <DuplicidadeView data={duplicidadeJson} />}
 
-            {(tool === "minuta" || tool === "parecer" || tool === "documento" || tool === "fundamentacao" || tool === "comparar") && texto && !loading && (
+            {(tool === "minuta" || tool === "parecer" || tool === "documento" || tool === "peca" || tool === "fundamentacao" || tool === "comparar") && texto && !loading && (
               <>
                 <Textarea value={texto} onChange={(e) => setTexto(e.target.value)} className="rounded-xl min-h-[360px] font-mono text-xs" />
                 <div className="flex justify-between items-center">
