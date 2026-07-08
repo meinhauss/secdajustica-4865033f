@@ -251,6 +251,8 @@ export default function LoginPage() {
           { id: "login", label: "Acesso ao Sistema", desc: "login e cadastro" },
         ]}
         onNavigate={(id) => setActiveTab(id as Tab)}
+        activeSection={activeTab}
+
       />
     </div>);
 
