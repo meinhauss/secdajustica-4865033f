@@ -509,6 +509,7 @@ export default function CartorarioSection() {
 
 REGRAS OBRIGATÓRIAS:
 - NÃO gere o documento inteiro. NÃO inclua cabeçalho, qualificação de partes, foro, data, assinatura, nem títulos.
+- Seja o MAIS RESUMIDO possível: 1 a 3 frases curtas, no máximo ~60 palavras. Nada de repetições ou floreios.
 - Escreva o mais GENÉRICO possível, usando fórmulas padrão de cartório aplicáveis à maioria dos casos, de modo que quase não seja necessária edição.
 - NÃO invente nomes, CPFs, endereços, datas, números ou dados pessoais. Se algum dado for indispensável, use um marcador neutro entre colchetes (ex.: [data], [local]), mas prefira redação impessoal que dispense o marcador.
 - Português formal, direto, objetivo. Sem markdown. Devolva SOMENTE o conteúdo do campo.${extra}`;
