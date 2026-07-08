@@ -41,10 +41,29 @@ const CATEGORIAS_PADRAO = [
   "Decretos-Lei",
   "Processo Penal",
   "Processo Civil",
-  "Direito Penal Especial",
   "Defensoria Pública",
   "Direito de Família",
 ];
+
+// Retorna todas as categorias às quais uma lei pertence, inferindo pelo tipo
+// declarado no número/título (ex.: "Decreto-Lei nº ..." também entra no filtro "Decretos-Lei").
+function categoriasDaLei(l: { numero: string; titulo: string; categoria: string }): string[] {
+  const set = new Set<string>();
+  if (l.categoria) set.add(l.categoria);
+  const alvo = `${l.numero} ${l.titulo}`.toLowerCase();
+  if (/decreto[-\s]?lei/.test(alvo)) set.add("Decretos-Lei");
+  if (/constitui[cç][aã]o/.test(alvo)) set.add("Constituição da República de Jaguaré");
+  if (/c[oó]digo\s+de\s+[ée]tica|c[oó]digo\s+de\s+conduta/.test(alvo)) set.add("Código de Ética e Conduta");
+  if (/processo\s+penal/.test(alvo)) set.add("Processo Penal");
+  if (/processo\s+civil/.test(alvo)) set.add("Processo Civil");
+  if (/fam[ií]lia/.test(alvo)) set.add("Direito de Família");
+  if (/defensoria/.test(alvo)) set.add("Defensoria Pública");
+  if (/unisp/.test(alvo)) set.add("UNISP — Universidade de Direito");
+  if (/\boab\b|advocacia/.test(alvo)) set.add("Advocacia e OAB");
+  if (/minist[eé]rio\s+p[uú]blico|\bmp\b/.test(alvo)) set.add("Ministério Público (MP)");
+  if (/tribunal\s+de\s+justi[cç]a|\btj\b/.test(alvo)) set.add("Tribunal de Justiça (TJ)");
+  return Array.from(set);
+}
 
 // Realça padrões jurídicos: Art. Nº, §, incisos romanos, títulos/capítulos/seções,
 // rótulos "Palavra:" no início da linha e "Lei/Decreto nº ...".
