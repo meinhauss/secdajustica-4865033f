@@ -5,7 +5,7 @@ import { Sparkles, Loader2, RefreshCw } from "lucide-react";
 import { useAI } from "@/hooks/useAI";
 import { PROMPTS } from "@/lib/ai/prompts";
 import { extrairNomes } from "@/lib/modelosVars";
-import { RichTextView } from "@/components/ui/rich-text-editor";
+import ReactMarkdown from "react-markdown";
 
 interface Props {
   processo: any;
@@ -64,7 +64,9 @@ export default function AIResumoProcesso({ processo, movimentacoes }: Props) {
             </div>
           ) : resumo ? (
             <>
-              <RichTextView html={resumo.replace(/\n/g, "<br/>")} />
+              <div className="prose prose-sm dark:prose-invert max-w-none prose-headings:font-display prose-strong:text-foreground prose-p:leading-relaxed">
+                <ReactMarkdown>{resumo}</ReactMarkdown>
+              </div>
               <div className="flex justify-end mt-3">
                 <Button size="sm" variant="ghost" onClick={() => gerar(true)}>
                   <RefreshCw className="h-3 w-3 mr-1" /> Regenerar
