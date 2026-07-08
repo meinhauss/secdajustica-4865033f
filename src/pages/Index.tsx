@@ -41,6 +41,7 @@ const Index = () => {
   const [activeSection, setActiveSection] = useState("dashboard");
   const [openProcessoId, setOpenProcessoId] = useState<string | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [avatarReminderOpen, setAvatarReminderOpen] = useState(false);
 
   useGlobalShortcuts((section) => {
     if (section !== "processos") setOpenProcessoId(null);
