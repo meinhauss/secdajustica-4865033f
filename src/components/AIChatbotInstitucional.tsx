@@ -350,7 +350,12 @@ export default function AIChatbotInstitucional({
               title="Arraste para reposicionar · clique para abrir"
             >
               <img src={vadeAvatar.url} alt="Vade MeCum" className="w-full h-full object-cover pointer-events-none" draggable={false} />
-              {showGreeting && (
+              {tips.length > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-gold text-institutional text-[10px] font-bold flex items-center justify-center ring-2 ring-background">
+                  {tips.length > 9 ? "9+" : tips.length}
+                </span>
+              )}
+              {showGreeting && tips.length === 0 && (
                 <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-gold ring-2 ring-background animate-pulse" />
               )}
             </button>
