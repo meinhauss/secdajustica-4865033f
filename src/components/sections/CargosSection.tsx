@@ -96,6 +96,7 @@ const ROLE_HIERARCHY = [
     bgColor: "bg-red-500/10",
     description: "Prestação de assistência jurídica integral e gratuita aos necessitados. Defesa criminal e cível de hipossuficientes, tutela coletiva de vulneráveis e atuação em audiências.",
     permissions: ["assistencia_juridica", "defesa_hipossuficientes", "tutela_coletiva", "peticoes", "audiencias", "consulta_publica"],
+  },
   {
     level: 7,
     role: "chefe_gaeco",
