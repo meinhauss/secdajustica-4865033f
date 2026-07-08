@@ -1511,7 +1511,9 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               </SelectContent>
             </Select>
             <Input placeholder="Ementa (opcional)" value={sentencaForm.ementa} onChange={(e) => setSentencaForm({ ...sentencaForm, ementa: e.target.value })} className="rounded-xl" />
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-2 flex-wrap">
+              <AISugerirDespacho tipoAto="sentenca_fundamentacao" tituloAto="Fundamentação da sentença" rascunhoAtual={sentencaForm.fundamentacao} processo={processo} movimentacoes={movs} onInsert={(t) => setSentencaForm(f => ({ ...f, fundamentacao: appendHtml(f.fundamentacao, textoToHtml(t)) }))} label="IA: Fundamentação" />
+              <AISugerirDespacho tipoAto="sentenca_dispositivo" tituloAto="Dispositivo da sentença" rascunhoAtual={sentencaForm.dispositivo} processo={processo} movimentacoes={movs} onInsert={(t) => setSentencaForm(f => ({ ...f, dispositivo: appendHtml(f.dispositivo, textoToHtml(t)) }))} label="IA: Dispositivo" />
               <ModeloPicker categoria="sentenca" context={modeloCtx} label="Modelo p/ fundamentação" onInsert={(t) => setSentencaForm(f => ({ ...f, fundamentacao: appendHtml(f.fundamentacao, textoToHtml(t)) }))} />
               <ModeloPicker categoria="sentenca" context={modeloCtx} label="Modelo p/ dispositivo" onInsert={(t) => setSentencaForm(f => ({ ...f, dispositivo: appendHtml(f.dispositivo, textoToHtml(t)) }))} />
             </div>
