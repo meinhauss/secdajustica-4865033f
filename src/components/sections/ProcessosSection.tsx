@@ -1582,7 +1582,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
           <AIResumoProcesso processo={processo} movimentacoes={movimentacoes} />
           <AIClassificarPeticao />
           <AIFerramentas processo={processo} movimentacoes={movimentacoes} />
-          <AIAssistente processo={processo} movimentacoes={movimentacoes} />
+          
         </div>
       </div>
 
