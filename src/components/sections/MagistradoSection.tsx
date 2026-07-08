@@ -658,7 +658,9 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const [despachoForm, setDespachoForm] = useState({ titulo: "", conteudo: "", tipo: "despacho" });
   const criarDespacho = useMutation({
     mutationFn: async () => {
-      if (!despachoForm.titulo || !despachoForm.conteudo) throw new Error("Preencha título e conteúdo.");
+      if (!despachoForm.conteudo) throw new Error("Preencha o conteúdo.");
+      const tipoLabel = despachoForm.tipo === "decisao_interlocutoria" ? "Decisão Interlocutória" : despachoForm.tipo === "despacho_ordinatorio" ? "Despacho Ordinatório" : despachoForm.tipo === "determinacao" ? "Determinação" : "Despacho";
+      despachoForm.titulo = tipoLabel;
       const judgeName = await getJudgeName();
       const { error } = await supabase.from("atos_judiciais").insert({
         processo_id: processoId,
@@ -1332,7 +1334,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                 <SelectItem value="determinacao">Determinação</SelectItem>
               </SelectContent>
             </Select>
-            <Input placeholder="Título do despacho" value={despachoForm.titulo} onChange={(e) => setDespachoForm({ ...despachoForm, titulo: e.target.value })} className="rounded-xl" required />
+            
             <div className="flex justify-end"><ModeloPicker categoria="despacho" context={modeloCtx} onInsert={(t) => setDespachoForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))} /></div>
             <RichTextEditor placeholder="Conteúdo do despacho..." value={despachoForm.conteudo} onChange={(html) => setDespachoForm({ ...despachoForm, conteudo: html })} minHeight="160px" />
             <Button type="submit" disabled={criarDespacho.isPending} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
