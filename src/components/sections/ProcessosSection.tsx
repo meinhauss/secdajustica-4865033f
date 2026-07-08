@@ -892,7 +892,58 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   // canAddMovimentacao is computed after jaInteressado below
 
   const [showProcuracao, setShowProcuracao] = useState(false);
-  const [procForm, setProcForm] = useState<{ selectedPartes: string[]; documento_url: string }>({ selectedPartes: [], documento_url: "" });
+  const [procForm, setProcForm] = useState<{ selectedPartes: string[]; documento_url: string; cartorio_id: string | null }>({ selectedPartes: [], documento_url: "", cartorio_id: null });
+
+  // Procurações emitidas pelo cartório para este advogado
+  const { data: procuracoesCartorio } = useQuery({
+    enabled: !!user?.id && isAdvogado && showProcuracao,
+    queryKey: ["procuracoes-cartorio", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("registros_cartorio")
+        .select("*")
+        .eq("tipo", "procuracao")
+        .eq("requerente_id", user?.id)
+        .eq("status", "emitido")
+        .order("emitido_em", { ascending: false });
+      if (error) throw error;
+      return (data as any[]) || [];
+    },
+  });
+
+  // Cruza procurações do cartório com as partes deste processo
+  const procuracoesDisponiveis = (procuracoesCartorio || []).filter((pc: any) => {
+    const alvo = (pc.partes_envolvidas || "").toLowerCase();
+    const idAlvo = (pc.id_personagem || "").trim();
+    const todasPartes = [...partesAutor, ...partesReu];
+    return todasPartes.some((p) => {
+      const nomeMatch = p.nome && alvo.includes(p.nome.toLowerCase().slice(0, 8));
+      const idMatch = idAlvo && p.id_personagem && String(p.id_personagem).trim() === idAlvo;
+      return nomeMatch || idMatch;
+    });
+  });
+
+  const selecionarProcuracaoCartorio = (pc: any) => {
+    const alvo = (pc.partes_envolvidas || "").toLowerCase();
+    const idAlvo = (pc.id_personagem || "").trim();
+    const matched: string[] = [];
+    partesAutor.forEach((p) => {
+      const nomeMatch = p.nome && alvo.includes(p.nome.toLowerCase().slice(0, 8));
+      const idMatch = idAlvo && p.id_personagem && String(p.id_personagem).trim() === idAlvo;
+      if (nomeMatch || idMatch) matched.push(`autor:${p.nome}`);
+    });
+    partesReu.forEach((p) => {
+      const nomeMatch = p.nome && alvo.includes(p.nome.toLowerCase().slice(0, 8));
+      const idMatch = idAlvo && p.id_personagem && String(p.id_personagem).trim() === idAlvo;
+      if (nomeMatch || idMatch) matched.push(`reu:${p.nome}`);
+    });
+    const jaRep = new Set(partesJaRepresentadas);
+    setProcForm({
+      cartorio_id: pc.id,
+      documento_url: pc.documento_url || `Procuração cartorária nº ${pc.numero_registro || pc.id}`,
+      selectedPartes: matched.filter((k) => !jaRep.has(k)),
+    });
+  };
 
   const toggleParteSelection = (parteKey: string) => {
     setProcForm(prev => ({
