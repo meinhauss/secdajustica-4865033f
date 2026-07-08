@@ -893,6 +893,22 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
 
   const [showProcuracao, setShowProcuracao] = useState(false);
   const [procForm, setProcForm] = useState<{ selectedPartes: string[]; documento_url: string; cartorio_id: string | null }>({ selectedPartes: [], documento_url: "", cartorio_id: null });
+  const [viewProcuracao, setViewProcuracao] = useState<string | null>(null);
+  const { data: procuracaoDetalhe, isLoading: procuracaoDetalheLoading } = useQuery({
+    queryKey: ["procuracao-detalhe", viewProcuracao],
+    enabled: !!viewProcuracao,
+    queryFn: async () => {
+      const match = (viewProcuracao || "").match(/([A-Z]{1,3}-?\d{3,}\/\d{4})/i);
+      const numero = match?.[1];
+      if (!numero) return null;
+      const { data } = await supabase
+        .from("registros_cartorio")
+        .select("*")
+        .eq("numero_registro", numero)
+        .maybeSingle();
+      return data;
+    },
+  });
 
   // Procurações emitidas pelo cartório para este advogado
   const { data: procuracoesCartorio } = useQuery({
