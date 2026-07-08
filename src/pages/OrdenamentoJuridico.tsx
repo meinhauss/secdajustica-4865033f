@@ -159,10 +159,10 @@ export default function OrdenamentoJuridicoPage() {
           <img src={logoSjc} alt="SJC-SP" className="h-9 sm:h-12 rounded-lg drop-shadow flex-shrink-0" />
           <div className="flex-1 min-w-0">
             <h1 className="font-display text-base sm:text-xl lg:text-2xl font-bold text-sidebar-foreground leading-tight truncate">
-              Ordenamento Jurídico Municipal
+              Ordenamento Jurídico Federal
             </h1>
             <p className="text-[9px] sm:text-[11px] text-sidebar-foreground/50 uppercase tracking-[0.15em] sm:tracking-[0.2em] truncate">
-              Secretaria da Justiça e Cidadania — SP
+              República Federativa de Jaguaré
             </p>
           </div>
           <Link to="/" className="flex-shrink-0">
@@ -179,11 +179,11 @@ export default function OrdenamentoJuridicoPage() {
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="inline-flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
             <Landmark className="h-7 w-7 sm:h-10 sm:w-10 text-gold flex-shrink-0" />
             <h2 className="font-display text-xl sm:text-3xl lg:text-4xl font-bold text-sidebar-foreground">
-              Leis Municipais Vigentes
+              Legislação Federal Vigente
             </h2>
           </motion.div>
           <p className="text-sidebar-foreground/70 max-w-3xl mx-auto text-xs sm:text-sm lg:text-base px-2">
-            Consulta pública ao ordenamento jurídico municipal — leis, decretos e normas em vigor na Comarca.
+            Constituição, Decretos-Lei, Códigos e normas institucionais da República Federativa de Jaguaré — consulta pública.
           </p>
         </div>
       </section>
