@@ -658,7 +658,9 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const [despachoForm, setDespachoForm] = useState({ titulo: "", conteudo: "", tipo: "despacho" });
   const criarDespacho = useMutation({
     mutationFn: async () => {
-      if (!despachoForm.titulo || !despachoForm.conteudo) throw new Error("Preencha título e conteúdo.");
+      if (!despachoForm.conteudo) throw new Error("Preencha o conteúdo.");
+      const tipoLabel = despachoForm.tipo === "decisao_interlocutoria" ? "Decisão Interlocutória" : despachoForm.tipo === "despacho_ordinatorio" ? "Despacho Ordinatório" : despachoForm.tipo === "determinacao" ? "Determinação" : "Despacho";
+      despachoForm.titulo = tipoLabel;
       const judgeName = await getJudgeName();
       const { error } = await supabase.from("atos_judiciais").insert({
         processo_id: processoId,
