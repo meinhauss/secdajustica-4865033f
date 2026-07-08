@@ -26,6 +26,7 @@ import { PodiumDestaque } from "@/components/PodiumDestaque";
 import { normalizeRichText } from "@/lib/sanitize";
 import ModeloPicker from "@/components/ModeloPicker";
 import AISugerirDespacho from "@/components/AISugerirDespacho";
+import AIGerarEmenta from "@/components/AIGerarEmenta";
 import { extrairNomes, type ModeloContext } from "@/lib/modelosVars";
 import { analisarDespacho } from "@/lib/assistente/bus";
 
@@ -1510,7 +1511,10 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                 <SelectItem value="acordao">Acórdão</SelectItem>
               </SelectContent>
             </Select>
-            <Input placeholder="Ementa (opcional)" value={sentencaForm.ementa} onChange={(e) => setSentencaForm({ ...sentencaForm, ementa: e.target.value })} className="rounded-xl" />
+            <div className="flex gap-2 items-center">
+              <Input placeholder="Ementa (gere após concluir a sentença)" value={sentencaForm.ementa} onChange={(e) => setSentencaForm({ ...sentencaForm, ementa: e.target.value })} className="rounded-xl flex-1" />
+              <AIGerarEmenta fundamentacao={sentencaForm.fundamentacao} dispositivo={sentencaForm.dispositivo} classe={processo?.classe} assunto={processo?.assunto} onGenerated={(t) => setSentencaForm(f => ({ ...f, ementa: t }))} />
+            </div>
             <div className="flex justify-end gap-2 flex-wrap">
               <AISugerirDespacho tipoAto="sentenca_fundamentacao" tituloAto="Fundamentação da sentença" rascunhoAtual={sentencaForm.fundamentacao} processo={processo} movimentacoes={movs} onInsert={(t) => setSentencaForm(f => ({ ...f, fundamentacao: appendHtml(f.fundamentacao, textoToHtml(t)) }))} label="IA: Fundamentação" />
               <AISugerirDespacho tipoAto="sentenca_dispositivo" tituloAto="Dispositivo da sentença" rascunhoAtual={sentencaForm.dispositivo} processo={processo} movimentacoes={movs} onInsert={(t) => setSentencaForm(f => ({ ...f, dispositivo: appendHtml(f.dispositivo, textoToHtml(t)) }))} label="IA: Dispositivo" />
