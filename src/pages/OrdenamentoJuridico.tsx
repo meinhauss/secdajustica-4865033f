@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import logoSjc from "@/assets/logo-sjc.jpg";
+import brasaoJaguare from "@/assets/brasao-jaguare.png.asset.json";
 
 interface Lei {
   id: string;
@@ -156,7 +156,7 @@ export default function OrdenamentoJuridicoPage() {
     <div className="min-h-screen bg-background flex flex-col">
       <header className="bg-institutional border-b border-sidebar-border">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center gap-2 sm:gap-4">
-          <img src={logoSjc} alt="SJC-SP" className="h-9 sm:h-12 rounded-lg drop-shadow flex-shrink-0" />
+          <img src={brasaoJaguare.url} alt="Brasão da República Federativa de Jaguaré" className="h-10 sm:h-14 drop-shadow flex-shrink-0 object-contain" />
           <div className="flex-1 min-w-0">
             <h1 className="font-display text-base sm:text-xl lg:text-2xl font-bold text-sidebar-foreground leading-tight truncate">
               Ordenamento Jurídico Federal
