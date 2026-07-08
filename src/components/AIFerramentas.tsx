@@ -280,6 +280,32 @@ export default function AIFerramentas({ processo, movimentacoes }: Props) {
               </div>
             )}
 
+            {tool === "peca" && (
+              <div className="space-y-2">
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <Select value={pecaTipo} onValueChange={(v: any) => setPecaTipo(v)}>
+                    <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="peticao_inicial">Petição inicial</SelectItem>
+                      <SelectItem value="contestacao">Contestação</SelectItem>
+                      <SelectItem value="replica">Réplica</SelectItem>
+                      <SelectItem value="alegacoes_finais">Alegações finais / Memoriais</SelectItem>
+                      <SelectItem value="recurso_apelacao">Recurso de apelação</SelectItem>
+                      <SelectItem value="agravo">Agravo de instrumento</SelectItem>
+                      <SelectItem value="embargos_declaracao">Embargos de declaração</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input placeholder="Tese/orientação principal (opcional)" value={pecaTese} onChange={(e) => setPecaTese(e.target.value)} className="rounded-xl" />
+                </div>
+                <Textarea placeholder="Orientações adicionais (opcional) — ex: pedido de tutela de urgência, danos morais, gratuidade..." value={pecaInstrucao} onChange={(e) => setPecaInstrucao(e.target.value)} className="rounded-xl min-h-[70px] text-xs" />
+                <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                  <input type="checkbox" checked={pecaExtenso} onChange={(e) => setPecaExtenso(e.target.checked)} className="rounded" />
+                  Gerar versão extensa e detalhada (padrão: curta e objetiva)
+                </label>
+              </div>
+            )}
+
+
             {tool === "fundamentacao" && (
               <Textarea placeholder="Descreva o tema jurídico (ex: prescrição da pretensão punitiva em crime tributário)" value={tema} onChange={(e) => setTema(e.target.value)} className="rounded-xl min-h-[80px]" />
             )}
