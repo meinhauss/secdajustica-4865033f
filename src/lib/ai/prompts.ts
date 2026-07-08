@@ -129,17 +129,31 @@ REGRAS DE FORMATAÇÃO (obrigatórias):
 - Prazos SEMPRE em HORAS (24h, 36h ou 72h). NUNCA use "dias" para prazos processuais.
 - Se houver valor da causa no contexto, use-o textualmente; caso contrário, use [valor da causa].`;
 
-const ctxBlock = (ctx: ProcCtx) =>
-  `Comarca: São Paulo/SP — Tribunal de Justiça do Estado de São Paulo (TJSP)
+const fmtParte = (p: ParteDetalhada) => `${p.nome}${p.id_personagem ? ` (ID ${p.id_personagem})` : ""}`;
+
+const ctxBlock = (ctx: ProcCtx) => {
+  const autoresLinha = ctx.partesAutores?.length
+    ? ctx.partesAutores.map(fmtParte).join("; ")
+    : (ctx.autor || "-");
+  const reusLinha = ctx.partesReus?.length
+    ? ctx.partesReus.map(fmtParte).join("; ")
+    : (ctx.reu || "-");
+  const advBlock = ctx.advogados?.length
+    ? `\nAdvogados constituídos (procurações ativas):\n${ctx.advogados.map((a) => `- ${a.nome}${a.oab ? ` — OAB ${a.oab}` : ""}${a.id_personagem ? ` (ID ${a.id_personagem})` : ""} — representa: ${a.representa.join(", ") || "-"}`).join("\n")}`
+    : "";
+  return `Comarca: São Paulo/SP — Tribunal de Justiça do Estado de São Paulo (TJSP)
 Processo nº ${ctx.numero || "-"} — Classe: ${ctx.classe || "-"} — Assunto: ${ctx.assunto || "-"}
-Autor(es): ${ctx.autor || "-"}
-Réu(s): ${ctx.reu || "-"}
+Autor(es): ${autoresLinha}
+Réu(s): ${reusLinha}
 Valor da causa: ${fmtValor(ctx.valor_causa)}
-Status: ${ctx.status || "-"}
-Data de hoje: ${new Date().toLocaleDateString("pt-BR")}
+Status: ${ctx.status || "-"}${ctx.juiz ? `\nJuiz(a) responsável: ${ctx.juiz}` : ""}
+Data de hoje: ${new Date().toLocaleDateString("pt-BR")}${advBlock}
+
+INSTRUÇÕES SOBRE OS DADOS ACIMA: use OBRIGATORIAMENTE os nomes, IDs, OAB e qualificação já fornecidos. NUNCA escreva "[nome do autor]", "[nome do réu]", "[advogado]", "[OAB]" ou qualquer placeholder quando o dado estiver presente acima. Se houver advogado constituído para uma parte, subscreva a peça em nome dele com a OAB indicada.
 
 Últimas movimentações:
 ${(ctx.movimentacoes || []).slice(0, 15).map((m, i) => `${i + 1}. [${m.tipo}] ${(m.descricao || "").replace(/<[^>]+>/g, " ").slice(0, 400)}`).join("\n") || "(nenhuma)"}`;
+};
 
 export const PROMPTS_EXTRA = {
   minutaJudicial: (ctx: ProcCtx & { tipo: "sentenca" | "decisao"; tese?: string; instrucao?: string; extenso?: boolean }) =>
