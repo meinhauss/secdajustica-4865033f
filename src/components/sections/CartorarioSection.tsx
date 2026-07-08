@@ -1053,8 +1053,14 @@ ${formEnvolvidos.length ? `Envolvido(s)/Outorgado(s): ${outorgados}` : ""}${extr
               )}
 
               <div>
-                <Label>{fieldConfig.descricaoLabel}</Label>
-                <Textarea value={formDescricao} onChange={(e) => setFormDescricao(e.target.value)} placeholder={fieldConfig.descricaoPlaceholder} rows={3} />
+                <div className="flex items-center justify-between mb-1">
+                  <Label>{fieldConfig.descricaoLabel}</Label>
+                  <Button type="button" variant="outline" size="sm" className="h-7 rounded-lg" onClick={gerarTextoPadrao} disabled={aiLoading}>
+                    {aiLoading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Sparkles className="h-3 w-3 mr-1" />}
+                    Gerar texto padrão com IA
+                  </Button>
+                </div>
+                <Textarea value={formDescricao} onChange={(e) => setFormDescricao(e.target.value)} placeholder={fieldConfig.descricaoPlaceholder} rows={6} />
               </div>
 
               {!fieldConfig.autoEmit && !fieldConfig.confirmByParties && (
