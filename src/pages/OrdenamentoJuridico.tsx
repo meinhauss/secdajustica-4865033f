@@ -151,17 +151,30 @@ export default function OrdenamentoJuridicoPage() {
 
   const filtradas = useMemo(() => {
     const termo = busca.trim().toLowerCase();
-    return leis.filter((l) => {
-      if (categoria !== "Todas" && l.categoria !== categoria) return false;
-      if (!termo) return true;
-      return (
-        l.numero.toLowerCase().includes(termo) ||
-        l.titulo.toLowerCase().includes(termo) ||
-        (l.ementa ?? "").toLowerCase().includes(termo) ||
-        l.conteudo.toLowerCase().includes(termo)
-      );
-    });
+    const catIndex = (c: string) => {
+      const i = CATEGORIAS_PADRAO.indexOf(c);
+      return i === -1 ? 999 : i;
+    };
+    const collator = new Intl.Collator("pt-BR", { numeric: true, sensitivity: "base" });
+    return leis
+      .filter((l) => {
+        if (categoria !== "Todas" && l.categoria !== categoria) return false;
+        if (!termo) return true;
+        return (
+          l.numero.toLowerCase().includes(termo) ||
+          l.titulo.toLowerCase().includes(termo) ||
+          (l.ementa ?? "").toLowerCase().includes(termo) ||
+          l.conteudo.toLowerCase().includes(termo)
+        );
+      })
+      .sort((a, b) => {
+        const ci = catIndex(a.categoria) - catIndex(b.categoria);
+        if (ci !== 0) return ci;
+        if (a.categoria !== b.categoria) return collator.compare(a.categoria, b.categoria);
+        return collator.compare(a.numero, b.numero);
+      });
   }, [leis, busca, categoria]);
+
 
   const openNew = () => {
     setEditing(null);
