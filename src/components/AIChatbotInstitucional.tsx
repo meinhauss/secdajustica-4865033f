@@ -182,12 +182,50 @@ export default function AIChatbotInstitucional({
     if (res.ok) setMessages([...next, { role: "model", content: res.data as string }]);
   };
 
-  const sugestoes = [
-    "Como consulto meu processo?",
-    "Como faço uma denúncia na Ouvidoria?",
-    "Onde vejo os concursos abertos?",
-    "Preciso de uma certidão do cartório",
-  ];
+  const sugestoes = useMemo(() => {
+    // Sugestões por seção ativa (contexto de navegação)
+    const porSecao: Record<string, string[]> = {
+      processos: ["Como distribuo um novo processo?", "Como peço vista dos autos?", "O que significa 'concluso'?"],
+      "meus-processos": ["Como manifesto interesse?", "Como acompanho prazos?", "Onde vejo minhas intimações?"],
+      audiencias: ["Como agendo uma audiência?", "Como registro a ata?", "Posso remarcar audiência?"],
+      cartorio: ["Como emito uma certidão?", "Como faço uma procuração?", "Prazos da procuração"],
+      oab: ["Como calculo honorários?", "Como envio carteira OAB?", "Ranking dos advogados"],
+      mp: ["Como abro uma denúncia?", "Consulta a inquéritos", "Ofícios do MP"],
+      magistrado: ["Como assino um ato?", "Meu ranking semanal", "Como entro em recesso?"],
+      jurisprudencia: ["Como buscar por tema?", "Filtrar por tribunal", "Salvar jurisprudência"],
+      concursos: ["Concursos abertos", "Como me inscrevo?", "Editais recentes"],
+      modelos: ["Modelos de sentença", "Como criar um modelo?", "Variáveis disponíveis"],
+      tco: ["Como registro um TCO?", "Encaminhar ao JECRIM", "Numeração automática"],
+      jurados: ["Como me alisto como jurado?", "Sorteio do júri", "Convocação"],
+      "meu-perfil": ["Alterar minha foto", "Trocar senha", "Meus cargos"],
+      consulta: ["Verificar credencial de advogado", "Consultar juiz", "Consultar promotor"],
+      tribunal: ["Composição do TJ", "Sessões plenárias", "Recursos ao TJ"],
+      ouvidoria: ["Fazer denúncia anônima", "Acompanhar denúncia", "Contato do MP"],
+      transparencia: ["Estatísticas da comarca", "Rankings públicos", "Dados abertos"],
+      credencial: ["Verificar carteira de advogado", "Consultar servidor", "Validar credencial"],
+      institucional: ["Sobre a Secretaria", "Quem somos", "Contatos"],
+      unisp: ["Como me inscrevo na UNISP?", "Cursos disponíveis", "Requisitos"],
+      inicio: ["Como faço login?", "Sou cidadão, e agora?", "Preciso de um advogado"],
+    };
+    const contextuais = activeSection ? porSecao[activeSection] : null;
+    if (contextuais) return contextuais;
+    // Fallback por perfil
+    if (primaryRole === "cidadao") {
+      return [
+        "Preciso de um advogado",
+        "Como faço uma denúncia?",
+        "Consultar um processo",
+        "Concursos abertos",
+      ];
+    }
+    return [
+      "Como consulto meu processo?",
+      "Como faço uma denúncia na Ouvidoria?",
+      "Onde vejo os concursos abertos?",
+      "Preciso de uma certidão do cartório",
+    ];
+  }, [activeSection, primaryRole]);
+
 
   const BotAvatar = ({ size = 32 }: { size?: number }) => (
     <Avatar className="shrink-0" style={{ width: size, height: size }}>
