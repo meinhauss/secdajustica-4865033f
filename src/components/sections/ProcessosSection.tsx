@@ -1847,9 +1847,14 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                       <ExternalLink className="h-3 w-3" /> Procuração
                     </a>
                   ) : (
-                    <span className="text-xs text-muted-foreground flex items-center gap-1" title={p.documento_url}>
-                      <ShieldCheck className="h-3 w-3" /> {p.documento_url}
-                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setViewProcuracao(p.documento_url)}
+                      className="text-xs text-primary hover:underline flex items-center gap-1"
+                      title="Conferir procuração no Cartório"
+                    >
+                      <ShieldCheck className="h-3 w-3" /> Conferir Procuração
+                    </button>
                   )
                 )}
               </div>
