@@ -4,13 +4,16 @@ import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Send, Loader2, X, ArrowRight, RotateCcw, ChevronRight, ChevronLeft, GripVertical } from "lucide-react";
+import { Send, Loader2, X, ArrowRight, RotateCcw, ChevronRight, ChevronLeft, GripVertical, Lightbulb, Sparkles } from "lucide-react";
 import { useAI } from "@/hooks/useAI";
 import { useAuth } from "@/hooks/useAuth";
 import { PROMPTS_FASE4 } from "@/lib/ai/prompts";
 import type { AIMessage } from "@/lib/ai/types";
 import vadeAvatar from "@/assets/vade-mecum-avatar.png.asset.json";
 import logoSjc from "@/assets/logo-sjc.jpg";
+import { subscribeTips, dismissTip, clearTips, type AssistenteTip } from "@/lib/assistente/bus";
+import { useAssistenteAdvogado } from "@/hooks/useAssistenteAdvogado";
+import { useAssistenteMagistrado } from "@/hooks/useAssistenteMagistrado";
 
 export interface ChatbotDestino {
   id: string;
@@ -81,6 +84,12 @@ export default function AIChatbotInstitucional({
 
   const [open, setOpen] = useState(false);
   const [showGreeting, setShowGreeting] = useState(false);
+
+  // Dicas proativas — barramento único (integra o antigo AssistenteProativo)
+  const [tips, setTips] = useState<AssistenteTip[]>([]);
+  useEffect(() => subscribeTips(setTips), []);
+  useAssistenteAdvogado(!!user);
+  useAssistenteMagistrado(!!user);
 
   // Posição persistente do botão flutuante
   const posKey = "vademecum:pos";
@@ -341,7 +350,12 @@ export default function AIChatbotInstitucional({
               title="Arraste para reposicionar · clique para abrir"
             >
               <img src={vadeAvatar.url} alt="Vade MeCum" className="w-full h-full object-cover pointer-events-none" draggable={false} />
-              {showGreeting && (
+              {tips.length > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-gold text-institutional text-[10px] font-bold flex items-center justify-center ring-2 ring-background">
+                  {tips.length > 9 ? "9+" : tips.length}
+                </span>
+              )}
+              {showGreeting && tips.length === 0 && (
                 <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-gold ring-2 ring-background animate-pulse" />
               )}
             </button>
@@ -392,7 +406,41 @@ export default function AIChatbotInstitucional({
           </div>
 
 
+          {tips.length > 0 && (
+            <div className="border-b border-border bg-gold/5 px-3 py-2 space-y-1.5 max-h-[180px] overflow-y-auto">
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] font-semibold text-foreground flex items-center gap-1">
+                  <Sparkles className="h-3 w-3 text-gold" /> Dicas do assistente ({tips.length})
+                </p>
+                <button onClick={clearTips} className="text-[10px] text-muted-foreground hover:text-foreground">Limpar</button>
+              </div>
+              {tips.map((t) => (
+                <div key={t.id} className="rounded-lg border border-border bg-background p-2 group">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[11px] font-semibold text-foreground flex items-center gap-1">
+                        <Lightbulb className="h-3 w-3 text-gold shrink-0" /> {t.titulo}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground leading-snug mt-0.5">{t.mensagem}</p>
+                    </div>
+                    <button onClick={() => dismissTip(t.id)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground" aria-label="Dispensar">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                  {t.acao && (
+                    <div className="flex justify-end mt-1">
+                      <Button size="sm" variant="outline" className="h-6 px-2 text-[10px] rounded-lg" onClick={() => { t.acao!.run(); dismissTip(t.id); }}>
+                        {t.acao.label} <ArrowRight className="h-3 w-3 ml-1" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
+
             {messages.length === 0 && (
               <div className="space-y-2">
                 <div className="flex items-start gap-2">
