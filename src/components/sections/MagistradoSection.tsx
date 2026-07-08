@@ -683,9 +683,15 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     },
     onSuccess: () => {
       invalidateAll();
+      const conteudo = despachoForm.conteudo;
       setActiveAction("none");
       setDespachoForm({ titulo: "", conteudo: "", tipo: "despacho" });
       toast.success("Despacho proferido e assinado!");
+      analisarDespacho({
+        conteudo,
+        processoId,
+        onEmitirAtoCartorio: () => setActiveAction("cartorio"),
+      });
     },
     onError: (err: any) => toast.error(err.message),
   });
