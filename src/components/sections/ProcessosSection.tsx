@@ -1842,9 +1842,15 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                   <p className="text-[10px] text-muted-foreground">Advogado(a) do(a) {(() => { const [lado, ...rest] = (p.parte || "").split(":"); const nome = rest.join(":"); return nome ? `${lado === "autor" ? "AUTOR" : "RÉU"} ${nome}` : (lado === "autor" ? "AUTOR" : "RÉU"); })()} — desde {format(new Date(p.created_at), "dd/MM/yyyy", { locale: ptBR })}</p>
                 </div>
                 {p.documento_url && (
-                  <a href={p.documento_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1">
-                    <ExternalLink className="h-3 w-3" /> Procuração
-                  </a>
+                  /^https?:\/\//i.test(p.documento_url) ? (
+                    <a href={p.documento_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1">
+                      <ExternalLink className="h-3 w-3" /> Procuração
+                    </a>
+                  ) : (
+                    <span className="text-xs text-muted-foreground flex items-center gap-1" title={p.documento_url}>
+                      <ShieldCheck className="h-3 w-3" /> {p.documento_url}
+                    </span>
+                  )
                 )}
               </div>
             ))}
