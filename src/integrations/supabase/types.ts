@@ -2078,6 +2078,18 @@ export type Database = {
       get_last_friday: { Args: never; Returns: string }
       get_magistrado_ranking: { Args: never; Returns: Json }
       get_processo_stats: { Args: never; Returns: Json }
+      get_procuracao_publica: {
+        Args: { _numero: string }
+        Returns: {
+          descricao: string
+          documento_url: string
+          emitido_em: string
+          numero_registro: string
+          partes_envolvidas: string
+          requerente_nome: string
+          status: string
+        }[]
+      }
       get_promotor_ranking: { Args: never; Returns: Json }
       has_role: {
         Args: {
