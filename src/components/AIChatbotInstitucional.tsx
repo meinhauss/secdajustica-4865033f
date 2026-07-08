@@ -67,7 +67,15 @@ export default function AIChatbotInstitucional({
 }: Props) {
 
   const { profile, user, roles } = useAuth();
-  const primaryRole = roles?.[0] || "cidadao";
+  const ROLE_PRIORITY = [
+    "admin", "presidente_tribunal", "desembargador", "magistrado",
+    "procurador_geral", "ministerio_publico", "procurador_estado",
+    "presidente_oab", "advogado", "bacharel_direito",
+    "chefe_gaeco", "gaeco", "delegado",
+    "policia_federal", "policia_civil", "policia_militar",
+    "oficial_justica", "hospital", "detran", "cidadao",
+  ];
+  const primaryRole = ROLE_PRIORITY.find((r) => roles?.includes(r)) || roles?.[0] || "cidadao";
   const storageKey = `vademecum:chat:${user?.id || "guest"}`;
   const greetKey = `vademecum:greeted:${user?.id || "guest"}`;
 
