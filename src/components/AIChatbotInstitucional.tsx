@@ -4,13 +4,16 @@ import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Send, Loader2, X, ArrowRight, RotateCcw, ChevronRight, ChevronLeft, GripVertical } from "lucide-react";
+import { Send, Loader2, X, ArrowRight, RotateCcw, ChevronRight, ChevronLeft, GripVertical, Lightbulb, Sparkles } from "lucide-react";
 import { useAI } from "@/hooks/useAI";
 import { useAuth } from "@/hooks/useAuth";
 import { PROMPTS_FASE4 } from "@/lib/ai/prompts";
 import type { AIMessage } from "@/lib/ai/types";
 import vadeAvatar from "@/assets/vade-mecum-avatar.png.asset.json";
 import logoSjc from "@/assets/logo-sjc.jpg";
+import { subscribeTips, dismissTip, clearTips, type AssistenteTip } from "@/lib/assistente/bus";
+import { useAssistenteAdvogado } from "@/hooks/useAssistenteAdvogado";
+import { useAssistenteMagistrado } from "@/hooks/useAssistenteMagistrado";
 
 export interface ChatbotDestino {
   id: string;
