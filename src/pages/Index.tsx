@@ -48,7 +48,17 @@ const Index = () => {
   useEffect(() => {
     const h = () => setHelpOpen(true);
     window.addEventListener("shortcut:show-help", h);
-    return () => window.removeEventListener("shortcut:show-help", h);
+    const openProc = (e: Event) => {
+      const id = (e as CustomEvent).detail?.id;
+      if (!id) return;
+      setOpenProcessoId(id);
+      setActiveSection("processos");
+    };
+    window.addEventListener("nav:processo", openProc);
+    return () => {
+      window.removeEventListener("shortcut:show-help", h);
+      window.removeEventListener("nav:processo", openProc);
+    };
   }, []);
 
   // Aviso de foto de perfil para advogados+
