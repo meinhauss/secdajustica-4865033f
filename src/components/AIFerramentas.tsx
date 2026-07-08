@@ -21,6 +21,12 @@ interface Props {
 }
 
 export default function AIFerramentas({ processo, movimentacoes }: Props) {
+  const { roles } = useAuth();
+  const isAdvogado = roles.includes("advogado") || roles.includes("presidente_oab") || roles.includes("bacharel_direito");
+  const isMagistrado = roles.some((r) => ["admin", "magistrado", "desembargador", "presidente_tribunal"].includes(r));
+  const isMP = roles.some((r) => ["ministerio_publico", "procurador_geral", "procurador_estado"].includes(r));
+  const isCartorio = roles.includes("oficial_justica") || isMagistrado;
+
   const [tool, setTool] = useState<Tool>(null);
   const [texto, setTexto] = useState("");
   const [copiado, setCopiado] = useState(false);
