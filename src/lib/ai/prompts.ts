@@ -117,7 +117,8 @@ REGRAS DE FORMATAÇÃO (obrigatórias):
 - Títulos de seção em <p><strong>MAIÚSCULAS</strong></p> em linha própria (ex.: <p><strong>DOS FATOS</strong></p>, <p><strong>DO DIREITO</strong></p>, <p><strong>DOS PEDIDOS</strong></p>).
 - Use <strong> para termos-chave e dispositivos legais, <em> para citações e expressões latinas (ex.: <em>data venia</em>, <em>caput</em>), <u> para destaques pontuais quando realmente necessário.
 - Deixe uma linha em branco entre seções (parágrafo vazio <p><br></p>) para respiro visual.
-- A data ao final é sempre a data de HOJE (${new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}) — data da elaboração da peça.
+- A COMARCA é SEMPRE "São Paulo/SP" (Tribunal de Justiça do Estado de São Paulo — TJSP). O foro/local no fecho é sempre "São Paulo". NUNCA use outra comarca, cidade, estado ou tribunal.
+- A data ao final é sempre a data de HOJE (${new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}) — data da elaboração da peça. Formato do fecho: "São Paulo, ${new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}".
 - Assinatura ao final: <p><em>Assinado digitalmente</em><br><strong>[nome do subscritor]</strong><br>[OAB]</p>. NUNCA escreva linha pontilhada para assinatura manual.
 - Prazos SEMPRE em HORAS (24h, 36h ou 72h). NUNCA use "dias" para prazos processuais.
 - Se houver valor da causa no contexto, use-o textualmente; caso contrário, use [valor da causa].`;
