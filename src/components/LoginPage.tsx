@@ -141,7 +141,7 @@ export default function LoginPage() {
             </div>
 
             {/* Mobile menu trigger */}
-            <Sheet>
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="lg:hidden text-sidebar-foreground hover:bg-sidebar-foreground/10 flex-shrink-0">
                   <Menu className="h-5 w-5" />
@@ -152,17 +152,29 @@ export default function LoginPage() {
                   <SheetTitle className="text-sidebar-foreground font-display text-left">Menu</SheetTitle>
                 </SheetHeader>
                 <nav className="flex-1 overflow-y-auto p-3 flex flex-col gap-1">
-                  {tabs.map((tab) => (
-                    <SheetClose key={tab.id} onClick={() => setActiveTab(tab.id)} isActive={activeTab === tab.id}>
-                      {tab.label}
-                    </SheetClose>
-                  ))}
+                  {tabs.map((tab) => {
+                    const ativo = activeTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => { setActiveTab(tab.id); setMobileMenuOpen(false); }}
+                        className={`text-left px-4 py-3 rounded-lg text-sm transition-colors ${ativo ? "bg-gold/15 text-gold font-semibold border-l-2 border-gold" : "text-sidebar-foreground/80 hover:bg-sidebar-foreground/10"}`}
+                      >
+                        {tab.label}
+                      </button>
+                    );
+                  })}
                   <div className="my-2 border-t border-sidebar-border" />
-                  <SheetClose onClick={() => setActiveTab("login")} isActive={activeTab === "login"} highlight>
-                    <img src={govLogo} alt="" className="h-4 mr-2 inline" />
+                  <button
+                    onClick={() => { setActiveTab("login"); setMobileMenuOpen(false); }}
+                    className="text-left px-4 py-3 rounded-lg text-sm font-semibold bg-gold text-institutional-dark hover:bg-gold-light flex items-center gap-2"
+                  >
+                    <img src={govLogo} alt="" className="h-4" />
                     Acesso ao Sistema
-                  </SheetClose>
-                  <a href="/codigo-penal" target="_blank" rel="noopener noreferrer" className="mt-1 px-4 py-3 rounded-lg text-sm text-sidebar-foreground/80 hover:bg-sidebar-foreground/10 flex items-center gap-2">
+                  </button>
+                  <div className="my-2 border-t border-sidebar-border" />
+                  <p className="px-4 py-1 text-[10px] uppercase tracking-widest text-sidebar-foreground/40">Consulta pública</p>
+                  <a href="/codigo-penal" target="_blank" rel="noopener noreferrer" className="px-4 py-3 rounded-lg text-sm text-sidebar-foreground/80 hover:bg-sidebar-foreground/10 flex items-center gap-2">
                     <BookOpen className="h-4 w-4 text-gold" /> Código Penal
                   </a>
                   <a href="/ordenamento" target="_blank" rel="noopener noreferrer" className="px-4 py-3 rounded-lg text-sm text-sidebar-foreground/80 hover:bg-sidebar-foreground/10 flex items-center gap-2">
