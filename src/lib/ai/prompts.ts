@@ -146,6 +146,8 @@ Não invente fatos, valores, artigos ou jurisprudência que não estejam no cont
 ${ctx.instrucao ? `\nORIENTAÇÕES DO USUÁRIO (siga rigorosamente): ${ctx.instrucao}\n` : ""}
 ${ctxBlock(ctx)}
 
+${REGRAS_FORMATO}
+
 Devolva APENAS o texto da minuta, sem markdown de código.`,
 
   parecerMP: (ctx: ProcCtx & { tipo: "denuncia" | "arquivamento" | "manifestacao"; instrucao?: string; extenso?: boolean }) => {
@@ -166,6 +168,8 @@ Não invente fatos, valores, artigos ou jurisprudência que não estejam no cont
 ${ctx.instrucao ? `\nORIENTAÇÕES DO USUÁRIO (siga rigorosamente): ${ctx.instrucao}\n` : ""}
 ${ctxBlock(ctx)}
 
+${REGRAS_FORMATO}
+
 Devolva APENAS o texto da peça, sem markdown de código.`;
   },
 
@@ -181,6 +185,8 @@ ${ctx.destinatario ? `Destinatário: ${ctx.destinatario}` : ""}
 ${ctx.finalidade ? `Finalidade: ${ctx.finalidade}` : ""}
 ${ctx.instrucao ? `\nORIENTAÇÕES DO USUÁRIO (siga rigorosamente): ${ctx.instrucao}\n` : ""}
 ${ctxBlock(ctx)}
+
+${REGRAS_FORMATO}
 
 Devolva APENAS o texto do documento, sem markdown de código.`;
   },
@@ -215,6 +221,8 @@ Não invente fatos, valores, artigos ou jurisprudência que não estejam no cont
 ${ctx.tese ? `Tese/orientação principal: ${ctx.tese}` : ""}
 ${ctx.instrucao ? `\nORIENTAÇÕES DO USUÁRIO (siga rigorosamente): ${ctx.instrucao}\n` : ""}
 ${ctxBlock(ctx)}
+
+${REGRAS_FORMATO}
 
 Devolva APENAS o texto da peça, sem markdown de código.`;
   },
