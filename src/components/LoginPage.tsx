@@ -22,6 +22,8 @@ import logoOabsp from "@/assets/logo-oabsp.png";
 import logoSjc from "@/assets/logo-sjc.jpg";
 import govLogo from "@/assets/gov-logo.png";
 import logoCartorio from "@/assets/logo-cartorio-sp.png";
+import logoDefensoriaAsset from "@/assets/logo-defensoria-sp.jpg.asset.json";
+const logoDefensoria = logoDefensoriaAsset.url;
 import { toast } from "sonner";
 import { formatTelefoneIngame } from "@/lib/formatPhone";
 
