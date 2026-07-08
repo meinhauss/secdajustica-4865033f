@@ -2040,19 +2040,34 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                 </div>
               </div>
               {(() => {
-                const raw = (procuracaoDetalhe as any).partes_envolvidas;
+                const raw = (procuracaoDetalhe as any).requerente_nome;
+                let label: string | null = null;
                 try {
                   const arr = typeof raw === "string" ? JSON.parse(raw) : raw;
-                  if (Array.isArray(arr) && arr.length) {
-                    return (
-                      <div>
-                        <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Outorgado(s)</p>
-                        <p>{arr.map((x: any) => x?.nome || x).join(", ")}</p>
-                      </div>
-                    );
-                  }
+                  if (Array.isArray(arr) && arr.length) label = arr.map((x: any) => x?.nome || x).join(", ");
                 } catch {}
-                return raw ? <div><p className="text-[10px] uppercase tracking-wide text-muted-foreground">Outorgado(s)</p><p>{String(raw)}</p></div> : null;
+                if (!label && raw) label = String(raw);
+                return label ? (
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Outorgante(s)</p>
+                    <p>{label}</p>
+                  </div>
+                ) : null;
+              })()}
+              {(() => {
+                const raw = (procuracaoDetalhe as any).partes_envolvidas;
+                let label: string | null = null;
+                try {
+                  const arr = typeof raw === "string" ? JSON.parse(raw) : raw;
+                  if (Array.isArray(arr) && arr.length) label = arr.map((x: any) => x?.nome || x).join(", ");
+                } catch {}
+                if (!label && raw) label = String(raw);
+                return label ? (
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Outorgado(s)</p>
+                    <p>{label}</p>
+                  </div>
+                ) : null;
               })()}
               {(procuracaoDetalhe as any).descricao && (
                 <div>
