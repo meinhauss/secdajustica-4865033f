@@ -165,6 +165,40 @@ ${ctxBlock(ctx)}
 Devolva APENAS o texto do documento, sem markdown de código.`;
   },
 
+  pecaAdvogado: (ctx: ProcCtx & {
+    tipo: "peticao_inicial" | "contestacao" | "replica" | "recurso_apelacao" | "alegacoes_finais" | "embargos_declaracao" | "agravo";
+    tese?: string; instrucao?: string; extenso?: boolean;
+  }) => {
+    const titulo: Record<string, string> = {
+      peticao_inicial: "PETIÇÃO INICIAL",
+      contestacao: "CONTESTAÇÃO",
+      replica: "RÉPLICA",
+      recurso_apelacao: "RECURSO DE APELAÇÃO",
+      alegacoes_finais: "ALEGAÇÕES FINAIS (memoriais)",
+      embargos_declaracao: "EMBARGOS DE DECLARAÇÃO",
+      agravo: "AGRAVO DE INSTRUMENTO",
+    };
+    return `Gere ${titulo[ctx.tipo]} em português formal, como advogado(a) subscritor(a). Estrutura clássica pertinente à peça:
+- Endereçamento ao Juízo/Tribunal competente
+- Qualificação das partes (use dados do contexto; [colchetes] para faltantes)
+- Dos fatos
+- Do direito (fundamentação jurídica com dispositivos aplicáveis)
+- Dos pedidos (rol claro e específico)
+- Valor da causa quando cabível
+- Fecho (Nestes termos, pede deferimento — Local, data — OAB)
+
+${ctx.extenso
+  ? "Elabore de forma DETALHADA e EXTENSA, com fundamentação aprofundada."
+  : "IMPORTANTE: seja CURTO, OBJETIVO e DIRETO. Sem prolixidade, sem citações longas. Vá direto ao ponto."}
+
+Não invente fatos, valores, artigos ou jurisprudência que não estejam no contexto. Use [colchetes] para dados faltantes.
+${ctx.tese ? `Tese/orientação principal: ${ctx.tese}` : ""}
+${ctx.instrucao ? `\nORIENTAÇÕES DO USUÁRIO (siga rigorosamente): ${ctx.instrucao}\n` : ""}
+${ctxBlock(ctx)}
+
+Devolva APENAS o texto da peça, sem markdown de código.`;
+  },
+
   analisePrazosRiscos: (ctx: ProcCtx) =>
     `Analise a timeline do processo e devolva JSON estrito:
 {"prazos":[{"descricao":"...","situacao":"em_curso|vencido|iminente","observacao":"..."}],
