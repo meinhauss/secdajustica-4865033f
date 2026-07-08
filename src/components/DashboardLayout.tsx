@@ -253,6 +253,9 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
         activeSection={activeSection}
       />
 
+      {/* Assistente proativo — painel lateral com dicas contextuais por cargo */}
+      <AssistenteProativo />
+
 
     </div>
   );
