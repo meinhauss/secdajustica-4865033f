@@ -1580,8 +1580,8 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         <Button variant="ghost" size="sm" onClick={onBack} className="rounded-lg"><ArrowLeft className="h-4 w-4 mr-1" /> Voltar</Button>
         <div className="flex items-center gap-2 flex-wrap">
           <AIResumoProcesso processo={processo} movimentacoes={movimentacoes} />
-          <AIClassificarPeticao />
-          <AIFerramentas processo={processo} movimentacoes={movimentacoes} />
+          {isAdvogado && <AIClassificarPeticao />}
+          {isAdvogado && <AIFerramentas processo={processo} movimentacoes={movimentacoes} />}
           
         </div>
       </div>
