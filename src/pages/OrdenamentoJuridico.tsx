@@ -26,7 +26,24 @@ interface Lei {
   created_at: string;
 }
 
-const CATEGORIAS_PADRAO = ["Geral", "Posturas Municipais", "Trânsito", "Meio Ambiente", "Tributária", "Urbanística", "Administrativa"];
+const CATEGORIAS_PADRAO = [
+  "Institucional e Disposições Gerais",
+  "Constituição da República de Jaguaré",
+  "Poder Judiciário — Organização e Estrutura",
+  "Tribunal de Justiça (TJ)",
+  "Ministério Público (MP)",
+  "Advocacia e OAB",
+  "Conselho de Ética Profissional (CEP)",
+  "Normas do Fórum",
+  "Código de Ética e Conduta",
+  "UNISP — Universidade de Direito",
+  "Decretos-Lei",
+  "Processo Penal",
+  "Processo Civil",
+  "Direito Penal Especial",
+  "Defensoria Pública",
+  "Direito de Família",
+];
 
 export default function OrdenamentoJuridicoPage() {
   const { roles } = useAuth();
