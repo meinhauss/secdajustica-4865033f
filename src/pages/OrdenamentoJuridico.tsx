@@ -179,7 +179,7 @@ export default function OrdenamentoJuridicoPage() {
     const collator = new Intl.Collator("pt-BR", { numeric: true, sensitivity: "base" });
     return leis
       .filter((l) => {
-        if (categoria !== "Todas" && l.categoria !== categoria) return false;
+        if (categoria !== "Todas" && !categoriasDaLei(l).includes(categoria)) return false;
         if (!termo) return true;
         return (
           l.numero.toLowerCase().includes(termo) ||
