@@ -365,13 +365,7 @@ export default function AIFerramentas({ processo, movimentacoes }: Props) {
                   <summary className="cursor-pointer text-xs px-3 py-2 text-muted-foreground">Editar código-fonte (HTML)</summary>
                   <Textarea value={texto} onChange={(e) => setTexto(e.target.value)} className="rounded-b-xl border-0 min-h-[240px] font-mono text-xs" />
                 </details>
-                <div className="flex justify-between items-center">
-                  <p className="text-[10px] text-muted-foreground">⚠️ Gerado por IA — revise fatos, valores, artigos e jurisprudência antes de utilizar.</p>
-                  <Button size="sm" className="rounded-xl" onClick={copiar}>
-                    {copiado ? <Check className="h-4 w-4 mr-1" /> : <Copy className="h-4 w-4 mr-1" />}
-                    {copiado ? "Copiado" : "Copiar texto"}
-                  </Button>
-                </div>
+                <p className="text-[10px] text-muted-foreground">⚠️ Gerado por IA — revise fatos, valores, artigos e jurisprudência antes de utilizar.</p>
               </>
             )}
           </div>
