@@ -45,6 +45,10 @@ export default function AIFerramentas({ processo, movimentacoes }: Props) {
   const [docFinalidade, setDocFinalidade] = useState("");
   const [docInstrucao, setDocInstrucao] = useState("");
   const [docExtenso, setDocExtenso] = useState(false);
+  const [pecaTipo, setPecaTipo] = useState<"peticao_inicial" | "contestacao" | "replica" | "recurso_apelacao" | "alegacoes_finais" | "embargos_declaracao" | "agravo">("peticao_inicial");
+  const [pecaTese, setPecaTese] = useState("");
+  const [pecaInstrucao, setPecaInstrucao] = useState("");
+  const [pecaExtenso, setPecaExtenso] = useState(false);
   const [prazosJson, setPrazosJson] = useState<any>(null);
   const [tema, setTema] = useState("");
   // Fase 3
