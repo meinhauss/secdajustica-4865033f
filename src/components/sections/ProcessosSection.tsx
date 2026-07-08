@@ -2848,11 +2848,11 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                         <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">{tipoLabels[emb.tipo] || emb.tipo}</span>
                       </div>
                       <p className="text-sm text-foreground">Embargante: {emb.embargante_nome}</p>
-                      <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{emb.fundamentacao}</p>
+                      <RichTextView html={emb.fundamentacao} className="text-xs text-muted-foreground mt-1" />
                       {emb.decisao && (
                         <div className="mt-2 bg-secondary/30 rounded-lg p-2">
                           <p className="text-xs font-medium text-foreground">Decisão:</p>
-                          <p className="text-xs text-muted-foreground">{emb.decisao}</p>
+                          <RichTextView html={emb.decisao} className="text-xs text-muted-foreground" />
                         </div>
                       )}
                       <p className="text-[10px] text-muted-foreground mt-1">{format(new Date(emb.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
