@@ -62,7 +62,8 @@ export default function AIChatbotInstitucional({
   destinos,
   onNavigate,
 }: Props) {
-  const { profile, user } = useAuth();
+  const { profile, user, roles } = useAuth();
+  const primaryRole = roles?.[0] || "cidadao";
   const storageKey = `vademecum:chat:${user?.id || "guest"}`;
   const greetKey = `vademecum:greeted:${user?.id || "guest"}`;
 
@@ -158,8 +159,8 @@ export default function AIChatbotInstitucional({
   }, [messages, loading]);
 
   const system = useMemo(
-    () => PROMPTS_FASE4.chatbotInstitucional(comarca, destinosFinal),
-    [comarca, destinosFinal],
+    () => PROMPTS_FASE4.chatbotInstitucional(comarca, destinosFinal, primaryRole),
+    [comarca, destinosFinal, primaryRole],
   );
 
 
