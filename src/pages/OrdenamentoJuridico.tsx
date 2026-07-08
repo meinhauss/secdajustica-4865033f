@@ -45,6 +45,72 @@ const CATEGORIAS_PADRAO = [
   "Direito de Família",
 ];
 
+// Realça padrões jurídicos: Art. Nº, §, incisos romanos, títulos/capítulos/seções,
+// rótulos "Palavra:" no início da linha e "Lei/Decreto nº ...".
+const INLINE_PATTERNS: RegExp[] = [
+  /\bArt\.\s*\d+[ºoª°]?(?:\s*-?[A-Z])?/g,
+  /§\s*\d+[ºoª°]?/gi,
+  /\bParágrafo\s+único/gi,
+  /\b(?:Título|Capítulo|Seção|Subseção|Livro|Anexo)\s+[IVXLCDM]+/gi,
+  /\b(?:Lei|Decreto[-\s]?Lei|Portaria|Resolução|Provimento|Súmula)\s+n[º°]?\s*\d+[\/\-\d]*/gi,
+  /\b[IVXLCDM]{1,4}\s*[-–—]\s/g,
+  /\b[a-z]\)\s/g,
+];
+
+function formatLeiConteudo(texto: string) {
+  if (!texto) return null;
+  const paragrafos = texto.split(/\n{2,}/);
+  return paragrafos.map((par, pi) => {
+    const linhas = par.split(/\n/);
+    return (
+      <p key={pi} className="whitespace-pre-wrap">
+        {linhas.map((linha, li) => {
+          // rótulo tipo "Aviso Legal:" no início
+          const rotuloMatch = linha.match(/^([A-ZÁÉÍÓÚÂÊÔÃÕÇ][^:\n]{2,60}):(\s|$)/);
+          let nodes: (string | JSX.Element)[] = [linha];
+          if (rotuloMatch) {
+            nodes = [
+              <strong key="r" className="text-foreground">{rotuloMatch[1]}:</strong>,
+              linha.slice(rotuloMatch[0].length - (rotuloMatch[2] === " " ? 1 : 0)),
+            ];
+          }
+          // aplica destaques inline nas strings restantes
+          nodes = nodes.flatMap((n, idx) => {
+            if (typeof n !== "string") return [n];
+            let parts: (string | JSX.Element)[] = [n];
+            INLINE_PATTERNS.forEach((rx, ri) => {
+              parts = parts.flatMap((p) => {
+                if (typeof p !== "string") return [p];
+                const out: (string | JSX.Element)[] = [];
+                let last = 0;
+                for (const m of p.matchAll(rx)) {
+                  const start = m.index ?? 0;
+                  if (start > last) out.push(p.slice(last, start));
+                  out.push(
+                    <strong key={`${pi}-${li}-${idx}-${ri}-${start}`} className="text-foreground">
+                      {m[0]}
+                    </strong>
+                  );
+                  last = start + m[0].length;
+                }
+                if (last < p.length) out.push(p.slice(last));
+                return out;
+              });
+            });
+            return parts;
+          });
+          return (
+            <span key={li}>
+              {nodes}
+              {li < linhas.length - 1 && <br />}
+            </span>
+          );
+        })}
+      </p>
+    );
+  });
+}
+
 export default function OrdenamentoJuridicoPage() {
   const { roles } = useAuth();
   const isAdmin = roles.includes("admin");
@@ -266,9 +332,10 @@ export default function OrdenamentoJuridicoPage() {
                 {l.ementa && (
                   <p className="text-xs sm:text-sm text-muted-foreground italic mb-2">{l.ementa}</p>
                 )}
-                <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed border-t border-border pt-3 mt-2">
-                  {l.conteudo}
+                <div className="text-[13px] sm:text-sm text-foreground leading-[1.75] border-t border-border pt-3 mt-2 space-y-2 [&_strong]:text-foreground [&_strong]:font-semibold">
+                  {formatLeiConteudo(l.conteudo)}
                 </div>
+
               </motion.div>
             ))}
           </div>
