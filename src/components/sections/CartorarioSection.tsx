@@ -501,24 +501,17 @@ export default function CartorarioSection() {
   const { run: runAI, loading: aiLoading } = useAI();
 
   const gerarTextoPadrao = async () => {
-    if (formRequerentes.length === 0) {
-      toast({ title: "Informe o(s) requerente(s) antes de gerar." });
-      return;
-    }
     const cfg = getFieldConfig(formTipo);
     const tipoLabel = getTipoLabel(formTipo);
     const campo = cfg.descricaoLabel.replace(" *", "");
-    const requerentes = formRequerentes.map(p => `${p.nome} (ID ${p.id_personagem})`).join(", ");
-    const envolvidos = formEnvolvidos.map(p => `${p.nome} (ID ${p.id_personagem})`).join(", ");
-    const extra = formDescricao.trim() ? `\nObservação do escrevente: ${formDescricao.trim()}` : "";
-    const prompt = `Você preencherá APENAS o campo "${campo}" de uma solicitação de "${tipoLabel}" em cartório. NÃO gere o documento inteiro, NÃO inclua cabeçalho, qualificação das partes, foro, data ou assinatura. Gere somente o conteúdo textual que deve ir DENTRO deste campo, em português formal, direto e objetivo. Use [colchetes] apenas para dados faltantes. Devolva APENAS o texto do campo, sem markdown, sem títulos.
+    const extra = formDescricao.trim() ? `\nAjuste conforme esta observação, sem se prender a ela: ${formDescricao.trim()}` : "";
+    const prompt = `Gere um TEXTO GENÉRICO e PADRÃO para preencher APENAS o campo "${campo}" de uma solicitação de "${tipoLabel}" em cartório.
 
-Contexto (não repita nas respostas):
-- Tipo do ato: ${tipoLabel}
-- ${cfg.requerenteLabel?.replace(" *","") || "Requerente(s)"}: ${requerentes}
-${formEnvolvidos.length ? `- ${cfg.envolvidosLabel?.replace(" *","") || "Envolvido(s)"}: ${envolvidos}` : ""}${extra}
-
-Campo a preencher: ${campo}`;
+REGRAS OBRIGATÓRIAS:
+- NÃO gere o documento inteiro. NÃO inclua cabeçalho, qualificação de partes, foro, data, assinatura, nem títulos.
+- Escreva o mais GENÉRICO possível, usando fórmulas padrão de cartório aplicáveis à maioria dos casos, de modo que quase não seja necessária edição.
+- NÃO invente nomes, CPFs, endereços, datas, números ou dados pessoais. Se algum dado for indispensável, use um marcador neutro entre colchetes (ex.: [data], [local]), mas prefira redação impessoal que dispense o marcador.
+- Português formal, direto, objetivo. Sem markdown. Devolva SOMENTE o conteúdo do campo.${extra}`;
     const res = await runAI({ operation: "gerar_certidao", prompt });
     if (res.ok) setFormDescricao(res.data as string);
   };
