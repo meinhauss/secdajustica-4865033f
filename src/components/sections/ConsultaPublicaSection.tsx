@@ -91,6 +91,23 @@ function getDisplayCargo(cargo: string | null, roles: string[]): string | null {
   return cargo;
 }
 
+/** Roles com porte de arma de fogo institucional (oficial de justiça e acima, exceto quem é apenas advogado/bacharel/cidadão) */
+const ROLES_COM_PORTE_ARMA = new Set([
+  "oficial_justica",
+  "magistrado",
+  "desembargador",
+  "presidente_tribunal",
+  "ministerio_publico",
+  "procurador_geral",
+  "procurador_estado",
+  "defensor_publico",
+  "defensor_publico_geral",
+]);
+
+function temPorteArma(roles: string[]): boolean {
+  return roles.some((r) => ROLES_COM_PORTE_ARMA.has(r));
+}
+
 export default function ConsultaPublicaSection() {
   const [search, setSearch] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
