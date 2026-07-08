@@ -1938,13 +1938,39 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               )}
             </div>
             <div>
-              <label className="text-xs font-medium text-foreground">Link da procuração (documento)</label>
-              <Input
-                className="rounded-xl mt-1"
-                placeholder="https://..."
-                value={procForm.documento_url}
-                onChange={(e) => setProcForm({ ...procForm, documento_url: e.target.value })}
-              />
+              <label className="text-xs font-medium text-foreground mb-2 block">Procuração emitida pelo Cartório</label>
+              {procuracoesDisponiveis.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground">
+                  Nenhuma procuração emitida em seu nome no Cartório vinculada a estas partes.{" "}
+                  <span className="block mt-1">Emita a procuração em <strong>Cartório Civil</strong> antes de juntá-la ao processo.</span>
+                </div>
+              ) : (
+                <div className="space-y-1 max-h-56 overflow-y-auto">
+                  {procuracoesDisponiveis.map((pc: any) => {
+                    const selected = procForm.cartorio_id === pc.id;
+                    return (
+                      <button
+                        key={pc.id}
+                        type="button"
+                        onClick={() => selecionarProcuracaoCartorio(pc)}
+                        className={`w-full text-left p-2 rounded-lg border transition-colors ${selected ? "border-primary bg-primary/5" : "border-border bg-secondary/20 hover:bg-secondary/40"}`}
+                      >
+                        <p className="text-xs font-semibold text-foreground">
+                          Procuração {pc.numero_registro ? `nº ${pc.numero_registro}` : ""}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground line-clamp-2">
+                          Partes: {pc.partes_envolvidas || "—"}
+                        </p>
+                        {pc.emitido_em && (
+                          <p className="text-[10px] text-muted-foreground">
+                            Emitida em {new Date(pc.emitido_em).toLocaleDateString("pt-BR")}
+                          </p>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
             <Button className="w-full rounded-xl" onClick={() => juntarProcuracao.mutate()} disabled={juntarProcuracao.isPending || procForm.selectedPartes.length === 0}>
               {juntarProcuracao.isPending ? "Juntando..." : `Juntar Procuração${procForm.selectedPartes.length > 1 ? ` (${procForm.selectedPartes.length} partes)` : ''}`}
