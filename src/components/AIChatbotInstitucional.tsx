@@ -85,6 +85,12 @@ export default function AIChatbotInstitucional({
   const [open, setOpen] = useState(false);
   const [showGreeting, setShowGreeting] = useState(false);
 
+  // Dicas proativas — barramento único (integra o antigo AssistenteProativo)
+  const [tips, setTips] = useState<AssistenteTip[]>([]);
+  useEffect(() => subscribeTips(setTips), []);
+  useAssistenteAdvogado(!!user);
+  useAssistenteMagistrado(!!user);
+
   // Posição persistente do botão flutuante
   const posKey = "vademecum:pos";
   const [pos, setPos] = useState<{ side: "left" | "right"; y: number; hidden: boolean }>(() => {
