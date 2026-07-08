@@ -2460,9 +2460,19 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                       </AIExplicarSelecao>
                       <AIResumirTexto texto={item.descricao} cacheKey={`mov-tldr:${item.id}`} />
                       {item.link && (
-                        <a href={item.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-2 text-xs text-primary hover:underline">
-                          <ExternalLink className="h-3 w-3" /> Abrir documento
-                        </a>
+                        /^https?:\/\//i.test(item.link) ? (
+                          <a href={item.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-2 text-xs text-primary hover:underline">
+                            <ExternalLink className="h-3 w-3" /> Abrir documento
+                          </a>
+                        ) : /procuraç/i.test(item.link) ? (
+                          <button type="button" onClick={() => setViewProcuracao(item.link!)} className="inline-flex items-center gap-1 mt-2 text-xs text-primary hover:underline">
+                            <ShieldCheck className="h-3 w-3" /> Conferir Procuração
+                          </button>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 mt-2 text-xs text-muted-foreground" title={item.link}>
+                            <FileText className="h-3 w-3" /> {item.link}
+                          </span>
+                        )
                       )}
                       {item.attachments && item.attachments.length > 0 && (
                         <div className="mt-2 pt-2 border-t border-border/50 space-y-1">
