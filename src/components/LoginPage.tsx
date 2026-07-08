@@ -116,19 +116,33 @@ export default function LoginPage() {
 
   const tabs: {id: Tab;label: string;}[] = [
   { id: "inicio", label: "Início" },
-  { id: "institucional", label: "Institucional" },
-  { id: "credencial", label: "Consultar Credencial" },
   { id: "ouvidoria", label: "Ouvidoria MP" },
-  { id: "transparencia", label: "Transparência" },
   { id: "concursos", label: "Concursos" },
   { id: "unisp", label: "UNISP" }];
 
-  const consultaPublica: { href: string; label: string; icon: any; desc: string }[] = [
-    { href: "/codigo-penal", label: "Código Penal", icon: BookOpen, desc: "Íntegra dos artigos penais" },
-    { href: "/ordenamento", label: "Ordenamento Jurídico", icon: Landmark, desc: "Constituição, Decretos-Lei e Códigos" },
-    { href: "/calculadora", label: "Calculadora Penal", icon: Calculator, desc: "Penas, multas e custas processuais" },
+  type MenuItem =
+    | { kind: "tab"; tab: Tab; label: string; icon: any; desc: string }
+    | { kind: "link"; href: string; label: string; icon: any; desc: string };
+
+  const institucionalItems: MenuItem[] = [
+    { kind: "tab", tab: "institucional", label: "Institucional", icon: Building2, desc: "Sobre a Secretaria e a Comarca" },
+    { kind: "tab", tab: "transparencia", label: "Transparência", icon: FileText, desc: "Dados abertos e prestação de contas" },
+  ];
+  const consultaPublica: MenuItem[] = [
+    { kind: "tab", tab: "credencial", label: "Consultar Credencial", icon: Scale, desc: "Verificar carteira de servidor, advogado, juiz ou promotor" },
+    { kind: "link", href: "/codigo-penal", label: "Código Penal", icon: BookOpen, desc: "Íntegra dos artigos penais" },
+    { kind: "link", href: "/ordenamento", label: "Ordenamento Jurídico", icon: Landmark, desc: "Constituição, Decretos-Lei e Códigos" },
+    { kind: "link", href: "/calculadora", label: "Calculadora Penal", icon: Calculator, desc: "Penas, multas e custas processuais" },
   ];
   const [publicMenuOpenMobile, setPublicMenuOpenMobile] = useState(true);
+  const [institucionalOpenMobile, setInstitucionalOpenMobile] = useState(true);
+
+  const handleMenuItem = (item: MenuItem) => {
+    if (item.kind === "tab") {
+      setActiveTab(item.tab);
+      setMobileMenuOpen(false);
+    }
+  };
 
 
   return (
