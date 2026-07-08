@@ -1031,9 +1031,26 @@ function TabTransparencia() {
 
   useState(() => {
     const load = async () => {
+      // Somente cargos institucionais (MP / TJ / DPE / OAB / Cartório)
+      const INSTITUCIONAIS = [
+        "admin",
+        "magistrado",
+        "desembargador",
+        "presidente_tribunal",
+        "oficial_justica",
+        "ministerio_publico",
+        "procurador_geral",
+        "procurador_estado",
+        "defensor_publico",
+        "defensor_publico_geral",
+        "advogado",
+        "presidente_oab",
+        "bacharel_direito",
+      ];
+
       const [rpcRes, rolesRes] = await Promise.all([
         supabase.rpc("get_processo_stats"),
-        supabase.from("user_roles").select("user_id, role").neq("role", "cidadao"),
+        supabase.from("user_roles").select("user_id, role").in("role", INSTITUCIONAIS as any),
       ]);
 
       const rpcData = rpcRes.data as any;
@@ -1056,7 +1073,6 @@ function TabTransparencia() {
         profilesList = (profiles || []).map((p: any) => ({
           ...p,
           displayRole: (userRolesMap[p.user_id] || [])
-            .filter((r: string) => r !== "cidadao")
             .map((r: string) => ROLE_LABELS_T[r] || r)
             .join(", "),
         }));
