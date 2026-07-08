@@ -76,11 +76,7 @@ const Index = () => {
     const key = `avatar-reminder-${user.id}`;
     if (sessionStorage.getItem(key)) return;
     sessionStorage.setItem(key, "1");
-    toast.warning("Adicione uma foto de perfil", {
-      description: "Como membro togado, é obrigatório manter sua foto de perfil atualizada.",
-      action: { label: "Adicionar agora", onClick: () => setActiveSection("meu-perfil") },
-      duration: 10000,
-    });
+    setAvatarReminderOpen(true);
   }, [user, profile, roles]);
 
 
