@@ -69,6 +69,7 @@ export default function AIFerramentas({ processo, movimentacoes }: Props) {
     autor: extrairNomes(processo?.autor_nome),
     reu: extrairNomes(processo?.reu_nome),
     status: processo?.status,
+    valor_causa: processo?.valor_causa,
     movimentacoes: (movimentacoes || []).map((m: any) => ({ tipo: m.tipo, descricao: m.descricao })),
   });
 
