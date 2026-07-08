@@ -63,7 +63,9 @@ export default function AIChatbotInstitucional({
   comarca = "Comarca de Suzano",
   destinos,
   onNavigate,
+  activeSection,
 }: Props) {
+
   const { profile, user, roles } = useAuth();
   const primaryRole = roles?.[0] || "cidadao";
   const storageKey = `vademecum:chat:${user?.id || "guest"}`;
