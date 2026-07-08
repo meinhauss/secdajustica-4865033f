@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import AIProcuracaoCertidao from "@/components/AIProcuracaoCertidao";
+import { useAI } from "@/hooks/useAI";
+import { Sparkles, Loader2 } from "lucide-react";
 import { ListSkeleton } from "@/components/ui/list-skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -497,6 +498,24 @@ export default function CartorarioSection() {
   const [formDescricao, setFormDescricao] = useState("");
   const [formObservacoes, setFormObservacoes] = useState("");
   const [formLinks, setFormLinks] = useState<string[]>([]);
+  const { run: runAI, loading: aiLoading } = useAI();
+
+  const gerarTextoPadrao = async () => {
+    if (formRequerentes.length === 0) {
+      toast({ title: "Informe o(s) requerente(s) antes de gerar." });
+      return;
+    }
+    const tipoLabel = getTipoLabel(formTipo);
+    const outorgantes = formRequerentes.map(p => `${p.nome} (ID ${p.id_personagem})`).join(", ");
+    const outorgados = formEnvolvidos.map(p => `${p.nome} (ID ${p.id_personagem})`).join(", ");
+    const extra = formDescricao.trim() ? `\nInstruções adicionais do escrevente: ${formDescricao.trim()}` : "";
+    const prompt = `Gere o TEXTO OFICIAL de "${tipoLabel}" em português formal, com estrutura de cartório (cabeçalho, qualificação das partes, corpo do ato, cláusulas pertinentes, foro, data e assinatura). Use [colchetes] apenas para dados realmente faltantes. Devolva APENAS o texto do documento, sem markdown.
+
+Requerente(s)/Outorgante(s): ${outorgantes || "[não informado]"}
+${formEnvolvidos.length ? `Envolvido(s)/Outorgado(s): ${outorgados}` : ""}${extra}`;
+    const res = await runAI({ operation: "gerar_certidao", prompt });
+    if (res.ok) setFormDescricao(res.data as string);
+  };
 
   // Emit state
   const [emitirLinks, setEmitirLinks] = useState<string[]>([]);
@@ -816,7 +835,7 @@ export default function CartorarioSection() {
               <Button onClick={() => setShowNovoRegistro(true)}>
                 <Plus className="h-4 w-4 mr-1" /> Nova Solicitação
               </Button>
-              <AIProcuracaoCertidao />
+              
             </div>
           )}
 
@@ -1034,8 +1053,14 @@ export default function CartorarioSection() {
               )}
 
               <div>
-                <Label>{fieldConfig.descricaoLabel}</Label>
-                <Textarea value={formDescricao} onChange={(e) => setFormDescricao(e.target.value)} placeholder={fieldConfig.descricaoPlaceholder} rows={3} />
+                <div className="flex items-center justify-between mb-1">
+                  <Label>{fieldConfig.descricaoLabel}</Label>
+                  <Button type="button" variant="outline" size="sm" className="h-7 rounded-lg" onClick={gerarTextoPadrao} disabled={aiLoading}>
+                    {aiLoading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Sparkles className="h-3 w-3 mr-1" />}
+                    Gerar texto padrão com IA
+                  </Button>
+                </div>
+                <Textarea value={formDescricao} onChange={(e) => setFormDescricao(e.target.value)} placeholder={fieldConfig.descricaoPlaceholder} rows={6} />
               </div>
 
               {!fieldConfig.autoEmit && !fieldConfig.confirmByParties && (
