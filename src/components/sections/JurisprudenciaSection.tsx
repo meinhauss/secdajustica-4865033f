@@ -193,9 +193,16 @@ function JurisprudenciaDetail({ id, onBack }: { id: string; onBack: () => void }
       const pdf = new jsPDF("p", "mm", "a4");
       const pageW = pdf.internal.pageSize.getWidth();
       const pageH = pdf.internal.pageSize.getHeight();
-      const margin = 18;
+      const margin = 22;
+      const headerH = 22;
+      const footerH = 14;
+      const contentTop = margin + headerH;
+      const contentBottom = pageH - margin - footerH;
       const maxW = pageW - margin * 2;
-      let y = margin;
+      let y = contentTop;
+
+      // TJSP palette
+      const brandR = 20, brandG = 40, brandB = 80; // deep navy
 
       const stripHtml = (html: string) =>
         (html || "")
@@ -210,19 +217,63 @@ function JurisprudenciaDetail({ id, onBack }: { id: string; onBack: () => void }
           .replace(/\n{3,}/g, "\n\n")
           .trim();
 
+      const drawHeader = () => {
+        // Faixa institucional
+        pdf.setFillColor(brandR, brandG, brandB);
+        pdf.rect(0, 0, pageW, 14, "F");
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(10);
+        pdf.setTextColor(255, 255, 255);
+        pdf.text("TRIBUNAL DE JUSTIÇA DO ESTADO DE SÃO PAULO", margin, 9);
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(8);
+        pdf.text("Jurisprudência", pageW - margin, 9, { align: "right" });
+
+        // Subtítulo com identificação do acórdão
+        pdf.setTextColor(brandR, brandG, brandB);
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(11);
+        pdf.text(`Acórdão ${String(j.numero_acordao)}`, margin, 20);
+        pdf.setDrawColor(brandR, brandG, brandB);
+        pdf.setLineWidth(0.3);
+        pdf.line(margin, 22, pageW - margin, 22);
+      };
+
+      const drawFooter = (pageNum: number, totalPages: number) => {
+        pdf.setDrawColor(200, 200, 200);
+        pdf.setLineWidth(0.2);
+        pdf.line(margin, pageH - margin - footerH + 4, pageW - margin, pageH - margin - footerH + 4);
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(8);
+        pdf.setTextColor(110, 110, 110);
+        pdf.text(
+          `Emitido em ${format(new Date(), "dd/MM/yyyy HH:mm", { locale: ptBR })}`,
+          margin,
+          pageH - margin - 2
+        );
+        pdf.text(`Página ${pageNum} de ${totalPages}`, pageW - margin, pageH - margin - 2, { align: "right" });
+      };
+
+      const newPage = () => {
+        pdf.addPage();
+        drawHeader();
+        y = contentTop;
+      };
+
       const ensureSpace = (h: number) => {
-        if (y + h > pageH - margin) {
-          pdf.addPage();
-          y = margin;
-        }
+        if (y + h > contentBottom) newPage();
       };
 
       const writeHeading = (text: string) => {
-        ensureSpace(10);
+        ensureSpace(12);
+        y += 2;
         pdf.setFont("helvetica", "bold");
         pdf.setFontSize(11);
-        pdf.setTextColor(60, 60, 60);
+        pdf.setTextColor(brandR, brandG, brandB);
         pdf.text(text.toUpperCase(), margin, y);
+        pdf.setDrawColor(brandR, brandG, brandB);
+        pdf.setLineWidth(0.2);
+        pdf.line(margin, y + 1.2, margin + 40, y + 1.2);
         y += 6;
       };
 
@@ -230,37 +281,56 @@ function JurisprudenciaDetail({ id, onBack }: { id: string; onBack: () => void }
         if (!text) return;
         pdf.setFont("helvetica", "normal");
         pdf.setFontSize(size);
-        pdf.setTextColor(20, 20, 20);
-        const lines = pdf.splitTextToSize(text, maxW);
-        const lineH = size * 0.45;
-        for (const line of lines) {
-          ensureSpace(lineH);
-          pdf.text(line, margin, y);
-          y += lineH;
+        pdf.setTextColor(30, 30, 30);
+        const paragraphs = text.split(/\n\n+/);
+        const lineH = size * 0.5;
+        for (const para of paragraphs) {
+          const lines = pdf.splitTextToSize(para.replace(/\n/g, " "), maxW);
+          for (const line of lines) {
+            ensureSpace(lineH);
+            pdf.text(line, margin, y, { align: "justify", maxWidth: maxW });
+            y += lineH;
+          }
+          y += 2;
         }
-        y += 3;
+        y += 2;
       };
 
-      // Title
-      pdf.setFont("helvetica", "bold");
-      pdf.setFontSize(16);
-      pdf.setTextColor(15, 15, 15);
-      pdf.text(String(j.numero_acordao), margin, y);
-      y += 7;
+      const writeMeta = (label: string, value: string) => {
+        ensureSpace(6);
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(9);
+        pdf.setTextColor(90, 90, 90);
+        pdf.text(label.toUpperCase(), margin, y);
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(10.5);
+        pdf.setTextColor(20, 20, 20);
+        const lines = pdf.splitTextToSize(value || "—", maxW);
+        y += 4.5;
+        for (const line of lines) {
+          ensureSpace(5);
+          pdf.text(line, margin, y);
+          y += 5;
+        }
+        y += 2;
+      };
+
+      // Página 1 — cabeçalho + identificação
+      drawHeader();
+
       pdf.setFont("helvetica", "normal");
       pdf.setFontSize(10);
-      pdf.setTextColor(90, 90, 90);
+      pdf.setTextColor(110, 110, 110);
       pdf.text(DECISAO_LABELS[j.decisao_tipo] || j.decisao_tipo || "", margin, y);
       y += 8;
 
-      // Metadados
-      writeParagraph(`Classe processual: ${j.classe || "—"}`);
-      writeParagraph(`Assunto: ${j.assunto || "—"}`);
-      writeParagraph(`Relator(a): ${j.desembargador_nome || "—"}`);
-      writeParagraph(
-        `Data do julgamento: ${j.data_julgamento ? format(new Date(j.data_julgamento), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "—"}`
+      writeMeta("Classe processual", j.classe || "—");
+      writeMeta("Assunto", j.assunto || "—");
+      writeMeta("Relator(a)", j.desembargador_nome || "—");
+      writeMeta(
+        "Data do julgamento",
+        j.data_julgamento ? format(new Date(j.data_julgamento), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "—"
       );
-      y += 2;
 
       writeHeading("Ementa");
       writeParagraph(j.ementa || "—");
@@ -272,6 +342,13 @@ function JurisprudenciaDetail({ id, onBack }: { id: string; onBack: () => void }
       if (j.decisao_dispositivo) {
         writeHeading("Dispositivo");
         writeParagraph(stripHtml(j.decisao_dispositivo));
+      }
+
+      // Rodapé com numeração final
+      const totalPages = pdf.getNumberOfPages();
+      for (let p = 1; p <= totalPages; p++) {
+        pdf.setPage(p);
+        drawFooter(p, totalPages);
       }
 
       pdf.save(`jurisprudencia-${String(j.numero_acordao).replace(/\//g, "-")}.pdf`);
