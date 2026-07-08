@@ -1554,7 +1554,10 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               </SelectContent>
             </Select>
             <Input placeholder="Título do ato" value={cartorioForm.titulo} onChange={(e) => setCartorioForm({ ...cartorioForm, titulo: e.target.value })} className="rounded-xl" required />
-            <div className="flex justify-end"><ModeloPicker context={modeloCtx} onInsert={(t) => setCartorioForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))} /></div>
+            <div className="flex justify-end gap-2 flex-wrap">
+              <AISugerirDespacho tipoAto={cartorioForm.tipo} tituloAto={cartorioForm.tipo === "juntada" ? "Juntada" : "Ato Ordinatório"} rascunhoAtual={cartorioForm.conteudo} processo={processo} movimentacoes={movs} onInsert={(t) => setCartorioForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))} />
+              <ModeloPicker context={modeloCtx} onInsert={(t) => setCartorioForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))} />
+            </div>
             <RichTextEditor placeholder="Conteúdo..." value={cartorioForm.conteudo} onChange={(html) => setCartorioForm({ ...cartorioForm, conteudo: html })} minHeight="160px" />
             <div className="space-y-2">
               <label className="text-xs font-medium text-foreground">Anexos (links opcionais)</label>
