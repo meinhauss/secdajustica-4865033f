@@ -119,14 +119,15 @@ export function RichTextEditor({
     },
   });
 
-  // Sync external value changes
+  // Sync external value changes (skip re-setting when the change came from this editor)
   useEffect(() => {
     if (!editor) return;
-    const current = editor.getHTML();
+    if (editor.isFocused) return; // don't clobber caret while the user is typing
+    const current = sanitizeRichHtml(editor.getHTML());
     const next = sanitizeRichHtml(value) || "";
-    if (next !== current && next !== (current === "<p></p>" ? "" : current)) {
-      editor.commands.setContent(next, { emitUpdate: false });
-    }
+    const norm = (s: string) => (s === "<p></p>" ? "" : s);
+    if (norm(next) === norm(current)) return;
+    editor.commands.setContent(next, { emitUpdate: false });
   }, [value, editor]);
 
   const varsFiltradas = smart
