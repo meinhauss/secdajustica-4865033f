@@ -285,15 +285,17 @@ export default function OrdenamentoJuridicoPage() {
               </Button>
             )}
           </div>
-          <div className="flex gap-2 flex-wrap">
-            <Button variant={categoria === "Todas" ? "default" : "outline"} size="sm" onClick={() => setCategoria("Todas")} className="rounded-full">
-              Todas ({leis.length})
-            </Button>
-            {categorias.map((cat) => (
-              <Button key={cat} variant={categoria === cat ? "default" : "outline"} size="sm" onClick={() => setCategoria(cat)} className="rounded-full whitespace-nowrap">
-                {cat}
+          <div className="-mx-3 sm:mx-0 px-3 sm:px-0 overflow-x-auto sm:overflow-visible">
+            <div className="flex gap-2 sm:flex-wrap flex-nowrap w-max sm:w-auto pb-1 sm:pb-0">
+              <Button variant={categoria === "Todas" ? "default" : "outline"} size="sm" onClick={() => setCategoria("Todas")} className="rounded-full whitespace-nowrap flex-shrink-0">
+                Todas ({leis.length})
               </Button>
-            ))}
+              {categorias.map((cat) => (
+                <Button key={cat} variant={categoria === cat ? "default" : "outline"} size="sm" onClick={() => setCategoria(cat)} className="rounded-full whitespace-nowrap flex-shrink-0">
+                  {cat}
+                </Button>
+              ))}
+            </div>
           </div>
         </div>
       </section>
