@@ -1443,7 +1443,10 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                 </div>
               ))}
             </div>
-            <div className="flex justify-end"><ModeloPicker context={modeloCtx} onInsert={(t) => setMandadoForm(f => ({ ...f, descricao: appendHtml(f.descricao, textoToHtml(t)) }))} /></div>
+            <div className="flex justify-end gap-2 flex-wrap">
+              <AISugerirDespacho tipoAto="mandado" tituloAto="Mandado" rascunhoAtual={mandadoForm.descricao} processo={processo} movimentacoes={movs} onInsert={(t) => setMandadoForm(f => ({ ...f, descricao: appendHtml(f.descricao, textoToHtml(t)) }))} />
+              <ModeloPicker context={modeloCtx} onInsert={(t) => setMandadoForm(f => ({ ...f, descricao: appendHtml(f.descricao, textoToHtml(t)) }))} />
+            </div>
             <RichTextEditor placeholder="Descrição e determinações do mandado..." value={mandadoForm.descricao} onChange={(html) => setMandadoForm({ ...mandadoForm, descricao: html })} minHeight="140px" />
             <Button type="submit" disabled={expedirMandado.isPending} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
               {expedirMandado.isPending ? "Processando..." : "Expedir Mandado"}
