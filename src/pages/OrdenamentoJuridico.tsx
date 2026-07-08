@@ -290,7 +290,7 @@ export default function OrdenamentoJuridicoPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editing ? "Editar Lei" : "Nova Lei Municipal"}</DialogTitle>
+            <DialogTitle>{editing ? "Editar Norma" : "Nova Norma / Decreto-Lei"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
