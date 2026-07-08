@@ -10,9 +10,11 @@ import ConsultaPublicaSection from "@/components/sections/ConsultaPublicaSection
 import AIChatbotInstitucional from "@/components/AIChatbotInstitucional";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import PublicHighlightsCarousel from "@/components/PublicHighlightsCarousel";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   Scale, Shield, Gavel, BookOpen, Building2, Users, FileText, Briefcase,
-  Phone, MapPin, Clock, ChevronRight, ExternalLink, GraduationCap, Stamp, Heart, Home, ScrollText, FileSignature, Baby, AlertTriangle, Menu, Landmark, Calculator } from
+  Phone, MapPin, Clock, ChevronRight, ChevronDown, ExternalLink, GraduationCap, Stamp, Heart, Home, ScrollText, FileSignature, Baby, AlertTriangle, Menu, Landmark, Calculator } from
 "lucide-react";
 import logoTjsp from "@/assets/logo-tjsp.png";
 import logoMpsp from "@/assets/logo-mpsp.png";
