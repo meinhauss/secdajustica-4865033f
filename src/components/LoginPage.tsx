@@ -117,12 +117,18 @@ export default function LoginPage() {
   const tabs: {id: Tab;label: string;}[] = [
   { id: "inicio", label: "Início" },
   { id: "institucional", label: "Institucional" },
-  
   { id: "credencial", label: "Consultar Credencial" },
   { id: "ouvidoria", label: "Ouvidoria MP" },
   { id: "transparencia", label: "Transparência" },
   { id: "concursos", label: "Concursos" },
   { id: "unisp", label: "UNISP" }];
+
+  const consultaPublica: { href: string; label: string; icon: any; desc: string }[] = [
+    { href: "/codigo-penal", label: "Código Penal", icon: BookOpen, desc: "Íntegra dos artigos penais" },
+    { href: "/ordenamento", label: "Ordenamento Jurídico", icon: Landmark, desc: "Constituição, Decretos-Lei e Códigos" },
+    { href: "/calculadora", label: "Calculadora Penal", icon: Calculator, desc: "Penas, multas e custas processuais" },
+  ];
+  const [publicMenuOpenMobile, setPublicMenuOpenMobile] = useState(true);
 
 
   return (
