@@ -354,7 +354,7 @@ export default function AIFerramentas({ processo, movimentacoes }: Props) {
             {tool === "extracao" && extracaoJson && !loading && <ExtracaoView data={extracaoJson} />}
             {tool === "duplicidade" && duplicidadeJson && !loading && !buscandoDup && <DuplicidadeView data={duplicidadeJson} />}
 
-            {(tool === "minuta" || tool === "parecer" || tool === "documento" || tool === "fundamentacao" || tool === "comparar") && texto && !loading && (
+            {(tool === "minuta" || tool === "parecer" || tool === "documento" || tool === "peca" || tool === "fundamentacao" || tool === "comparar") && texto && !loading && (
               <>
                 <Textarea value={texto} onChange={(e) => setTexto(e.target.value)} className="rounded-xl min-h-[360px] font-mono text-xs" />
                 <div className="flex justify-between items-center">
