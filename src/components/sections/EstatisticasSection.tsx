@@ -13,6 +13,17 @@ import { CURRENT_VERSION } from "@/lib/version";
 
 const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
   {
+    version: "3.1.0",
+    date: "08/07/2026",
+    changes: [
+      "Edge function gemini com suporte a múltiplas chaves de API (rotação automática em caso de falha/quota)",
+      "AIResumoSemanal com renderização Markdown completa (react-markdown) e tipografia alinhada ao design system em modo claro/escuro",
+      "Correções de contraste e formatação de textos gerados por IA",
+      "Ajustes de estabilidade no fluxo de resposta do Gemini",
+      "Atualização de versão e changelog do sistema",
+    ],
+  },
+  {
     version: "3.0.0",
     date: "07/07/2026",
     changes: [
