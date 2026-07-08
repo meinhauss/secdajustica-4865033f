@@ -498,6 +498,24 @@ export default function CartorarioSection() {
   const [formDescricao, setFormDescricao] = useState("");
   const [formObservacoes, setFormObservacoes] = useState("");
   const [formLinks, setFormLinks] = useState<string[]>([]);
+  const { run: runAI, loading: aiLoading } = useAI();
+
+  const gerarTextoPadrao = async () => {
+    if (formRequerentes.length === 0) {
+      toast({ title: "Informe o(s) requerente(s) antes de gerar." });
+      return;
+    }
+    const tipoLabel = getTipoLabel(formTipo);
+    const outorgantes = formRequerentes.map(p => `${p.nome} (ID ${p.id_personagem})`).join(", ");
+    const outorgados = formEnvolvidos.map(p => `${p.nome} (ID ${p.id_personagem})`).join(", ");
+    const extra = formDescricao.trim() ? `\nInstruções adicionais do escrevente: ${formDescricao.trim()}` : "";
+    const prompt = `Gere o TEXTO OFICIAL de "${tipoLabel}" em português formal, com estrutura de cartório (cabeçalho, qualificação das partes, corpo do ato, cláusulas pertinentes, foro, data e assinatura). Use [colchetes] apenas para dados realmente faltantes. Devolva APENAS o texto do documento, sem markdown.
+
+Requerente(s)/Outorgante(s): ${outorgantes || "[não informado]"}
+${formEnvolvidos.length ? `Envolvido(s)/Outorgado(s): ${outorgados}` : ""}${extra}`;
+    const res = await runAI({ operation: "gerar_certidao", prompt });
+    if (res.ok) setFormDescricao(res.data as string);
+  };
 
   // Emit state
   const [emitirLinks, setEmitirLinks] = useState<string[]>([]);
