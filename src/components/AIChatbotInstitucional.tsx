@@ -22,7 +22,9 @@ interface Props {
   comarca?: string;
   destinos?: ChatbotDestino[];
   onNavigate?: (id: string) => void;
+  activeSection?: string;
 }
+
 
 const DEFAULT_DESTINOS: ChatbotDestino[] = [
   { id: "dashboard", label: "Painel Geral" },
