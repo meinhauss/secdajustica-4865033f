@@ -2012,6 +2012,78 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         </DialogContent>
       </Dialog>
 
+      {/* Modal Conferir Procuração */}
+      <Dialog open={!!viewProcuracao} onOpenChange={(o) => !o && setViewProcuracao(null)}>
+        <DialogContent className="rounded-2xl max-w-lg">
+          <DialogHeader><DialogTitle>Procuração — Cartório Civil</DialogTitle></DialogHeader>
+          {procuracaoDetalheLoading ? (
+            <p className="text-sm text-muted-foreground">Carregando…</p>
+          ) : !procuracaoDetalhe ? (
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">Não foi possível localizar o registro no Cartório.</p>
+              <p className="text-xs text-muted-foreground break-all">Referência: {viewProcuracao}</p>
+            </div>
+          ) : (
+            <div className="space-y-3 text-sm">
+              <div>
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Nº do Registro</p>
+                <p className="font-semibold">{(procuracaoDetalhe as any).numero_registro || "—"}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Status</p>
+                  <p className="capitalize">{(procuracaoDetalhe as any).status || "—"}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Emitida em</p>
+                  <p>{(procuracaoDetalhe as any).emitido_em ? new Date((procuracaoDetalhe as any).emitido_em).toLocaleDateString("pt-BR") : "—"}</p>
+                </div>
+              </div>
+              {(() => {
+                const raw = (procuracaoDetalhe as any).partes_envolvidas;
+                try {
+                  const arr = typeof raw === "string" ? JSON.parse(raw) : raw;
+                  if (Array.isArray(arr) && arr.length) {
+                    return (
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Outorgado(s)</p>
+                        <p>{arr.map((x: any) => x?.nome || x).join(", ")}</p>
+                      </div>
+                    );
+                  }
+                } catch {}
+                return raw ? <div><p className="text-[10px] uppercase tracking-wide text-muted-foreground">Outorgado(s)</p><p>{String(raw)}</p></div> : null;
+              })()}
+              {(procuracaoDetalhe as any).descricao && (
+                <div>
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Poderes Conferidos</p>
+                  <p className="whitespace-pre-wrap">{(procuracaoDetalhe as any).descricao}</p>
+                </div>
+              )}
+              {(() => {
+                const links = (procuracaoDetalhe as any).links;
+                try {
+                  const arr = typeof links === "string" ? JSON.parse(links) : links;
+                  if (Array.isArray(arr) && arr.length) {
+                    return (
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Anexos</p>
+                        <ul className="space-y-1">
+                          {arr.map((l: string, i: number) => (
+                            <li key={i}><a href={l} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs flex items-center gap-1"><ExternalLink className="h-3 w-3" />{l}</a></li>
+                          ))}
+                        </ul>
+                      </div>
+                    );
+                  }
+                } catch {}
+                return null;
+              })()}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Modal Renúncia */}
       <Dialog open={showRenuncia} onOpenChange={setShowRenuncia}>
         <DialogContent className="rounded-2xl">
