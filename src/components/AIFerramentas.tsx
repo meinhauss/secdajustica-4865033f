@@ -185,9 +185,18 @@ export default function AIFerramentas({ processo, movimentacoes }: Props) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-64">
           <DropdownMenuLabel>Gerar com IA</DropdownMenuLabel>
-          <DropdownMenuItem onClick={() => abrir("minuta")}><Gavel className="h-4 w-4 mr-2" /> Minuta de sentença/decisão</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => abrir("parecer")}><Scale className="h-4 w-4 mr-2" /> Parecer do MP</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => abrir("documento")}><FileText className="h-4 w-4 mr-2" /> Mandado / Ofício / Certidão / Alvará</DropdownMenuItem>
+          {isMagistrado && (
+            <DropdownMenuItem onClick={() => abrir("minuta")}><Gavel className="h-4 w-4 mr-2" /> Minuta de sentença/decisão</DropdownMenuItem>
+          )}
+          {isMP && (
+            <DropdownMenuItem onClick={() => abrir("parecer")}><Scale className="h-4 w-4 mr-2" /> Parecer do MP</DropdownMenuItem>
+          )}
+          {isAdvogado && (
+            <DropdownMenuItem onClick={() => abrir("peca")}><Briefcase className="h-4 w-4 mr-2" /> Petição inicial / Contestação / Recurso</DropdownMenuItem>
+          )}
+          {isCartorio && (
+            <DropdownMenuItem onClick={() => abrir("documento")}><FileText className="h-4 w-4 mr-2" /> Mandado / Ofício / Certidão / Alvará</DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuLabel>Análise</DropdownMenuLabel>
           <DropdownMenuItem onClick={() => abrir("prazos")}><AlertTriangle className="h-4 w-4 mr-2" /> Checar prazos e riscos</DropdownMenuItem>
@@ -195,7 +204,9 @@ export default function AIFerramentas({ processo, movimentacoes }: Props) {
           <DropdownMenuItem onClick={() => abrir("triagem")}><Inbox className="h-4 w-4 mr-2" /> Triagem de petição</DropdownMenuItem>
           <DropdownMenuItem onClick={() => abrir("extracao")}><FileSearch className="h-4 w-4 mr-2" /> Extrair dados de PDF</DropdownMenuItem>
           <DropdownMenuItem onClick={() => abrir("comparar")}><GitCompare className="h-4 w-4 mr-2" /> Comparar peças</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => abrir("duplicidade")}><Copyright className="h-4 w-4 mr-2" /> Detectar duplicidade</DropdownMenuItem>
+          {(isMagistrado || isMP) && (
+            <DropdownMenuItem onClick={() => abrir("duplicidade")}><Copyright className="h-4 w-4 mr-2" /> Detectar duplicidade</DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 
