@@ -112,10 +112,13 @@ const fmtValor = (v: any) => {
 const REGRAS_FORMATO = `
 
 REGRAS DE FORMATAÇÃO (obrigatórias):
-- Use QUEBRAS DE LINHA reais entre parágrafos e seções (linha em branco separando blocos). Não retorne tudo em um único parágrafo.
-- Títulos de seção em MAIÚSCULAS numa linha própria (ex.: DOS FATOS, DO DIREITO, DOS PEDIDOS).
+- FORMATO DE SAÍDA: HTML simples. Use SOMENTE as tags: <p>, <br>, <strong>, <em>, <u>, <ul>, <ol>, <li>. Não use markdown (**, *, __, #). Não use <html>, <body>, <div>, <span>, <style> nem classes.
+- Envolva cada parágrafo em <p>…</p>. Use <br> para quebras dentro de um mesmo parágrafo.
+- Títulos de seção em <p><strong>MAIÚSCULAS</strong></p> em linha própria (ex.: <p><strong>DOS FATOS</strong></p>, <p><strong>DO DIREITO</strong></p>, <p><strong>DOS PEDIDOS</strong></p>).
+- Use <strong> para termos-chave e dispositivos legais, <em> para citações e expressões latinas (ex.: <em>data venia</em>, <em>caput</em>), <u> para destaques pontuais quando realmente necessário.
+- Deixe uma linha em branco entre seções (parágrafo vazio <p><br></p>) para respiro visual.
 - A data ao final é sempre a data de HOJE (${new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}) — data da elaboração da peça.
-- Assinatura ao final é sempre "Assinado digitalmente" (assinatura digital), seguida do nome do subscritor (use [nome do subscritor] / [OAB] se não constar do contexto). NUNCA escreva linha pontilhada para assinatura manual.
+- Assinatura ao final: <p><em>Assinado digitalmente</em><br><strong>[nome do subscritor]</strong><br>[OAB]</p>. NUNCA escreva linha pontilhada para assinatura manual.
 - Prazos SEMPRE em HORAS (24h, 36h ou 72h). NUNCA use "dias" para prazos processuais.
 - Se houver valor da causa no contexto, use-o textualmente; caso contrário, use [valor da causa].`;
 

@@ -12,6 +12,7 @@ import { extrairNomes } from "@/lib/modelosVars";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { sanitizeRichHtml, normalizeRichText } from "@/lib/sanitize";
 
 type Tool = "minuta" | "parecer" | "documento" | "peca" | "prazos" | "fundamentacao" | "triagem" | "extracao" | "comparar" | "duplicidade" | null;
 
@@ -357,7 +358,13 @@ export default function AIFerramentas({ processo, movimentacoes }: Props) {
 
             {(tool === "minuta" || tool === "parecer" || tool === "documento" || tool === "peca" || tool === "fundamentacao" || tool === "comparar") && texto && !loading && (
               <>
-                <Textarea value={texto} onChange={(e) => setTexto(e.target.value)} className="rounded-xl min-h-[360px] font-mono text-xs" />
+                <div className="rounded-xl border border-border bg-background p-4 max-h-[420px] overflow-y-auto prose prose-sm dark:prose-invert max-w-none [&_p]:my-2 [&_strong]:font-semibold [&_em]:italic [&_u]:underline text-sm leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(normalizeRichText(texto)) }}
+                />
+                <details className="rounded-xl border border-border bg-secondary/20">
+                  <summary className="cursor-pointer text-xs px-3 py-2 text-muted-foreground">Editar código-fonte (HTML)</summary>
+                  <Textarea value={texto} onChange={(e) => setTexto(e.target.value)} className="rounded-b-xl border-0 min-h-[240px] font-mono text-xs" />
+                </details>
                 <div className="flex justify-between items-center">
                   <p className="text-[10px] text-muted-foreground">⚠️ Gerado por IA — revise fatos, valores, artigos e jurisprudência antes de utilizar.</p>
                   <Button size="sm" className="rounded-xl" onClick={copiar}>
