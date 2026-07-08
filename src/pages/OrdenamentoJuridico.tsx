@@ -315,7 +315,7 @@ export default function OrdenamentoJuridicoPage() {
                   <SheetTitle className="font-display">Filtrar por categoria</SheetTitle>
                 </SheetHeader>
                 <div className="mt-4 flex flex-col gap-1">
-                  {[{ nome: "Todas", count: leis.length }, ...categorias.map((c) => ({ nome: c, count: leis.filter((l) => l.categoria === c).length }))].map(({ nome, count }) => {
+                  {[{ nome: "Todas", count: leis.length }, ...categorias.map((c) => ({ nome: c, count: leis.filter((l) => categoriasDaLei(l).includes(c)).length }))].map(({ nome, count }) => {
                     const ativo = categoria === nome;
                     return (
                       <button
