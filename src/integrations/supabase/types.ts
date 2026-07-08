@@ -1137,6 +1137,48 @@ export type Database = {
           },
         ]
       }
+      leis_municipais: {
+        Row: {
+          categoria: string
+          conteudo: string
+          created_at: string
+          created_by: string | null
+          data_vigencia: string | null
+          ementa: string | null
+          id: string
+          numero: string
+          revogada: boolean
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          categoria?: string
+          conteudo: string
+          created_at?: string
+          created_by?: string | null
+          data_vigencia?: string | null
+          ementa?: string | null
+          id?: string
+          numero: string
+          revogada?: boolean
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          categoria?: string
+          conteudo?: string
+          created_at?: string
+          created_by?: string | null
+          data_vigencia?: string | null
+          ementa?: string | null
+          id?: string
+          numero?: string
+          revogada?: boolean
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       mandados: {
         Row: {
           created_at: string

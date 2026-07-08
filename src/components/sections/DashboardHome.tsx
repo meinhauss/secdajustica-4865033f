@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import {
   FileText, Scale, Clock, Gavel,
-  Briefcase, GraduationCap, Stamp, Bell, ArrowRight, BookOpen, Calculator
+  Briefcase, GraduationCap, Stamp, Bell, ArrowRight, BookOpen, Calculator, Landmark
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -139,6 +139,20 @@ export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
         >
           <Calculator className="h-5 w-5" />
           CALCULADORA DE CUSTAS
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+      >
+        <Link
+          to="/ordenamento"
+          className="w-full flex items-center justify-center gap-3 bg-card border border-border text-foreground rounded-xl px-6 py-3 shadow-institutional hover:border-accent hover:text-accent transition-colors font-semibold tracking-wide"
+        >
+          <Landmark className="h-5 w-5" />
+          ORDENAMENTO JURÍDICO
           <ArrowRight className="h-4 w-4" />
         </Link>
       </motion.div>
