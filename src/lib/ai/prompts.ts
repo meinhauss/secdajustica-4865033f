@@ -124,7 +124,8 @@ REGRAS DE FORMATAÇÃO (obrigatórias):
 - Se houver valor da causa no contexto, use-o textualmente; caso contrário, use [valor da causa].`;
 
 const ctxBlock = (ctx: ProcCtx) =>
-  `Processo nº ${ctx.numero || "-"} — Classe: ${ctx.classe || "-"} — Assunto: ${ctx.assunto || "-"}
+  `Comarca: São Paulo/SP — Tribunal de Justiça do Estado de São Paulo (TJSP)
+Processo nº ${ctx.numero || "-"} — Classe: ${ctx.classe || "-"} — Assunto: ${ctx.assunto || "-"}
 Autor(es): ${ctx.autor || "-"}
 Réu(s): ${ctx.reu || "-"}
 Valor da causa: ${fmtValor(ctx.valor_causa)}
