@@ -25,6 +25,7 @@ import { ptBR } from "date-fns/locale";
 import { PodiumDestaque } from "@/components/PodiumDestaque";
 import { normalizeRichText } from "@/lib/sanitize";
 import ModeloPicker from "@/components/ModeloPicker";
+import AISugerirDespacho from "@/components/AISugerirDespacho";
 import { extrairNomes, type ModeloContext } from "@/lib/modelosVars";
 import { analisarDespacho } from "@/lib/assistente/bus";
 
@@ -1342,7 +1343,10 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               </SelectContent>
             </Select>
             
-            <div className="flex justify-end"><ModeloPicker categoria="despacho" context={modeloCtx} onInsert={(t) => setDespachoForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))} /></div>
+            <div className="flex justify-end gap-2 flex-wrap">
+              <AISugerirDespacho tipoAto={despachoForm.tipo} tituloAto="Despacho" rascunhoAtual={despachoForm.conteudo} processo={processo} movimentacoes={movs} onInsert={(t) => setDespachoForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))} />
+              <ModeloPicker categoria="despacho" context={modeloCtx} onInsert={(t) => setDespachoForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))} />
+            </div>
             <RichTextEditor placeholder="Conteúdo do despacho..." value={despachoForm.conteudo} onChange={(html) => setDespachoForm({ ...despachoForm, conteudo: html })} minHeight="160px" />
             <Button type="submit" disabled={criarDespacho.isPending} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
               {criarDespacho.isPending ? "Processando..." : "Proferir e Assinar Despacho"}
@@ -1439,7 +1443,10 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                 </div>
               ))}
             </div>
-            <div className="flex justify-end"><ModeloPicker context={modeloCtx} onInsert={(t) => setMandadoForm(f => ({ ...f, descricao: appendHtml(f.descricao, textoToHtml(t)) }))} /></div>
+            <div className="flex justify-end gap-2 flex-wrap">
+              <AISugerirDespacho tipoAto="mandado" tituloAto="Mandado" rascunhoAtual={mandadoForm.descricao} processo={processo} movimentacoes={movs} onInsert={(t) => setMandadoForm(f => ({ ...f, descricao: appendHtml(f.descricao, textoToHtml(t)) }))} />
+              <ModeloPicker context={modeloCtx} onInsert={(t) => setMandadoForm(f => ({ ...f, descricao: appendHtml(f.descricao, textoToHtml(t)) }))} />
+            </div>
             <RichTextEditor placeholder="Descrição e determinações do mandado..." value={mandadoForm.descricao} onChange={(html) => setMandadoForm({ ...mandadoForm, descricao: html })} minHeight="140px" />
             <Button type="submit" disabled={expedirMandado.isPending} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
               {expedirMandado.isPending ? "Processando..." : "Expedir Mandado"}
@@ -1464,7 +1471,10 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                 {CARGOS_INTIMAVEIS.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
               </SelectContent>
             </Select>
-            <div className="flex justify-end"><ModeloPicker context={modeloCtx} onInsert={(t) => setCargoIntForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))} /></div>
+            <div className="flex justify-end gap-2 flex-wrap">
+              <AISugerirDespacho tipoAto="intimacao" tituloAto="Intimação de cargo" rascunhoAtual={cargoIntForm.conteudo} processo={processo} movimentacoes={movs} onInsert={(t) => setCargoIntForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))} />
+              <ModeloPicker context={modeloCtx} onInsert={(t) => setCargoIntForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))} />
+            </div>
             <RichTextEditor
               placeholder="Conteúdo da intimação..."
               value={cargoIntForm.conteudo}
@@ -1501,7 +1511,9 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               </SelectContent>
             </Select>
             <Input placeholder="Ementa (opcional)" value={sentencaForm.ementa} onChange={(e) => setSentencaForm({ ...sentencaForm, ementa: e.target.value })} className="rounded-xl" />
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-2 flex-wrap">
+              <AISugerirDespacho tipoAto="sentenca_fundamentacao" tituloAto="Fundamentação da sentença" rascunhoAtual={sentencaForm.fundamentacao} processo={processo} movimentacoes={movs} onInsert={(t) => setSentencaForm(f => ({ ...f, fundamentacao: appendHtml(f.fundamentacao, textoToHtml(t)) }))} label="IA: Fundamentação" />
+              <AISugerirDespacho tipoAto="sentenca_dispositivo" tituloAto="Dispositivo da sentença" rascunhoAtual={sentencaForm.dispositivo} processo={processo} movimentacoes={movs} onInsert={(t) => setSentencaForm(f => ({ ...f, dispositivo: appendHtml(f.dispositivo, textoToHtml(t)) }))} label="IA: Dispositivo" />
               <ModeloPicker categoria="sentenca" context={modeloCtx} label="Modelo p/ fundamentação" onInsert={(t) => setSentencaForm(f => ({ ...f, fundamentacao: appendHtml(f.fundamentacao, textoToHtml(t)) }))} />
               <ModeloPicker categoria="sentenca" context={modeloCtx} label="Modelo p/ dispositivo" onInsert={(t) => setSentencaForm(f => ({ ...f, dispositivo: appendHtml(f.dispositivo, textoToHtml(t)) }))} />
             </div>
@@ -1542,7 +1554,10 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               </SelectContent>
             </Select>
             <Input placeholder="Título do ato" value={cartorioForm.titulo} onChange={(e) => setCartorioForm({ ...cartorioForm, titulo: e.target.value })} className="rounded-xl" required />
-            <div className="flex justify-end"><ModeloPicker context={modeloCtx} onInsert={(t) => setCartorioForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))} /></div>
+            <div className="flex justify-end gap-2 flex-wrap">
+              <AISugerirDespacho tipoAto={cartorioForm.tipo} tituloAto={cartorioForm.tipo === "juntada" ? "Juntada" : "Ato Ordinatório"} rascunhoAtual={cartorioForm.conteudo} processo={processo} movimentacoes={movs} onInsert={(t) => setCartorioForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))} />
+              <ModeloPicker context={modeloCtx} onInsert={(t) => setCartorioForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))} />
+            </div>
             <RichTextEditor placeholder="Conteúdo..." value={cartorioForm.conteudo} onChange={(html) => setCartorioForm({ ...cartorioForm, conteudo: html })} minHeight="160px" />
             <div className="space-y-2">
               <label className="text-xs font-medium text-foreground">Anexos (links opcionais)</label>
