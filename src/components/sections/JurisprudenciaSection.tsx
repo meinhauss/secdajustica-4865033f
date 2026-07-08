@@ -190,25 +190,91 @@ function JurisprudenciaDetail({ id, onBack }: { id: string; onBack: () => void }
     }
 
     try {
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: "#ffffff",
-      });
-
-      const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF("p", "mm", "a4");
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = canvas.width;
-      const imgHeight = canvas.height;
-      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-      const imgX = (pdfWidth - imgWidth * ratio) / 2;
-      const imgY = 10;
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 18;
+      const maxW = pageW - margin * 2;
+      let y = margin;
 
-      pdf.addImage(imgData, "PNG", imgX, imgY, imgWidth * ratio, imgHeight * ratio);
-      pdf.save(`jurisprudencia-${j.numero_acordao.replace(/\//g, "-")}.pdf`);
+      const stripHtml = (html: string) =>
+        (html || "")
+          .replace(/<br\s*\/?>/gi, "\n")
+          .replace(/<\/(p|div|li|h[1-6])>/gi, "\n")
+          .replace(/<li[^>]*>/gi, "• ")
+          .replace(/<[^>]+>/g, "")
+          .replace(/&nbsp;/g, " ")
+          .replace(/&amp;/g, "&")
+          .replace(/&lt;/g, "<")
+          .replace(/&gt;/g, ">")
+          .replace(/\n{3,}/g, "\n\n")
+          .trim();
+
+      const ensureSpace = (h: number) => {
+        if (y + h > pageH - margin) {
+          pdf.addPage();
+          y = margin;
+        }
+      };
+
+      const writeHeading = (text: string) => {
+        ensureSpace(10);
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(11);
+        pdf.setTextColor(60, 60, 60);
+        pdf.text(text.toUpperCase(), margin, y);
+        y += 6;
+      };
+
+      const writeParagraph = (text: string, size = 10.5) => {
+        if (!text) return;
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(size);
+        pdf.setTextColor(20, 20, 20);
+        const lines = pdf.splitTextToSize(text, maxW);
+        const lineH = size * 0.45;
+        for (const line of lines) {
+          ensureSpace(lineH);
+          pdf.text(line, margin, y);
+          y += lineH;
+        }
+        y += 3;
+      };
+
+      // Title
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(16);
+      pdf.setTextColor(15, 15, 15);
+      pdf.text(String(j.numero_acordao), margin, y);
+      y += 7;
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(10);
+      pdf.setTextColor(90, 90, 90);
+      pdf.text(DECISAO_LABELS[j.decisao_tipo] || j.decisao_tipo || "", margin, y);
+      y += 8;
+
+      // Metadados
+      writeParagraph(`Classe processual: ${j.classe || "—"}`);
+      writeParagraph(`Assunto: ${j.assunto || "—"}`);
+      writeParagraph(`Relator(a): ${j.desembargador_nome || "—"}`);
+      writeParagraph(
+        `Data do julgamento: ${j.data_julgamento ? format(new Date(j.data_julgamento), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "—"}`
+      );
+      y += 2;
+
+      writeHeading("Ementa");
+      writeParagraph(j.ementa || "—");
+
+      if (j.decisao_fundamentacao) {
+        writeHeading("Fundamentação");
+        writeParagraph(stripHtml(j.decisao_fundamentacao));
+      }
+      if (j.decisao_dispositivo) {
+        writeHeading("Dispositivo");
+        writeParagraph(stripHtml(j.decisao_dispositivo));
+      }
+
+      pdf.save(`jurisprudencia-${String(j.numero_acordao).replace(/\//g, "-")}.pdf`);
       toast.success("PDF gerado com sucesso!");
     } catch (error) {
       console.error("PDF Export Error:", error);
