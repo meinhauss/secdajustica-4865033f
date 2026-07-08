@@ -95,10 +95,16 @@ ${(ctx.movimentacoes || []).slice(0, 15).map((m, i) => `${i + 1}. [${m.tipo}] ${
 
 // ═══════════ Prompts adicionais ═══════════
 
+export type ParteDetalhada = { nome: string; id_personagem?: string | null };
+export type AdvogadoCtx = { nome: string; oab?: string | null; id_personagem?: string | null; representa: string[] };
 type ProcCtx = {
   numero?: string; classe?: string; assunto?: string;
   autor?: string; reu?: string; status?: string;
   valor_causa?: number | string | null;
+  partesAutores?: ParteDetalhada[];
+  partesReus?: ParteDetalhada[];
+  advogados?: AdvogadoCtx[];
+  juiz?: string | null;
   movimentacoes?: { tipo: string; descricao: string }[];
 };
 
