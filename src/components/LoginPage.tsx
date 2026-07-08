@@ -217,6 +217,30 @@ export default function LoginPage() {
                 {tab.label}
               </button>
             )}
+            <DropdownMenu>
+              <DropdownMenuTrigger className="px-5 py-3 text-sm font-medium whitespace-nowrap transition-all border-b-2 border-transparent text-sidebar-foreground/60 hover:text-sidebar-foreground/80 hover:border-sidebar-foreground/30 flex items-center gap-1 outline-none data-[state=open]:text-gold data-[state=open]:border-gold">
+                Consulta Pública
+                <ChevronDown className="h-3.5 w-3.5" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="bg-institutional border-sidebar-border w-72">
+                <DropdownMenuLabel className="text-sidebar-foreground/50 text-[10px] uppercase tracking-widest">
+                  Acervo Público — sem login
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator className="bg-sidebar-border" />
+                {consultaPublica.map((item) => (
+                  <DropdownMenuItem key={item.href} asChild className="focus:bg-gold/10 focus:text-gold cursor-pointer">
+                    <a href={item.href} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 py-2.5">
+                      <item.icon className="h-5 w-5 text-gold mt-0.5 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-semibold text-sidebar-foreground">{item.label}</div>
+                        <div className="text-[11px] text-sidebar-foreground/50">{item.desc}</div>
+                      </div>
+                      <ExternalLink className="h-3.5 w-3.5 text-sidebar-foreground/40 mt-1" />
+                    </a>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
             <button
               onClick={() => setActiveTab("login")}
               className={`ml-auto px-5 py-3 text-sm font-semibold whitespace-nowrap transition-all border-b-2 flex items-center gap-2 ${
