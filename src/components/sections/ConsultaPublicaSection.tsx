@@ -370,14 +370,42 @@ export default function ConsultaPublicaSection() {
                     )}
 
                     {/* Porte de arma institucional */}
-                    {temPorteArma(p.roles) && (
-                      <div className="flex items-center gap-1.5 pt-1" title="Autorizado ao porte de arma de fogo institucional em razão das prerrogativas da profissão">
-                        <ShieldAlert className="h-3.5 w-3.5 text-red-700 flex-shrink-0" />
-                        <span className="text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-800 border border-red-300">
-                          Porte de Arma Institucional
-                        </span>
-                      </div>
-                    )}
+                    {temPorteArma(p.roles) && (() => {
+                      const base = getBaseLegalPorte(primaryRole);
+                      return (
+                        <TooltipProvider delayDuration={150}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center gap-1.5 pt-1 cursor-help">
+                                <ShieldAlert className="h-3.5 w-3.5 text-red-700 flex-shrink-0" />
+                                <span className="text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-800 border border-red-300">
+                                  Porte de Arma Institucional
+                                </span>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="max-w-xs">
+                              <p className="text-xs">
+                                Possui porte de arma de fogo institucional por prerrogativas da profissão.
+                              </p>
+                              {base && (
+                                <p className="text-[10px] mt-1 opacity-90">
+                                  Base legal:{" "}
+                                  <a
+                                    href={base.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="underline font-semibold"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    {base.label}
+                                  </a>
+                                </p>
+                              )}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      );
+                    })()}
                   </div>
                 </div>
 
