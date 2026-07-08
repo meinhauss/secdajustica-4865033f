@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, IdCard, Phone, MessageCircle } from "lucide-react";
+import { Search, IdCard, Phone, MessageCircle, ShieldAlert } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   Dialog,
@@ -89,6 +89,23 @@ function getDisplayCargo(cargo: string | null, roles: string[]): string | null {
     return null;
   }
   return cargo;
+}
+
+/** Roles com porte de arma de fogo institucional (oficial de justiça e acima, exceto quem é apenas advogado/bacharel/cidadão) */
+const ROLES_COM_PORTE_ARMA = new Set([
+  "oficial_justica",
+  "magistrado",
+  "desembargador",
+  "presidente_tribunal",
+  "ministerio_publico",
+  "procurador_geral",
+  "procurador_estado",
+  "defensor_publico",
+  "defensor_publico_geral",
+]);
+
+function temPorteArma(roles: string[]): boolean {
+  return roles.some((r) => ROLES_COM_PORTE_ARMA.has(r));
 }
 
 export default function ConsultaPublicaSection() {
@@ -342,6 +359,16 @@ export default function ConsultaPublicaSection() {
                       <div className="flex flex-wrap gap-1 pt-1">
                         <span className="text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-gold/15 text-gold-dark border border-gold/20">
                           {ROLE_LABELS[primaryRole] || primaryRole}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Porte de arma institucional */}
+                    {temPorteArma(p.roles) && (
+                      <div className="flex items-center gap-1.5 pt-1" title="Autorizado ao porte de arma de fogo institucional em razão das prerrogativas da profissão">
+                        <ShieldAlert className="h-3.5 w-3.5 text-red-700 flex-shrink-0" />
+                        <span className="text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-800 border border-red-300">
+                          Porte de Arma Institucional
                         </span>
                       </div>
                     )}
