@@ -249,7 +249,9 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
       <AIChatbotInstitucional
         destinos={filteredItems.map((i) => ({ id: i.id, label: i.label }))}
         onNavigate={(id) => onSectionChange(id)}
+        activeSection={activeSection}
       />
+
 
     </div>
   );
