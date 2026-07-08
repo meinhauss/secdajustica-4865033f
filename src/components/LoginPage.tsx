@@ -116,19 +116,33 @@ export default function LoginPage() {
 
   const tabs: {id: Tab;label: string;}[] = [
   { id: "inicio", label: "Início" },
-  { id: "institucional", label: "Institucional" },
-  { id: "credencial", label: "Consultar Credencial" },
   { id: "ouvidoria", label: "Ouvidoria MP" },
-  { id: "transparencia", label: "Transparência" },
   { id: "concursos", label: "Concursos" },
   { id: "unisp", label: "UNISP" }];
 
-  const consultaPublica: { href: string; label: string; icon: any; desc: string }[] = [
-    { href: "/codigo-penal", label: "Código Penal", icon: BookOpen, desc: "Íntegra dos artigos penais" },
-    { href: "/ordenamento", label: "Ordenamento Jurídico", icon: Landmark, desc: "Constituição, Decretos-Lei e Códigos" },
-    { href: "/calculadora", label: "Calculadora Penal", icon: Calculator, desc: "Penas, multas e custas processuais" },
+  type MenuItem =
+    | { kind: "tab"; tab: Tab; label: string; icon: any; desc: string }
+    | { kind: "link"; href: string; label: string; icon: any; desc: string };
+
+  const institucionalItems: MenuItem[] = [
+    { kind: "tab", tab: "institucional", label: "Institucional", icon: Building2, desc: "Sobre a Secretaria e a Comarca" },
+    { kind: "tab", tab: "transparencia", label: "Transparência", icon: FileText, desc: "Dados abertos e prestação de contas" },
+  ];
+  const consultaPublica: MenuItem[] = [
+    { kind: "tab", tab: "credencial", label: "Consultar Credencial", icon: Scale, desc: "Verificar carteira de servidor, advogado, juiz ou promotor" },
+    { kind: "link", href: "/codigo-penal", label: "Código Penal", icon: BookOpen, desc: "Íntegra dos artigos penais" },
+    { kind: "link", href: "/ordenamento", label: "Ordenamento Jurídico", icon: Landmark, desc: "Constituição, Decretos-Lei e Códigos" },
+    { kind: "link", href: "/calculadora", label: "Calculadora Penal", icon: Calculator, desc: "Penas, multas e custas processuais" },
   ];
   const [publicMenuOpenMobile, setPublicMenuOpenMobile] = useState(true);
+  const [institucionalOpenMobile, setInstitucionalOpenMobile] = useState(true);
+
+  const handleMenuItem = (item: MenuItem) => {
+    if (item.kind === "tab") {
+      setActiveTab(item.tab);
+      setMobileMenuOpen(false);
+    }
+  };
 
 
   return (
@@ -181,18 +195,48 @@ export default function LoginPage() {
                     Acesso ao Sistema
                   </button>
                   <div className="my-2 border-t border-sidebar-border" />
+                  <Collapsible open={institucionalOpenMobile} onOpenChange={setInstitucionalOpenMobile}>
+                    <CollapsibleTrigger className="w-full flex items-center justify-between px-4 py-2 text-[10px] uppercase tracking-widest text-sidebar-foreground/50 hover:text-sidebar-foreground/80 transition-colors">
+                      <span>Institucional</span>
+                      <ChevronDown className={`h-3.5 w-3.5 transition-transform ${institucionalOpenMobile ? "rotate-180" : ""}`} />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="flex flex-col gap-1 mt-1">
+                      {institucionalItems.map((item, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => handleMenuItem(item)}
+                          className="pl-6 pr-4 py-3 rounded-lg text-sm text-sidebar-foreground/80 hover:bg-sidebar-foreground/10 flex items-center gap-2 border-l-2 border-gold/30 ml-2 text-left"
+                        >
+                          <item.icon className="h-4 w-4 text-gold" />
+                          <span className="flex-1">{item.label}</span>
+                        </button>
+                      ))}
+                    </CollapsibleContent>
+                  </Collapsible>
+                  <div className="my-2 border-t border-sidebar-border" />
                   <Collapsible open={publicMenuOpenMobile} onOpenChange={setPublicMenuOpenMobile}>
                     <CollapsibleTrigger className="w-full flex items-center justify-between px-4 py-2 text-[10px] uppercase tracking-widest text-sidebar-foreground/50 hover:text-sidebar-foreground/80 transition-colors">
                       <span>Consulta pública</span>
                       <ChevronDown className={`h-3.5 w-3.5 transition-transform ${publicMenuOpenMobile ? "rotate-180" : ""}`} />
                     </CollapsibleTrigger>
                     <CollapsibleContent className="flex flex-col gap-1 mt-1">
-                      {consultaPublica.map((item) => (
-                        <a key={item.href} href={item.href} target="_blank" rel="noopener noreferrer" className="pl-6 pr-4 py-3 rounded-lg text-sm text-sidebar-foreground/80 hover:bg-sidebar-foreground/10 flex items-center gap-2 border-l-2 border-gold/30 ml-2">
-                          <item.icon className="h-4 w-4 text-gold" />
-                          <span className="flex-1">{item.label}</span>
-                          <ExternalLink className="h-3 w-3 text-sidebar-foreground/40" />
-                        </a>
+                      {consultaPublica.map((item, idx) => (
+                        item.kind === "link" ? (
+                          <a key={idx} href={item.href} target="_blank" rel="noopener noreferrer" className="pl-6 pr-4 py-3 rounded-lg text-sm text-sidebar-foreground/80 hover:bg-sidebar-foreground/10 flex items-center gap-2 border-l-2 border-gold/30 ml-2">
+                            <item.icon className="h-4 w-4 text-gold" />
+                            <span className="flex-1">{item.label}</span>
+                            <ExternalLink className="h-3 w-3 text-sidebar-foreground/40" />
+                          </a>
+                        ) : (
+                          <button
+                            key={idx}
+                            onClick={() => handleMenuItem(item)}
+                            className="pl-6 pr-4 py-3 rounded-lg text-sm text-sidebar-foreground/80 hover:bg-sidebar-foreground/10 flex items-center gap-2 border-l-2 border-gold/30 ml-2 text-left"
+                          >
+                            <item.icon className="h-4 w-4 text-gold" />
+                            <span className="flex-1">{item.label}</span>
+                          </button>
+                        )
                       ))}
                     </CollapsibleContent>
                   </Collapsible>
@@ -218,7 +262,36 @@ export default function LoginPage() {
               </button>
             )}
             <DropdownMenu>
-              <DropdownMenuTrigger className="px-5 py-3 text-sm font-medium whitespace-nowrap transition-all border-b-2 border-transparent text-sidebar-foreground/60 hover:text-sidebar-foreground/80 hover:border-sidebar-foreground/30 flex items-center gap-1 outline-none data-[state=open]:text-gold data-[state=open]:border-gold">
+              <DropdownMenuTrigger className={`px-5 py-3 text-sm font-medium whitespace-nowrap transition-all border-b-2 flex items-center gap-1 outline-none data-[state=open]:text-gold data-[state=open]:border-gold ${
+                institucionalItems.some((i) => i.kind === "tab" && i.tab === activeTab)
+                  ? "border-gold text-gold"
+                  : "border-transparent text-sidebar-foreground/60 hover:text-sidebar-foreground/80 hover:border-sidebar-foreground/30"
+              }`}>
+                Institucional
+                <ChevronDown className="h-3.5 w-3.5" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="bg-institutional border-sidebar-border w-72">
+                <DropdownMenuLabel className="text-sidebar-foreground/50 text-[10px] uppercase tracking-widest">
+                  Sobre a Secretaria
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator className="bg-sidebar-border" />
+                {institucionalItems.map((item, idx) => (
+                  <DropdownMenuItem key={idx} onClick={() => handleMenuItem(item)} className="focus:bg-gold/10 focus:text-gold cursor-pointer flex items-start gap-3 py-2.5">
+                    <item.icon className="h-5 w-5 text-gold mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-sidebar-foreground">{item.label}</div>
+                      <div className="text-[11px] text-sidebar-foreground/50">{item.desc}</div>
+                    </div>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger className={`px-5 py-3 text-sm font-medium whitespace-nowrap transition-all border-b-2 flex items-center gap-1 outline-none data-[state=open]:text-gold data-[state=open]:border-gold ${
+                consultaPublica.some((i) => i.kind === "tab" && i.tab === activeTab)
+                  ? "border-gold text-gold"
+                  : "border-transparent text-sidebar-foreground/60 hover:text-sidebar-foreground/80 hover:border-sidebar-foreground/30"
+              }`}>
                 Consulta Pública
                 <ChevronDown className="h-3.5 w-3.5" />
               </DropdownMenuTrigger>
@@ -227,17 +300,27 @@ export default function LoginPage() {
                   Acervo Público — sem login
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-sidebar-border" />
-                {consultaPublica.map((item) => (
-                  <DropdownMenuItem key={item.href} asChild className="focus:bg-gold/10 focus:text-gold cursor-pointer">
-                    <a href={item.href} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 py-2.5">
+                {consultaPublica.map((item, idx) => (
+                  item.kind === "link" ? (
+                    <DropdownMenuItem key={idx} asChild className="focus:bg-gold/10 focus:text-gold cursor-pointer">
+                      <a href={item.href} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 py-2.5">
+                        <item.icon className="h-5 w-5 text-gold mt-0.5 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-semibold text-sidebar-foreground">{item.label}</div>
+                          <div className="text-[11px] text-sidebar-foreground/50">{item.desc}</div>
+                        </div>
+                        <ExternalLink className="h-3.5 w-3.5 text-sidebar-foreground/40 mt-1" />
+                      </a>
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem key={idx} onClick={() => handleMenuItem(item)} className="focus:bg-gold/10 focus:text-gold cursor-pointer flex items-start gap-3 py-2.5">
                       <item.icon className="h-5 w-5 text-gold mt-0.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-semibold text-sidebar-foreground">{item.label}</div>
                         <div className="text-[11px] text-sidebar-foreground/50">{item.desc}</div>
                       </div>
-                      <ExternalLink className="h-3.5 w-3.5 text-sidebar-foreground/40 mt-1" />
-                    </a>
-                  </DropdownMenuItem>
+                    </DropdownMenuItem>
+                  )
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
