@@ -412,12 +412,11 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
       const { error } = await supabase.from("processos").insert(insertPayload);
       if (error) throw error;
 
-      if (user?.id) {
-        const openerOrgao = isCidadao ? "Parte Interessada" : (roles.includes("advogado") ? "Advocacia" : "Parte Interessada");
+      if (user?.id && isCidadao) {
         const { error: interessadoError } = await supabase.from("interessados_processo").insert({
           processo_id: processoId,
           user_id: user.id,
-          orgao: openerOrgao,
+          orgao: "Parte Interessada",
           qualificacao: "interessado",
         } as any);
         if (interessadoError) throw interessadoError;
