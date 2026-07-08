@@ -183,40 +183,78 @@ export default function AIChatbotInstitucional({
   };
 
   const sugestoes = useMemo(() => {
-    // Sugestões por seção ativa (contexto de navegação)
-    const porSecao: Record<string, string[]> = {
-      processos: ["Como distribuo um novo processo?", "Como peço vista dos autos?", "O que significa 'concluso'?"],
-      "meus-processos": ["Como manifesto interesse?", "Como acompanho prazos?", "Onde vejo minhas intimações?"],
-      audiencias: ["Como agendo uma audiência?", "Como registro a ata?", "Posso remarcar audiência?"],
-      cartorio: ["Como emito uma certidão?", "Como faço uma procuração?", "Prazos da procuração"],
-      oab: ["Como calculo honorários?", "Como envio carteira OAB?", "Ranking dos advogados"],
-      mp: ["Como abro uma denúncia?", "Consulta a inquéritos", "Ofícios do MP"],
-      magistrado: ["Como assino um ato?", "Meu ranking semanal", "Como entro em recesso?"],
-      jurisprudencia: ["Como buscar por tema?", "Filtrar por tribunal", "Salvar jurisprudência"],
-      concursos: ["Concursos abertos", "Como me inscrevo?", "Editais recentes"],
-      modelos: ["Modelos de sentença", "Como criar um modelo?", "Variáveis disponíveis"],
-      tco: ["Como registro um TCO?", "Encaminhar ao JECRIM", "Numeração automática"],
-      jurados: ["Como me alisto como jurado?", "Sorteio do júri", "Convocação"],
-      "meu-perfil": ["Alterar minha foto", "Trocar senha", "Meus cargos"],
-      consulta: ["Verificar credencial de advogado", "Consultar juiz", "Consultar promotor"],
-      tribunal: ["Composição do TJ", "Sessões plenárias", "Recursos ao TJ"],
-      ouvidoria: ["Fazer denúncia anônima", "Acompanhar denúncia", "Contato do MP"],
-      transparencia: ["Estatísticas da comarca", "Rankings públicos", "Dados abertos"],
-      credencial: ["Verificar carteira de advogado", "Consultar servidor", "Validar credencial"],
-      institucional: ["Sobre a Secretaria", "Quem somos", "Contatos"],
-      unisp: ["Como me inscrevo na UNISP?", "Cursos disponíveis", "Requisitos"],
-      inicio: ["Como faço login?", "Sou cidadão, e agora?", "Preciso de um advogado"],
+    const isCidadao = primaryRole === "cidadao";
+    const isAdvogado = primaryRole === "advogado";
+    const discord = "Falar com advogado no Discord Jurídico";
+
+    // Sugestões por perfil + seção
+    const porSecao: Record<string, { cidadao?: string[]; advogado?: string[]; default: string[] }> = {
+      processos: {
+        cidadao: [discord, "Só advogados podem abrir processo?", "Como consulto um processo público?"],
+        advogado: ["Como distribuo uma petição inicial?", "Como peço vista dos autos?", "Como junto documentos?"],
+        default: ["Como distribuo um novo processo?", "Como peço vista dos autos?", "O que significa 'concluso'?"],
+      },
+      "meus-processos": {
+        cidadao: [discord, "Como acompanho meu processo?", "Onde vejo intimações?"],
+        advogado: ["Manifestar nos autos", "Prazos em aberto", "Peticionar embargos"],
+        default: ["Como manifesto interesse?", "Como acompanho prazos?", "Onde vejo minhas intimações?"],
+      },
+      cartorio: {
+        cidadao: [discord, "Cidadão pode pedir certidão?", "O que é certidão de distribuição?"],
+        advogado: ["Emitir procuração", "Pedir certidão de distribuição", "Prazos da procuração"],
+        default: ["Como emito uma certidão?", "Como faço uma procuração?", "Prazos da procuração"],
+      },
+      oab: {
+        cidadao: [discord, "Como contrato um advogado?", "Onde vejo advogados ativos?"],
+        default: ["Como calculo honorários?", "Como envio carteira OAB?", "Ranking dos advogados"],
+      },
+      tco: {
+        cidadao: [discord, "O que é um TCO?", "Como consulto meu TCO?"],
+        default: ["Como registro um TCO?", "Encaminhar ao JECRIM", "Numeração automática"],
+      },
+      magistrado: {
+        default: ["Como assino um ato?", "Meu ranking semanal", "Como entro em recesso?"],
+      },
+      audiencias: {
+        cidadao: [discord, "Como sei quando é minha audiência?", "Preciso ir presencialmente?"],
+        default: ["Como agendo uma audiência?", "Como registro a ata?", "Posso remarcar audiência?"],
+      },
+      mp: {
+        cidadao: ["Fazer denúncia anônima", "Acompanhar denúncia", "Ouvidoria do MP"],
+        default: ["Como abro uma denúncia?", "Consulta a inquéritos", "Ofícios do MP"],
+      },
+      jurisprudencia: { default: ["Como buscar por tema?", "Filtrar por tribunal", "Salvar jurisprudência"] },
+      concursos: { default: ["Concursos abertos", "Como me inscrevo?", "Editais recentes"] },
+      modelos: { default: ["Modelos de sentença", "Como criar um modelo?", "Variáveis disponíveis"] },
+      jurados: { default: ["Como me alisto como jurado?", "Sorteio do júri", "Convocação"] },
+      "meu-perfil": { default: ["Alterar minha foto", "Trocar senha", "Meus cargos"] },
+      consulta: { default: ["Verificar credencial de advogado", "Consultar juiz", "Consultar promotor"] },
+      credencial: { default: ["Verificar carteira de advogado", "Consultar servidor", "Validar credencial"] },
+      tribunal: { default: ["Composição do TJ", "Sessões plenárias", "Recursos ao TJ"] },
+      ouvidoria: { default: ["Fazer denúncia anônima", "Acompanhar denúncia", "Contato do MP"] },
+      transparencia: { default: ["Estatísticas da comarca", "Rankings públicos", "Dados abertos"] },
+      institucional: { default: ["Sobre a Secretaria", "Quem somos", "Contatos"] },
+      unisp: { default: ["Como me inscrevo na UNISP?", "Cursos disponíveis", "Requisitos"] },
+      inicio: {
+        cidadao: [discord, "Sou cidadão, e agora?", "Como faço uma denúncia?"],
+        advogado: ["Como faço login?", "Meus processos", "Peticionar no cartório"],
+        default: ["Como faço login?", "Sou cidadão, e agora?", "Preciso de um advogado"],
+      },
     };
-    const contextuais = activeSection ? porSecao[activeSection] : null;
-    if (contextuais) return contextuais;
+
+    const bucket = activeSection ? porSecao[activeSection] : null;
+    if (bucket) {
+      if (isCidadao && bucket.cidadao) return bucket.cidadao;
+      if (isAdvogado && bucket.advogado) return bucket.advogado;
+      return bucket.default;
+    }
+
     // Fallback por perfil
-    if (primaryRole === "cidadao") {
-      return [
-        "Preciso de um advogado",
-        "Como faço uma denúncia?",
-        "Consultar um processo",
-        "Concursos abertos",
-      ];
+    if (isCidadao) {
+      return [discord, "Como faço uma denúncia?", "Consultar um processo", "Concursos abertos"];
+    }
+    if (isAdvogado) {
+      return ["Meus processos", "Emitir procuração", "Calcular honorários", "Jurisprudência sobre..."];
     }
     return [
       "Como consulto meu processo?",
@@ -225,6 +263,7 @@ export default function AIChatbotInstitucional({
       "Preciso de uma certidão do cartório",
     ];
   }, [activeSection, primaryRole]);
+
 
 
   const BotAvatar = ({ size = 32 }: { size?: number }) => (
