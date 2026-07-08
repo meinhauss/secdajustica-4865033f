@@ -66,7 +66,7 @@ export default function PublicHighlightsCarousel() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15 + i * 0.05 }}
-                className="block relative overflow-hidden rounded-2xl border-2 border-gold/60 bg-gradient-to-br from-institutional-dark via-institutional to-institutional-dark p-6 sm:p-8 lg:p-10 shadow-2xl shadow-gold/20 hover:border-gold hover:shadow-gold/40 transition-all group min-h-[220px] sm:min-h-[260px]"
+                className="flex h-[300px] sm:h-[260px] md:h-[240px] relative overflow-hidden rounded-2xl border-2 border-gold/60 bg-gradient-to-br from-institutional-dark via-institutional to-institutional-dark p-6 sm:p-8 lg:p-10 shadow-2xl shadow-gold/20 hover:border-gold hover:shadow-gold/40 transition-all group"
               >
                 <div className="absolute -top-12 -right-12 w-64 h-64 bg-gold/15 rounded-full blur-3xl" />
                 <div className="absolute bottom-0 left-1/3 w-96 h-32 bg-gold/10 rounded-full blur-2xl" />

@@ -10,9 +10,11 @@ import ConsultaPublicaSection from "@/components/sections/ConsultaPublicaSection
 import AIChatbotInstitucional from "@/components/AIChatbotInstitucional";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import PublicHighlightsCarousel from "@/components/PublicHighlightsCarousel";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   Scale, Shield, Gavel, BookOpen, Building2, Users, FileText, Briefcase,
-  Phone, MapPin, Clock, ChevronRight, ExternalLink, GraduationCap, Stamp, Heart, Home, ScrollText, FileSignature, Baby, AlertTriangle, Menu, Landmark, Calculator } from
+  Phone, MapPin, Clock, ChevronRight, ChevronDown, ExternalLink, GraduationCap, Stamp, Heart, Home, ScrollText, FileSignature, Baby, AlertTriangle, Menu, Landmark, Calculator } from
 "lucide-react";
 import logoTjsp from "@/assets/logo-tjsp.png";
 import logoMpsp from "@/assets/logo-mpsp.png";
@@ -115,12 +117,18 @@ export default function LoginPage() {
   const tabs: {id: Tab;label: string;}[] = [
   { id: "inicio", label: "Início" },
   { id: "institucional", label: "Institucional" },
-  
   { id: "credencial", label: "Consultar Credencial" },
   { id: "ouvidoria", label: "Ouvidoria MP" },
   { id: "transparencia", label: "Transparência" },
   { id: "concursos", label: "Concursos" },
   { id: "unisp", label: "UNISP" }];
+
+  const consultaPublica: { href: string; label: string; icon: any; desc: string }[] = [
+    { href: "/codigo-penal", label: "Código Penal", icon: BookOpen, desc: "Íntegra dos artigos penais" },
+    { href: "/ordenamento", label: "Ordenamento Jurídico", icon: Landmark, desc: "Constituição, Decretos-Lei e Códigos" },
+    { href: "/calculadora", label: "Calculadora Penal", icon: Calculator, desc: "Penas, multas e custas processuais" },
+  ];
+  const [publicMenuOpenMobile, setPublicMenuOpenMobile] = useState(true);
 
 
   return (
@@ -173,16 +181,21 @@ export default function LoginPage() {
                     Acesso ao Sistema
                   </button>
                   <div className="my-2 border-t border-sidebar-border" />
-                  <p className="px-4 py-1 text-[10px] uppercase tracking-widest text-sidebar-foreground/40">Consulta pública</p>
-                  <a href="/codigo-penal" target="_blank" rel="noopener noreferrer" className="px-4 py-3 rounded-lg text-sm text-sidebar-foreground/80 hover:bg-sidebar-foreground/10 flex items-center gap-2">
-                    <BookOpen className="h-4 w-4 text-gold" /> Código Penal
-                  </a>
-                  <a href="/ordenamento" target="_blank" rel="noopener noreferrer" className="px-4 py-3 rounded-lg text-sm text-sidebar-foreground/80 hover:bg-sidebar-foreground/10 flex items-center gap-2">
-                    <Landmark className="h-4 w-4 text-gold" /> Ordenamento Jurídico
-                  </a>
-                  <a href="/calculadora" target="_blank" rel="noopener noreferrer" className="px-4 py-3 rounded-lg text-sm text-sidebar-foreground/80 hover:bg-sidebar-foreground/10 flex items-center gap-2">
-                    <Calculator className="h-4 w-4 text-gold" /> Calculadora Penal
-                  </a>
+                  <Collapsible open={publicMenuOpenMobile} onOpenChange={setPublicMenuOpenMobile}>
+                    <CollapsibleTrigger className="w-full flex items-center justify-between px-4 py-2 text-[10px] uppercase tracking-widest text-sidebar-foreground/50 hover:text-sidebar-foreground/80 transition-colors">
+                      <span>Consulta pública</span>
+                      <ChevronDown className={`h-3.5 w-3.5 transition-transform ${publicMenuOpenMobile ? "rotate-180" : ""}`} />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="flex flex-col gap-1 mt-1">
+                      {consultaPublica.map((item) => (
+                        <a key={item.href} href={item.href} target="_blank" rel="noopener noreferrer" className="pl-6 pr-4 py-3 rounded-lg text-sm text-sidebar-foreground/80 hover:bg-sidebar-foreground/10 flex items-center gap-2 border-l-2 border-gold/30 ml-2">
+                          <item.icon className="h-4 w-4 text-gold" />
+                          <span className="flex-1">{item.label}</span>
+                          <ExternalLink className="h-3 w-3 text-sidebar-foreground/40" />
+                        </a>
+                      ))}
+                    </CollapsibleContent>
+                  </Collapsible>
                 </nav>
               </SheetContent>
             </Sheet>
@@ -204,6 +217,30 @@ export default function LoginPage() {
                 {tab.label}
               </button>
             )}
+            <DropdownMenu>
+              <DropdownMenuTrigger className="px-5 py-3 text-sm font-medium whitespace-nowrap transition-all border-b-2 border-transparent text-sidebar-foreground/60 hover:text-sidebar-foreground/80 hover:border-sidebar-foreground/30 flex items-center gap-1 outline-none data-[state=open]:text-gold data-[state=open]:border-gold">
+                Consulta Pública
+                <ChevronDown className="h-3.5 w-3.5" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="bg-institutional border-sidebar-border w-72">
+                <DropdownMenuLabel className="text-sidebar-foreground/50 text-[10px] uppercase tracking-widest">
+                  Acervo Público — sem login
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator className="bg-sidebar-border" />
+                {consultaPublica.map((item) => (
+                  <DropdownMenuItem key={item.href} asChild className="focus:bg-gold/10 focus:text-gold cursor-pointer">
+                    <a href={item.href} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 py-2.5">
+                      <item.icon className="h-5 w-5 text-gold mt-0.5 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-semibold text-sidebar-foreground">{item.label}</div>
+                        <div className="text-[11px] text-sidebar-foreground/50">{item.desc}</div>
+                      </div>
+                      <ExternalLink className="h-3.5 w-3.5 text-sidebar-foreground/40 mt-1" />
+                    </a>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
             <button
               onClick={() => setActiveTab("login")}
               className={`ml-auto px-5 py-3 text-sm font-semibold whitespace-nowrap transition-all border-b-2 flex items-center gap-2 ${
