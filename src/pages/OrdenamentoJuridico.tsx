@@ -277,7 +277,7 @@ export default function OrdenamentoJuridicoPage() {
 
       <footer className="bg-institutional-dark text-sidebar-foreground/50 text-[11px] py-6 mt-8">
         <div className="max-w-7xl mx-auto px-4 text-center space-y-2">
-          <p>Documento de referência oficial do ordenamento jurídico municipal.</p>
+          <p>Documento de referência oficial do ordenamento jurídico federal da República de Jaguaré.</p>
           <p>
             <Link to="/" className="text-gold hover:underline inline-flex items-center gap-1">
               <ExternalLink className="h-3 w-3" />
