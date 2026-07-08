@@ -989,7 +989,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["procuracoes", processoId] });
       setShowProcuracao(false);
-      setProcForm({ selectedPartes: [], documento_url: "" });
+      setProcForm({ selectedPartes: [], documento_url: "", cartorio_id: null });
       toast.success("Procuração juntada com sucesso!");
     },
     onError: (err: any) => toast.error(err.message),
