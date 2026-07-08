@@ -103,6 +103,8 @@ export default function AIFerramentas({ processo, movimentacoes }: Props) {
     } else if (tool === "comparar") {
       if (!pecaA.trim() || !pecaB.trim()) { toast.error("Cole o texto das duas peças."); return; }
       req = { operation: "custom", prompt: PROMPTS_FASE3.compararPecas(pecaA, pecaB, rotuloA, rotuloB) };
+    } else if (tool === "peca") {
+      req = { operation: "custom", prompt: PROMPTS_EXTRA.pecaAdvogado({ ...ctx(), tipo: pecaTipo, tese: pecaTese.trim() || undefined, instrucao: pecaInstrucao.trim() || undefined, extenso: pecaExtenso }) };
     } else if (tool === "duplicidade") {
       await rodarDuplicidade(); return;
     }
