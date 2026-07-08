@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import {
   FileText, Scale, Clock, Gavel,
-  Briefcase, GraduationCap, Stamp, Bell, ArrowRight, BookOpen, Calculator
+  Briefcase, GraduationCap, Stamp, Bell, ArrowRight, BookOpen, Calculator, Landmark
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";

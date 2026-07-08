@@ -8,6 +8,7 @@ import Index from "./pages/Index.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
 import CodigoPenal from "./pages/CodigoPenal.tsx";
 import Calculadora from "./pages/Calculadora.tsx";
+import OrdenamentoJuridico from "./pages/OrdenamentoJuridico.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/codigo-penal" element={<CodigoPenal />} />
             <Route path="/calculadora" element={<Calculadora />} />
+            <Route path="/ordenamento" element={<OrdenamentoJuridico />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
