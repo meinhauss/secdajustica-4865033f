@@ -1343,7 +1343,10 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               </SelectContent>
             </Select>
             
-            <div className="flex justify-end"><ModeloPicker categoria="despacho" context={modeloCtx} onInsert={(t) => setDespachoForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))} /></div>
+            <div className="flex justify-end gap-2 flex-wrap">
+              <AISugerirDespacho tipoAto={despachoForm.tipo} tituloAto="Despacho" rascunhoAtual={despachoForm.conteudo} processo={processo} movimentacoes={movs} onInsert={(t) => setDespachoForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))} />
+              <ModeloPicker categoria="despacho" context={modeloCtx} onInsert={(t) => setDespachoForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))} />
+            </div>
             <RichTextEditor placeholder="Conteúdo do despacho..." value={despachoForm.conteudo} onChange={(html) => setDespachoForm({ ...despachoForm, conteudo: html })} minHeight="160px" />
             <Button type="submit" disabled={criarDespacho.isPending} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
               {criarDespacho.isPending ? "Processando..." : "Proferir e Assinar Despacho"}
