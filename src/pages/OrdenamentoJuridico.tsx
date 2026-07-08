@@ -26,7 +26,24 @@ interface Lei {
   created_at: string;
 }
 
-const CATEGORIAS_PADRAO = ["Geral", "Posturas Municipais", "Trânsito", "Meio Ambiente", "Tributária", "Urbanística", "Administrativa"];
+const CATEGORIAS_PADRAO = [
+  "Institucional e Disposições Gerais",
+  "Constituição da República de Jaguaré",
+  "Poder Judiciário — Organização e Estrutura",
+  "Tribunal de Justiça (TJ)",
+  "Ministério Público (MP)",
+  "Advocacia e OAB",
+  "Conselho de Ética Profissional (CEP)",
+  "Normas do Fórum",
+  "Código de Ética e Conduta",
+  "UNISP — Universidade de Direito",
+  "Decretos-Lei",
+  "Processo Penal",
+  "Processo Civil",
+  "Direito Penal Especial",
+  "Defensoria Pública",
+  "Direito de Família",
+];
 
 export default function OrdenamentoJuridicoPage() {
   const { roles } = useAuth();
@@ -142,10 +159,10 @@ export default function OrdenamentoJuridicoPage() {
           <img src={logoSjc} alt="SJC-SP" className="h-9 sm:h-12 rounded-lg drop-shadow flex-shrink-0" />
           <div className="flex-1 min-w-0">
             <h1 className="font-display text-base sm:text-xl lg:text-2xl font-bold text-sidebar-foreground leading-tight truncate">
-              Ordenamento Jurídico Municipal
+              Ordenamento Jurídico Federal
             </h1>
             <p className="text-[9px] sm:text-[11px] text-sidebar-foreground/50 uppercase tracking-[0.15em] sm:tracking-[0.2em] truncate">
-              Secretaria da Justiça e Cidadania — SP
+              República Federativa de Jaguaré
             </p>
           </div>
           <Link to="/" className="flex-shrink-0">
@@ -162,11 +179,11 @@ export default function OrdenamentoJuridicoPage() {
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="inline-flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
             <Landmark className="h-7 w-7 sm:h-10 sm:w-10 text-gold flex-shrink-0" />
             <h2 className="font-display text-xl sm:text-3xl lg:text-4xl font-bold text-sidebar-foreground">
-              Leis Municipais Vigentes
+              Legislação Federal Vigente
             </h2>
           </motion.div>
           <p className="text-sidebar-foreground/70 max-w-3xl mx-auto text-xs sm:text-sm lg:text-base px-2">
-            Consulta pública ao ordenamento jurídico municipal — leis, decretos e normas em vigor na Comarca.
+            Constituição, Decretos-Lei, Códigos e normas institucionais da República Federativa de Jaguaré — consulta pública.
           </p>
         </div>
       </section>
@@ -260,7 +277,7 @@ export default function OrdenamentoJuridicoPage() {
 
       <footer className="bg-institutional-dark text-sidebar-foreground/50 text-[11px] py-6 mt-8">
         <div className="max-w-7xl mx-auto px-4 text-center space-y-2">
-          <p>Documento de referência oficial do ordenamento jurídico municipal.</p>
+          <p>Documento de referência oficial do ordenamento jurídico federal da República de Jaguaré.</p>
           <p>
             <Link to="/" className="text-gold hover:underline inline-flex items-center gap-1">
               <ExternalLink className="h-3 w-3" />
@@ -273,7 +290,7 @@ export default function OrdenamentoJuridicoPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editing ? "Editar Lei" : "Nova Lei Municipal"}</DialogTitle>
+            <DialogTitle>{editing ? "Editar Norma" : "Nova Norma / Decreto-Lei"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
