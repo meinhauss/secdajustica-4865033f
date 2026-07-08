@@ -110,6 +110,43 @@ const ROLES_COM_PORTE_ARMA = new Set([
   "defensor_publico_geral",
 ]);
 
+/** Base legal do porte de arma institucional por cargo */
+function getBaseLegalPorte(role: string): { label: string; url: string } | null {
+  switch (role) {
+    case "magistrado":
+    case "desembargador":
+    case "presidente_tribunal":
+      return {
+        label: "LC 35/1979, art. 33, V (LOMAN)",
+        url: "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp35.htm",
+      };
+    case "ministerio_publico":
+    case "procurador_geral":
+      return {
+        label: "Lei 8.625/1993, art. 42 (LONMP)",
+        url: "https://www.planalto.gov.br/ccivil_03/leis/l8625.htm",
+      };
+    case "defensor_publico":
+    case "defensor_publico_geral":
+      return {
+        label: "LC 80/1994, arts. 44, 89 e 128, com redação da LC 207/2024",
+        url: "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp80.htm",
+      };
+    case "procurador_estado":
+      return {
+        label: "Lei 10.826/2003, art. 6º (Estatuto do Desarmamento)",
+        url: "https://www.planalto.gov.br/ccivil_03/leis/2003/l10.826.htm",
+      };
+    case "oficial_justica":
+      return {
+        label: "Lei 12.694/2012, art. 6º",
+        url: "https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2012/lei/l12694.htm",
+      };
+    default:
+      return null;
+  }
+}
+
 function temPorteArma(roles: string[]): boolean {
   return roles.some((r) => ROLES_COM_PORTE_ARMA.has(r));
 }
