@@ -63,14 +63,84 @@ export default function AIFerramentas({ processo, movimentacoes }: Props) {
   const [duplicidadeJson, setDuplicidadeJson] = useState<any>(null);
   const [buscandoDup, setBuscandoDup] = useState(false);
 
+  // ── Enriquecimento de contexto: qualificações e advogados do processo ──
+  const [partesAutores, setPartesAutores] = useState<{ nome: string; id_personagem?: string | null }[]>([]);
+  const [partesReus, setPartesReus] = useState<{ nome: string; id_personagem?: string | null }[]>([]);
+  const [advogadosCtx, setAdvogadosCtx] = useState<{ nome: string; oab?: string | null; id_personagem?: string | null; representa: string[] }[]>([]);
+  const [juizNome, setJuizNome] = useState<string | null>(null);
+
+  const parseJsonPartes = (raw: any): { nome: string; id_personagem?: string | null }[] => {
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw.map((x: any) => ({ nome: x?.nome || String(x || ""), id_personagem: x?.id_personagem ?? null })).filter(p => p.nome);
+    if (typeof raw === "string") {
+      const s = raw.trim();
+      if (s.startsWith("[")) {
+        try { return parseJsonPartes(JSON.parse(s)); } catch { /* ignore */ }
+      }
+      return s ? [{ nome: s }] : [];
+    }
+    return [];
+  };
+
+  useEffect(() => {
+    if (!processo?.id) {
+      setPartesAutores([]); setPartesReus([]); setAdvogadosCtx([]); setJuizNome(null);
+      return;
+    }
+    const autores = parseJsonPartes(processo.autor_nome);
+    const reus = parseJsonPartes(processo.reu_nome);
+    setPartesAutores(autores);
+    setPartesReus(reus);
+
+    (async () => {
+      // Procurações ativas + perfis dos advogados (nome, OAB, id_personagem)
+      const { data: procs } = await supabase
+        .from("procuracoes")
+        .select("advogado_id, advogado_nome, parte, status")
+        .eq("processo_id", processo.id)
+        .eq("status", "ativa");
+      const advIds = [...new Set((procs || []).map((p: any) => p.advogado_id).filter(Boolean))];
+      let perfis: Record<string, any> = {};
+      if (advIds.length) {
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("user_id, nome_completo, numero_oab, id_personagem")
+          .in("user_id", advIds);
+        (profs || []).forEach((p: any) => { perfis[p.user_id] = p; });
+      }
+      const agrup = new Map<string, { nome: string; oab?: string | null; id_personagem?: string | null; representa: string[] }>();
+      (procs || []).forEach((p: any) => {
+        const perfil = p.advogado_id ? perfis[p.advogado_id] : null;
+        const nome = perfil?.nome_completo || p.advogado_nome || "Advogado(a)";
+        const key = p.advogado_id || nome;
+        const cur = agrup.get(key) || { nome, oab: perfil?.numero_oab ?? null, id_personagem: perfil?.id_personagem ?? null, representa: [] };
+        cur.representa.push(String(p.parte || "").replace(/^autor:/i, "AUTOR ").replace(/^reu:/i, "RÉU "));
+        agrup.set(key, cur);
+      });
+      setAdvogadosCtx([...agrup.values()]);
+
+      // Juiz
+      if (processo.juiz_id) {
+        const { data: juiz } = await supabase.from("profiles").select("nome_completo").eq("user_id", processo.juiz_id).maybeSingle();
+        setJuizNome(juiz?.nome_completo || null);
+      } else {
+        setJuizNome(null);
+      }
+    })();
+  }, [processo?.id, processo?.autor_nome, processo?.reu_nome, processo?.juiz_id]);
+
   const ctx = () => ({
     numero: processo?.numero,
     classe: processo?.classe,
     assunto: processo?.assunto,
-    autor: extrairNomes(processo?.autor_nome),
-    reu: extrairNomes(processo?.reu_nome),
+    autor: partesAutores.map(p => p.nome).join(", ") || extrairNomes(processo?.autor_nome),
+    reu: partesReus.map(p => p.nome).join(", ") || extrairNomes(processo?.reu_nome),
     status: processo?.status,
     valor_causa: processo?.valor_causa,
+    partesAutores,
+    partesReus,
+    advogados: advogadosCtx,
+    juiz: juizNome,
     movimentacoes: (movimentacoes || []).map((m: any) => ({ tipo: m.tipo, descricao: m.descricao })),
   });
 
