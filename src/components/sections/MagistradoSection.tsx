@@ -1942,12 +1942,12 @@ function EmbargosCard({ emb, tipoLabels, statusCfg, canDecide, processoId, userI
         <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${statusCfg.color}`}>{statusCfg.label}</span>
       </div>
       <p className="text-sm font-medium text-foreground">Embargante: {emb.embargante_nome}</p>
-      <p className="text-xs text-foreground whitespace-pre-wrap mt-1">{emb.fundamentacao}</p>
-      <p className="text-xs text-muted-foreground mt-1">Pedido: {emb.pedido}</p>
+      <RichTextView html={emb.fundamentacao} className="text-xs text-foreground mt-1" />
+      <div className="text-xs text-muted-foreground mt-1">Pedido: <RichTextView html={emb.pedido} className="inline text-xs text-muted-foreground" /></div>
       {emb.decisao && (
         <div className="mt-2 pt-2 border-t border-border/50">
           <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Decisão</p>
-          <p className="text-xs text-foreground mt-1">{emb.decisao}</p>
+          <RichTextView html={emb.decisao} className="text-xs text-foreground mt-1" />
         </div>
       )}
       <p className="text-xs text-muted-foreground mt-2">{format(new Date(emb.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
