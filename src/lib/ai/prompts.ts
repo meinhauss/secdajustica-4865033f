@@ -49,10 +49,19 @@ Formato da resposta (markdown):
     movimentacoes?: { tipo: string; descricao: string }[];
     rascunhoAtual?: string;
     instrucao?: string;
-  }) => `Gere o texto do ato judicial abaixo em português, tom formal, técnico, pronto para ser publicado. NÃO invente fatos, nomes, valores, artigos ou jurisprudência que não estejam no contexto. Use marcadores como [data] apenas quando o dado for realmente desconhecido.
+  }) => {
+    const isFund = ctx.tipoAto === "sentenca_fundamentacao";
+    const isDisp = ctx.tipoAto === "sentenca_dispositivo";
+    const escopo = isFund
+      ? `\n\nESCOPO OBRIGATÓRIO: Gere APENAS a seção "FUNDAMENTAÇÃO" da sentença — análise jurídica dos fatos, teses e provas, com dispositivos legais e jurisprudência quando pertinente. NÃO inclua relatório, ementa, dispositivo, cabeçalho, comarca, nº do processo, partes, data ou assinatura. Comece direto com <p><strong>FUNDAMENTAÇÃO</strong></p> e termine antes do dispositivo.`
+      : isDisp
+        ? `\n\nESCOPO OBRIGATÓRIO: Gere APENAS a seção "DISPOSITIVO" da sentença — parte decisória com "ISTO POSTO, JULGO ...", condenações, honorários, custas e determinações finais. NÃO inclua relatório, fundamentação, ementa, cabeçalho, comarca, partes, data ou assinatura. Comece direto com <p><strong>DISPOSITIVO</strong></p>.`
+        : "";
+    return `Gere o texto do ato judicial abaixo em português, tom formal, técnico, pronto para ser publicado. NÃO invente fatos, nomes, valores, artigos ou jurisprudência que não estejam no contexto. Use os dados fornecidos (partes, advogados, OAB, juiz) SEMPRE que estiverem presentes; NUNCA escreva placeholders como [nome do autor], [OAB] etc. quando o dado estiver no contexto.
 
 Tipo do ato: ${ctx.tipoAto}
-${ctx.tituloAto ? `Título proposto: ${ctx.tituloAto}\n` : ""}Processo nº ${ctx.numero || "-"} — Classe: ${ctx.classe || "-"} — Assunto: ${ctx.assunto || "-"}
+${ctx.tituloAto ? `Título proposto: ${ctx.tituloAto}\n` : ""}Comarca: São Paulo/SP — TJSP
+Processo nº ${ctx.numero || "-"} — Classe: ${ctx.classe || "-"} — Assunto: ${ctx.assunto || "-"}
 Autor(es): ${ctx.autor || "-"}
 Réu(s): ${ctx.reu || "-"}
 Status: ${ctx.status || "-"}
@@ -60,8 +69,10 @@ Status: ${ctx.status || "-"}
 Últimas movimentações:
 ${(ctx.movimentacoes || []).slice(0, 10).map((m, i) => `${i + 1}. [${m.tipo}] ${(m.descricao || "").replace(/<[^>]+>/g, " ").slice(0, 400)}`).join("\n") || "(nenhuma)"}
 
-${ctx.rascunhoAtual ? `Rascunho atual do usuário (aprimore se pertinente):\n${ctx.rascunhoAtual.replace(/<[^>]+>/g, "\n")}\n` : ""}${ctx.instrucao ? `Instrução adicional: ${ctx.instrucao}\n` : ""}
-Devolva APENAS o texto do ato, sem cabeçalhos "Aqui está", sem markdown de código.`,
+${ctx.rascunhoAtual ? `Rascunho atual do usuário (aprimore se pertinente):\n${ctx.rascunhoAtual.replace(/<[^>]+>/g, "\n")}\n` : ""}${ctx.instrucao ? `Instrução adicional: ${ctx.instrucao}\n` : ""}${escopo}
+
+Devolva APENAS o texto do ato em HTML simples (<p>, <strong>, <em>, <br>, <ul>, <li>), sem cabeçalhos "Aqui está", sem markdown de código.`;
+  },
 
   classificarPeticao: (texto: string) =>
     `Classifique a petição jurídica abaixo. Devolva JSON estrito no formato:
