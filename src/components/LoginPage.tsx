@@ -1025,6 +1025,8 @@ function TabTransparencia() {
     detran: "DETRAN",
     investigador: "Investigador(a)",
     procurador_estado: "Procurador(a) Geral do Estado",
+    defensor_publico: "Defensor(a) Público(a)",
+    defensor_publico_geral: "Defensor(a) Público(a)-Geral",
   };
 
   useState(() => {
