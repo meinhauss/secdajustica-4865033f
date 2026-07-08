@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import AIProcuracaoCertidao from "@/components/AIProcuracaoCertidao";
+import { useAI } from "@/hooks/useAI";
+import { Sparkles, Loader2 } from "lucide-react";
 import { ListSkeleton } from "@/components/ui/list-skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
