@@ -22,6 +22,8 @@ import logoOabsp from "@/assets/logo-oabsp.png";
 import logoSjc from "@/assets/logo-sjc.jpg";
 import govLogo from "@/assets/gov-logo.png";
 import logoCartorio from "@/assets/logo-cartorio-sp.png";
+import logoDefensoriaAsset from "@/assets/logo-defensoria-sp.jpg.asset.json";
+const logoDefensoria = logoDefensoriaAsset.url;
 import { toast } from "sonner";
 import { formatTelefoneIngame } from "@/lib/formatPhone";
 
@@ -616,69 +618,150 @@ function TabInicio({ onNavigate }: {onNavigate: (tab: Tab) => void;}) {
 }
 
 function TabInstitucional() {
-  const organs = [
-  {
-    logo: logoTjsp,
-    name: "Tribunal de Justiça",
-    desc: "Órgão máximo do Poder Judiciário estadual, responsável pela administração da justiça e julgamento de recursos em segunda instância.",
-    competencias: ["Julgar recursos cíveis e criminais", "Administrar a justiça estadual", "Nomear magistrados", "Supervisionar comarcas"]
-  },
-  {
-    logo: logoMpsp,
-    name: "Ministério Público",
-    desc: "Instituição essencial à função jurisdicional do Estado, responsável pela defesa da ordem jurídica e dos interesses sociais.",
-    competencias: ["Oferecer denúncias criminais", "Fiscalizar o cumprimento da lei", "Defender interesses coletivos", "Expedir recomendações"]
-  },
-  {
-    logo: logoOabsp,
-    name: "Ordem dos Advogados (OAB)",
-    desc: "Entidade responsável pela regulamentação da advocacia, defesa das prerrogativas profissionais e fiscalização ética.",
-    competencias: ["Cadastrar advogados", "Emitir carteiras profissionais", "Fiscalizar a advocacia", "Definir tabela de honorários"]
-  },
-  {
-    logo: logoCartorio,
-    name: "Cartório de Registro Civil",
-    desc: "Serviço extrajudicial responsável pelo registro de atos da vida civil, emissão de certidões, escrituras públicas, procurações e autenticação de documentos.",
-    competencias: ["Certidões de Nascimento, Casamento e Óbito", "Escrituras Públicas e Contratos", "Procurações e Reconhecimento de Firma", "Registro de Adoção e Divórcio"]
-  }];
-
+  const categorias: {
+    id: string;
+    titulo: string;
+    subtitulo: string;
+    icon: any;
+    orgaos: {
+      logo: string;
+      name: string;
+      sigla: string;
+      desc: string;
+      competencias: string[];
+    }[];
+  }[] = [
+    {
+      id: "judiciario",
+      titulo: "Poder Judiciário",
+      subtitulo: "Órgão de cúpula da administração da justiça no Estado",
+      icon: Gavel,
+      orgaos: [
+        {
+          logo: logoTjsp,
+          name: "Tribunal de Justiça",
+          sigla: "TJSP",
+          desc: "Órgão máximo do Poder Judiciário estadual, responsável pela administração da justiça e julgamento de recursos em segunda instância.",
+          competencias: ["Julgar recursos cíveis e criminais", "Administrar a justiça estadual", "Nomear magistrados", "Supervisionar comarcas"],
+        },
+      ],
+    },
+    {
+      id: "essenciais",
+      titulo: "Funções Essenciais à Justiça",
+      subtitulo: "Instituições permanentes essenciais à função jurisdicional (CF, arts. 127 a 135)",
+      icon: Scale,
+      orgaos: [
+        {
+          logo: logoMpsp,
+          name: "Ministério Público",
+          sigla: "MPSP",
+          desc: "Instituição essencial à função jurisdicional do Estado, responsável pela defesa da ordem jurídica e dos interesses sociais.",
+          competencias: ["Oferecer denúncias criminais", "Fiscalizar o cumprimento da lei", "Defender interesses coletivos", "Expedir recomendações"],
+        },
+        {
+          logo: logoDefensoria,
+          name: "Defensoria Pública",
+          sigla: "DPESP",
+          desc: "Instituição permanente essencial à função jurisdicional do Estado, incumbida da orientação jurídica, promoção dos direitos humanos e defesa integral, judicial e extrajudicial, dos necessitados.",
+          competencias: ["Assistência jurídica gratuita", "Defesa criminal de hipossuficientes", "Tutela coletiva de vulneráveis", "Mediação e conciliação"],
+        },
+        {
+          logo: logoOabsp,
+          name: "Ordem dos Advogados",
+          sigla: "OAB-SP",
+          desc: "Entidade responsável pela regulamentação da advocacia, defesa das prerrogativas profissionais e fiscalização ética.",
+          competencias: ["Cadastrar advogados", "Emitir carteiras profissionais", "Fiscalizar a advocacia", "Definir tabela de honorários"],
+        },
+      ],
+    },
+    {
+      id: "extrajudicial",
+      titulo: "Serviços Extrajudiciais",
+      subtitulo: "Serviços delegados de registro público e notas",
+      icon: Stamp,
+      orgaos: [
+        {
+          logo: logoCartorio,
+          name: "Cartório de Registro Civil",
+          sigla: "CRC",
+          desc: "Serviço extrajudicial responsável pelo registro de atos da vida civil, emissão de certidões, escrituras públicas, procurações e autenticação de documentos.",
+          competencias: ["Certidões de Nascimento, Casamento e Óbito", "Escrituras Públicas e Contratos", "Procurações e Reconhecimento de Firma", "Registro de Adoção e Divórcio"],
+        },
+      ],
+    },
+  ];
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
-      <h2 className="font-display text-2xl font-bold text-foreground mb-2">Institucional</h2>
-      <p className="text-muted-foreground mb-8">Conheça os órgãos que compõem o sistema de justiça da Comarca.</p>
-
-      <div className="space-y-6">
-        {organs.map((org, i) =>
-        <motion.div
-          key={org.name}
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: i * 0.1 }}
-          className="bg-card rounded-xl p-6 border border-border shadow-institutional">
-          
-            <div className="flex items-start gap-4">
-              <div className="p-2 rounded-xl bg-secondary flex-shrink-0">
-                <img src={org.logo} alt={org.name} className="h-10 w-auto object-contain" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-display text-lg font-semibold text-foreground mb-1">{org.name}</h3>
-                <p className="text-sm text-muted-foreground mb-4">{org.desc}</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {org.competencias.map((c) =>
-                <div key={c} className="flex items-center gap-2 text-xs text-foreground">
-                      <div className="w-1.5 h-1.5 rounded-full bg-gold flex-shrink-0" />
-                      {c}
-                    </div>
-                )}
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
+      {/* Cabeçalho */}
+      <div className="mb-10 border-l-4 border-gold pl-4">
+        <p className="text-[10px] uppercase tracking-[0.3em] text-gold font-bold mb-1">Estrutura Institucional</p>
+        <h2 className="font-display text-3xl lg:text-4xl font-bold text-foreground">Sistema de Justiça</h2>
+        <p className="text-muted-foreground mt-2 max-w-2xl">
+          Conheça os órgãos e instituições que compõem o sistema de justiça no Estado de São Paulo, suas
+          competências constitucionais e o papel de cada um na garantia dos direitos da cidadania.
+        </p>
       </div>
-    </div>);
 
+      {/* Categorias */}
+      <div className="space-y-12">
+        {categorias.map((cat, ci) => (
+          <motion.section
+            key={cat.id}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: ci * 0.08 }}
+          >
+            <div className="flex items-center gap-3 mb-5">
+              <div className="p-2.5 rounded-lg bg-gold/10 border border-gold/30">
+                <cat.icon className="h-5 w-5 text-gold" />
+              </div>
+              <div>
+                <h3 className="font-display text-xl font-bold text-foreground leading-tight">{cat.titulo}</h3>
+                <p className="text-xs text-muted-foreground">{cat.subtitulo}</p>
+              </div>
+              <div className="flex-1 h-px bg-border ml-2" />
+            </div>
+
+            <div className={`grid gap-4 ${cat.orgaos.length > 1 ? "md:grid-cols-2 xl:grid-cols-3" : "md:grid-cols-1"}`}>
+              {cat.orgaos.map((org, i) => (
+                <motion.div
+                  key={org.name}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: ci * 0.08 + i * 0.05 }}
+                  className="group bg-card rounded-xl border border-border hover:border-gold/50 shadow-institutional hover:shadow-lg transition-all overflow-hidden flex flex-col"
+                >
+                  <div className="p-5 pb-4 border-b border-border bg-secondary/30 flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-background border border-border flex-shrink-0">
+                      <img src={org.logo} alt={org.name} className="h-10 w-10 object-contain" />
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="font-display text-base font-bold text-foreground leading-tight truncate">{org.name}</h4>
+                      <span className="text-[10px] uppercase tracking-widest text-gold font-mono">{org.sigla}</span>
+                    </div>
+                  </div>
+                  <div className="p-5 flex flex-col flex-1">
+                    <p className="text-xs text-muted-foreground leading-relaxed mb-4">{org.desc}</p>
+                    <div className="mt-auto space-y-1.5">
+                      <p className="text-[10px] uppercase tracking-widest text-foreground/60 font-semibold mb-2">Competências</p>
+                      {org.competencias.map((c) => (
+                        <div key={c} className="flex items-start gap-2 text-xs text-foreground">
+                          <div className="w-1.5 h-1.5 rounded-full bg-gold flex-shrink-0 mt-1.5" />
+                          <span>{c}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.section>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function TabCredencial() {
