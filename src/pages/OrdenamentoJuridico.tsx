@@ -266,9 +266,10 @@ export default function OrdenamentoJuridicoPage() {
                 {l.ementa && (
                   <p className="text-xs sm:text-sm text-muted-foreground italic mb-2">{l.ementa}</p>
                 )}
-                <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed border-t border-border pt-3 mt-2">
-                  {l.conteudo}
+                <div className="text-[13px] sm:text-sm text-foreground leading-[1.75] border-t border-border pt-3 mt-2 space-y-2 [&_strong]:text-foreground [&_strong]:font-semibold">
+                  {formatLeiConteudo(l.conteudo)}
                 </div>
+
               </motion.div>
             ))}
           </div>
