@@ -14,6 +14,7 @@ import logoSjc from "@/assets/logo-sjc.jpg";
 import { subscribeTips, dismissTip, clearTips, type AssistenteTip } from "@/lib/assistente/bus";
 import { useAssistenteAdvogado } from "@/hooks/useAssistenteAdvogado";
 import { useAssistenteMagistrado } from "@/hooks/useAssistenteMagistrado";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface ChatbotDestino {
   id: string;
