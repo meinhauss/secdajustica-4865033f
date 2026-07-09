@@ -218,34 +218,58 @@ export default function OrdenamentoJuridicoPage() {
     return Array.from(s);
   }, [leis]);
 
+  const tokens = useMemo(
+    () => normalize(busca).split(/\s+/).filter((t) => t.length >= 2),
+    [busca],
+  );
+
   const filtradas = useMemo(() => {
-    const termo = busca.trim().toLowerCase();
     const catIndex = (c: string) => {
       const i = CATEGORIAS_PADRAO.indexOf(c);
       return i === -1 ? 999 : i;
     };
     const collator = new Intl.Collator("pt-BR", { numeric: true, sensitivity: "base" });
+    // Ranking: soma por token dos pesos onde ele aparece (numero=5, titulo=3, ementa=2, conteudo=1).
+    const scoreOf = (l: Lei) => {
+      if (!tokens.length) return 0;
+      const numero = normalize(l.numero);
+      const titulo = normalize(l.titulo);
+      const ementa = normalize(l.ementa ?? "");
+      const conteudo = normalize(l.conteudo);
+      let score = 0;
+      for (const t of tokens) {
+        if (numero.includes(t)) score += 5;
+        if (titulo.includes(t)) score += 3;
+        if (ementa.includes(t)) score += 2;
+        if (conteudo.includes(t)) score += 1;
+      }
+      return score;
+    };
+    // Um item passa se TODOS os tokens aparecem em algum dos campos (busca AND).
+    const matches = (l: Lei) => {
+      if (!tokens.length) return true;
+      const hay = normalize(`${l.numero} ${l.titulo} ${l.ementa ?? ""} ${l.conteudo}`);
+      return tokens.every((t) => hay.includes(t));
+    };
     return leis
       .filter((l) => {
         if (categoria !== "Todas" && !categoriasDaLei(l).includes(categoria)) return false;
-        if (!termo) return true;
-        return (
-          l.numero.toLowerCase().includes(termo) ||
-          l.titulo.toLowerCase().includes(termo) ||
-          (l.ementa ?? "").toLowerCase().includes(termo) ||
-          l.conteudo.toLowerCase().includes(termo)
-        );
+        return matches(l);
       })
       .sort((a, b) => {
-        // Ao filtrar por uma categoria específica, ordena apenas pelo número
-        // para manter a sequência (ex.: DL 001, DL 002, ..., DL 022).
+        // Com busca ativa, ordena por relevância desc; empate cai na ordem padrão.
+        if (tokens.length) {
+          const d = scoreOf(b) - scoreOf(a);
+          if (d !== 0) return d;
+        }
         if (categoria !== "Todas") return collator.compare(a.numero, b.numero);
         const ci = catIndex(a.categoria) - catIndex(b.categoria);
         if (ci !== 0) return ci;
         if (a.categoria !== b.categoria) return collator.compare(a.categoria, b.categoria);
         return collator.compare(a.numero, b.numero);
       });
-  }, [leis, busca, categoria]);
+  }, [leis, tokens, categoria]);
+
 
 
   const openNew = () => {
