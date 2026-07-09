@@ -199,12 +199,12 @@ export default function AIChatbotInstitucional({
       const [jRes, pRes] = await Promise.all([
         supabase
           .from("jurisprudencias")
-          .select("numero_acordao, classe, assunto, ementa, decisao_tipo, desembargador_nome, tags")
+          .select("id, numero_acordao, classe, assunto, ementa, decisao_tipo, desembargador_nome, tags")
           .order("data_julgamento", { ascending: false, nullsFirst: false })
           .limit(40),
         supabase
           .from("processos")
-          .select("numero, classe, assunto, status")
+          .select("id, numero, classe, assunto, status")
           .in("status", ["sentenciado", "arquivado"])
           .order("updated_at", { ascending: false })
           .limit(30),
@@ -217,6 +217,15 @@ export default function AIChatbotInstitucional({
     })();
     return () => { cancel = true; };
   }, [open, isCidadaoOnly, baseInterna]);
+
+  // Mapa numero -> id para resolver [PROC:] em cliques
+  const procIdMap = useMemo(() => {
+    const m = new Map<string, string>();
+    (baseInterna?.precedentes || []).forEach((p: any) => { if (p?.numero && p?.id) m.set(p.numero, p.id); });
+    return m;
+  }, [baseInterna]);
+  const jurisSet = useMemo(() => new Set((baseInterna?.jurisprudencias || []).map((j: any) => j.numero_acordao)), [baseInterna]);
+
 
   const system = useMemo(
     () => PROMPTS_FASE4.chatbotInstitucional(comarca, destinosFinal, primaryRole, {
