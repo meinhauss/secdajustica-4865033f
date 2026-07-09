@@ -402,8 +402,9 @@ ${candidatos.map((c, i) => `${i + 1}. Nº ${c.numero} | Classe: ${c.classe || "-
     userContext?: { nome?: string; roles?: string[]; activeSection?: string; oab?: string },
     baseInterna?: {
       jurisprudencias?: { numero_acordao: string; classe?: string | null; assunto?: string | null; ementa: string; decisao_tipo?: string | null; desembargador_nome?: string | null; tags?: string[] | null }[];
-      precedentes?: { numero: string; classe?: string | null; assunto?: string | null; status?: string | null; resumo?: string | null }[];
+      precedentes?: { id?: string; numero: string; classe?: string | null; assunto?: string | null; status?: string | null; resumo?: string | null }[];
     },
+
   ) => {
     const roles = userContext?.roles?.length ? userContext.roles : (userRole ? [userRole] : ["cidadao"]);
     const isCidadao = roles.every((r) => r === "cidadao") || roles.length === 0;
