@@ -180,14 +180,46 @@ export default function AIChatbotInstitucional({
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
+  // Base interna (jurisprudências + precedentes) para usuários autenticados
+  const [baseInterna, setBaseInterna] = useState<{
+    jurisprudencias?: any[];
+    precedentes?: any[];
+  } | undefined>(undefined);
+  const isCidadaoOnly = !user || (roles.length === 0) || roles.every((r) => r === "cidadao");
+  useEffect(() => {
+    if (!open || isCidadaoOnly || baseInterna) return;
+    let cancel = false;
+    (async () => {
+      const [jRes, pRes] = await Promise.all([
+        supabase
+          .from("jurisprudencias")
+          .select("numero_acordao, classe, assunto, ementa, decisao_tipo, desembargador_nome, tags")
+          .order("data_julgamento", { ascending: false, nullsFirst: false })
+          .limit(40),
+        supabase
+          .from("processos")
+          .select("numero, classe, assunto, status")
+          .in("status", ["Julgado", "Sentenciado", "Arquivado", "Transitado em Julgado"])
+          .order("updated_at", { ascending: false })
+          .limit(30),
+      ]);
+      if (cancel) return;
+      setBaseInterna({
+        jurisprudencias: jRes.data || [],
+        precedentes: (pRes.data || []).map((p: any) => ({ ...p, resumo: null })),
+      });
+    })();
+    return () => { cancel = true; };
+  }, [open, isCidadaoOnly, baseInterna]);
+
   const system = useMemo(
     () => PROMPTS_FASE4.chatbotInstitucional(comarca, destinosFinal, primaryRole, {
       nome: profile?.nome_completo,
       roles: roles && roles.length ? roles : [primaryRole],
       activeSection,
       oab: (profile as any)?.oab,
-    }),
-    [comarca, destinosFinal, primaryRole, roles, profile?.nome_completo, activeSection],
+    }, baseInterna),
+    [comarca, destinosFinal, primaryRole, roles, profile?.nome_completo, activeSection, baseInterna],
   );
 
 
