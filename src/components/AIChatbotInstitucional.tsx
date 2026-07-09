@@ -51,15 +51,21 @@ const DEFAULT_DESTINOS: ChatbotDestino[] = [
 
 function parseMessage(raw: string) {
   const actions: { id: string; label: string }[] = [];
+  const procs: string[] = [];
+  const juris: string[] = [];
+  let text = raw
+    .replace(/\[PROC:([^\]]+)\]/gi, (_m, n: string) => { procs.push(n.trim()); return ""; })
+    .replace(/\[JUR:([^\]]+)\]/gi, (_m, n: string) => { juris.push(n.trim()); return ""; });
   const re = /\[IR:([a-z0-9_-]+)\]\s*([^\n]*)/gi;
-  const text = raw
+  text = text
     .replace(re, (_m, id: string, label: string) => {
       actions.push({ id: id.trim(), label: (label || id).trim() });
       return "";
     })
     .trim();
-  return { text, actions };
+  return { text, actions, procs: Array.from(new Set(procs)), juris: Array.from(new Set(juris)) };
 }
+
 
 const BOT_NAME = "Vade MeCum";
 
@@ -193,12 +199,12 @@ export default function AIChatbotInstitucional({
       const [jRes, pRes] = await Promise.all([
         supabase
           .from("jurisprudencias")
-          .select("numero_acordao, classe, assunto, ementa, decisao_tipo, desembargador_nome, tags")
+          .select("id, numero_acordao, classe, assunto, ementa, decisao_tipo, desembargador_nome, tags")
           .order("data_julgamento", { ascending: false, nullsFirst: false })
           .limit(40),
         supabase
           .from("processos")
-          .select("numero, classe, assunto, status")
+          .select("id, numero, classe, assunto, status")
           .in("status", ["sentenciado", "arquivado"])
           .order("updated_at", { ascending: false })
           .limit(30),
@@ -211,6 +217,15 @@ export default function AIChatbotInstitucional({
     })();
     return () => { cancel = true; };
   }, [open, isCidadaoOnly, baseInterna]);
+
+  // Mapa numero -> id para resolver [PROC:] em cliques
+  const procIdMap = useMemo(() => {
+    const m = new Map<string, string>();
+    (baseInterna?.precedentes || []).forEach((p: any) => { if (p?.numero && p?.id) m.set(p.numero, p.id); });
+    return m;
+  }, [baseInterna]);
+  const jurisSet = useMemo(() => new Set((baseInterna?.jurisprudencias || []).map((j: any) => j.numero_acordao)), [baseInterna]);
+
 
   const system = useMemo(
     () => PROMPTS_FASE4.chatbotInstitucional(comarca, destinosFinal, primaryRole, {
@@ -510,8 +525,11 @@ export default function AIChatbotInstitucional({
                   </div>
                 );
               }
-              const { text, actions } = parseMessage(m.content);
+              const { text, actions, procs, juris } = parseMessage(m.content);
               const validActions = actions.filter((a) => destinosFinal.some((d) => d.id === a.id));
+              const procChips = procs.map((n) => ({ numero: n, id: procIdMap.get(n) })).filter((p) => p.id);
+              const jurisChips = juris.filter((n) => jurisSet.has(n));
+
               return (
                 <div key={i} className="flex items-start gap-2">
                   <BotAvatar />
@@ -520,6 +538,39 @@ export default function AIChatbotInstitucional({
                     {text && (
                       <div className="rounded-2xl rounded-tl-sm px-3 py-2 text-sm bg-muted prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-headings:my-1 prose-headings:text-sm prose-strong:text-foreground">
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
+                      </div>
+                    )}
+                    {(procChips.length > 0 || jurisChips.length > 0) && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {procChips.map((p) => (
+                          <Button
+                            key={`proc-${p.numero}`}
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-xs rounded-lg"
+                            onClick={() => {
+                              window.dispatchEvent(new CustomEvent("nav:processo", { detail: { id: p.id } }));
+                              setOpen(false);
+                            }}
+                            title={`Abrir processo ${p.numero}`}
+                          >
+                            Abrir processo {p.numero} <ArrowRight className="h-3 w-3 ml-1" />
+                          </Button>
+                        ))}
+                        {jurisChips.map((n) => (
+                          <Button
+                            key={`jur-${n}`}
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-xs rounded-lg"
+                            onClick={() => {
+                              if (onNavigate) { onNavigate("jurisprudencia"); setOpen(false); }
+                            }}
+                            title={`Ver acórdão ${n}`}
+                          >
+                            Acórdão {n} <ArrowRight className="h-3 w-3 ml-1" />
+                          </Button>
+                        ))}
                       </div>
                     )}
                     {validActions.length > 0 && (
@@ -543,6 +594,7 @@ export default function AIChatbotInstitucional({
                         ))}
                       </div>
                     )}
+
                   </div>
                 </div>
               );
