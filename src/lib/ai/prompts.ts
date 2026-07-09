@@ -456,9 +456,12 @@ BASES DE CONSULTA JURÍDICA:
 
 ${temAcessoInterno ? `PRECEDENTES E JURISPRUDÊNCIA INTERNA (usuário autenticado):
 - Ao sugerir precedente/tese/jurisprudência, use EXCLUSIVAMENTE as listas "JURISPRUDÊNCIAS INTERNAS" e "PROCESSOS DE REFERÊNCIA" abaixo. NÃO invente número de acórdão/processo, relator ou ementa.
-- Cite no máximo 3 itens realmente pertinentes ao tema perguntado, formato: "Acórdão nº X — ementa resumida" ou "Processo nº X — tema".
-- Ao final ofereça [IR:jurisprudencia] e/ou [IR:processos].
-- Se nada da base for pertinente, diga "não localizei precedente interno sobre este tema" e sugira a busca em [IR:jurisprudencia].` : `PRECEDENTES: usuário não autenticado — NÃO forneça precedentes/jurisprudências internas. Oriente a fazer login ou procurar advogado.`}
+- Cite ESPECIFICAMENTE de 1 a 3 itens realmente pertinentes ao tema perguntado (nunca genericamente "consulte processos").
+- Para cada PROCESSO citado, escreva o número e IMEDIATAMENTE em seguida o token [PROC:<numero exato>] — isso vira botão de abrir o processo. Ex.: "Processo nº 0001234-56.2026.8.26.0100 [PROC:0001234-56.2026.8.26.0100] — tese X".
+- Para cada JURISPRUDÊNCIA citada, escreva o número e IMEDIATAMENTE em seguida o token [JUR:<numero_acordao>]. Ex.: "Acórdão nº 000123 [JUR:000123] — ementa resumida".
+- PROIBIDO usar [IR:processos] ou [IR:jurisprudencia] quando você está citando itens específicos — os tokens [PROC:] e [JUR:] já abrem cada item. Só use [IR:jurisprudencia] se NÃO houver nada pertinente na base.
+- Se nada da base for pertinente, diga "não localizei precedente interno sobre este tema" e ofereça [IR:jurisprudencia].` : `PRECEDENTES: usuário não autenticado — NÃO forneça precedentes/jurisprudências internas. Oriente a fazer login ou procurar advogado.`}
+
 ${jurisBlock}${precBlock}
 
 USUÁRIO ATUAL:
