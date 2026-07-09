@@ -279,28 +279,28 @@ export default function CalculadoraCustas() {
 
       // Valores iniciais para personalização conforme o documento enviado
       if (selectedProcess.id === 'recursos') {
-        setCustomHonorarios(75000);
+        setCustomHonorarios(37500);
         setHonorarioType("fixed");
       } else if (selectedProcess.id === 'defesa_detido') {
-        setCustomHonorarios(30000); // Piso até 10 min
+        setCustomHonorarios(15000); // Piso até 10 min
         setHonorarioType("fixed");
       } else if (selectedProcess.id === 'acoes_civeis') {
         setHonorarioType("percentage");
         setCustomPercentage(20);
       } else if (selectedProcess.id === 'porte_arma') {
-        setCustomHonorarios(110000);
+        setCustomHonorarios(55000);
         setHonorarioType("fixed");
       } else if (selectedProcess.id === 'limpeza_ficha') {
-        setCustomHonorarios(110000);
+        setCustomHonorarios(55000);
         setHonorarioType("fixed");
       } else if (selectedProcess.id === 'divorcio') {
-        setCustomHonorarios(115000);
+        setCustomHonorarios(57500);
         setHonorarioType("fixed");
       } else if (selectedProcess.id === 'alvara') {
-        setCustomHonorarios(35000);
+        setCustomHonorarios(17500);
         setHonorarioType("fixed");
       } else if (selectedProcess.id === 'casamento') {
-        setCustomHonorarios(90000);
+        setCustomHonorarios(45000);
         setHonorarioType("fixed");
       } else {
         setCustomHonorarios(0);
