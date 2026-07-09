@@ -77,7 +77,52 @@ const INLINE_PATTERNS: RegExp[] = [
   /\b[a-z]\)\s/g,
 ];
 
-function formatLeiConteudo(texto: string) {
+const normalize = (s: string) =>
+  (s || "").normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
+
+// Marca as ocorrências dos tokens (case/acentos-insensível) numa string.
+function applyHighlight(text: string, tokens: string[], keyBase: string): (string | JSX.Element)[] {
+  if (!tokens.length || !text) return [text];
+  const norm = normalize(text);
+  const hits: { start: number; end: number }[] = [];
+  for (const t of tokens) {
+    if (t.length < 2) continue;
+    let from = 0;
+    while (from <= norm.length) {
+      const idx = norm.indexOf(t, from);
+      if (idx === -1) break;
+      hits.push({ start: idx, end: idx + t.length });
+      from = idx + t.length;
+    }
+  }
+  if (!hits.length) return [text];
+  hits.sort((a, b) => a.start - b.start);
+  const merged: typeof hits = [];
+  for (const h of hits) {
+    const last = merged[merged.length - 1];
+    if (last && h.start <= last.end) last.end = Math.max(last.end, h.end);
+    else merged.push({ ...h });
+  }
+  const out: (string | JSX.Element)[] = [];
+  let cursor = 0;
+  merged.forEach((h, i) => {
+    if (h.start > cursor) out.push(text.slice(cursor, h.start));
+    out.push(
+      <mark key={`${keyBase}-hl-${i}`} className="bg-gold/30 text-foreground rounded-sm px-0.5">
+        {text.slice(h.start, h.end)}
+      </mark>
+    );
+    cursor = h.end;
+  });
+  if (cursor < text.length) out.push(text.slice(cursor));
+  return out;
+}
+
+function highlightText(text: string, tokens: string[], keyBase = "t"): (string | JSX.Element)[] {
+  return applyHighlight(text ?? "", tokens, keyBase);
+}
+
+function formatLeiConteudo(texto: string, tokens: string[] = []) {
   if (!texto) return null;
   const paragrafos = texto.split(/\n{2,}/);
   return paragrafos.map((par, pi) => {
@@ -85,7 +130,6 @@ function formatLeiConteudo(texto: string) {
     return (
       <p key={pi} className="whitespace-pre-wrap">
         {linhas.map((linha, li) => {
-          // rótulo tipo "Aviso Legal:" no início
           const rotuloMatch = linha.match(/^([A-ZÁÉÍÓÚÂÊÔÃÕÇ][^:\n]{2,60}):(\s|$)/);
           let nodes: (string | JSX.Element)[] = [linha];
           if (rotuloMatch) {
@@ -94,7 +138,6 @@ function formatLeiConteudo(texto: string) {
               linha.slice(rotuloMatch[0].length - (rotuloMatch[2] === " " ? 1 : 0)),
             ];
           }
-          // aplica destaques inline nas strings restantes
           nodes = nodes.flatMap((n, idx) => {
             if (typeof n !== "string") return [n];
             let parts: (string | JSX.Element)[] = [n];
@@ -119,6 +162,11 @@ function formatLeiConteudo(texto: string) {
             });
             return parts;
           });
+          if (tokens.length) {
+            nodes = nodes.flatMap((n, idx) =>
+              typeof n === "string" ? applyHighlight(n, tokens, `${pi}-${li}-${idx}`) : [n]
+            );
+          }
           return (
             <span key={li}>
               {nodes}
