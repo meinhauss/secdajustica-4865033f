@@ -51,15 +51,21 @@ const DEFAULT_DESTINOS: ChatbotDestino[] = [
 
 function parseMessage(raw: string) {
   const actions: { id: string; label: string }[] = [];
+  const procs: string[] = [];
+  const juris: string[] = [];
+  let text = raw
+    .replace(/\[PROC:([^\]]+)\]/gi, (_m, n: string) => { procs.push(n.trim()); return ""; })
+    .replace(/\[JUR:([^\]]+)\]/gi, (_m, n: string) => { juris.push(n.trim()); return ""; });
   const re = /\[IR:([a-z0-9_-]+)\]\s*([^\n]*)/gi;
-  const text = raw
+  text = text
     .replace(re, (_m, id: string, label: string) => {
       actions.push({ id: id.trim(), label: (label || id).trim() });
       return "";
     })
     .trim();
-  return { text, actions };
+  return { text, actions, procs: Array.from(new Set(procs)), juris: Array.from(new Set(juris)) };
 }
+
 
 const BOT_NAME = "Vade MeCum";
 
