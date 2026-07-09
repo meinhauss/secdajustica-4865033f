@@ -348,8 +348,8 @@ export default function CalculadoraCustas() {
       // Valor base do processo (editável no input "Custas Processuais Base")
       itemizedDetails.push({ label: "Valor Base do Processo", value: customCustas, type: 'custa' });
       
-      // Petição Inicial (Custo fixo de 25k para todos os processos)
-      itemizedDetails.push({ label: "Petição Inicial", value: 25000, type: 'custa' });
+      // Petição Inicial (Custo fixo para todos os processos)
+      itemizedDetails.push({ label: "Petição Inicial", value: 12500, type: 'custa' });
 
       // Itens discriminados do processo (taxas e despesas operacionais específicas)
       selectedProcess.items.forEach(item => {
