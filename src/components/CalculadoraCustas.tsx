@@ -683,7 +683,7 @@ export default function CalculadoraCustas() {
                           />
                           <Label htmlFor="tempo-toggle" className="text-xs cursor-pointer leading-tight">
                             Atendimento superior a 10 minutos?<br/>
-                            <span className="text-[10px] text-gold/60 italic">(Ajusta o piso legal para R$ 35k)</span>
+                            <span className="text-[10px] text-gold/60 italic">(Ajusta o piso legal para R$ 17,5k)</span>
                           </Label>
                         </div>
                       )}
