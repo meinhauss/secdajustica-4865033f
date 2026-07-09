@@ -394,15 +394,15 @@ export default function CalculadoraCustas() {
       // Adicionais de nome
       if (hasAlteracaoNome && (selectedProcess.id === 'adocao' || selectedProcess.id === 'casamento')) {
         if (!itemizedDetails.find(i => i.label === "Alteração de Sobrenome")) {
-          itemizedDetails.push({ label: "Alteração de Sobrenome", value: 2000000, type: 'custa' });
+          itemizedDetails.push({ label: "Alteração de Sobrenome", value: 1000000, type: 'custa' });
         }
       }
     }
 
-    if (diligencias > 0) extras += diligencias * 20000;
-    if (hasJuiz) extras += 60000;
-    if (hasPromotor) extras += 80000;
-    if (hasDesembargador) extras += 120000;
+    if (diligencias > 0) extras += diligencias * 10000;
+    if (hasJuiz) extras += 30000;
+    if (hasPromotor) extras += 40000;
+    if (hasDesembargador) extras += 60000;
     outrasCustas.forEach(c => { extras += c.value; });
 
     const custasTotal = includeCustas ? itemizedDetails.filter(i => (i.type === 'custa' || i.type === 'despesa')).reduce((acc, curr) => acc + curr.value, 0) : 0;
@@ -411,7 +411,7 @@ export default function CalculadoraCustas() {
 
     let pisoCalculado = selectedProcess?.pisoHonorario || 0;
     if (selectedProcess?.id === 'defesa_detido') {
-      pisoCalculado = detidoMais10Min ? 35000 : 30000;
+      pisoCalculado = detidoMais10Min ? 17500 : 15000;
     }
 
     const result = {
