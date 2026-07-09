@@ -464,7 +464,7 @@ export default function OrdenamentoJuridicoPage() {
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <Gavel className="h-4 w-4 text-gold flex-shrink-0" />
                       <span className="text-[10px] uppercase tracking-wider font-bold text-gold-dark font-mono">
-                        {l.numero}
+                        {highlightText(l.numero, tokens, `n-${l.id}`)}
                       </span>
                       <Badge variant="secondary" className="text-[10px]">{l.categoria}</Badge>
                       {l.revogada && <Badge variant="destructive" className="text-[10px]">REVOGADA</Badge>}
@@ -475,7 +475,7 @@ export default function OrdenamentoJuridicoPage() {
                       )}
                     </div>
                     <h3 className="font-display text-base sm:text-lg font-semibold text-foreground leading-tight">
-                      {l.titulo}
+                      {highlightText(l.titulo, tokens, `t-${l.id}`)}
                     </h3>
                   </div>
                   {isAdmin && (
@@ -486,10 +486,12 @@ export default function OrdenamentoJuridicoPage() {
                   )}
                 </div>
                 {l.ementa && (
-                  <p className="text-xs sm:text-sm text-muted-foreground italic mb-2">{l.ementa}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground italic mb-2">
+                    {highlightText(l.ementa, tokens, `e-${l.id}`)}
+                  </p>
                 )}
                 <div className="text-[13px] sm:text-sm text-foreground leading-[1.75] border-t border-border pt-3 mt-2 space-y-2 [&_strong]:text-foreground [&_strong]:font-semibold">
-                  {formatLeiConteudo(l.conteudo)}
+                  {formatLeiConteudo(l.conteudo, tokens)}
                 </div>
 
               </motion.div>
