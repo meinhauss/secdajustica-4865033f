@@ -106,17 +106,17 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "recursos", 
     name: "Recursos Criminais e Cíveis", 
     items: [
-      { label: "Valor Base do Processo", value: 50000, type: 'custa', required: true },
-      { label: "Taxa de Preparo Recursal", value: 50000, type: 'custa', required: true }
+      { label: "Valor Base do Processo", value: 25000, type: 'custa', required: true },
+      { label: "Taxa de Preparo Recursal", value: 25000, type: 'custa', required: true }
     ],
-    pisoHonorario: 75000
+    pisoHonorario: 37500
   },
   { 
     id: "mandados", 
     name: "Ação Mandamental (MS, HC, HD)", 
     items: [
-      { label: "Valor Base do Processo", value: 50000, type: 'custa', required: true },
-      { label: "Custas de Impetração", value: 50000, type: 'custa', required: true }
+      { label: "Valor Base do Processo", value: 25000, type: 'custa', required: true },
+      { label: "Custas de Impetração", value: 25000, type: 'custa', required: true }
     ],
     obs: "Mandado de Segurança, Habeas Corpus e Habeas Data."
   },
@@ -126,39 +126,39 @@ const PROCESS_TYPES: ProcessType[] = [
     items: [
       { label: "Valor Base do Processo", value: 0, type: 'custa', required: true }
     ],
-    obs: "Honorários: R$ 30.000,00 (até 10 min) ou R$ 35.000,00 (> 10 min).",
-    pisoHonorario: 30000 
+    obs: "Honorários: R$ 15.000,00 (até 10 min) ou R$ 17.500,00 (> 10 min).",
+    pisoHonorario: 15000 
   },
   { 
     id: "acoes_civeis", 
     name: "Ações Cíveis (Danos Morais/Materiais)", 
     items: [
       { label: "Valor Base do Processo", value: 0, type: 'custa', required: true },
-      { label: "Taxa Judiciária", value: 25000, type: 'custa', required: true }
+      { label: "Taxa Judiciária", value: 12500, type: 'custa', required: true }
     ],
-    obs: "Danos morais: R$ 40k a R$ 2M. Honorários sugeridos: 20%."
+    obs: "Danos morais: R$ 20k a R$ 1M. Honorários sugeridos: 20%."
   },
   { 
     id: "porte_arma", 
     name: "Porte de Arma de Fogo", 
     items: [
-      { label: "Valor Base do Processo", value: 25000, type: 'custa', required: true },
-      { label: "Exame Psicológico", value: 90000, type: 'despesa' },
-      { label: "Armamento", value: 100000, type: 'despesa' },
-      { label: "Munições", value: 70000, type: 'despesa' }
+      { label: "Valor Base do Processo", value: 12500, type: 'custa', required: true },
+      { label: "Exame Psicológico", value: 45000, type: 'despesa' },
+      { label: "Armamento", value: 50000, type: 'despesa' },
+      { label: "Munições", value: 35000, type: 'despesa' }
     ],
     obs: "Valores incluem custos obrigatórios com exame, arma e munições.",
-    pisoHonorario: 110000
+    pisoHonorario: 55000
   },
   { 
     id: "limpeza_ficha", 
     name: "Exclusão de Antecedentes Criminais", 
     items: [
-      { label: "Valor Base do Processo", value: 25000, type: 'custa', required: true },
+      { label: "Valor Base do Processo", value: 12500, type: 'custa', required: true },
       { label: "Ação Judicial", value: 0, type: 'custa', required: false }
     ],
     obs: "Valores calculados conforme gravidade dos crimes (Decreto Lei 003/2024).",
-    pisoHonorario: 110000
+    pisoHonorario: 55000
   },
   { 
     id: "divorcio", 
@@ -168,36 +168,36 @@ const PROCESS_TYPES: ProcessType[] = [
       { label: "Taxas Judiciais", value: 0, type: 'custa', required: true }
     ],
     obs: "Custas conforme decreto judicial vigente.",
-    pisoHonorario: 115000
+    pisoHonorario: 57500
   },
   { 
     id: "alvara", 
     name: "Alvará de Funcionamento", 
     items: [
-      { label: "Valor Base do Processo", value: 25000, type: 'custa', required: true },
-      { label: "Taxa AVCB (Bombeiros)", value: 50000, type: 'custa' }
+      { label: "Valor Base do Processo", value: 12500, type: 'custa', required: true },
+      { label: "Taxa AVCB (Bombeiros)", value: 25000, type: 'custa' }
     ],
     obs: "Obrigatório o pagamento da Taxa AVCB à parte.",
-    pisoHonorario: 35000
+    pisoHonorario: 17500
   },
   { 
     id: "casamento", 
     name: "Certidão de Casamento", 
     items: [
-      { label: "Valor Base do Processo", value: 750000, type: 'custa', required: true },
-      { label: "Certidão de Casamento", value: 100000, type: 'custa' }
+      { label: "Valor Base do Processo", value: 375000, type: 'custa', required: true },
+      { label: "Certidão de Casamento", value: 50000, type: 'custa' }
     ],
-    obs: "Total das taxas soma R$ 875.000,00.",
-    pisoHonorario: 90000
+    obs: "Total das taxas soma R$ 437.500,00.",
+    pisoHonorario: 45000
   },
   { 
     id: "adocao", 
     name: "Ação de Adoção", 
     items: [
-      { label: "Valor Base do Processo", value: 950000, type: 'custa', required: true },
-      { label: "Certidão de Nascimento (Atualização)", value: 250000, type: 'custa' }
+      { label: "Valor Base do Processo", value: 475000, type: 'custa', required: true },
+      { label: "Certidão de Nascimento (Atualização)", value: 125000, type: 'custa' }
     ],
-    obs: "Total das taxas soma R$ 1.225.000,00."
+    obs: "Total das taxas soma R$ 612.500,00."
   },
   {
     id: "outros",
@@ -209,11 +209,11 @@ const PROCESS_TYPES: ProcessType[] = [
 ];
 
 const GRAVIDADE_CRIMES = [
-  { label: "0 a 10 meses", value: 25000 },
-  { label: "11 a 19 meses", value: 40000 },
-  { label: "20 a 30 meses", value: 60000 },
-  { label: "31 a 100 meses", value: 80000 },
-  { label: "Superior a 100 meses", value: 100000 },
+  { label: "0 a 10 meses", value: 12500 },
+  { label: "11 a 19 meses", value: 20000 },
+  { label: "20 a 30 meses", value: 30000 },
+  { label: "31 a 100 meses", value: 40000 },
+  { label: "Superior a 100 meses", value: 50000 },
 ];
 
 export default function CalculadoraCustas() {
