@@ -852,9 +852,9 @@ export default function CalculadoraCustas() {
                         <Label className="text-xs font-bold uppercase tracking-wider">Verbas Indenizatórias</Label>
                         <div className="grid grid-cols-1 gap-2">
                           {[
-                            { id: 'juiz', checked: hasJuiz, onChange: setHasJuiz, label: 'Juiz de Direito', val: '60k' },
-                            { id: 'promotor', checked: hasPromotor, onChange: setHasPromotor, label: 'Promotor de Justiça', val: '80k' },
-                            { id: 'desemb', checked: hasDesembargador, onChange: setHasDesembargador, label: 'Desembargador', val: '120k' },
+                            { id: 'juiz', checked: hasJuiz, onChange: setHasJuiz, label: 'Juiz de Direito', val: '30k' },
+                            { id: 'promotor', checked: hasPromotor, onChange: setHasPromotor, label: 'Promotor de Justiça', val: '40k' },
+                            { id: 'desemb', checked: hasDesembargador, onChange: setHasDesembargador, label: 'Desembargador', val: '60k' },
                           ].map((v) => (
                             <div key={v.id} 
                               className={cn(
