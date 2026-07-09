@@ -540,6 +540,39 @@ export default function AIChatbotInstitucional({
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
                       </div>
                     )}
+                    {(procChips.length > 0 || jurisChips.length > 0) && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {procChips.map((p) => (
+                          <Button
+                            key={`proc-${p.numero}`}
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-xs rounded-lg"
+                            onClick={() => {
+                              window.dispatchEvent(new CustomEvent("nav:processo", { detail: { id: p.id } }));
+                              setOpen(false);
+                            }}
+                            title={`Abrir processo ${p.numero}`}
+                          >
+                            Abrir processo {p.numero} <ArrowRight className="h-3 w-3 ml-1" />
+                          </Button>
+                        ))}
+                        {jurisChips.map((n) => (
+                          <Button
+                            key={`jur-${n}`}
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-xs rounded-lg"
+                            onClick={() => {
+                              if (onNavigate) { onNavigate("jurisprudencia"); setOpen(false); }
+                            }}
+                            title={`Ver acórdão ${n}`}
+                          >
+                            Acórdão {n} <ArrowRight className="h-3 w-3 ml-1" />
+                          </Button>
+                        ))}
+                      </div>
+                    )}
                     {validActions.length > 0 && (
                       <div className="flex flex-wrap gap-1.5">
                         {validActions.map((a, idx) => (
@@ -561,6 +594,7 @@ export default function AIChatbotInstitucional({
                         ))}
                       </div>
                     )}
+
                   </div>
                 </div>
               );
