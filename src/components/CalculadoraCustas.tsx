@@ -843,7 +843,7 @@ export default function CalculadoraCustas() {
                             className="w-24 bg-background/50 border-gold/20 h-10 font-mono"
                           />
                           <p className="text-[10px] text-muted-foreground leading-snug">
-                            Oficial de Justiça<br/>R$ 20.000,00 cada
+                            Oficial de Justiça<br/>R$ 10.000,00 cada
                           </p>
                         </div>
                       </div>
