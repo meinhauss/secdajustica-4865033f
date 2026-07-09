@@ -199,7 +199,7 @@ export default function AIChatbotInstitucional({
         supabase
           .from("processos")
           .select("numero, classe, assunto, status")
-          .in("status", ["Julgado", "Sentenciado", "Arquivado", "Transitado em Julgado"])
+          .in("status", ["sentenciado", "arquivado"])
           .order("updated_at", { ascending: false })
           .limit(30),
       ]);
