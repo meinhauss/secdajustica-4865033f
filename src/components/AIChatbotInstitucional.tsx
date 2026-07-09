@@ -525,8 +525,11 @@ export default function AIChatbotInstitucional({
                   </div>
                 );
               }
-              const { text, actions } = parseMessage(m.content);
+              const { text, actions, procs, juris } = parseMessage(m.content);
               const validActions = actions.filter((a) => destinosFinal.some((d) => d.id === a.id));
+              const procChips = procs.map((n) => ({ numero: n, id: procIdMap.get(n) })).filter((p) => p.id);
+              const jurisChips = juris.filter((n) => jurisSet.has(n));
+
               return (
                 <div key={i} className="flex items-start gap-2">
                   <BotAvatar />
