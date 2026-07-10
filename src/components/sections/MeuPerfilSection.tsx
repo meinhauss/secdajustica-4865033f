@@ -44,6 +44,8 @@ export default function MeuPerfilSection() {
     discord: "",
     id_personagem: "",
     telefone_ingame: "",
+    discord_user_id: "",
+    discord_dm_enabled: true,
   });
 
   useEffect(() => {
@@ -53,6 +55,8 @@ export default function MeuPerfilSection() {
         discord: profile.discord || "",
         id_personagem: profile.id_personagem || "",
         telefone_ingame: profile.telefone_ingame || "",
+        discord_user_id: (profile as any).discord_user_id || "",
+        discord_dm_enabled: (profile as any).discord_dm_enabled ?? true,
       });
       setAvatarUrl(profile.avatar_url || null);
     }
