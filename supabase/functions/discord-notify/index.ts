@@ -90,7 +90,10 @@ Deno.serve(async (req) => {
       } else {
         // Formato interno: "secao" ou "secao:id". O app é SPA em "/", então
         // convertemos para query params que o Index.tsx interpreta.
-        const [secao, id] = linkSecao.split(":");
+        const [secaoRaw, id] = linkSecao.split(":");
+        // "processos" é a consulta pública (restrita); cidadãos comuns só têm
+        // acesso via "meus-processos". Redirecionamos para lá quando houver id.
+        const secao = secaoRaw === "processos" ? "meus-processos" : secaoRaw;
         const params = new URLSearchParams({ section: secao });
         if (id) params.set("processo", id);
         absLink = `${APP_URL}/?${params.toString()}`;
