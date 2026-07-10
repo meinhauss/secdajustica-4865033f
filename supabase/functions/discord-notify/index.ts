@@ -35,20 +35,31 @@ Deno.serve(async (req) => {
 
     const payload = await req.json();
     const { notificacao_id, user_id, titulo, mensagem, tipo } = payload;
+    let discordUserId: string | null = payload.discord_user_id ?? null;
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+    if (!discordUserId) {
+      const supabase = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      );
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("discord_user_id, discord_dm_enabled, nome_completo")
-      .eq("user_id", user_id)
-      .maybeSingle();
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("discord_user_id, discord, discord_dm_enabled")
+        .eq("user_id", user_id)
+        .maybeSingle();
 
-    if (!profile?.discord_user_id || profile.discord_dm_enabled === false) {
-      return new Response(JSON.stringify({ skipped: true, reason: "sem discord_user_id ou DM desativada" }), {
+      if (!profile || profile.discord_dm_enabled === false) {
+        return new Response(JSON.stringify({ skipped: true, reason: "perfil sem DM" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      discordUserId = profile.discord_user_id
+        || (profile.discord && /^[0-9]{17,20}$/.test(profile.discord) ? profile.discord : null);
+    }
+
+    if (!discordUserId) {
+      return new Response(JSON.stringify({ skipped: true, reason: "sem discord id" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -56,8 +67,9 @@ Deno.serve(async (req) => {
     // 1) Abrir DM channel
     const dmRes = await discordFetch("/users/@me/channels", {
       method: "POST",
-      body: JSON.stringify({ recipient_id: profile.discord_user_id }),
+      body: JSON.stringify({ recipient_id: discordUserId }),
     });
+
     if (!dmRes.ok) {
       const err = await dmRes.text();
       console.error("Erro abrir DM:", err);
