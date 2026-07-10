@@ -221,6 +221,37 @@ export default function MeuPerfilSection() {
             />
           </div>
 
+          <div className="border-t border-border pt-4 mt-2 space-y-3">
+            <div>
+              <Label className="flex items-center gap-2">
+                🤖 Discord User ID
+                <span className="text-[10px] font-normal text-muted-foreground">(para receber notificações por DM)</span>
+              </Label>
+              <Input
+                value={form.discord_user_id}
+                onChange={(e) => setForm({ ...form, discord_user_id: e.target.value.replace(/\D/g, "") })}
+                placeholder="Ex: 123456789012345678"
+                maxLength={22}
+                inputMode="numeric"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                No Discord, ative <b>Configurações → Avançado → Modo de Desenvolvedor</b>, clique com o botão direito no seu nome e escolha <b>"Copiar ID de usuário"</b>. Você precisa compartilhar um servidor com o bot para receber a DM.
+              </p>
+            </div>
+
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={form.discord_dm_enabled}
+                onChange={(e) => setForm({ ...form, discord_dm_enabled: e.target.checked })}
+                className="h-4 w-4 accent-primary"
+              />
+              <span className="text-sm">Receber notificações por DM no Discord</span>
+            </label>
+          </div>
+
+
+
           <Button onClick={handleSave} disabled={saving} className="w-full mt-2">
             {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
             Salvar Alterações
