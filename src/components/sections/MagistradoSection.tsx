@@ -1443,6 +1443,9 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             <Button onClick={() => setActiveAction("intimar_cargo")} variant="outline" className="rounded-xl">
               <Megaphone className="h-4 w-4 mr-2" /> Intimar Cargo
             </Button>
+            <Button onClick={() => setActiveAction("intimar_pessoa")} variant="outline" className="rounded-xl">
+              <UserPlus className="h-4 w-4 mr-2" /> Intimar Pessoa
+            </Button>
             <Button onClick={() => setActiveAction("ato_cartorio")} variant="outline" className="rounded-xl">
               <FileText className="h-4 w-4 mr-2" /> Atos do Cartório
             </Button>
