@@ -58,6 +58,22 @@ const Index = () => {
       setActiveSection("processos");
     };
     window.addEventListener("nav:processo", openProc);
+
+    // Deep link vindo do bot Discord / notificações externas: ?section=xxx&processo=uuid
+    try {
+      const sp = new URLSearchParams(window.location.search);
+      const section = sp.get("section");
+      const processo = sp.get("processo");
+      if (section) {
+        setActiveSection(section);
+        if (processo) setOpenProcessoId(processo);
+        sp.delete("section");
+        sp.delete("processo");
+        const rest = sp.toString();
+        window.history.replaceState({}, "", window.location.pathname + (rest ? `?${rest}` : ""));
+      }
+    } catch {}
+
     return () => {
       window.removeEventListener("shortcut:show-help", h);
       window.removeEventListener("nav:processo", openProc);
