@@ -82,18 +82,64 @@ Deno.serve(async (req) => {
     const dm = await dmRes.json();
 
     // 2) Enviar embed
-    const embed = {
+    const APP_URL = "https://secdajustica.lovable.app";
+    let absLink: string | null = null;
+    if (linkSecao) {
+      if (/^https?:\/\//i.test(linkSecao)) absLink = linkSecao;
+      else absLink = `${APP_URL}${linkSecao.startsWith("/") ? "" : "/"}${linkSecao}`;
+    }
+
+    const tipoLabels: Record<string, string> = {
+      intimacao: "📩 Intimação",
+      movimentacao: "⚖️ Movimentação Processual",
+      prazo: "⏰ Prazo Processual",
+      cartorio: "📜 Cartório",
+      convocacao: "🔔 Convocação",
+      audiencia: "🏛️ Audiência",
+      sentenca: "📄 Sentença",
+      despacho: "✍️ Despacho",
+      teste: "🧪 Teste",
+    };
+    const tipoLabel = tipoLabels[tipo] || "📢 Notificação";
+
+    const corpo = stripHtml(mensagem || "");
+    const descricao = [
+      `**${tipoLabel}**`,
+      "",
+      corpo || "_(sem conteúdo)_",
+      "",
+      absLink ? `🔗 **[Abrir no sistema](${absLink})**` : "_Acesse o sistema para mais detalhes._",
+    ].join("\n").slice(0, 3800);
+
+    const embed: Record<string, unknown> = {
       title: titulo?.slice(0, 250) || "Nova notificação",
-      description: stripHtml(mensagem || "").slice(0, 3800),
-      color: tipo === "intimacao" ? 0xE11D48 : tipo === "cartorio" ? 0x0EA5E9 : 0x6366F1,
-      footer: { text: "Secretaria de Justiça — Sistema Judicial" },
+      url: absLink || undefined,
+      description: descricao,
+      color: tipo === "intimacao" ? 0xE11D48
+        : tipo === "cartorio" ? 0x0EA5E9
+        : tipo === "prazo" ? 0xF59E0B
+        : tipo === "audiencia" ? 0x8B5CF6
+        : 0x6366F1,
+      author: {
+        name: "Secretaria de Justiça e Cidadania",
+        url: APP_URL,
+      },
+      fields: [
+        { name: "Categoria", value: tipoLabel, inline: true },
+        { name: "Referência", value: notificacao_id ? `\`${String(notificacao_id).slice(0, 8)}\`` : "—", inline: true },
+        ...(absLink ? [{ name: "Link direto", value: absLink, inline: false }] : []),
+      ],
+      footer: { text: "Sistema Judicial • Notificação automática" },
       timestamp: new Date().toISOString(),
     };
 
+    const content = absLink ? `Você recebeu uma nova notificação oficial. Acesse: ${absLink}` : undefined;
+
     const msgRes = await discordFetch(`/channels/${dm.id}/messages`, {
       method: "POST",
-      body: JSON.stringify({ embeds: [embed] }),
+      body: JSON.stringify({ content, embeds: [embed] }),
     });
+
 
     if (!msgRes.ok) {
       const err = await msgRes.text();
