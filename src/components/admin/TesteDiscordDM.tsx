@@ -136,6 +136,23 @@ export function TesteDiscordDM() {
           </Select>
         </div>
 
+        <div className="md:col-span-2">
+          <Label>Modelo de notificação</Label>
+          <Select value={modelo} onValueChange={aplicarModelo}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="teste">Teste genérico</SelectItem>
+              <SelectItem value="intimacao">Intimação</SelectItem>
+              <SelectItem value="movimentacao">Movimentação processual</SelectItem>
+              <SelectItem value="prazo_6h">Prazo vencendo (6h)</SelectItem>
+              <SelectItem value="convocacao_jurado">Convocação de jurado</SelectItem>
+              <SelectItem value="cartorio">Cartório</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <div>
           <Label>Título</Label>
           <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} />
