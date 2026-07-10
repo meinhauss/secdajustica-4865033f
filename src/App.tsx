@@ -9,6 +9,7 @@ import ResetPassword from "./pages/ResetPassword.tsx";
 import CodigoPenal from "./pages/CodigoPenal.tsx";
 import Calculadora from "./pages/Calculadora.tsx";
 import OrdenamentoJuridico from "./pages/OrdenamentoJuridico.tsx";
+import BotLegal from "./pages/BotLegal.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
