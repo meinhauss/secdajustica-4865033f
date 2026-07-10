@@ -35,7 +35,9 @@ Deno.serve(async (req) => {
 
     const payload = await req.json();
     const { notificacao_id, user_id, titulo, mensagem, tipo } = payload;
+    const linkSecao: string | null = payload.link_secao ?? payload.link ?? null;
     let discordUserId: string | null = payload.discord_user_id ?? null;
+
 
     if (!discordUserId) {
       const supabase = createClient(
