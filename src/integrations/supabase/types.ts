@@ -936,7 +936,9 @@ export type Database = {
           data_envio: string
           data_leitura: string | null
           data_limite: string | null
+          destinatario_discord_id: string | null
           destinatario_id: string | null
+          destinatario_id_personagem: string | null
           destinatario_nome: string
           id: string
           prazo_dias: number
@@ -951,7 +953,9 @@ export type Database = {
           data_envio?: string
           data_leitura?: string | null
           data_limite?: string | null
+          destinatario_discord_id?: string | null
           destinatario_id?: string | null
+          destinatario_id_personagem?: string | null
           destinatario_nome: string
           id?: string
           prazo_dias?: number
@@ -966,7 +970,9 @@ export type Database = {
           data_envio?: string
           data_leitura?: string | null
           data_limite?: string | null
+          destinatario_discord_id?: string | null
           destinatario_id?: string | null
+          destinatario_id_personagem?: string | null
           destinatario_nome?: string
           id?: string
           prazo_dias?: number
