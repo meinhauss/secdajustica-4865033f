@@ -1593,6 +1593,8 @@ export type Database = {
           cpf: string | null
           created_at: string
           discord: string | null
+          discord_dm_enabled: boolean
+          discord_user_id: string | null
           id: string
           id_personagem: string | null
           nome_completo: string
@@ -1609,6 +1611,8 @@ export type Database = {
           cpf?: string | null
           created_at?: string
           discord?: string | null
+          discord_dm_enabled?: boolean
+          discord_user_id?: string | null
           id?: string
           id_personagem?: string | null
           nome_completo: string
@@ -1625,6 +1629,8 @@ export type Database = {
           cpf?: string | null
           created_at?: string
           discord?: string | null
+          discord_dm_enabled?: boolean
+          discord_user_id?: string | null
           id?: string
           id_personagem?: string | null
           nome_completo?: string
