@@ -101,6 +101,11 @@ export default function MeuPerfilSection() {
       toast.error("Nome completo é obrigatório.");
       return;
     }
+    const discordDigits = form.discord.replace(/\D/g, "");
+    if (!/^\d{17,20}$/.test(discordDigits)) {
+      toast.error("ID do Discord inválido. Informe o ID numérico (17 a 20 dígitos), não o nome de usuário.");
+      return;
+    }
 
     setSaving(true);
     try {
@@ -108,14 +113,15 @@ export default function MeuPerfilSection() {
         .from("profiles")
         .update({
           nome_completo: form.nome_completo.trim(),
-          discord: form.discord.trim() || null,
+          discord: discordDigits,
           id_personagem: form.id_personagem.trim() || null,
           telefone_ingame: form.telefone_ingame.trim() || null,
-          discord_user_id: form.discord_user_id.trim() || null,
+          discord_user_id: discordDigits,
           discord_dm_enabled: form.discord_dm_enabled,
           precisa_atualizar_cadastro: false,
         } as any)
         .eq("user_id", user.id);
+
 
       if (error) throw error;
       await refreshProfile();
