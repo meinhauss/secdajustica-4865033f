@@ -111,8 +111,10 @@ export default function MeuPerfilSection() {
           discord: form.discord.trim() || null,
           id_personagem: form.id_personagem.trim() || null,
           telefone_ingame: form.telefone_ingame.trim() || null,
+          discord_user_id: form.discord_user_id.trim() || null,
+          discord_dm_enabled: form.discord_dm_enabled,
           precisa_atualizar_cadastro: false,
-        })
+        } as any)
         .eq("user_id", user.id);
 
       if (error) throw error;
