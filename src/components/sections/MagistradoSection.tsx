@@ -1621,7 +1621,123 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         </ActionCard>
       )}
 
-      {/* SENTENÇA FORM */}
+      {/* INTIMAR PESSOA FORM */}
+      {activeAction === "intimar_pessoa" && (
+        <ActionCard title="Intimar Pessoa" icon={UserPlus} onCancel={() => setActiveAction("none")}>
+          <div className="bg-accent/30 rounded-lg p-3 mb-4 border border-accent/50 space-y-1">
+            <p className="text-xs text-muted-foreground">
+              <User className="h-3 w-3 inline mr-1" />
+              Se o intimado <b>já for cadastrado</b>, informe o ID do Personagem e clique em <i>Buscar</i>. A intimação seguirá pelo fluxo normal (notificação + DM automática).
+            </p>
+            <p className="text-xs text-muted-foreground">
+              <Send className="h-3 w-3 inline mr-1" />
+              Se <b>não for cadastrado</b>, informe o Discord ID do intimado. Uma DM oficial será enviada com instruções de cadastro e link do Discord Jurídico.
+              Quando ele se cadastrar com o mesmo ID de Personagem, uma movimentação será registrada no processo.
+            </p>
+          </div>
+          <form onSubmit={(e) => { e.preventDefault(); intimarPessoa.mutate(); }} className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">ID do Personagem</label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Ex: 12345"
+                    value={pessoaIntForm.id_personagem}
+                    onChange={(e) => setPessoaIntForm(f => ({ ...f, id_personagem: e.target.value }))}
+                    className="rounded-xl"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="rounded-xl"
+                    onClick={async () => {
+                      const data = await pessoaLookup.lookup(pessoaIntForm.id_personagem.trim());
+                      if (data) {
+                        setPessoaIntForm(f => ({ ...f, nome: data.nome_completo, forcarAvulso: false }));
+                        toast.success("Usuário cadastrado localizado.");
+                      } else {
+                        setPessoaIntForm(f => ({ ...f, forcarAvulso: true }));
+                        toast.warning("Usuário não cadastrado. Informe o Discord ID abaixo.");
+                      }
+                    }}
+                    disabled={!pessoaIntForm.id_personagem.trim()}
+                  >
+                    <Search className="h-4 w-4 mr-1" /> Buscar
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Nome do intimado</label>
+                <Input
+                  placeholder="Nome completo"
+                  value={pessoaIntForm.nome}
+                  onChange={(e) => setPessoaIntForm(f => ({ ...f, nome: e.target.value }))}
+                  className="rounded-xl"
+                  required
+                />
+              </div>
+            </div>
+
+            {(pessoaIntForm.forcarAvulso || (!pessoaLookup.result && pessoaIntForm.id_personagem.trim() === "")) && (
+              <div className="space-y-1.5 p-3 rounded-xl border border-dashed border-orange-400/50 bg-orange-50/40 dark:bg-orange-950/20">
+                <label className="text-xs font-medium text-orange-800 dark:text-orange-200 flex items-center gap-1">
+                  <AlertTriangle className="h-3 w-3" /> Intimado não cadastrado — Discord ID obrigatório
+                </label>
+                <Input
+                  placeholder="Discord ID (17 a 20 dígitos)"
+                  value={pessoaIntForm.discord_id}
+                  onChange={(e) => setPessoaIntForm(f => ({ ...f, discord_id: e.target.value }))}
+                  className="rounded-xl"
+                  inputMode="numeric"
+                  pattern="[0-9]{17,20}"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Ative o <i>Modo Desenvolvedor</i> no Discord, clique no usuário e escolha <i>Copiar ID</i>.
+                </p>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 flex-wrap">
+              <AISugerirDespacho
+                tipoAto="intimacao"
+                tituloAto="Intimação pessoal"
+                rascunhoAtual={pessoaIntForm.conteudo}
+                processo={processo}
+                movimentacoes={movs}
+                onInsert={(t) => setPessoaIntForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))}
+              />
+              <ModeloPicker
+                context={modeloCtx}
+                onInsert={(t) => setPessoaIntForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))}
+              />
+            </div>
+            <RichTextEditor
+              placeholder="Teor da intimação..."
+              value={pessoaIntForm.conteudo}
+              onChange={(html) => setPessoaIntForm(f => ({ ...f, conteudo: html }))}
+              minHeight="160px"
+            />
+            <Input
+              type="number"
+              placeholder="Prazo (horas)"
+              value={pessoaIntForm.prazo}
+              onChange={(e) => setPessoaIntForm(f => ({ ...f, prazo: e.target.value }))}
+              min="1"
+              className="rounded-xl"
+              required
+            />
+            <Button
+              type="submit"
+              disabled={intimarPessoa.isPending}
+              className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light"
+            >
+              {intimarPessoa.isPending ? "Processando..." : "Expedir Intimação"}
+            </Button>
+          </form>
+        </ActionCard>
+      )}
+
+
       {activeAction === "sentenca" && (
         <ActionCard title="Proferir Sentença" icon={Scroll} onCancel={() => setActiveAction("none")}>
           <form onSubmit={(e) => { e.preventDefault(); proferirSentenca.mutate(); }} className="space-y-4">
