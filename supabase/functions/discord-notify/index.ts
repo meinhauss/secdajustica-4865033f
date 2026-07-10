@@ -85,8 +85,16 @@ Deno.serve(async (req) => {
     const APP_URL = "https://secdajustica.lovable.app";
     let absLink: string | null = null;
     if (linkSecao) {
-      if (/^https?:\/\//i.test(linkSecao)) absLink = linkSecao;
-      else absLink = `${APP_URL}${linkSecao.startsWith("/") ? "" : "/"}${linkSecao}`;
+      if (/^https?:\/\//i.test(linkSecao)) {
+        absLink = linkSecao;
+      } else {
+        // Formato interno: "secao" ou "secao:id". O app é SPA em "/", então
+        // convertemos para query params que o Index.tsx interpreta.
+        const [secao, id] = linkSecao.split(":");
+        const params = new URLSearchParams({ section: secao });
+        if (id) params.set("processo", id);
+        absLink = `${APP_URL}/?${params.toString()}`;
+      }
     }
 
     const tipoLabels: Record<string, string> = {
