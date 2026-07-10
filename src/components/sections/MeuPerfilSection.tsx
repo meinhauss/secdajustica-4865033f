@@ -101,6 +101,11 @@ export default function MeuPerfilSection() {
       toast.error("Nome completo é obrigatório.");
       return;
     }
+    const discordDigits = form.discord.replace(/\D/g, "");
+    if (!/^\d{17,20}$/.test(discordDigits)) {
+      toast.error("ID do Discord inválido. Informe o ID numérico (17 a 20 dígitos), não o nome de usuário.");
+      return;
+    }
 
     setSaving(true);
     try {
@@ -108,14 +113,15 @@ export default function MeuPerfilSection() {
         .from("profiles")
         .update({
           nome_completo: form.nome_completo.trim(),
-          discord: form.discord.trim() || null,
+          discord: discordDigits,
           id_personagem: form.id_personagem.trim() || null,
           telefone_ingame: form.telefone_ingame.trim() || null,
-          discord_user_id: form.discord_user_id.trim() || null,
+          discord_user_id: discordDigits,
           discord_dm_enabled: form.discord_dm_enabled,
           precisa_atualizar_cadastro: false,
         } as any)
         .eq("user_id", user.id);
+
 
       if (error) throw error;
       await refreshProfile();
@@ -192,13 +198,17 @@ export default function MeuPerfilSection() {
           </div>
 
           <div>
-            <Label>Discord</Label>
+            <Label>ID do Discord *</Label>
             <Input
               value={form.discord}
-              onChange={(e) => setForm({ ...form, discord: e.target.value })}
-              placeholder="usuario#0000"
-              maxLength={50}
+              onChange={(e) => setForm({ ...form, discord: e.target.value.replace(/\D/g, "").slice(0, 20) })}
+              placeholder="Ex: 123456789012345678"
+              maxLength={20}
+              inputMode="numeric"
             />
+            <p className="text-xs text-muted-foreground mt-1">
+              Informe apenas o <b>ID numérico</b> (17 a 20 dígitos), <b>não</b> o nome de usuário. No Discord, ative <b>Configurações → Avançado → Modo de Desenvolvedor</b>, clique com o botão direito no seu nome e escolha <b>"Copiar ID de usuário"</b>. Você precisa compartilhar um servidor com o bot para receber a DM.
+            </p>
           </div>
 
           <div>
@@ -221,34 +231,16 @@ export default function MeuPerfilSection() {
             />
           </div>
 
-          <div className="border-t border-border pt-4 mt-2 space-y-3">
-            <div>
-              <Label className="flex items-center gap-2">
-                🤖 Discord User ID
-                <span className="text-[10px] font-normal text-muted-foreground">(para receber notificações por DM)</span>
-              </Label>
-              <Input
-                value={form.discord_user_id}
-                onChange={(e) => setForm({ ...form, discord_user_id: e.target.value.replace(/\D/g, "") })}
-                placeholder="Ex: 123456789012345678"
-                maxLength={22}
-                inputMode="numeric"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                No Discord, ative <b>Configurações → Avançado → Modo de Desenvolvedor</b>, clique com o botão direito no seu nome e escolha <b>"Copiar ID de usuário"</b>. Você precisa compartilhar um servidor com o bot para receber a DM.
-              </p>
-            </div>
+          <label className="flex items-center gap-2 cursor-pointer pt-2 border-t border-border">
+            <input
+              type="checkbox"
+              checked={form.discord_dm_enabled}
+              onChange={(e) => setForm({ ...form, discord_dm_enabled: e.target.checked })}
+              className="h-4 w-4 accent-primary mt-2"
+            />
+            <span className="text-sm mt-2">Receber notificações por DM no Discord</span>
+          </label>
 
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={form.discord_dm_enabled}
-                onChange={(e) => setForm({ ...form, discord_dm_enabled: e.target.checked })}
-                className="h-4 w-4 accent-primary"
-              />
-              <span className="text-sm">Receber notificações por DM no Discord</span>
-            </label>
-          </div>
 
 
 

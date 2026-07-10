@@ -1248,9 +1248,10 @@ function TabLogin(props: LoginProps) {
                   required
                   className="rounded-lg h-11"
                 />
-                <p className="text-[10px] text-muted-foreground mt-1">
-                  17 a 20 dígitos. Ative o Modo Desenvolvedor no Discord e copie seu ID.
+                <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed">
+                  Informe apenas o <b>ID numérico</b> (17 a 20 dígitos), <b>não</b> o nome de usuário. No Discord, ative <b>Configurações → Avançado → Modo de Desenvolvedor</b>, clique com o botão direito no seu nome e escolha <b>"Copiar ID de usuário"</b>.
                 </p>
+
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>

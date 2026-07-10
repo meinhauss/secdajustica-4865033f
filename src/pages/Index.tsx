@@ -94,15 +94,18 @@ const Index = () => {
   if (!user) return <LoginPage />;
 
   // Obrigatório atualizar cadastro antes de acessar o sistema
-  if (profile?.precisa_atualizar_cadastro) {
+  const discordRaw = (profile as any)?.discord_user_id || profile?.discord || "";
+  const discordValido = /^\d{17,20}$/.test(String(discordRaw).replace(/\D/g, ""));
+  if (profile?.precisa_atualizar_cadastro || !discordValido) {
     return (
       <div className="min-h-screen bg-background p-4 sm:p-8">
         <div className="max-w-2xl mx-auto">
           <div className="mb-6 p-4 rounded-xl border border-gold/40 bg-gold/10 text-sm text-foreground">
             <p className="font-semibold text-gold-dark mb-1">Atualização de cadastro obrigatória</p>
             <p className="text-muted-foreground">
-              Para continuar utilizando o sistema, revise e confirme suas informações pessoais.
-              Preencha corretamente todos os campos e clique em <strong>Salvar Alterações</strong>.
+              {!discordValido
+                ? <>Seu <strong>ID do Discord</strong> está ausente ou fora do padrão. Informe apenas o <strong>ID numérico</strong> (17 a 20 dígitos), <strong>não</strong> o nome de usuário, e clique em <strong>Salvar Alterações</strong> para continuar.</>
+                : <>Para continuar utilizando o sistema, revise e confirme suas informações pessoais. Preencha corretamente todos os campos e clique em <strong>Salvar Alterações</strong>.</>}
             </p>
           </div>
           <MeuPerfilSection />
@@ -110,6 +113,7 @@ const Index = () => {
       </div>
     );
   }
+
 
   const renderSection = () => {
     switch (activeSection) {
