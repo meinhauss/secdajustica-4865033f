@@ -14,6 +14,33 @@ import { CURRENT_VERSION } from "@/lib/version";
 
 const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
   {
+    version: "3.6.6",
+    date: "10/07/2026",
+    changes: [
+      "Gerador de minutas IA agora coleta dados completos do processo (valor da causa, partes, OAB) e formata HTML com quebras de linha, negritos e prazos em horas",
+      "Comarca fixada como São Paulo/SP — TJSP em toda geração de peças por IA",
+      "Assinatura digital automática ao final das peças, com data de elaboração",
+      "Remoção do campo redundante 'título do despacho' e do botão 'Copiar Texto' (que copiava HTML) do gerador de minutas",
+      "Editor de texto rico corrigido: cursor não é mais jogado para o final ao digitar em petições coladas",
+      "Correção do link 'Abrir movimento' na aba de movimentação processual",
+      "Assistente Proativo global unificado no chatbot institucional (fim dos dois assistentes na lateral) com barramento de eventos e dicas contextuais",
+      "Botão 'Sugerir com IA' nas ações do magistrado",
+      "IA de sentença agora respeita rigorosamente os campos 'fundamentação' e 'dispositivo'",
+      "Novo gerador automático de ementa (AIGerarEmenta)",
+      "Assistente com dosimetria trifásica de pena, cálculo de honorários e sugestão de precedentes/jurisprudências internas via tokens [PROC:] e [JUR:]",
+      "Nova seção 'Ordenamento Jurídico Federal' com Decretos 001-020/2024 e filtros reorganizados",
+      "LoginPage remodelada com foco em mobile (filtros não tomam mais a tela toda)",
+      "Cargo Defensor Público adicionado; aviso de porte de arma institucional nas credenciais",
+      "Portal da Transparência restrito a funcionários públicos; calculadora de custas com valores reduzidos em 50%",
+      "Correção do ranking de concursos: candidatos sem nota/prova são ignorados",
+      "Integração completa Discord: Edge Function discord-notify, trigger em notificacoes via pg_net, DM automática de intimações e movimentos",
+      "Painel de teste de DM Discord no admin (Estatísticas) com modelos pré-definidos (intimação, movimentação, prazo 6h, jurado, cartório)",
+      "Policy RLS notif_insert_admin permitindo admins criarem notificações para qualquer usuário",
+      "Campo 'ID do Discord' unificado em Meu Perfil e cadastro, com instruções detalhadas, validação snowflake (17-20 dígitos) e bloqueio obrigatório para IDs inválidos",
+      "Correção do relator para 'Mein Haus' nas jurisprudências e súmulas recentes",
+    ],
+  },
+  {
     version: "3.1.0",
     date: "08/07/2026",
     changes: [
