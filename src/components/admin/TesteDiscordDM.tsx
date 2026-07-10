@@ -10,13 +10,64 @@ import { motion } from "framer-motion";
 import { Send, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 
+const MODELOS: Record<string, { titulo: string; mensagem: string; tipo: string; linkSecao: string }> = {
+  teste: {
+    titulo: "Teste de notificação",
+    mensagem: "Esta é uma mensagem de teste enviada pelo painel administrativo.",
+    tipo: "teste",
+    linkSecao: "",
+  },
+  intimacao: {
+    titulo: "Nova Intimação — Processo 0000000-00.2026.8.26.0001",
+    mensagem: "Você foi intimado(a) nos autos do processo em referência. Prazo: 72 horas para manifestação.",
+    tipo: "intimacao",
+    linkSecao: "processos",
+  },
+  movimentacao: {
+    titulo: "Movimentação no Processo 0000000-00.2026.8.26.0001",
+    mensagem: "Foi juntada nova petição/decisão nos autos. Acesse o sistema para conferir.",
+    tipo: "movimentacao",
+    linkSecao: "processos",
+  },
+  prazo_6h: {
+    titulo: "Prazo vencendo em 6h",
+    mensagem: "Processo 0000000-00.2026.8.26.0001: contestação",
+    tipo: "prazo_6h",
+    linkSecao: "processos",
+  },
+  convocacao_jurado: {
+    titulo: "Convocação de Jurado — Processo 0000000-00.2026.8.26.0001",
+    mensagem: "Você foi sorteado(a) para servir como jurado no Tribunal do Júri. Verifique data e local no sistema.",
+    tipo: "convocacao_jurado",
+    linkSecao: "jurados",
+  },
+  cartorio: {
+    titulo: "Cartório — RC-000000/2026",
+    mensagem: "Sua solicitação no cartório foi atualizada. Acesse para conferir o novo status.",
+    tipo: "cartorio",
+    linkSecao: "cartorio",
+  },
+};
+
 export function TesteDiscordDM() {
   const [userId, setUserId] = useState("");
-  const [titulo, setTitulo] = useState("Teste de notificação");
-  const [mensagem, setMensagem] = useState("Esta é uma mensagem de teste enviada pelo painel administrativo.");
-  const [tipo, setTipo] = useState("teste");
-  const [linkSecao, setLinkSecao] = useState("");
+  const [modelo, setModelo] = useState<string>("teste");
+  const [titulo, setTitulo] = useState(MODELOS.teste.titulo);
+  const [mensagem, setMensagem] = useState(MODELOS.teste.mensagem);
+  const [tipo, setTipo] = useState(MODELOS.teste.tipo);
+  const [linkSecao, setLinkSecao] = useState(MODELOS.teste.linkSecao);
   const [enviando, setEnviando] = useState(false);
+
+  const aplicarModelo = (key: string) => {
+    setModelo(key);
+    const m = MODELOS[key];
+    if (m) {
+      setTitulo(m.titulo);
+      setMensagem(m.mensagem);
+      setTipo(m.tipo);
+      setLinkSecao(m.linkSecao);
+    }
+  };
 
   const { data: perfis } = useQuery({
     queryKey: ["profiles-discord"],
@@ -81,6 +132,23 @@ export function TesteDiscordDM() {
                   {p.discord_dm_enabled === false ? " (DM desativada)" : ""}
                 </SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="md:col-span-2">
+          <Label>Modelo de notificação</Label>
+          <Select value={modelo} onValueChange={aplicarModelo}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="teste">Teste genérico</SelectItem>
+              <SelectItem value="intimacao">Intimação</SelectItem>
+              <SelectItem value="movimentacao">Movimentação processual</SelectItem>
+              <SelectItem value="prazo_6h">Prazo vencendo (6h)</SelectItem>
+              <SelectItem value="convocacao_jurado">Convocação de jurado</SelectItem>
+              <SelectItem value="cartorio">Cartório</SelectItem>
             </SelectContent>
           </Select>
         </div>
