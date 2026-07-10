@@ -834,6 +834,126 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     onError: (err: any) => toast.error(err.message),
   });
 
+  // ── INTIMAR PESSOA (cadastrada ou não) ──
+  const [pessoaIntForm, setPessoaIntForm] = useState({
+    id_personagem: "",
+    nome: "",
+    discord_id: "",
+    conteudo: "",
+    prazo: "24",
+    forcarAvulso: false,
+  });
+  const pessoaLookup = useProfileLookup();
+  const intimarPessoa = useMutation({
+    mutationFn: async () => {
+      if (!pessoaIntForm.nome.trim()) throw new Error("Informe o nome do intimado.");
+      if (!pessoaIntForm.conteudo) throw new Error("Preencha o conteúdo da intimação.");
+
+      let destinatarioUserId: string | null = null;
+
+      // Tenta localizar cadastro pelo id_personagem
+      if (pessoaIntForm.id_personagem.trim() && !pessoaIntForm.forcarAvulso) {
+        const { data: prof } = await supabase
+          .from("profiles")
+          .select("user_id, nome_completo")
+          .eq("id_personagem", pessoaIntForm.id_personagem.trim())
+          .maybeSingle();
+        if (prof) destinatarioUserId = prof.user_id;
+      }
+
+      // Cadastrado → fluxo normal (trigger notify_intimacao dispara notificação + DM)
+      if (destinatarioUserId) {
+        const { error } = await supabase.from("intimacoes").insert({
+          processo_id: processoId,
+          destinatario_id: destinatarioUserId,
+          destinatario_nome: pessoaIntForm.nome,
+          destinatario_id_personagem: pessoaIntForm.id_personagem.trim() || null,
+          conteudo: pessoaIntForm.conteudo,
+          tipo: "intimacao",
+          prazo_dias: parseInt(pessoaIntForm.prazo) || 24,
+        } as any);
+        if (error) throw error;
+
+        await supabase.from("movimentacoes").insert({
+          processo_id: processoId,
+          tipo: "intimacao",
+          descricao: `INTIMAÇÃO DE ${pessoaIntForm.nome.toUpperCase()}\n\nPrazo: ${pessoaIntForm.prazo} horas\n\n${pessoaIntForm.conteudo}`,
+          autor_id: user!.id,
+        });
+        return { modo: "cadastrado" as const };
+      }
+
+      // Não cadastrado → exige Discord ID e dispara DM instrucional
+      const discordId = pessoaIntForm.discord_id.trim();
+      if (!/^[0-9]{17,20}$/.test(discordId)) {
+        throw new Error("Discord ID do intimado inválido. Deve conter 17 a 20 dígitos numéricos.");
+      }
+
+      const { error: intErr } = await supabase.from("intimacoes").insert({
+        processo_id: processoId,
+        destinatario_nome: pessoaIntForm.nome,
+        destinatario_id_personagem: pessoaIntForm.id_personagem.trim() || null,
+        destinatario_discord_id: discordId,
+        conteudo: pessoaIntForm.conteudo,
+        tipo: "intimacao",
+        prazo_dias: parseInt(pessoaIntForm.prazo) || 24,
+      } as any);
+      if (intErr) throw intErr;
+
+      await supabase.from("movimentacoes").insert({
+        processo_id: processoId,
+        tipo: "intimacao",
+        descricao: `INTIMAÇÃO DE ${pessoaIntForm.nome.toUpperCase()} (não cadastrado — enviada por DM no Discord)\n\nProcesso: ${processo?.numero || ""}\nPrazo: ${pessoaIntForm.prazo} horas\n\n${pessoaIntForm.conteudo}`,
+        autor_id: user!.id,
+      });
+
+      // Dispara DM diretamente pela edge function
+      const CADASTRO_URL = "https://secdajustica.lovable.app/";
+      const DISCORD_JURIDICO = "https://discord.gg/xmydYrYBKd";
+      const mensagemDM = [
+        `Você foi <b>oficialmente intimado(a)</b> em processo judicial em curso perante a Comarca de São Paulo/SP (TJSP).`,
+        ``,
+        `<b>Processo nº ${processo?.numero || "-"}</b>`,
+        `<b>Prazo:</b> ${pessoaIntForm.prazo} horas, a contar do recebimento desta comunicação.`,
+        ``,
+        `<b>Teor da intimação:</b>`,
+        pessoaIntForm.conteudo,
+        ``,
+        `<b>⚠️ Providências obrigatórias:</b>`,
+        `1️⃣ Cadastre-se no Sistema Judicial em: ${CADASTRO_URL}`,
+        `   (Ao concluir o cadastro com o mesmo ID de personagem informado nesta intimação, você passará a acessar o processo diretamente pela plataforma.)`,
+        `2️⃣ Constitua advogado(a) ingressando no Discord Jurídico: ${DISCORD_JURIDICO}`,
+        `   (Lá você poderá solicitar assistência de um(a) advogado(a) inscrito(a) na OAB para lhe representar.)`,
+        ``,
+        `<i>O não atendimento desta intimação no prazo poderá acarretar as consequências legais previstas, inclusive revelia, preclusão ou expedição de mandado.</i>`,
+      ].join("\n");
+
+      await supabase.functions.invoke("discord-notify", {
+        body: {
+          discord_user_id: discordId,
+          titulo: `Intimação Judicial — Processo ${processo?.numero || ""}`,
+          mensagem: mensagemDM,
+          tipo: "intimacao",
+          link_secao: CADASTRO_URL,
+        },
+      });
+
+      return { modo: "avulso" as const };
+    },
+    onSuccess: (res) => {
+      invalidateAll();
+      setActiveAction("none");
+      setPessoaIntForm({ id_personagem: "", nome: "", discord_id: "", conteudo: "", prazo: "24", forcarAvulso: false });
+      pessoaLookup.clear();
+      if (res.modo === "cadastrado") {
+        toast.success("Intimação expedida ao destinatário cadastrado.");
+      } else {
+        toast.success("Intimação enviada por DM no Discord ao intimado não cadastrado.");
+      }
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
   // ── CONCEDER ACESSO SIGILO ──
   const [acessoIdPersonagem, setAcessoIdPersonagem] = useState("");
   const acessoLookup = useProfileLookup();
