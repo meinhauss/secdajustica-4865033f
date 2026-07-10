@@ -607,14 +607,25 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
 
       for (const insc of inscricoes) {
         const { data: respostas } = await supabase.from("respostas_concurso").select("*").eq("inscricao_id", insc.id);
-        if (!respostas?.length) continue;
-        
+
+        // Ausente: não fez a prova → sem nota e sem classificação
+        if (!respostas?.length) {
+          await supabase.from("inscricoes_concurso").update({
+            nota_objetiva: null,
+            nota_discursiva: null,
+            nota_final: null,
+            classificacao: null,
+            presente: false,
+          } as any).eq("id", insc.id);
+          continue;
+        }
+
         let notaObjetivaTotal = 0;
         let notaDiscursivaTotal = 0;
 
         for (const q of questoes) {
           const resp = respostas.find((r: any) => r.questao_id === q.id);
-          
+
           if (q.tipo !== "discursiva") {
             if (resp && resp.resposta === q.gabarito) {
               notaObjetivaTotal += q.peso || 1;
@@ -632,16 +643,21 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
         const notaFinalNumerica = notaObjetivaTotal + notaDiscursivaTotal;
         const notaFinalPercentual = pesoTotalMaximo > 0 ? (notaFinalNumerica / pesoTotalMaximo) * 100 : 0;
 
-        await supabase.from("inscricoes_concurso").update({ 
+        await supabase.from("inscricoes_concurso").update({
           nota_objetiva: notaObjetivaTotal,
           nota_discursiva: notaDiscursivaTotal,
-          nota_final: notaFinalPercentual, 
-          presente: true 
+          nota_final: notaFinalPercentual,
+          presente: true,
         } as any).eq("id", insc.id);
       }
 
-      // Classificação
-      const { data: updated } = await supabase.from("inscricoes_concurso").select("*").eq("concurso_id", concursoId).order("nota_final", { ascending: false });
+      // Classificação — apenas quem tem nota final (fez a prova)
+      const { data: updated } = await supabase
+        .from("inscricoes_concurso")
+        .select("*")
+        .eq("concurso_id", concursoId)
+        .not("nota_final", "is", null)
+        .order("nota_final", { ascending: false });
       if (updated) {
         for (let i = 0; i < updated.length; i++) {
           await supabase.from("inscricoes_concurso").update({ classificacao: i + 1 } as any).eq("id", updated[i].id);
