@@ -355,6 +355,7 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
   const [openComunicado, setOpenComunicado] = useState(false);
   const [selectedInscricaoId, setSelectedInscricaoId] = useState<string | null>(null);
   const [openImportarQuestao, setOpenImportarQuestao] = useState(false);
+  const [inscricaoInfo, setInscricaoInfo] = useState<{ open: boolean; content: string }>({ open: false, content: "" });
 
 
   const { data: concurso } = useQuery({
