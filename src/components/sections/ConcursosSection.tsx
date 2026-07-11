@@ -355,6 +355,7 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
   const [openComunicado, setOpenComunicado] = useState(false);
   const [selectedInscricaoId, setSelectedInscricaoId] = useState<string | null>(null);
   const [openImportarQuestao, setOpenImportarQuestao] = useState(false);
+  const [inscricaoInfo, setInscricaoInfo] = useState<{ open: boolean; content: string }>({ open: false, content: "" });
 
 
   const { data: concurso } = useQuery({
@@ -430,10 +431,50 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
         id_personagem: profile.id_personagem || null,
       } as any);
       if (error) throw error;
+
+      // Monta instruções da prova
+      const fmt = (d: string | null | undefined) =>
+        d ? format(new Date(d), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }) : null;
+      const janelaIni = fmt(concurso?.data_inicio_prova);
+      const janelaFim = fmt(concurso?.data_fim_prova);
+      const dataProva = fmt(concurso?.data_prova);
+      const encerra = fmt(concurso?.data_encerramento_inscricoes);
+      const tempo = (concurso as any)?.tempo_prova_minutos || 60;
+
+      const linhas: string[] = [
+        `Sua inscrição no concurso "${concurso?.titulo}" (cargo: ${concurso?.cargo}) foi confirmada.`,
+        "",
+        "📅 Datas importantes:",
+        encerra ? `• Encerramento das inscrições: ${encerra}` : null,
+        janelaIni && janelaFim
+          ? `• Janela para realizar a prova: de ${janelaIni} até ${janelaFim}`
+          : dataProva
+          ? `• Data da prova: ${dataProva}`
+          : null,
+        `• Tempo de prova: ${tempo} minutos`,
+        "",
+        "📝 Instruções:",
+        "• Acesse a seção Concursos dentro da janela indicada e clique em \"Realizar Prova\".",
+        "• A prova só pode ser enviada uma vez — revise antes de finalizar.",
+        "• Mantenha seu ID do Discord válido no perfil para receber avisos importantes.",
+      ].filter(Boolean) as string[];
+
+      const mensagem = linhas.join("\n");
+
+      await supabase.rpc("notify_concurso_evento" as any, {
+        _user_id: user!.id,
+        _titulo: `Inscrição confirmada — ${concurso?.titulo}`,
+        _mensagem: mensagem,
+        _tipo: "concurso_inscricao",
+        _link_secao: "concursos",
+      });
+
+      return mensagem;
     },
-    onSuccess: () => {
+    onSuccess: (mensagem) => {
       queryClient.invalidateQueries({ queryKey: ["concurso-inscricoes", concursoId] });
       toast.success("Inscrição confirmada!");
+      setInscricaoInfo({ open: true, content: mensagem });
     },
     onError: (err: any) => toast.error(err.message),
   });
@@ -699,6 +740,39 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
         });
       }
       await supabase.from("inscricoes_concurso").update({ status: "nomeado" } as any).eq("id", inscricaoId);
+
+      // Descobre nome do responsável pelo concurso
+      let responsavelNome = "o responsável pelo concurso";
+      if (concurso?.criado_por) {
+        const { data: resp } = await supabase
+          .from("profiles")
+          .select("nome_completo, discord")
+          .eq("user_id", concurso.criado_por)
+          .maybeSingle();
+        if (resp?.nome_completo) {
+          responsavelNome = resp.nome_completo + (resp.discord ? ` (Discord: <@${resp.discord}>)` : "");
+        }
+      }
+
+      const mensagem = [
+        `Parabéns! Você foi NOMEADO(A) para o cargo de ${concurso?.cargo} através do concurso "${concurso?.titulo}".`,
+        "",
+        "📌 Próximos passos:",
+        `• Procure ${responsavelNome} para agendar a entrevista de posse.`,
+        "• Compareça ao Discord Jurídico: https://discord.gg/xmydYrYBKd",
+        "• Traga documentação e ID de personagem para o registro funcional.",
+        "• Seu novo cargo já foi vinculado à sua conta no sistema.",
+        "",
+        "Bem-vindo(a) à instituição!",
+      ].join("\n");
+
+      await supabase.rpc("notify_concurso_evento" as any, {
+        _user_id: insc.user_id,
+        _titulo: `Nomeação — ${concurso?.cargo}`,
+        _mensagem: mensagem,
+        _tipo: "concurso_nomeacao",
+        _link_secao: "concursos",
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["concurso-inscricoes", concursoId] });
@@ -1152,6 +1226,27 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
           )}
         </TabsContent>
       </Tabs>
+
+      <Dialog open={inscricaoInfo.open} onOpenChange={(o) => setInscricaoInfo((s) => ({ ...s, open: o }))}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-display flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600" /> Inscrição confirmada
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-2 text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+            {inscricaoInfo.content}
+          </div>
+          <p className="text-xs text-muted-foreground mt-3">
+            Uma cópia destas instruções foi enviada para o seu Discord.
+          </p>
+          <div className="flex justify-end mt-4">
+            <Button onClick={() => setInscricaoInfo({ open: false, content: "" })} className="rounded-xl">
+              Entendi
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
