@@ -431,10 +431,50 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
         id_personagem: profile.id_personagem || null,
       } as any);
       if (error) throw error;
+
+      // Monta instruções da prova
+      const fmt = (d: string | null | undefined) =>
+        d ? format(new Date(d), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }) : null;
+      const janelaIni = fmt(concurso?.data_inicio_prova);
+      const janelaFim = fmt(concurso?.data_fim_prova);
+      const dataProva = fmt(concurso?.data_prova);
+      const encerra = fmt(concurso?.data_encerramento_inscricoes);
+      const tempo = (concurso as any)?.tempo_prova_minutos || 60;
+
+      const linhas: string[] = [
+        `Sua inscrição no concurso "${concurso?.titulo}" (cargo: ${concurso?.cargo}) foi confirmada.`,
+        "",
+        "📅 Datas importantes:",
+        encerra ? `• Encerramento das inscrições: ${encerra}` : null,
+        janelaIni && janelaFim
+          ? `• Janela para realizar a prova: de ${janelaIni} até ${janelaFim}`
+          : dataProva
+          ? `• Data da prova: ${dataProva}`
+          : null,
+        `• Tempo de prova: ${tempo} minutos`,
+        "",
+        "📝 Instruções:",
+        "• Acesse a seção Concursos dentro da janela indicada e clique em \"Realizar Prova\".",
+        "• A prova só pode ser enviada uma vez — revise antes de finalizar.",
+        "• Mantenha seu ID do Discord válido no perfil para receber avisos importantes.",
+      ].filter(Boolean) as string[];
+
+      const mensagem = linhas.join("\n");
+
+      await supabase.rpc("notify_concurso_evento" as any, {
+        _user_id: user!.id,
+        _titulo: `Inscrição confirmada — ${concurso?.titulo}`,
+        _mensagem: mensagem,
+        _tipo: "concurso_inscricao",
+        _link_secao: "concursos",
+      });
+
+      return mensagem;
     },
-    onSuccess: () => {
+    onSuccess: (mensagem) => {
       queryClient.invalidateQueries({ queryKey: ["concurso-inscricoes", concursoId] });
       toast.success("Inscrição confirmada!");
+      setInscricaoInfo({ open: true, content: mensagem });
     },
     onError: (err: any) => toast.error(err.message),
   });
