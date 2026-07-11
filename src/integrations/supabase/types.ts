@@ -2175,6 +2175,16 @@ export type Database = {
         }
         Returns: undefined
       }
+      notify_concurso_evento: {
+        Args: {
+          _link_secao?: string
+          _mensagem: string
+          _tipo?: string
+          _titulo: string
+          _user_id: string
+        }
+        Returns: string
+      }
       sortear_desembargador: { Args: never; Returns: string }
       sortear_jurados: {
         Args: {
