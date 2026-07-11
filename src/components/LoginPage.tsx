@@ -1234,7 +1234,7 @@ function TabLogin(props: LoginProps) {
               </div>
               <div>
                 <label className="text-[11px] uppercase tracking-widest font-semibold text-muted-foreground mb-1 block">
-                  ID do Discord
+                  ID do Discord <span className="text-destructive">*</span>
                 </label>
                 <Input
                   value={discord}
