@@ -740,6 +740,39 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
         });
       }
       await supabase.from("inscricoes_concurso").update({ status: "nomeado" } as any).eq("id", inscricaoId);
+
+      // Descobre nome do responsável pelo concurso
+      let responsavelNome = "o responsável pelo concurso";
+      if (concurso?.criado_por) {
+        const { data: resp } = await supabase
+          .from("profiles")
+          .select("nome_completo, discord")
+          .eq("user_id", concurso.criado_por)
+          .maybeSingle();
+        if (resp?.nome_completo) {
+          responsavelNome = resp.nome_completo + (resp.discord ? ` (Discord: <@${resp.discord}>)` : "");
+        }
+      }
+
+      const mensagem = [
+        `Parabéns! Você foi NOMEADO(A) para o cargo de ${concurso?.cargo} através do concurso "${concurso?.titulo}".`,
+        "",
+        "📌 Próximos passos:",
+        `• Procure ${responsavelNome} para agendar a entrevista de posse.`,
+        "• Compareça ao Discord Jurídico: https://discord.gg/xmydYrYBKd",
+        "• Traga documentação e ID de personagem para o registro funcional.",
+        "• Seu novo cargo já foi vinculado à sua conta no sistema.",
+        "",
+        "Bem-vindo(a) à instituição!",
+      ].join("\n");
+
+      await supabase.rpc("notify_concurso_evento" as any, {
+        _user_id: insc.user_id,
+        _titulo: `Nomeação — ${concurso?.cargo}`,
+        _mensagem: mensagem,
+        _tipo: "concurso_nomeacao",
+        _link_secao: "concursos",
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["concurso-inscricoes", concursoId] });
