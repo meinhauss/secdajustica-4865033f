@@ -1226,6 +1226,27 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
           )}
         </TabsContent>
       </Tabs>
+
+      <Dialog open={inscricaoInfo.open} onOpenChange={(o) => setInscricaoInfo((s) => ({ ...s, open: o }))}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-display flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600" /> Inscrição confirmada
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-2 text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+            {inscricaoInfo.content}
+          </div>
+          <p className="text-xs text-muted-foreground mt-3">
+            Uma cópia destas instruções foi enviada para o seu Discord.
+          </p>
+          <div className="flex justify-end mt-4">
+            <Button onClick={() => setInscricaoInfo({ open: false, content: "" })} className="rounded-xl">
+              Entendi
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
