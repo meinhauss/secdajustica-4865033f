@@ -109,6 +109,18 @@ const Index = () => {
 
   if (!user) return <LoginPage />;
 
+  // Aguarda o perfil carregar antes de avaliar a obrigatoriedade
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground">Carregando perfil...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Obrigatório atualizar cadastro antes de acessar o sistema
   const discordRaw = (profile as any)?.discord_user_id || profile?.discord || "";
   const discordValido = /^\d{17,20}$/.test(String(discordRaw).replace(/\D/g, ""));
