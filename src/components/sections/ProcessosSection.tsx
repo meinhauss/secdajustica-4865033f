@@ -23,7 +23,7 @@ import logoTjsp from "@/assets/tjsp-logo.png";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { normalizeRichText } from "@/lib/sanitize";
+import { normalizeRichText, isValidPublicUrl } from "@/lib/sanitize";
 import ModeloPicker from "@/components/ModeloPicker";
 import { extrairNomes } from "@/lib/modelosVars";
 import { useDraft } from "@/hooks/useDraft";
@@ -923,32 +923,55 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     },
   });
 
-  // Cruza procurações do cartório com as partes deste processo
-  const procuracoesDisponiveis = (procuracoesCartorio || []).filter((pc: any) => {
-    const alvo = (pc.partes_envolvidas || "").toLowerCase();
-    const idAlvo = (pc.id_personagem || "").trim();
-    const todasPartes = [...partesAutor, ...partesReu];
-    return todasPartes.some((p) => {
-      const nomeMatch = p.nome && alvo.includes(p.nome.toLowerCase().slice(0, 8));
-      const idMatch = idAlvo && p.id_personagem && String(p.id_personagem).trim() === idAlvo;
-      return nomeMatch || idMatch;
-    });
-  });
+  // Extrai a lista de partes integrantes de uma procuração cartorária
+  // (partes_envolvidas é JSON: [{ nome, id_personagem }, ...])
+  const partesDaProcuracao = (pc: any): { nome: string; id_personagem?: string }[] => {
+    const raw = pc?.partes_envolvidas;
+    if (!raw) return [];
+    try {
+      const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+      if (Array.isArray(parsed)) {
+        return parsed
+          .map((p: any) => ({
+            nome: String(p?.nome || "").trim(),
+            id_personagem: p?.id_personagem ? String(p.id_personagem).trim() : undefined,
+          }))
+          .filter((p) => p.nome || p.id_personagem);
+      }
+    } catch {}
+    return [];
+  };
 
-  const selecionarProcuracaoCartorio = (pc: any) => {
-    const alvo = (pc.partes_envolvidas || "").toLowerCase();
-    const idAlvo = (pc.id_personagem || "").trim();
-    const matched: string[] = [];
+  // Retorna as chaves (autor:Nome / reu:Nome) do processo que constam na procuração cartorária.
+  // Regra estrita: só casa por id_personagem exato OU por nome idêntico (case-insensitive).
+  const partesProcessoNaProcuracao = (pc: any): string[] => {
+    const integrantes = partesDaProcuracao(pc);
+    if (integrantes.length === 0) return [];
+    const normalize = (s?: string) => (s || "").toLowerCase().trim();
+    const idsCartorio = new Set(integrantes.map((i) => i.id_personagem).filter(Boolean) as string[]);
+    const nomesCartorio = new Set(integrantes.map((i) => normalize(i.nome)).filter(Boolean));
+    const matches: string[] = [];
     partesAutor.forEach((p) => {
-      const nomeMatch = p.nome && alvo.includes(p.nome.toLowerCase().slice(0, 8));
-      const idMatch = idAlvo && p.id_personagem && String(p.id_personagem).trim() === idAlvo;
-      if (nomeMatch || idMatch) matched.push(`autor:${p.nome}`);
+      const idOk = p.id_personagem && idsCartorio.has(String(p.id_personagem).trim());
+      const nomeOk = p.nome && nomesCartorio.has(normalize(p.nome));
+      if (idOk || nomeOk) matches.push(`autor:${p.nome}`);
     });
     partesReu.forEach((p) => {
-      const nomeMatch = p.nome && alvo.includes(p.nome.toLowerCase().slice(0, 8));
-      const idMatch = idAlvo && p.id_personagem && String(p.id_personagem).trim() === idAlvo;
-      if (nomeMatch || idMatch) matched.push(`reu:${p.nome}`);
+      const idOk = p.id_personagem && idsCartorio.has(String(p.id_personagem).trim());
+      const nomeOk = p.nome && nomesCartorio.has(normalize(p.nome));
+      if (idOk || nomeOk) matches.push(`reu:${p.nome}`);
     });
+    return matches;
+  };
+
+  // Cruza procurações do cartório com as partes deste processo — apenas quem
+  // consta explicitamente como parte integrante da procuração pode ser incluído.
+  const procuracoesDisponiveis = (procuracoesCartorio || []).filter(
+    (pc: any) => partesProcessoNaProcuracao(pc).length > 0
+  );
+
+  const selecionarProcuracaoCartorio = (pc: any) => {
+    const matched = partesProcessoNaProcuracao(pc);
     const jaRep = new Set(partesJaRepresentadas);
     setProcForm({
       cartorio_id: pc.id,
@@ -972,8 +995,19 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
 
   const juntarProcuracao = useMutation({
     mutationFn: async () => {
+      if (!procForm.cartorio_id) throw new Error("Selecione a procuração emitida pelo Cartório.");
       if (!procForm.documento_url) throw new Error("Informe o link da procuração.");
       if (procForm.selectedPartes.length === 0) throw new Error("Selecione ao menos uma parte para representar.");
+
+      // Verificação estrita: as partes selecionadas precisam constar como
+      // integrantes da procuração cartorária escolhida.
+      const cartorioReg = (procuracoesCartorio || []).find((p: any) => p.id === procForm.cartorio_id);
+      if (!cartorioReg) throw new Error("Procuração cartorária não encontrada.");
+      const permitidas = new Set(partesProcessoNaProcuracao(cartorioReg));
+      const invalida = procForm.selectedPartes.find((k) => !permitidas.has(k));
+      if (invalida) {
+        throw new Error(`Você só pode representar partes integrantes da procuração cartorária. "${invalida.split(":").slice(1).join(":")}" não consta na procuração selecionada.`);
+      }
 
       // Insert one procuracao per selected party
       const inserts = procForm.selectedPartes.map(parteKey => ({
@@ -1906,60 +1940,59 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         <DialogContent className="rounded-2xl max-w-md">
           <DialogHeader><DialogTitle>Juntar Procuração</DialogTitle></DialogHeader>
           <div className="space-y-4">
-            <div>
-              <label className="text-xs font-medium text-foreground mb-2 block">Selecione a(s) parte(s) que irá representar</label>
-              {partesAutor.length > 0 && (
-                <div className="mb-2">
-                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Autores</p>
-                  <div className="space-y-1">
-                    {partesAutor.map((p, i) => {
-                      const key = `autor:${p.nome}`;
-                      const jaRepresentada = partesJaRepresentadas.includes(key);
-                      return (
-                        <label key={i} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-colors ${procForm.selectedPartes.includes(key) ? 'border-primary bg-primary/5' : 'border-border bg-secondary/20'} ${jaRepresentada ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                          <input
-                            type="checkbox"
-                            className="rounded"
-                            checked={procForm.selectedPartes.includes(key)}
-                            disabled={jaRepresentada}
-                            onChange={() => !jaRepresentada && toggleParteSelection(key)}
-                          />
-                          <span className="text-xs text-foreground">{p.nome}{p.id_personagem ? ` (ID: ${p.id_personagem})` : ''}</span>
-                          {jaRepresentada && <span className="text-[10px] text-muted-foreground ml-auto">Já representado(a)</span>}
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-              {partesReu.length > 0 && (
+            {(() => {
+              const cartorioReg = (procuracoesCartorio || []).find((p: any) => p.id === procForm.cartorio_id);
+              const permitidas = cartorioReg ? new Set(partesProcessoNaProcuracao(cartorioReg)) : null;
+              const renderParte = (p: any, i: number, lado: "autor" | "reu") => {
+                const key = `${lado}:${p.nome}`;
+                const jaRepresentada = partesJaRepresentadas.includes(key);
+                const naoIntegrante = !!permitidas && !permitidas.has(key);
+                const bloqueada = jaRepresentada || naoIntegrante;
+                return (
+                  <label key={i} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-colors ${procForm.selectedPartes.includes(key) ? 'border-primary bg-primary/5' : 'border-border bg-secondary/20'} ${bloqueada ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                    <input
+                      type="checkbox"
+                      className="rounded"
+                      checked={procForm.selectedPartes.includes(key)}
+                      disabled={bloqueada}
+                      onChange={() => !bloqueada && toggleParteSelection(key)}
+                    />
+                    <span className="text-xs text-foreground">{p.nome}{p.id_personagem ? ` (ID: ${p.id_personagem})` : ''}</span>
+                    {jaRepresentada && <span className="text-[10px] text-muted-foreground ml-auto">Já representado(a)</span>}
+                    {!jaRepresentada && naoIntegrante && <span className="text-[10px] text-muted-foreground ml-auto">Fora da procuração</span>}
+                  </label>
+                );
+              };
+              return (
                 <div>
-                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Réus</p>
-                  <div className="space-y-1">
-                    {partesReu.map((p, i) => {
-                      const key = `reu:${p.nome}`;
-                      const jaRepresentada = partesJaRepresentadas.includes(key);
-                      return (
-                        <label key={i} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-colors ${procForm.selectedPartes.includes(key) ? 'border-primary bg-primary/5' : 'border-border bg-secondary/20'} ${jaRepresentada ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                          <input
-                            type="checkbox"
-                            className="rounded"
-                            checked={procForm.selectedPartes.includes(key)}
-                            disabled={jaRepresentada}
-                            onChange={() => !jaRepresentada && toggleParteSelection(key)}
-                          />
-                          <span className="text-xs text-foreground">{p.nome}{p.id_personagem ? ` (ID: ${p.id_personagem})` : ''}</span>
-                          {jaRepresentada && <span className="text-[10px] text-muted-foreground ml-auto">Já representado(a)</span>}
-                        </label>
-                      );
-                    })}
-                  </div>
+                  <label className="text-xs font-medium text-foreground mb-2 block">Selecione a(s) parte(s) que irá representar</label>
+                  {permitidas && (
+                    <p className="text-[10px] text-muted-foreground mb-2">
+                      Apenas partes integrantes da procuração cartorária selecionada podem ser marcadas.
+                    </p>
+                  )}
+                  {partesAutor.length > 0 && (
+                    <div className="mb-2">
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Autores</p>
+                      <div className="space-y-1">
+                        {partesAutor.map((p, i) => renderParte(p, i, "autor"))}
+                      </div>
+                    </div>
+                  )}
+                  {partesReu.length > 0 && (
+                    <div>
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Réus</p>
+                      <div className="space-y-1">
+                        {partesReu.map((p, i) => renderParte(p, i, "reu"))}
+                      </div>
+                    </div>
+                  )}
+                  {partesAutor.length === 0 && partesReu.length === 0 && (
+                    <p className="text-xs text-muted-foreground">Nenhuma parte identificada no processo.</p>
+                  )}
                 </div>
-              )}
-              {partesAutor.length === 0 && partesReu.length === 0 && (
-                <p className="text-xs text-muted-foreground">Nenhuma parte identificada no processo.</p>
-              )}
-            </div>
+              );
+            })()}
             <div>
               <label className="text-xs font-medium text-foreground mb-2 block">Procuração emitida pelo Cartório</label>
               {procuracoesDisponiveis.length === 0 ? (
@@ -2984,10 +3017,8 @@ function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles
       toast.error("Preencha o nome e o link do anexo.");
       return;
     }
-    try {
-      new URL(novoAnexoUrl.trim());
-    } catch {
-      toast.error("Insira um link válido (ex: https://...)");
+    if (!isValidPublicUrl(novoAnexoUrl.trim())) {
+      toast.error("Anexo deve ser um link público (https://...). Não são aceitos caminhos locais como file:/// ou C:\\...");
       return;
     }
     setAnexos([...anexos, { nome: novoAnexoNome.trim(), url: novoAnexoUrl.trim() }]);
@@ -3520,6 +3551,11 @@ function AddAtoCartorio({ onAdd, isPending }: { onAdd: (ato: { tipo: string; tit
         <form onSubmit={(e) => {
           e.preventDefault();
           const validUrls = anexoUrls.filter(u => u.trim());
+          const invalid = validUrls.find(u => !isValidPublicUrl(u));
+          if (invalid) {
+            toast.error(`Link inválido: "${invalid.slice(0, 40)}...". Use um link público (https://...). Caminhos locais como file:/// ou C:\\ não são acessíveis.`);
+            return;
+          }
           onAdd({ tipo, titulo, conteudo, anexo_urls: validUrls.length > 0 ? validUrls : undefined });
           setOpen(false);
           setTitulo("");

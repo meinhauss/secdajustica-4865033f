@@ -20,6 +20,7 @@ import {
   Heart, Home, Users, ScrollText, FileSignature, Baby, BarChart3, User, Link, X, Trash2, ExternalLink, Download, Scale, AlertTriangle
 } from "lucide-react";
 import { generateCartorioPDF, imageToBase64 } from "@/lib/pdfGenerator";
+import { isValidPublicUrl } from "@/lib/sanitize";
 import logoCartorio from "@/assets/logo-cartorio-sp.png";
 
 /* ─── Types ─── */
@@ -364,6 +365,14 @@ function LinksInput({ label, links, onChange }: {
   const addLink = () => {
     const url = input.trim();
     if (!url) return;
+    if (!isValidPublicUrl(url)) {
+      toast({
+        title: "Link inválido",
+        description: "Cole um link público começando com https:// (ex.: Google Drive, Discord). Caminhos locais (file:///, C:\\...) não são acessíveis a outros usuários.",
+        variant: "destructive",
+      });
+      return;
+    }
     onChange([...links, url]);
     setInput("");
   };
