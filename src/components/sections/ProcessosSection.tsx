@@ -1940,54 +1940,53 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         <DialogContent className="rounded-2xl max-w-md">
           <DialogHeader><DialogTitle>Juntar Procuração</DialogTitle></DialogHeader>
           <div className="space-y-4">
-            <div>
-              <label className="text-xs font-medium text-foreground mb-2 block">Selecione a(s) parte(s) que irá representar</label>
-              {partesAutor.length > 0 && (
-                <div className="mb-2">
-                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Autores</p>
-                  <div className="space-y-1">
-                    {partesAutor.map((p, i) => {
-                      const key = `autor:${p.nome}`;
-                      const jaRepresentada = partesJaRepresentadas.includes(key);
-                      return (
-                        <label key={i} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-colors ${procForm.selectedPartes.includes(key) ? 'border-primary bg-primary/5' : 'border-border bg-secondary/20'} ${jaRepresentada ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                          <input
-                            type="checkbox"
-                            className="rounded"
-                            checked={procForm.selectedPartes.includes(key)}
-                            disabled={jaRepresentada}
-                            onChange={() => !jaRepresentada && toggleParteSelection(key)}
-                          />
-                          <span className="text-xs text-foreground">{p.nome}{p.id_personagem ? ` (ID: ${p.id_personagem})` : ''}</span>
-                          {jaRepresentada && <span className="text-[10px] text-muted-foreground ml-auto">Já representado(a)</span>}
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-              {partesReu.length > 0 && (
+            {(() => {
+              const cartorioReg = (procuracoesCartorio || []).find((p: any) => p.id === procForm.cartorio_id);
+              const permitidas = cartorioReg ? new Set(partesProcessoNaProcuracao(cartorioReg)) : null;
+              const renderParte = (p: any, i: number, lado: "autor" | "reu") => {
+                const key = `${lado}:${p.nome}`;
+                const jaRepresentada = partesJaRepresentadas.includes(key);
+                const naoIntegrante = !!permitidas && !permitidas.has(key);
+                const bloqueada = jaRepresentada || naoIntegrante;
+                return (
+                  <label key={i} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-colors ${procForm.selectedPartes.includes(key) ? 'border-primary bg-primary/5' : 'border-border bg-secondary/20'} ${bloqueada ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                    <input
+                      type="checkbox"
+                      className="rounded"
+                      checked={procForm.selectedPartes.includes(key)}
+                      disabled={bloqueada}
+                      onChange={() => !bloqueada && toggleParteSelection(key)}
+                    />
+                    <span className="text-xs text-foreground">{p.nome}{p.id_personagem ? ` (ID: ${p.id_personagem})` : ''}</span>
+                    {jaRepresentada && <span className="text-[10px] text-muted-foreground ml-auto">Já representado(a)</span>}
+                    {!jaRepresentada && naoIntegrante && <span className="text-[10px] text-muted-foreground ml-auto">Fora da procuração</span>}
+                  </label>
+                );
+              };
+              return (
                 <div>
-                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Réus</p>
-                  <div className="space-y-1">
-                    {partesReu.map((p, i) => {
-                      const key = `reu:${p.nome}`;
-                      const jaRepresentada = partesJaRepresentadas.includes(key);
-                      return (
-                        <label key={i} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-colors ${procForm.selectedPartes.includes(key) ? 'border-primary bg-primary/5' : 'border-border bg-secondary/20'} ${jaRepresentada ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                          <input
-                            type="checkbox"
-                            className="rounded"
-                            checked={procForm.selectedPartes.includes(key)}
-                            disabled={jaRepresentada}
-                            onChange={() => !jaRepresentada && toggleParteSelection(key)}
-                          />
-                          <span className="text-xs text-foreground">{p.nome}{p.id_personagem ? ` (ID: ${p.id_personagem})` : ''}</span>
-                          {jaRepresentada && <span className="text-[10px] text-muted-foreground ml-auto">Já representado(a)</span>}
-                        </label>
-                      );
-                    })}
-                  </div>
+                  <label className="text-xs font-medium text-foreground mb-2 block">Selecione a(s) parte(s) que irá representar</label>
+                  {permitidas && (
+                    <p className="text-[10px] text-muted-foreground mb-2">
+                      Apenas partes integrantes da procuração cartorária selecionada podem ser marcadas.
+                    </p>
+                  )}
+                  {partesAutor.length > 0 && (
+                    <div className="mb-2">
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Autores</p>
+                      <div className="space-y-1">
+                        {partesAutor.map((p, i) => renderParte(p, i, "autor"))}
+                      </div>
+                    </div>
+                  )}
+                  {partesReu.length > 0 && (
+                    <div>
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Réus</p>
+                      <div className="space-y-1">
+                        {partesReu.map((p, i) => renderParte(p, i, "reu"))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
               {partesAutor.length === 0 && partesReu.length === 0 && (
