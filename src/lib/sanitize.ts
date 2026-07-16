@@ -80,3 +80,24 @@ export function normalizeRichText(value: string | null | undefined): string {
   if (!value) return "";
   return isRichHtml(value) ? sanitizeRichHtml(value) : plainTextToRichHtml(value);
 }
+
+/**
+ * Valida se a string é uma URL pública http(s). Rejeita esquemas perigosos ou
+ * caminhos locais (file://, C:\, \\servidor, javascript:, data:, etc.), que
+ * jamais são acessíveis a outros usuários e podem quebrar links do sistema.
+ */
+export function isValidPublicUrl(value: string | null | undefined): boolean {
+  if (!value) return false;
+  const raw = String(value).trim();
+  if (!raw) return false;
+  // Rejeitar padrões locais/anti-web comuns
+  if (/^(file:|about:|javascript:|data:|blob:|vbscript:)/i.test(raw)) return false;
+  if (/^[a-zA-Z]:[\\/]/.test(raw)) return false; // C:\ ou C:/
+  if (/^\\\\/.test(raw)) return false;           // UNC \\server\share
+  try {
+    const u = new URL(raw);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
