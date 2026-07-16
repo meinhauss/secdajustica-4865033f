@@ -995,8 +995,19 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
 
   const juntarProcuracao = useMutation({
     mutationFn: async () => {
+      if (!procForm.cartorio_id) throw new Error("Selecione a procuração emitida pelo Cartório.");
       if (!procForm.documento_url) throw new Error("Informe o link da procuração.");
       if (procForm.selectedPartes.length === 0) throw new Error("Selecione ao menos uma parte para representar.");
+
+      // Verificação estrita: as partes selecionadas precisam constar como
+      // integrantes da procuração cartorária escolhida.
+      const cartorioReg = (procuracoesCartorio || []).find((p: any) => p.id === procForm.cartorio_id);
+      if (!cartorioReg) throw new Error("Procuração cartorária não encontrada.");
+      const permitidas = new Set(partesProcessoNaProcuracao(cartorioReg));
+      const invalida = procForm.selectedPartes.find((k) => !permitidas.has(k));
+      if (invalida) {
+        throw new Error(`Você só pode representar partes integrantes da procuração cartorária. "${invalida.split(":").slice(1).join(":")}" não consta na procuração selecionada.`);
+      }
 
       // Insert one procuracao per selected party
       const inserts = procForm.selectedPartes.map(parteKey => ({
