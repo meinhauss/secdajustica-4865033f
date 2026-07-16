@@ -2984,10 +2984,8 @@ function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles
       toast.error("Preencha o nome e o link do anexo.");
       return;
     }
-    try {
-      new URL(novoAnexoUrl.trim());
-    } catch {
-      toast.error("Insira um link válido (ex: https://...)");
+    if (!isValidPublicUrl(novoAnexoUrl.trim())) {
+      toast.error("Anexo deve ser um link público (https://...). Não são aceitos caminhos locais como file:/// ou C:\\...");
       return;
     }
     setAnexos([...anexos, { nome: novoAnexoNome.trim(), url: novoAnexoUrl.trim() }]);
