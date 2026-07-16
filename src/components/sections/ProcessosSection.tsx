@@ -1987,12 +1987,12 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                       </div>
                     </div>
                   )}
+                  {partesAutor.length === 0 && partesReu.length === 0 && (
+                    <p className="text-xs text-muted-foreground">Nenhuma parte identificada no processo.</p>
+                  )}
                 </div>
-              )}
-              {partesAutor.length === 0 && partesReu.length === 0 && (
-                <p className="text-xs text-muted-foreground">Nenhuma parte identificada no processo.</p>
-              )}
-            </div>
+              );
+            })()}
             <div>
               <label className="text-xs font-medium text-foreground mb-2 block">Procuração emitida pelo Cartório</label>
               {procuracoesDisponiveis.length === 0 ? (
