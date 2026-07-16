@@ -3518,6 +3518,11 @@ function AddAtoCartorio({ onAdd, isPending }: { onAdd: (ato: { tipo: string; tit
         <form onSubmit={(e) => {
           e.preventDefault();
           const validUrls = anexoUrls.filter(u => u.trim());
+          const invalid = validUrls.find(u => !isValidPublicUrl(u));
+          if (invalid) {
+            toast.error(`Link inválido: "${invalid.slice(0, 40)}...". Use um link público (https://...). Caminhos locais como file:/// ou C:\\ não são acessíveis.`);
+            return;
+          }
           onAdd({ tipo, titulo, conteudo, anexo_urls: validUrls.length > 0 ? validUrls : undefined });
           setOpen(false);
           setTitulo("");
