@@ -365,6 +365,14 @@ function LinksInput({ label, links, onChange }: {
   const addLink = () => {
     const url = input.trim();
     if (!url) return;
+    if (!isValidPublicUrl(url)) {
+      toast({
+        title: "Link inválido",
+        description: "Cole um link público começando com https:// (ex.: Google Drive, Discord). Caminhos locais (file:///, C:\\...) não são acessíveis a outros usuários.",
+        variant: "destructive",
+      });
+      return;
+    }
     onChange([...links, url]);
     setInput("");
   };
