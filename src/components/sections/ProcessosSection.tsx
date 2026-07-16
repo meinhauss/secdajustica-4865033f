@@ -941,23 +941,29 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   });
 
 
-  // Extrai a lista de partes integrantes de uma procuração cartorária
-  // (partes_envolvidas é JSON: [{ nome, id_personagem }, ...])
+  // Extrai a lista de OUTORGANTES (clientes/partes) de uma procuração cartorária.
+  // Em uma procuração ad judicia: requerente_nome = outorgante (parte do processo);
+  // partes_envolvidas = outorgado (advogado). Portanto, para saber quem esta
+  // procuração habilita a representar no processo, olhamos requerente_nome.
   const partesDaProcuracao = (pc: any): { nome: string; id_personagem?: string }[] => {
-    const raw = pc?.partes_envolvidas;
-    if (!raw) return [];
-    try {
-      const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
-      if (Array.isArray(parsed)) {
-        return parsed
-          .map((p: any) => ({
-            nome: String(p?.nome || "").trim(),
-            id_personagem: p?.id_personagem ? String(p.id_personagem).trim() : undefined,
-          }))
-          .filter((p) => p.nome || p.id_personagem);
+    const out: { nome: string; id_personagem?: string }[] = [];
+    const push = (raw: any) => {
+      if (!raw) return;
+      try {
+        const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+        const arr = Array.isArray(parsed) ? parsed : [parsed];
+        arr.forEach((p: any) => {
+          if (!p) return;
+          const nome = String(p?.nome || p?.name || "").trim();
+          const id_personagem = p?.id_personagem ? String(p.id_personagem).trim() : undefined;
+          if (nome || id_personagem) out.push({ nome, id_personagem });
+        });
+      } catch {
+        if (typeof raw === "string" && raw.trim()) out.push({ nome: raw.trim() });
       }
-    } catch {}
-    return [];
+    };
+    push(pc?.requerente_nome);
+    return out;
   };
 
   // Retorna as chaves (autor:Nome / reu:Nome) do processo que constam na procuração cartorária.
