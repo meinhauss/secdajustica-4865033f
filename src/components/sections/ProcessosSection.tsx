@@ -906,22 +906,40 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     },
   });
 
-  // Procurações emitidas pelo cartório para este advogado
+  // Procurações emitidas pelo cartório em que este advogado consta
+  // (como requerente OU como parte integrante via id_personagem/nome).
   const { data: procuracoesCartorio } = useQuery({
     enabled: !!user?.id && isAdvogado && showProcuracao,
-    queryKey: ["procuracoes-cartorio", user?.id],
+    queryKey: ["procuracoes-cartorio", user?.id, profile?.id_personagem, profile?.nome_completo],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("registros_cartorio")
         .select("*")
         .eq("tipo", "procuracao")
-        .eq("requerente_id", user?.id)
         .eq("status", "emitido")
         .order("emitido_em", { ascending: false });
       if (error) throw error;
-      return (data as any[]) || [];
+      const idPers = (profile?.id_personagem || "").trim();
+      const nome = (profile?.nome_completo || "").toLowerCase().trim();
+      return ((data as any[]) || []).filter((pc) => {
+        if (pc.requerente_id === user?.id) return true;
+        const raw = pc?.partes_envolvidas;
+        if (!raw) return false;
+        try {
+          const arr = typeof raw === "string" ? JSON.parse(raw) : raw;
+          if (Array.isArray(arr)) {
+            return arr.some((p: any) => {
+              const pid = String(p?.id_personagem || "").trim();
+              const pnome = String(p?.nome || "").toLowerCase().trim();
+              return (idPers && pid === idPers) || (nome && pnome === nome);
+            });
+          }
+        } catch {}
+        return false;
+      });
     },
   });
+
 
   // Extrai a lista de partes integrantes de uma procuração cartorária
   // (partes_envolvidas é JSON: [{ nome, id_personagem }, ...])
