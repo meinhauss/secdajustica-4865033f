@@ -20,6 +20,7 @@ import {
   Heart, Home, Users, ScrollText, FileSignature, Baby, BarChart3, User, Link, X, Trash2, ExternalLink, Download, Scale, AlertTriangle
 } from "lucide-react";
 import { generateCartorioPDF, imageToBase64 } from "@/lib/pdfGenerator";
+import { isValidPublicUrl } from "@/lib/sanitize";
 import logoCartorio from "@/assets/logo-cartorio-sp.png";
 
 /* ─── Types ─── */
