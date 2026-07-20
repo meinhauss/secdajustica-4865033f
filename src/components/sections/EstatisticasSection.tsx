@@ -626,10 +626,11 @@ export default function EstatisticasSection() {
               </thead>
               <tbody>
                 {magistrados.map((m, i) => (
-                  <tr key={m.user_id} className={`border-t border-border ${i === 0 && !overrideConfig ? "bg-institutional/5" : ""} ${overrideConfig === m.user_id ? "bg-institutional/5" : ""}`}>
+                  <tr key={m.user_id} className={`border-t border-border ${!m.recesso && i === 0 && !overrideConfig ? "bg-institutional/5" : ""} ${overrideConfig === m.user_id ? "bg-institutional/5" : ""} ${m.recesso ? "opacity-60" : ""}`}>
                     <td className="p-2 font-medium text-foreground">
                       {m.nome_completo}
                       {m.id_personagem && <span className="text-xs text-muted-foreground ml-1">(ID {m.id_personagem})</span>}
+                      {m.recesso && <Badge className="ml-2 bg-amber-500/20 text-amber-700 border-amber-500/30 text-[10px]">RECESSO</Badge>}
                     </td>
                     <td className="p-2 text-center text-foreground">{m.ativos}</td>
                     <td className="p-2 text-center text-muted-foreground">{m.total}</td>
