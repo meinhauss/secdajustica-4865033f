@@ -403,13 +403,16 @@ export default function EstatisticasSection() {
       const { data: roles } = await supabase.from("user_roles").select("user_id, role").in("role", ["magistrado", "desembargador"]);
       if (!roles?.length) return [];
       const userIds = roles.map(r => r.user_id);
-      const { data: profiles } = await supabase.from("profiles").select("user_id, nome_completo, id_personagem").in("user_id", userIds);
+      const { data: profiles } = await supabase.from("profiles").select("user_id, nome_completo, id_personagem, recesso").in("user_id", userIds);
       const { data: processos } = await supabase.from("processos").select("juiz_id, status");
       return (profiles || []).map(p => {
         const total = processos?.filter(pr => pr.juiz_id === p.user_id).length || 0;
         const ativos = processos?.filter(pr => pr.juiz_id === p.user_id && !["arquivado", "sentenciado", "suspenso"].includes(pr.status)).length || 0;
-        return { ...p, total, ativos, role: roles.find(r => r.user_id === p.user_id)?.role };
-      }).sort((a, b) => a.ativos - b.ativos);
+        return { ...p, total, ativos, role: roles.find(r => r.user_id === p.user_id)?.role, recesso: !!(p as any).recesso };
+      }).sort((a, b) => {
+        if (a.recesso !== b.recesso) return a.recesso ? 1 : -1;
+        return a.ativos - b.ativos;
+      });
     },
     enabled: isAdmin,
   });
