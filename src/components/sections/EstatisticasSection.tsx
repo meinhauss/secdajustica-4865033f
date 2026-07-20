@@ -445,7 +445,8 @@ export default function EstatisticasSection() {
     },
   });
 
-  const proximoJuizNatural = magistrados?.length ? magistrados[0] : null;
+  const magistradosDisponiveis = magistrados?.filter(m => !m.recesso) ?? [];
+  const proximoJuizNatural = magistradosDisponiveis.length ? magistradosDisponiveis[0] : null;
   const proximoJuiz = overrideConfig
     ? magistrados?.find(m => m.user_id === overrideConfig) || null
     : proximoJuizNatural;
