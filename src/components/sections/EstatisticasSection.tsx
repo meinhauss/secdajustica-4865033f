@@ -403,13 +403,16 @@ export default function EstatisticasSection() {
       const { data: roles } = await supabase.from("user_roles").select("user_id, role").in("role", ["magistrado", "desembargador"]);
       if (!roles?.length) return [];
       const userIds = roles.map(r => r.user_id);
-      const { data: profiles } = await supabase.from("profiles").select("user_id, nome_completo, id_personagem").in("user_id", userIds);
+      const { data: profiles } = await supabase.from("profiles").select("user_id, nome_completo, id_personagem, recesso").in("user_id", userIds);
       const { data: processos } = await supabase.from("processos").select("juiz_id, status");
       return (profiles || []).map(p => {
         const total = processos?.filter(pr => pr.juiz_id === p.user_id).length || 0;
         const ativos = processos?.filter(pr => pr.juiz_id === p.user_id && !["arquivado", "sentenciado", "suspenso"].includes(pr.status)).length || 0;
-        return { ...p, total, ativos, role: roles.find(r => r.user_id === p.user_id)?.role };
-      }).sort((a, b) => a.ativos - b.ativos);
+        return { ...p, total, ativos, role: roles.find(r => r.user_id === p.user_id)?.role, recesso: !!(p as any).recesso };
+      }).sort((a, b) => {
+        if (a.recesso !== b.recesso) return a.recesso ? 1 : -1;
+        return a.ativos - b.ativos;
+      });
     },
     enabled: isAdmin,
   });
@@ -442,7 +445,8 @@ export default function EstatisticasSection() {
     },
   });
 
-  const proximoJuizNatural = magistrados?.length ? magistrados[0] : null;
+  const magistradosDisponiveis = magistrados?.filter(m => !m.recesso) ?? [];
+  const proximoJuizNatural = magistradosDisponiveis.length ? magistradosDisponiveis[0] : null;
   const proximoJuiz = overrideConfig
     ? magistrados?.find(m => m.user_id === overrideConfig) || null
     : proximoJuizNatural;
@@ -578,7 +582,7 @@ export default function EstatisticasSection() {
                 <SelectValue placeholder="Selecionar próximo juiz manualmente..." />
               </SelectTrigger>
               <SelectContent>
-                {magistrados.map(m => (
+                {magistrados.filter(m => !m.recesso).map(m => (
                   <SelectItem key={m.user_id} value={m.user_id}>
                     {m.nome_completo} ({m.ativos} ativos)
                   </SelectItem>
@@ -622,10 +626,11 @@ export default function EstatisticasSection() {
               </thead>
               <tbody>
                 {magistrados.map((m, i) => (
-                  <tr key={m.user_id} className={`border-t border-border ${i === 0 && !overrideConfig ? "bg-institutional/5" : ""} ${overrideConfig === m.user_id ? "bg-institutional/5" : ""}`}>
+                  <tr key={m.user_id} className={`border-t border-border ${!m.recesso && i === 0 && !overrideConfig ? "bg-institutional/5" : ""} ${overrideConfig === m.user_id ? "bg-institutional/5" : ""} ${m.recesso ? "opacity-60" : ""}`}>
                     <td className="p-2 font-medium text-foreground">
                       {m.nome_completo}
                       {m.id_personagem && <span className="text-xs text-muted-foreground ml-1">(ID {m.id_personagem})</span>}
+                      {m.recesso && <Badge className="ml-2 bg-amber-500/20 text-amber-700 border-amber-500/30 text-[10px]">RECESSO</Badge>}
                     </td>
                     <td className="p-2 text-center text-foreground">{m.ativos}</td>
                     <td className="p-2 text-center text-muted-foreground">{m.total}</td>
