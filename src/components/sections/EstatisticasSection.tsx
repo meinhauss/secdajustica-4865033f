@@ -582,7 +582,7 @@ export default function EstatisticasSection() {
                 <SelectValue placeholder="Selecionar próximo juiz manualmente..." />
               </SelectTrigger>
               <SelectContent>
-                {magistrados.map(m => (
+                {magistrados.filter(m => !m.recesso).map(m => (
                   <SelectItem key={m.user_id} value={m.user_id}>
                     {m.nome_completo} ({m.ativos} ativos)
                   </SelectItem>
