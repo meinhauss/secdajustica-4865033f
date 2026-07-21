@@ -39,9 +39,14 @@ Formato da resposta (markdown):
     `Corrija apenas ortografia, pontuação, concordância e regência do texto abaixo. NÃO reescreva, NÃO altere estilo, NÃO adicione conteúdo. Devolva APENAS o texto corrigido, mantendo quebras de linha.\n\nTEXTO:\n${texto.replace(/<[^>]+>/g, "\n").trim()}`,
 
   gerarEmenta: (ctx: {
-    fundamentacao: string; dispositivo: string;
+    sentenca?: string;
+    fundamentacao?: string; dispositivo?: string;
     classe?: string; assunto?: string;
-  }) => `Gere a EMENTA de uma sentença brasileira, no padrão do TJSP, com base APENAS no que consta na fundamentação e no dispositivo abaixo. NÃO invente fatos, teses, artigos ou jurisprudência que não estejam nos textos.
+  }) => {
+    const corpo = (ctx.sentenca && ctx.sentenca.trim())
+      ? (ctx.sentenca || "").replace(/<[^>]+>/g, "\n").trim()
+      : `${(ctx.fundamentacao || "").replace(/<[^>]+>/g, "\n").trim()}\n\n${(ctx.dispositivo || "").replace(/<[^>]+>/g, "\n").trim()}`.trim();
+    return `Gere a EMENTA de uma sentença brasileira, no padrão do TJSP, com base APENAS no conteúdo da sentença abaixo. NÃO invente fatos, teses, artigos ou jurisprudência que não estejam no texto.
 
 Formato obrigatório (texto puro, sem HTML, sem markdown):
 - Linha 1: cabeçalho em MAIÚSCULAS com 3 a 6 palavras-chave separadas por ". " (ex.: "AÇÃO DE COBRANÇA. CONTRATO. JUROS MORATÓRIOS. PROCEDÊNCIA.").
@@ -50,13 +55,11 @@ Formato obrigatório (texto puro, sem HTML, sem markdown):
 
 Classe: ${ctx.classe || "-"} — Assunto: ${ctx.assunto || "-"}
 
-FUNDAMENTAÇÃO:
-${(ctx.fundamentacao || "").replace(/<[^>]+>/g, "\n").trim()}
+SENTENÇA:
+${corpo}
 
-DISPOSITIVO:
-${(ctx.dispositivo || "").replace(/<[^>]+>/g, "\n").trim()}
-
-Devolva APENAS o texto da ementa.`,
+Devolva APENAS o texto da ementa.`;
+  },
 
   explicarTermo: (termo: string, contexto?: string) =>
     `Explique de forma objetiva (máximo 3 frases) o termo jurídico "${termo}" em português.${contexto ? ` Considere o contexto: "${contexto.slice(0, 400)}"` : ""} Se aplicável, cite o dispositivo legal principal. Não invente jurisprudência.`,
@@ -66,17 +69,15 @@ Devolva APENAS o texto da ementa.`,
     tituloAto?: string;
     numero?: string; classe?: string; assunto?: string;
     autor?: string; reu?: string; status?: string;
+    valor_causa?: number | string | null;
     movimentacoes?: { tipo: string; descricao: string }[];
     rascunhoAtual?: string;
     instrucao?: string;
   }) => {
-    const isFund = ctx.tipoAto === "sentenca_fundamentacao";
-    const isDisp = ctx.tipoAto === "sentenca_dispositivo";
-    const escopo = isFund
-      ? `\n\nESCOPO OBRIGATÓRIO: Gere APENAS a seção "FUNDAMENTAÇÃO" da sentença — análise jurídica dos fatos, teses e provas, com dispositivos legais e jurisprudência quando pertinente. NÃO inclua relatório, ementa, dispositivo, cabeçalho, comarca, nº do processo, partes, data ou assinatura. Comece direto com <p><strong>FUNDAMENTAÇÃO</strong></p> e termine antes do dispositivo.`
-      : isDisp
-        ? `\n\nESCOPO OBRIGATÓRIO: Gere APENAS a seção "DISPOSITIVO" da sentença — parte decisória com "ISTO POSTO, JULGO ...", condenações, honorários, custas e determinações finais. NÃO inclua relatório, fundamentação, ementa, cabeçalho, comarca, partes, data ou assinatura. Comece direto com <p><strong>DISPOSITIVO</strong></p>.`
-        : "";
+    const isSentCompleta = ctx.tipoAto === "sentenca" || ctx.tipoAto === "sentenca_completa" || ctx.tipoAto === "sentenca_absolutoria" || ctx.tipoAto === "sentenca_condenatoria" || ctx.tipoAto === "acordao";
+    const escopo = isSentCompleta
+      ? `\n\nESCOPO OBRIGATÓRIO: Gere a SENTENÇA COMO PEÇA ÚNICA E INTEGRADA — texto corrido, sem separar em seções rotuladas "FUNDAMENTAÇÃO" e "DISPOSITIVO". Comece com breve relatório (2–4 linhas), siga com análise jurídica dos fatos, teses e provas com dispositivos legais aplicáveis, e termine com a parte decisória iniciada por "ISTO POSTO," (condenações, honorários, custas, determinações). NÃO inclua ementa. NÃO inclua cabeçalho, comarca, nº do processo, partes qualificadas, data ou assinatura (isso é preenchido pelo sistema). Use parágrafos <p>…</p> contínuos, sem títulos em <strong>MAIÚSCULAS</strong> quebrando o fluxo.`
+      : "";
     return `Gere o texto do ato judicial abaixo em português, tom formal, técnico, pronto para ser publicado. NÃO invente fatos, nomes, valores, artigos ou jurisprudência que não estejam no contexto. Use os dados fornecidos (partes, advogados, OAB, juiz) SEMPRE que estiverem presentes; NUNCA escreva placeholders como [nome do autor], [OAB] etc. quando o dado estiver no contexto.
 
 Tipo do ato: ${ctx.tipoAto}
@@ -84,6 +85,7 @@ ${ctx.tituloAto ? `Título proposto: ${ctx.tituloAto}\n` : ""}Comarca: São Paul
 Processo nº ${ctx.numero || "-"} — Classe: ${ctx.classe || "-"} — Assunto: ${ctx.assunto || "-"}
 Autor(es): ${ctx.autor || "-"}
 Réu(s): ${ctx.reu || "-"}
+Valor da causa: ${ctx.valor_causa ?? "-"}
 Status: ${ctx.status || "-"}
 
 Últimas movimentações:
@@ -91,7 +93,12 @@ ${(ctx.movimentacoes || []).slice(0, 10).map((m, i) => `${i + 1}. [${m.tipo}] ${
 
 ${ctx.rascunhoAtual ? `Rascunho atual do usuário (aprimore se pertinente):\n${ctx.rascunhoAtual.replace(/<[^>]+>/g, "\n")}\n` : ""}${ctx.instrucao ? `Instrução adicional: ${ctx.instrucao}\n` : ""}${escopo}
 
-Devolva APENAS o texto do ato em HTML simples (<p>, <strong>, <em>, <br>, <ul>, <li>), sem cabeçalhos "Aqui está", sem markdown de código.`;
+REGRAS DE FORMATAÇÃO (obrigatórias):
+- Devolva APENAS HTML simples usando SOMENTE as tags <p>, <strong>, <em>, <u>, <br>, <ul>, <ol>, <li>. NUNCA use markdown (**, *, #, \`\`\`), NUNCA use <html>, <body>, <div>, classes ou estilos.
+- Cada parágrafo em UM único <p>…</p>. Não empilhe parágrafos vazios; no máximo UM <p><br/></p> entre blocos, apenas quando realmente necessário para respiro visual.
+- Prazos SEMPRE em horas (24h/36h/72h). NUNCA use "dias" para prazos processuais.
+- Comarca sempre "São Paulo/SP — TJSP".
+- Sem introduções como "Aqui está o texto:" ou "Segue a sugestão:". Comece direto pelo conteúdo do ato.`;
   },
 
   classificarPeticao: (texto: string) =>

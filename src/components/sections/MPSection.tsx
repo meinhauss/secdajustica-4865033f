@@ -18,6 +18,8 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { PodiumDestaque } from "@/components/PodiumDestaque";
+import AISugerirDespacho from "@/components/AISugerirDespacho";
+import { appendAiHtml } from "@/lib/ai/insertHtml";
 
 /* ═══════════════════════════════════════════ */
 /*  MAIN                                       */
@@ -388,6 +390,15 @@ function OuvidoriaDetail({ denunciaId, onBack }: { denunciaId: string; onBack: (
           <form onSubmit={(e) => { e.preventDefault(); oferecerDenuncia.mutate(); }} className="space-y-4">
             <Input placeholder="Tipificação penal (ex: Art. 155, CP — Furto)" value={denForm.tipificacao} onChange={(e) => setDenForm({ ...denForm, tipificacao: e.target.value })} className="rounded-xl" />
             <RichTextEditor placeholder="Resumo da denúncia..." value={denForm.resumo} onChange={(html) => setDenForm({ ...denForm, resumo: html })} minHeight="100px" />
+            <div className="flex justify-end">
+              <AISugerirDespacho
+                tipoAto="parecer_mp"
+                tituloAto={`Denúncia — ${denForm.tipificacao || "MP"}`}
+                rascunhoAtual={denForm.fundamentacao}
+                onInsert={(h) => setDenForm((f) => ({ ...f, fundamentacao: appendAiHtml(f.fundamentacao, h) }))}
+                label="Sugerir fundamentação com IA"
+              />
+            </div>
             <RichTextEditor placeholder="Fundamentação jurídica..." value={denForm.fundamentacao} onChange={(html) => setDenForm({ ...denForm, fundamentacao: html })} minHeight="160px" />
             <div className="flex gap-2">
               <Button type="submit" disabled={oferecerDenuncia.isPending} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
@@ -405,6 +416,15 @@ function OuvidoriaDetail({ denunciaId, onBack }: { denunciaId: string; onBack: (
             <Archive className="h-4 w-4 text-gold-dark" /> Arquivamento da Denúncia
           </h3>
           <form onSubmit={(e) => { e.preventDefault(); arquivarDenuncia.mutate(); }} className="space-y-4">
+            <div className="flex justify-end">
+              <AISugerirDespacho
+                tipoAto="parecer_mp"
+                tituloAto="Promoção de arquivamento"
+                rascunhoAtual={arquivJust}
+                onInsert={(h) => setArquivJust((prev) => appendAiHtml(prev, h))}
+                label="Sugerir arquivamento com IA"
+              />
+            </div>
             <RichTextEditor placeholder="Justificativa para o arquivamento..." value={arquivJust} onChange={(html) => setArquivJust(html)} minHeight="160px" />
             <div className="flex gap-2">
               <Button type="submit" disabled={arquivarDenuncia.isPending} className="rounded-xl bg-gold hover:bg-gold/90 text-foreground">

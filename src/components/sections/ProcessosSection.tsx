@@ -35,6 +35,7 @@ import AIResumirTexto from "@/components/AIResumirTexto";
 import AIAssistente from "@/components/AIAssistente";
 import AIClassificarPeticao from "@/components/AIClassificarPeticao";
 import AISugerirDespacho from "@/components/AISugerirDespacho";
+import { appendAiHtml } from "@/lib/ai/insertHtml";
 import AIFerramentas from "@/components/AIFerramentas";
 import AIBuscaSemantica from "@/components/AIBuscaSemantica";
 import AIExplicarSelecao from "@/components/AIExplicarSelecao";
@@ -2740,11 +2741,31 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                       </Select>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-foreground">Fundamentação do Recurso</label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-sm font-medium text-foreground">Fundamentação do Recurso</label>
+                        <AISugerirDespacho
+                          tipoAto="recurso_apelacao"
+                          tituloAto="Fundamentação da apelação"
+                          rascunhoAtual={apelacaoForm.fundamentacao}
+                          processo={processo}
+                          movimentacoes={movimentacoes || []}
+                          onInsert={(h) => setApelacaoForm((f) => ({ ...f, fundamentacao: appendAiHtml(f.fundamentacao, h) }))}
+                        />
+                      </div>
                       <RichTextEditor value={apelacaoForm.fundamentacao} onChange={(html) => setApelacaoForm({ ...apelacaoForm, fundamentacao: html })} placeholder="Razões da apelação e fundamentos jurídicos..." minHeight="200px" className="mt-1" />
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-foreground">Pedido</label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-sm font-medium text-foreground">Pedido</label>
+                        <AISugerirDespacho
+                          tipoAto="recurso_apelacao"
+                          tituloAto="Pedido da apelação"
+                          rascunhoAtual={apelacaoForm.pedido}
+                          processo={processo}
+                          movimentacoes={movimentacoes || []}
+                          onInsert={(h) => setApelacaoForm((f) => ({ ...f, pedido: appendAiHtml(f.pedido, h) }))}
+                        />
+                      </div>
                       <RichTextEditor value={apelacaoForm.pedido} onChange={(html) => setApelacaoForm({ ...apelacaoForm, pedido: html })} placeholder="O que se requer ao Tribunal..." minHeight="140px" className="mt-1" />
                     </div>
                     <Button type="submit" disabled={interporApelacao.isPending} className="w-full gap-2">
@@ -2867,11 +2888,31 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                       </Select>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-foreground">Fundamentação</label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-sm font-medium text-foreground">Fundamentação</label>
+                        <AISugerirDespacho
+                          tipoAto="embargos_declaracao"
+                          tituloAto="Fundamentação dos embargos"
+                          rascunhoAtual={embargosForm.fundamentacao}
+                          processo={processo}
+                          movimentacoes={movimentacoes || []}
+                          onInsert={(h) => setEmbargosForm((f) => ({ ...f, fundamentacao: appendAiHtml(f.fundamentacao, h) }))}
+                        />
+                      </div>
                       <RichTextEditor value={embargosForm.fundamentacao} onChange={(html) => setEmbargosForm({ ...embargosForm, fundamentacao: html })} placeholder="Indique o ponto omisso, contraditório ou obscuro da sentença..." minHeight="200px" className="mt-1" />
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-foreground">Pedido</label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-sm font-medium text-foreground">Pedido</label>
+                        <AISugerirDespacho
+                          tipoAto="embargos_declaracao"
+                          tituloAto="Pedido dos embargos"
+                          rascunhoAtual={embargosForm.pedido}
+                          processo={processo}
+                          movimentacoes={movimentacoes || []}
+                          onInsert={(h) => setEmbargosForm((f) => ({ ...f, pedido: appendAiHtml(f.pedido, h) }))}
+                        />
+                      </div>
                       <RichTextEditor value={embargosForm.pedido} onChange={(html) => setEmbargosForm({ ...embargosForm, pedido: html })} placeholder="O que se requer ao Juízo..." minHeight="140px" className="mt-1" />
                     </div>
                     <Button type="submit" disabled={oporEmbargos.isPending} className="w-full gap-2">
@@ -3336,7 +3377,7 @@ function AddAto({ onAdd, processo, movimentacoes }: { onAdd: (ato: { tipo: strin
               rascunhoAtual={conteudo}
               processo={processo}
               movimentacoes={movimentacoes}
-              onInsert={(t) => setConteudo(t)}
+              onInsert={(h) => setConteudo((prev) => appendAiHtml(prev, h))}
             />
           </div>
           <RichTextEditor placeholder="Conteúdo do ato judicial..." value={conteudo} onChange={setConteudo} minHeight="280px" />
