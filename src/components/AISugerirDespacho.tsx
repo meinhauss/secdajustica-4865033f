@@ -6,6 +6,7 @@ import { Sparkles, Loader2, RefreshCw, Check } from "lucide-react";
 import { useAI } from "@/hooks/useAI";
 import { PROMPTS } from "@/lib/ai/prompts";
 import { extrairNomes } from "@/lib/modelosVars";
+import { sanitizeAiHtml } from "@/lib/ai/insertHtml";
 
 interface Props {
   tipoAto: string;
@@ -79,7 +80,7 @@ export default function AISugerirDespacho({ tipoAto, tituloAto, rascunhoAtual, p
                 />
                 <div className="flex justify-between items-center">
                   <p className="text-[10px] text-muted-foreground">Gerado por IA — revise antes de usar.</p>
-                  <Button size="sm" className="rounded-xl" onClick={() => { onInsert(texto); setOpen(false); }}>
+                  <Button size="sm" className="rounded-xl" onClick={() => { onInsert(sanitizeAiHtml(texto)); setOpen(false); }}>
                     <Check className="h-4 w-4 mr-1" /> Usar este texto
                   </Button>
                 </div>

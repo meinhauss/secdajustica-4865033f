@@ -29,6 +29,7 @@ import AISugerirDespacho from "@/components/AISugerirDespacho";
 import AIGerarEmenta from "@/components/AIGerarEmenta";
 import { extrairNomes, type ModeloContext } from "@/lib/modelosVars";
 import { analisarDespacho } from "@/lib/assistente/bus";
+import { appendAiHtml } from "@/lib/ai/insertHtml";
 
 const textoToHtml = (t: string) => t.split(/\n{2,}/).map(p => `<p>${p.replace(/\n/g, "<br/>")}</p>`).join("");
 const appendHtml = (prev: string, add: string) => (prev && prev !== "<p></p>" ? prev + add : add);
@@ -364,7 +365,7 @@ function MagistradoDashboard({ onSelectProcesso }: { onSelectProcesso: (id: stri
                     {s.assinado && <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400">Assinada</span>}
                   </div>
                   {s.ementa && <p className="text-sm font-medium text-foreground">{s.ementa}</p>}
-                  <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{s.dispositivo}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{((s.dispositivo || "").replace(/<[^>]+>/g, "").trim() || (s.fundamentacao || "").replace(/<[^>]+>/g, "").trim()).slice(0, 200)}</p>
                   <p className="text-xs text-muted-foreground mt-1">{format(new Date(s.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
                 </motion.div>
               ))}
@@ -1005,20 +1006,23 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     onError: (err: any) => toast.error(err.message),
   });
 
-  // ── SENTENÇA ──
-  const [sentencaForm, setSentencaForm] = useState({ tipo: "sentenca", ementa: "", fundamentacao: "", dispositivo: "" });
+  // ── SENTENÇA (peça única e integrada) ──
+  const [sentencaForm, setSentencaForm] = useState({ tipo: "sentenca", ementa: "", conteudo: "" });
   const proferirSentenca = useMutation({
     mutationFn: async () => {
-      if (!sentencaForm.fundamentacao || !sentencaForm.dispositivo) throw new Error("Fundamentação e dispositivo obrigatórios.");
-      const fundamentacaoHtml = normalizeRichText(sentencaForm.fundamentacao);
-      const dispositivoHtml = normalizeRichText(sentencaForm.dispositivo);
+      if (!sentencaForm.conteudo || sentencaForm.conteudo.replace(/<[^>]+>/g, "").trim().length < 40) {
+        throw new Error("Conteúdo da sentença é obrigatório.");
+      }
+      const conteudoHtml = normalizeRichText(sentencaForm.conteudo);
       const { error } = await supabase.from("sentencas").insert({
         processo_id: processoId,
         magistrado_id: user!.id,
         tipo: sentencaForm.tipo,
         ementa: sentencaForm.ementa || null,
-        fundamentacao: fundamentacaoHtml,
-        dispositivo: dispositivoHtml,
+        // Armazenamos a sentença COMPLETA em `fundamentacao` (peça única).
+        // O campo `dispositivo` fica com um marcador pois é NOT NULL no schema legado.
+        fundamentacao: conteudoHtml,
+        dispositivo: " ",
         assinado: true,
         data_publicacao: new Date().toISOString(),
       } as any);
@@ -1027,14 +1031,14 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
       await supabase.from("movimentacoes").insert({
         processo_id: processoId,
         tipo: "sentenca",
-        descricao: `<h2>SENTENÇA</h2>${sentencaForm.ementa ? `<p><strong>Ementa:</strong> ${normalizeRichText(sentencaForm.ementa)}</p>` : ""}<p><strong>Fundamentação:</strong></p>${fundamentacaoHtml}<p><strong>Dispositivo:</strong></p>${dispositivoHtml}`,
+        descricao: `<h2>SENTENÇA</h2>${sentencaForm.ementa ? `<p><strong>Ementa:</strong> ${normalizeRichText(sentencaForm.ementa)}</p>` : ""}${conteudoHtml}`,
         autor_id: user!.id,
       });
     },
     onSuccess: () => {
       invalidateAll();
       setActiveAction("none");
-      setSentencaForm({ tipo: "sentenca", ementa: "", fundamentacao: "", dispositivo: "" });
+      setSentencaForm({ tipo: "sentenca", ementa: "", conteudo: "" });
       toast.success("Sentença proferida e publicada!");
     },
     onError: (err: any) => toast.error(err.message),
@@ -1468,7 +1472,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             </Select>
             
             <div className="flex justify-end gap-2 flex-wrap">
-              <AISugerirDespacho tipoAto={despachoForm.tipo} tituloAto="Despacho" rascunhoAtual={despachoForm.conteudo} processo={processo} movimentacoes={movs} onInsert={(t) => setDespachoForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))} />
+              <AISugerirDespacho tipoAto={despachoForm.tipo} tituloAto="Despacho" rascunhoAtual={despachoForm.conteudo} processo={processo} movimentacoes={movs} onInsert={(h) => setDespachoForm(f => ({ ...f, conteudo: appendAiHtml(f.conteudo, h) }))} />
               <ModeloPicker categoria="despacho" context={modeloCtx} onInsert={(t) => setDespachoForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))} />
             </div>
             <RichTextEditor placeholder="Conteúdo do despacho..." value={despachoForm.conteudo} onChange={(html) => setDespachoForm({ ...despachoForm, conteudo: html })} minHeight="160px" />
@@ -1568,7 +1572,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               ))}
             </div>
             <div className="flex justify-end gap-2 flex-wrap">
-              <AISugerirDespacho tipoAto="mandado" tituloAto="Mandado" rascunhoAtual={mandadoForm.descricao} processo={processo} movimentacoes={movs} onInsert={(t) => setMandadoForm(f => ({ ...f, descricao: appendHtml(f.descricao, textoToHtml(t)) }))} />
+              <AISugerirDespacho tipoAto="mandado" tituloAto="Mandado" rascunhoAtual={mandadoForm.descricao} processo={processo} movimentacoes={movs} onInsert={(h) => setMandadoForm(f => ({ ...f, descricao: appendAiHtml(f.descricao, h) }))} />
               <ModeloPicker context={modeloCtx} onInsert={(t) => setMandadoForm(f => ({ ...f, descricao: appendHtml(f.descricao, textoToHtml(t)) }))} />
             </div>
             <RichTextEditor placeholder="Descrição e determinações do mandado..." value={mandadoForm.descricao} onChange={(html) => setMandadoForm({ ...mandadoForm, descricao: html })} minHeight="140px" />
@@ -1596,7 +1600,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               </SelectContent>
             </Select>
             <div className="flex justify-end gap-2 flex-wrap">
-              <AISugerirDespacho tipoAto="intimacao" tituloAto="Intimação de cargo" rascunhoAtual={cargoIntForm.conteudo} processo={processo} movimentacoes={movs} onInsert={(t) => setCargoIntForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))} />
+              <AISugerirDespacho tipoAto="intimacao" tituloAto="Intimação de cargo" rascunhoAtual={cargoIntForm.conteudo} processo={processo} movimentacoes={movs} onInsert={(h) => setCargoIntForm(f => ({ ...f, conteudo: appendAiHtml(f.conteudo, h) }))} />
               <ModeloPicker context={modeloCtx} onInsert={(t) => setCargoIntForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))} />
             </div>
             <RichTextEditor
@@ -1704,7 +1708,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                 rascunhoAtual={pessoaIntForm.conteudo}
                 processo={processo}
                 movimentacoes={movs}
-                onInsert={(t) => setPessoaIntForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))}
+                onInsert={(h) => setPessoaIntForm(f => ({ ...f, conteudo: appendAiHtml(f.conteudo, h) }))}
               />
               <ModeloPicker
                 context={modeloCtx}
@@ -1752,16 +1756,13 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             </Select>
             <div className="flex gap-2 items-center">
               <Input placeholder="Ementa (gere após concluir a sentença)" value={sentencaForm.ementa} onChange={(e) => setSentencaForm({ ...sentencaForm, ementa: e.target.value })} className="rounded-xl flex-1" />
-              <AIGerarEmenta fundamentacao={sentencaForm.fundamentacao} dispositivo={sentencaForm.dispositivo} classe={processo?.classe} assunto={processo?.assunto} onGenerated={(t) => setSentencaForm(f => ({ ...f, ementa: t }))} />
+              <AIGerarEmenta sentenca={sentencaForm.conteudo} classe={processo?.classe} assunto={processo?.assunto} onGenerated={(t) => setSentencaForm(f => ({ ...f, ementa: t }))} />
             </div>
             <div className="flex justify-end gap-2 flex-wrap">
-              <AISugerirDespacho tipoAto="sentenca_fundamentacao" tituloAto="Fundamentação da sentença" rascunhoAtual={sentencaForm.fundamentacao} processo={processo} movimentacoes={movs} onInsert={(t) => setSentencaForm(f => ({ ...f, fundamentacao: appendHtml(f.fundamentacao, textoToHtml(t)) }))} label="IA: Fundamentação" />
-              <AISugerirDespacho tipoAto="sentenca_dispositivo" tituloAto="Dispositivo da sentença" rascunhoAtual={sentencaForm.dispositivo} processo={processo} movimentacoes={movs} onInsert={(t) => setSentencaForm(f => ({ ...f, dispositivo: appendHtml(f.dispositivo, textoToHtml(t)) }))} label="IA: Dispositivo" />
-              <ModeloPicker categoria="sentenca" context={modeloCtx} label="Modelo p/ fundamentação" onInsert={(t) => setSentencaForm(f => ({ ...f, fundamentacao: appendHtml(f.fundamentacao, textoToHtml(t)) }))} />
-              <ModeloPicker categoria="sentenca" context={modeloCtx} label="Modelo p/ dispositivo" onInsert={(t) => setSentencaForm(f => ({ ...f, dispositivo: appendHtml(f.dispositivo, textoToHtml(t)) }))} />
+              <AISugerirDespacho tipoAto="sentenca_completa" tituloAto="Sentença (peça integral)" rascunhoAtual={sentencaForm.conteudo} processo={processo} movimentacoes={movs} onInsert={(html) => setSentencaForm(f => ({ ...f, conteudo: appendAiHtml(f.conteudo, html) }))} label="Sugerir com IA" />
+              <ModeloPicker categoria="sentenca" context={modeloCtx} label="Modelo de sentença" onInsert={(t) => setSentencaForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))} />
             </div>
-            <RichTextEditor placeholder="Fundamentação jurídica..." value={sentencaForm.fundamentacao} onChange={(html) => setSentencaForm({ ...sentencaForm, fundamentacao: html })} minHeight="200px" />
-            <RichTextEditor placeholder="Dispositivo (decisão)..." value={sentencaForm.dispositivo} onChange={(html) => setSentencaForm({ ...sentencaForm, dispositivo: html })} minHeight="140px" />
+            <RichTextEditor placeholder="Redija a sentença como peça única — relatório, fundamentação e dispositivo em texto corrido, iniciando o decisum por 'ISTO POSTO,'..." value={sentencaForm.conteudo} onChange={(html) => setSentencaForm({ ...sentencaForm, conteudo: html })} minHeight="360px" />
             <Button type="submit" disabled={proferirSentenca.isPending} className="rounded-xl bg-gold hover:bg-gold/90 text-foreground">
               {proferirSentenca.isPending ? "Processando..." : "Proferir e Publicar Sentença"}
             </Button>
@@ -1798,7 +1799,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             </Select>
             <Input placeholder="Título do ato" value={cartorioForm.titulo} onChange={(e) => setCartorioForm({ ...cartorioForm, titulo: e.target.value })} className="rounded-xl" required />
             <div className="flex justify-end gap-2 flex-wrap">
-              <AISugerirDespacho tipoAto={cartorioForm.tipo} tituloAto={cartorioForm.tipo === "juntada" ? "Juntada" : "Ato Ordinatório"} rascunhoAtual={cartorioForm.conteudo} processo={processo} movimentacoes={movs} onInsert={(t) => setCartorioForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))} />
+              <AISugerirDespacho tipoAto={cartorioForm.tipo} tituloAto={cartorioForm.tipo === "juntada" ? "Juntada" : "Ato Ordinatório"} rascunhoAtual={cartorioForm.conteudo} processo={processo} movimentacoes={movs} onInsert={(h) => setCartorioForm(f => ({ ...f, conteudo: appendAiHtml(f.conteudo, h) }))} />
               <ModeloPicker context={modeloCtx} onInsert={(t) => setCartorioForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))} />
             </div>
             <RichTextEditor placeholder="Conteúdo..." value={cartorioForm.conteudo} onChange={(html) => setCartorioForm({ ...cartorioForm, conteudo: html })} minHeight="160px" />
@@ -2012,30 +2013,43 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         {sentencasProc && sentencasProc.length > 0 && (
           <TabsContent value="sentencas" className="mt-4">
             <div className="space-y-2">
-              {sentencasProc.map((s: any) => (
-                <div key={s.id} className="bg-secondary/30 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Scroll className="h-4 w-4 text-gold-dark" />
-                    <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-institutional/10 text-institutional">{s.tipo?.replace(/_/g, " ")}</span>
-                    {s.assinado && <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400">Assinada</span>}
-                  </div>
-                  {s.ementa && <p className="text-sm font-medium text-foreground mb-2">{s.ementa}</p>}
-                  <div className="space-y-2">
-                    <div>
-                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Fundamentação</p>
-                      <RichTextView html={s.fundamentacao} className="text-xs text-foreground mt-1" />
+              {sentencasProc.map((s: any) => {
+                const dispTxt = (s.dispositivo || "").replace(/<[^>]+>/g, "").trim();
+                const unified = dispTxt.length < 3;
+                return (
+                  <div key={s.id} className="bg-secondary/30 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Scroll className="h-4 w-4 text-gold-dark" />
+                      <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-institutional/10 text-institutional">{s.tipo?.replace(/_/g, " ")}</span>
+                      {s.assinado && <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-400">Assinada</span>}
                     </div>
-                    <div>
-                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Dispositivo</p>
-                      <RichTextView html={s.dispositivo} className="text-xs text-foreground mt-1" />
-                    </div>
+                    {s.ementa && <p className="text-sm font-medium text-foreground mb-2">{s.ementa}</p>}
+                    {unified ? (
+                      <div>
+                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Sentença</p>
+                        <RichTextView html={s.fundamentacao} className="text-xs text-foreground mt-1" />
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Fundamentação</p>
+                          <RichTextView html={s.fundamentacao} className="text-xs text-foreground mt-1" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Dispositivo</p>
+                          <RichTextView html={s.dispositivo} className="text-xs text-foreground mt-1" />
+                        </div>
+                      </div>
+                    )}
+                    <p className="text-xs text-muted-foreground mt-2">{format(new Date(s.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2">{format(new Date(s.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </TabsContent>
         )}
+
+
 
         {apelacoesProc && apelacoesProc.length > 0 && (
           <TabsContent value="apelacoes" className="mt-4">
