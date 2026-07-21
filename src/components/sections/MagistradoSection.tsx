@@ -2220,6 +2220,15 @@ function EmbargosCard({ emb, tipoLabels, statusCfg, canDecide, processoId, userI
               <SelectItem value="parcialmente_acolhidos">Acolher Parcialmente</SelectItem>
             </SelectContent>
           </Select>
+          <div className="flex justify-end">
+            <AISugerirDespacho
+              tipoAto="decisao_embargos"
+              tituloAto={`Decisão de embargos (${resultado})`}
+              rascunhoAtual={`Embargante: ${emb.embargante_nome}. Tipo: ${tipoLabels[emb.tipo] || emb.tipo}. Fundamentação do embargante: ${(emb.fundamentacao || "").replace(/<[^>]+>/g, " ")}. Pedido: ${(emb.pedido || "").replace(/<[^>]+>/g, " ")}. Resultado pretendido: ${resultado}.`}
+              onInsert={(h) => setDecisao((prev) => appendAiHtml(prev, h))}
+              label="Sugerir com IA"
+            />
+          </div>
           <RichTextEditor placeholder="Fundamentação da decisão..." value={decisao} onChange={setDecisao} minHeight="120px" />
           <div className="flex gap-2">
             <Button size="sm" className="rounded-lg text-xs" onClick={() => decidirEmbargos.mutate()} disabled={decidirEmbargos.isPending}>Confirmar</Button>
