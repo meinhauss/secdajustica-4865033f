@@ -2161,6 +2161,9 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_magistrado_role: { Args: { _uid: string }; Returns: boolean }
+      is_postulante_role: { Args: { _uid: string }; Returns: boolean }
+      is_servidor_judiciario: { Args: { _uid: string }; Returns: boolean }
       marcar_intimacoes_lidas: {
         Args: { _processo_id: string }
         Returns: number
