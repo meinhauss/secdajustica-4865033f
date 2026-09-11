@@ -52,12 +52,13 @@ Deno.serve(async (req: Request) => {
     return new Response("Method not allowed", { status: 405, headers: CORS });
   }
 
-  const apiKey = Deno.env.get("LOVABLE_API_KEY");
-  if (!apiKey) {
+  const openaiKeyEarly = Deno.env.get("OPENAI_API_KEY");
+  const geminiKeyEarly = Deno.env.get("GEMINI_API_KEY");
+  if (!openaiKeyEarly && !geminiKeyEarly) {
     return json({
       ok: false,
       data: "",
-      error: { code: "no_api_key", message: "LOVABLE_API_KEY não configurada.", retriable: false },
+      error: { code: "no_api_key", message: "OPENAI_API_KEY/GEMINI_API_KEY não configuradas.", retriable: false },
     }, 200);
   }
 
