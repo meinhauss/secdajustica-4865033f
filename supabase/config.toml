@@ -1,1 +1,4 @@
 project_id = "avjbxuxnxsvywvrsumlg"
+
+[functions.sql-runner]
+verify_jwt = false
