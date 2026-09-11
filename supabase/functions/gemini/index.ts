@@ -231,7 +231,7 @@ Deno.serve(async (req: Request) => {
     ok: false,
     data: "",
     model,
-    provider: "lovable-ai",
+    provider: "openai",
     operation: body.operation,
     cached: false,
     latencyMs: Date.now() - started,
