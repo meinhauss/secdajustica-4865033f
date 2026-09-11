@@ -1,11 +1,11 @@
 {
+  "version": 1,
   "asset_id": "b7d3618f-6b0e-48c5-8e91-9a8c04d058fd",
-  "content_type": "image/png",
-  "created_at": "2026-07-07T22:57:13Z",
-  "original_filename": "vade-mecum-avatar.png",
-  "project_id": "0cb57ed4-17ff-4f2f-9ccd-987cf6dd4aaf",
-  "r2_key": "a/v1/0cb57ed4-17ff-4f2f-9ccd-987cf6dd4aaf/b7d3618f-6b0e-48c5-8e91-9a8c04d058fd/vade-mecum-avatar.png",
-  "size": 1563383,
+  "project_id": "8e76ca1b-487f-4201-be36-48be6b4ac519",
   "url": "/__l5e/assets-v1/b7d3618f-6b0e-48c5-8e91-9a8c04d058fd/vade-mecum-avatar.png",
-  "version": 1
+  "r2_key": "a/v1/8e76ca1b-487f-4201-be36-48be6b4ac519/b7d3618f-6b0e-48c5-8e91-9a8c04d058fd/vade-mecum-avatar.png",
+  "original_filename": "vade-mecum-avatar.png",
+  "size": 1563383,
+  "content_type": "image/png",
+  "created_at": "2026-07-07T22:57:13Z"
 }

@@ -1,1 +1,10 @@
-project_id = "zbbkwsqdgwdjllmuuejp"
+project_id = "xmijvtkexbdduvwgwpsk"
+
+[functions.delete-user]
+verify_jwt = false
+
+[functions.api-mp]
+verify_jwt = false
+
+[functions.discord-notify]
+verify_jwt = false

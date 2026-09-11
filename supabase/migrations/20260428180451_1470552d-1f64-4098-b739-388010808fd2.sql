@@ -1,0 +1,1 @@
+ALTER TABLE public.tcos ADD COLUMN IF NOT EXISTS relato_bo text;

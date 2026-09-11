@@ -1,0 +1,1 @@
+ALTER TABLE public.concursos ADD COLUMN IF NOT EXISTS tempo_prova_minutos integer DEFAULT 60;
