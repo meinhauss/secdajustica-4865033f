@@ -1,1 +1,0 @@
-CREATE POLICY notif_insert_admin ON public.notificacoes FOR INSERT TO authenticated WITH CHECK (has_role(auth.uid(), 'admin'::user_role));

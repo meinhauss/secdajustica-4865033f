@@ -1,2 +1,0 @@
-ALTER TABLE public.ranking_destaques ADD COLUMN IF NOT EXISTS posicao integer NOT NULL DEFAULT 1;
-CREATE INDEX IF NOT EXISTS idx_ranking_destaques_lookup ON public.ranking_destaques(tipo_ranking, semana_inicio DESC, posicao);

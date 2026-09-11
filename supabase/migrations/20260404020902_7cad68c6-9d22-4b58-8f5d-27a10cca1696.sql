@@ -1,1 +1,0 @@
-ALTER TABLE public.audiencias ALTER COLUMN processo_id DROP NOT NULL;

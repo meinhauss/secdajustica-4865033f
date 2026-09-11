@@ -1,1 +1,0 @@
-DROP TRIGGER IF EXISTS trg_notify_cartorio_update ON public.registros_cartorio;
