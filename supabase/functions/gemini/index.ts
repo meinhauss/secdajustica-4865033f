@@ -52,12 +52,13 @@ Deno.serve(async (req: Request) => {
     return new Response("Method not allowed", { status: 405, headers: CORS });
   }
 
-  const apiKey = Deno.env.get("LOVABLE_API_KEY");
-  if (!apiKey) {
+  const openaiKeyEarly = Deno.env.get("OPENAI_API_KEY");
+  const geminiKeyEarly = Deno.env.get("GEMINI_API_KEY");
+  if (!openaiKeyEarly && !geminiKeyEarly) {
     return json({
       ok: false,
       data: "",
-      error: { code: "no_api_key", message: "LOVABLE_API_KEY não configurada.", retriable: false },
+      error: { code: "no_api_key", message: "OPENAI_API_KEY/GEMINI_API_KEY não configuradas.", retriable: false },
     }, 200);
   }
 
@@ -104,22 +105,19 @@ Deno.serve(async (req: Request) => {
     payload.response_format = { type: "json_object" };
   }
 
-  // Cadeia de fallback: Lovable → Gemini direto (chave do usuário) → OpenAI direto.
-  const openaiKey = Deno.env.get("OPENAI_API_KEY");
-  const geminiKey = Deno.env.get("GEMINI_API_KEY");
+  // Cadeia de fallback: OpenAI direto → Gemini direto. Lovable AI desabilitado.
+  const openaiKey = openaiKeyEarly;
+  const geminiKey = geminiKeyEarly;
   const GEMINI_OAI = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
   type ChainStep = { endpoint: string; model: string; key: string; provider: string };
   const FALLBACK_CHAIN: ChainStep[] = [
-    { endpoint: GATEWAY_URL, model, key: apiKey, provider: "lovable-ai" },
-    { endpoint: GATEWAY_URL, model: "google/gemini-2.5-flash-lite", key: apiKey, provider: "lovable-ai" },
-    { endpoint: GATEWAY_URL, model: "google/gemini-2.5-flash", key: apiKey, provider: "lovable-ai" },
-    ...(geminiKey ? [
-      { endpoint: GEMINI_OAI, model: "gemini-2.5-flash", key: geminiKey, provider: "gemini-direct" },
-      { endpoint: GEMINI_OAI, model: "gemini-2.5-flash-lite", key: geminiKey, provider: "gemini-direct" },
-    ] : []),
     ...(openaiKey ? [
       { endpoint: "https://api.openai.com/v1/chat/completions", model: "gpt-4o-mini", key: openaiKey, provider: "openai" },
       { endpoint: "https://api.openai.com/v1/chat/completions", model: "gpt-4o", key: openaiKey, provider: "openai" },
+    ] : []),
+    ...(geminiKey ? [
+      { endpoint: GEMINI_OAI, model: "gemini-2.5-flash", key: geminiKey, provider: "gemini-direct" },
+      { endpoint: GEMINI_OAI, model: "gemini-2.5-flash-lite", key: geminiKey, provider: "gemini-direct" },
     ] : []),
   ].filter((s, i, a) => a.findIndex((x) => x.endpoint === s.endpoint && x.model === s.model) === i);
 
@@ -233,7 +231,7 @@ Deno.serve(async (req: Request) => {
     ok: false,
     data: "",
     model,
-    provider: "lovable-ai",
+    provider: "openai",
     operation: body.operation,
     cached: false,
     latencyMs: Date.now() - started,
