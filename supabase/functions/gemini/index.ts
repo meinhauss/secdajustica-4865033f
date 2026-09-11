@@ -9,7 +9,6 @@ const CORS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const DEFAULT_TIMEOUT = 60_000;
 const MAX_RETRIES = 2;
 const RETRY_BASE = 800;
@@ -210,7 +209,7 @@ Deno.serve(async (req: Request) => {
       } catch (err) {
         lastErr = err;
         const msg = err instanceof Error ? err.message : String(err);
-        console.error(`[gemini] model=${currentModel} attempt=${attempt} err=${msg}`);
+        console.error(`[gemini] provider=${step.provider} model=${step.model} attempt=${attempt} err=${msg}`);
         if (attempt === MAX_RETRIES) continue outer;
         await new Promise((r) => setTimeout(r, RETRY_BASE * Math.pow(2, attempt)));
       }
