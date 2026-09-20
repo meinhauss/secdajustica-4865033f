@@ -188,6 +188,7 @@ export default function OrdenamentoJuridicoPage() {
   const [categoria, setCategoria] = useState<string>("Todas");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [filtrosOpen, setFiltrosOpen] = useState(false);
+  const [chipsOpen, setChipsOpen] = useState(false);
   const [editing, setEditing] = useState<Lei | null>(null);
   const [form, setForm] = useState({
     numero: "",
@@ -214,7 +215,16 @@ export default function OrdenamentoJuridicoPage() {
 
   const categorias = useMemo(() => {
     const s = new Set<string>(CATEGORIAS_PADRAO);
-    leis.forEach((l) => s.add(l.categoria));
+    leis.forEach((l) => {
+      if (!l.categoria) return;
+      const norm = (v: string) => normalize(v).replace(/[^\w\s]/g, " ").replace(/\s+/g, " ").trim();
+      const alvo = norm(l.categoria);
+      const jaExiste = Array.from(s).some((c) => {
+        const n = norm(c);
+        return n === alvo || n.includes(alvo) || alvo.includes(n);
+      });
+      if (!jaExiste) s.add(l.categoria);
+    });
     return Array.from(s);
   }, [leis]);
 
@@ -416,20 +426,36 @@ export default function OrdenamentoJuridicoPage() {
               </Button>
             )}
           </div>
-          {/* Chips visíveis apenas em desktop/tablet */}
-          <div className="hidden sm:flex gap-2 flex-wrap">
-            <Button variant={categoria === "Todas" ? "default" : "outline"} size="sm" onClick={() => setCategoria("Todas")} className="rounded-full whitespace-nowrap">
-              Todas ({leis.length})
+          {/* Chips de categoria — recolhidos por padrão, expandem via botão */}
+          <div className="hidden sm:flex items-center gap-2 flex-wrap">
+            <Button
+              variant={chipsOpen ? "default" : "outline"}
+              size="sm"
+              onClick={() => setChipsOpen((v) => !v)}
+              className="rounded-full whitespace-nowrap gap-1.5"
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5" />
+              Filtros
+              {categoria !== "Todas" && (
+                <span className="h-2 w-2 rounded-full bg-gold" />
+              )}
             </Button>
-            {categorias.map((cat) => (
-              <Button key={cat} variant={categoria === cat ? "default" : "outline"} size="sm" onClick={() => setCategoria(cat)} className="rounded-full whitespace-nowrap">
-                {cat}
-              </Button>
-            ))}
+            {chipsOpen && (
+              <>
+                <Button variant={categoria === "Todas" ? "default" : "outline"} size="sm" onClick={() => setCategoria("Todas")} className="rounded-full whitespace-nowrap">
+                  Todas ({leis.length})
+                </Button>
+                {categorias.map((cat) => (
+                  <Button key={cat} variant={categoria === cat ? "default" : "outline"} size="sm" onClick={() => setCategoria(cat)} className="rounded-full whitespace-nowrap">
+                    {cat}
+                  </Button>
+                ))}
+              </>
+            )}
           </div>
-          {/* Indicador do filtro ativo no mobile */}
+          {/* Indicador do filtro ativo */}
           {categoria !== "Todas" && (
-            <div className="sm:hidden flex items-center gap-2 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <span>Filtrando por:</span>
               <Badge variant="secondary" className="gap-1">
                 {categoria}
