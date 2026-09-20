@@ -453,9 +453,9 @@ export default function OrdenamentoJuridicoPage() {
               </>
             )}
           </div>
-          {/* Indicador do filtro ativo no mobile */}
+          {/* Indicador do filtro ativo */}
           {categoria !== "Todas" && (
-            <div className="sm:hidden flex items-center gap-2 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <span>Filtrando por:</span>
               <Badge variant="secondary" className="gap-1">
                 {categoria}
