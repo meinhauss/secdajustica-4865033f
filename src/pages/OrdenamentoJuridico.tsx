@@ -188,6 +188,7 @@ export default function OrdenamentoJuridicoPage() {
   const [categoria, setCategoria] = useState<string>("Todas");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [filtrosOpen, setFiltrosOpen] = useState(false);
+  const [chipsOpen, setChipsOpen] = useState(false);
   const [editing, setEditing] = useState<Lei | null>(null);
   const [form, setForm] = useState({
     numero: "",
