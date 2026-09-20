@@ -426,16 +426,32 @@ export default function OrdenamentoJuridicoPage() {
               </Button>
             )}
           </div>
-          {/* Chips visíveis apenas em desktop/tablet */}
-          <div className="hidden sm:flex gap-2 flex-wrap">
-            <Button variant={categoria === "Todas" ? "default" : "outline"} size="sm" onClick={() => setCategoria("Todas")} className="rounded-full whitespace-nowrap">
-              Todas ({leis.length})
+          {/* Chips de categoria — recolhidos por padrão, expandem via botão */}
+          <div className="hidden sm:flex items-center gap-2 flex-wrap">
+            <Button
+              variant={chipsOpen ? "default" : "outline"}
+              size="sm"
+              onClick={() => setChipsOpen((v) => !v)}
+              className="rounded-full whitespace-nowrap gap-1.5"
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5" />
+              Filtros
+              {categoria !== "Todas" && (
+                <span className="h-2 w-2 rounded-full bg-gold" />
+              )}
             </Button>
-            {categorias.map((cat) => (
-              <Button key={cat} variant={categoria === cat ? "default" : "outline"} size="sm" onClick={() => setCategoria(cat)} className="rounded-full whitespace-nowrap">
-                {cat}
-              </Button>
-            ))}
+            {chipsOpen && (
+              <>
+                <Button variant={categoria === "Todas" ? "default" : "outline"} size="sm" onClick={() => setCategoria("Todas")} className="rounded-full whitespace-nowrap">
+                  Todas ({leis.length})
+                </Button>
+                {categorias.map((cat) => (
+                  <Button key={cat} variant={categoria === cat ? "default" : "outline"} size="sm" onClick={() => setCategoria(cat)} className="rounded-full whitespace-nowrap">
+                    {cat}
+                  </Button>
+                ))}
+              </>
+            )}
           </div>
           {/* Indicador do filtro ativo no mobile */}
           {categoria !== "Todas" && (
