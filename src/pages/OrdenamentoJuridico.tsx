@@ -215,7 +215,16 @@ export default function OrdenamentoJuridicoPage() {
 
   const categorias = useMemo(() => {
     const s = new Set<string>(CATEGORIAS_PADRAO);
-    leis.forEach((l) => s.add(l.categoria));
+    leis.forEach((l) => {
+      if (!l.categoria) return;
+      const norm = (v: string) => normalize(v).replace(/[^\w\s]/g, " ").replace(/\s+/g, " ").trim();
+      const alvo = norm(l.categoria);
+      const jaExiste = Array.from(s).some((c) => {
+        const n = norm(c);
+        return n === alvo || n.includes(alvo) || alvo.includes(n);
+      });
+      if (!jaExiste) s.add(l.categoria);
+    });
     return Array.from(s);
   }, [leis]);
 
