@@ -650,6 +650,8 @@ export default function EstatisticasSection() {
 
       {isAdmin && <TesteDiscordDM />}
 
+      {isAdmin && <EnvioMassaDiscord />}
+
       {isAdmin && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-card rounded-xl p-6 border border-border shadow-institutional">
           <div className="flex items-center gap-3 mb-6">

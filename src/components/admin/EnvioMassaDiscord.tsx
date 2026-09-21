@@ -58,16 +58,7 @@ const CATEGORIAS = [
 ];
 
 function extrairMensagem(erro: any): string {
-  let msg = erro?.message || "Falha ao falar com o Discord";
-  try {
-    const ctx = erro?.context;
-    if (ctx && typeof ctx.json === "function") {
-      // resolvido logo abaixo, mantemos o fallback síncrono
-    }
-  } catch {
-    /* ignora */
-  }
-  return msg;
+  return erro?.message || "Falha ao falar com o Discord";
 }
 
 async function chamarDiscord(body: Record<string, unknown>): Promise<any> {
