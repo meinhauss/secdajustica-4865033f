@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { TesteDiscordDM } from "@/components/admin/TesteDiscordDM";
+import { EnvioMassaDiscord } from "@/components/admin/EnvioMassaDiscord";
 
 import { CURRENT_VERSION } from "@/lib/version";
 
