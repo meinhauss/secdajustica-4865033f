@@ -56,6 +56,31 @@ async function listarCargos(): Promise<unknown[]> {
     .sort((a: any, b: any) => b.position - a.position || a.name.localeCompare(b.name));
 }
 
+// Plano B quando o Discord bloqueia a listagem geral (Server Members Intent desligado):
+// consulta cada cadastro individualmente, o que não exige intent privilegiada.
+async function membrosPorCadastro(perfis: Map<string, Perfil>): Promise<Membro[]> {
+  const ids = [...perfis.keys()];
+  const membros: Membro[] = [];
+  for (const id of ids) {
+    const res = await discordFetchComRetry(`/guilds/${GUILD_ID}/members/${id}`, BOT_TOKEN!);
+    if (res.ok) {
+      const m = await res.json();
+      if (m?.user?.id) {
+        membros.push({
+          id: String(m.user.id),
+          nome: m.user.global_name || m.user.username || String(m.user.id),
+          bot: !!m.user.bot,
+          roles: Array.isArray(m.roles) ? m.roles.map(String) : [],
+        });
+      }
+    } else {
+      await res.text().catch(() => "");
+    }
+    await sleep(120);
+  }
+  return membros;
+}
+
 async function listarMembros(): Promise<{ membros: Membro[]; limitado: boolean }> {
   const todos = new Map<string, Membro>();
   let depois: string | null = null;
