@@ -36,6 +36,7 @@ type PreviewRes = {
   bots_ignorados: number;
   servidores: number;
   limitado: boolean;
+  somente_cadastrados?: boolean;
 };
 type SendRes = {
   total: number;
@@ -339,10 +340,18 @@ export function EnvioMassaDiscord() {
               <span>{preview.dm_desativada} com DM desativada</span>
             )}
             {preview.bots_ignorados > 0 && <span>{preview.bots_ignorados} bots ignorados</span>}
-            {preview.limitado && (
+            {preview.somente_cadastrados ? (
               <span className="text-amber-600">
-                Lista de integrantes interrompida antes do fim — confira o recorte.
+                O Discord não liberou a lista completa do servidor, então só foram verificadas as
+                pessoas cadastradas no sistema. Para alcançar todos, ative "Server Members Intent"
+                nas configurações do bot.
               </span>
+            ) : (
+              preview.limitado && (
+                <span className="text-amber-600">
+                  Lista de integrantes interrompida antes do fim — confira o recorte.
+                </span>
+              )
             )}
           </div>
         </div>
