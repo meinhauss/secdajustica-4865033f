@@ -309,6 +309,7 @@ Deno.serve(async (req) => {
         bots_ignorados: ignorados,
         servidores: membros.length,
         limitado,
+        somente_cadastrados: somenteCadastrados,
       });
     }
 
@@ -360,6 +361,7 @@ Deno.serve(async (req) => {
       sem_cadastro: semCadastro,
       dm_desativada: dmDesativada,
       limitado,
+      somente_cadastrados: somenteCadastrados,
     });
   } catch (e: any) {
     console.error("discord-broadcast erro:", e);
