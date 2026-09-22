@@ -39,7 +39,7 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
 
 // Mapeia modelos "gemini-*" (legado) para os ids do gateway ("google/gemini-*").
 function normalizeModel(input?: string): string {
-  const m = (input || "gemini-2.5-flash").trim();
+  const m = (input || "gemini-3.6-flash").trim();
   if (m.startsWith("google/") || m.startsWith("openai/") || m.startsWith("anthropic/")) return m;
   if (m.startsWith("gemini-")) return `google/${m}`;
   return `google/${m}`;
@@ -115,8 +115,7 @@ Deno.serve(async (req: Request) => {
       { endpoint: "https://api.openai.com/v1/chat/completions", model: "gpt-4o", key: openaiKey, provider: "openai" },
     ] : []),
     ...(geminiKey ? [
-      { endpoint: GEMINI_OAI, model: "gemini-2.5-flash", key: geminiKey, provider: "gemini-direct" },
-      { endpoint: GEMINI_OAI, model: "gemini-2.5-flash-lite", key: geminiKey, provider: "gemini-direct" },
+      { endpoint: GEMINI_OAI, model: "gemini-3.6-flash", key: geminiKey, provider: "gemini-direct" },
     ] : []),
   ].filter((s, i, a) => a.findIndex((x) => x.endpoint === s.endpoint && x.model === s.model) === i);
 
