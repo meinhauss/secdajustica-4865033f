@@ -4,8 +4,8 @@
  */
 export const AI_CONFIG = {
   provider: "gemini" as const,
-  defaultModel: "gemini-2.5-flash",
-  fallbackModel: "gemini-2.5-flash-lite",
+  defaultModel: "gemini-3.6-flash",
+  fallbackModel: "gemini-3.6-flash",
   temperature: 0.7,
   topP: 0.95,
   topK: 40,
