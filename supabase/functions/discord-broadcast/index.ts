@@ -245,7 +245,33 @@ Deno.serve(async (req) => {
     }
 
     const perfis = await carregarPerfis(supabaseAdmin);
-    const { membros, limitado } = await listarMembros();
+
+    let membros: Membro[] = [];
+    let limitado = false;
+    let somenteCadastrados = false;
+    try {
+      const listagem = await listarMembros();
+      membros = listagem.membros;
+      limitado = listagem.limitado;
+    } catch (erroListagem: any) {
+      const msg = String(erroListagem?.message || "");
+      const bloqueio = msg.includes("(403)") || msg.includes("50001") || msg.includes("(401)");
+      if (!bloqueio) throw erroListagem;
+      // Sem a intent de integrantes: verificamos apenas quem tem cadastro no sistema.
+      console.log("discord-broadcast: listagem geral bloqueada, usando cadastros");
+      membros = await membrosPorCadastro(perfis);
+      limitado = true;
+      somenteCadastrados = true;
+      if (!membros.length) {
+        return responder(
+          {
+            error:
+              "O Discord bloqueou a consulta de integrantes. Ative 'Server Members Intent' no Portal do Desenvolvedor (Bot → Privileged Gateway Intents) e confirme que o bot está no servidor.",
+          },
+          403
+        );
+      }
+    }
 
     let alvos: Alvo[];
     let semCadastro = 0;
