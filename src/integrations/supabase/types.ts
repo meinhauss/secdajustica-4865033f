@@ -2168,6 +2168,7 @@ export type Database = {
         Args: { _processo_id: string }
         Returns: number
       }
+      notificar_audiencia: { Args: { _audiencia_id: string }; Returns: number }
       notificar_lembrete_prova_concurso: { Args: never; Returns: undefined }
       notificar_prazos_proximos: { Args: never; Returns: undefined }
       notify_cargo_intimacao: {

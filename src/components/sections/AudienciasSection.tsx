@@ -118,42 +118,12 @@ export default function AudienciasSection() {
         local: form.local || null,
         observacoes: form.observacoes || null,
         processo_id: form.processo_id || null,
+        criado_por: user?.id,
       };
       const { data: inserted, error } = await supabase.from("audiencias").insert(payload).select("id").single();
       if (error) throw error;
 
-      const dataFormatada = format(new Date(form.data_hora), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
-
-      if (form.processo_id) {
-        // Notificar partes do processo
-        const { data: proc } = await supabase
-          .from("processos")
-          .select("numero, advogado_autor_id, advogado_reu_id, juiz_id")
-          .eq("id", form.processo_id)
-          .single();
-
-        const { data: interessados } = await supabase
-          .from("interessados_processo")
-          .select("user_id")
-          .eq("processo_id", form.processo_id);
-
-        const userIds = new Set<string>();
-        if (proc?.advogado_autor_id) userIds.add(proc.advogado_autor_id);
-        if (proc?.advogado_reu_id) userIds.add(proc.advogado_reu_id);
-        if (proc?.juiz_id) userIds.add(proc.juiz_id);
-        interessados?.forEach(i => userIds.add(i.user_id));
-        if (user?.id) userIds.delete(user.id);
-
-        const notifs = Array.from(userIds).map(uid => ({
-          user_id: uid,
-          titulo: "Audiência Agendada",
-          mensagem: `Audiência de ${form.tipo} agendada para ${dataFormatada} — Processo ${proc?.numero || ""}. Local: ${form.local || "A definir"}`,
-          tipo: "audiencia",
-          link_secao: "audiencias",
-        }));
-        if (notifs.length > 0) await supabase.from("notificacoes").insert(notifs);
-      } else if (envolvidos.length > 0) {
-        // Inserir envolvidos e notificar por user_id (se encontrado pelo id_personagem)
+      if (envolvidos.length > 0) {
         const envsToInsert = envolvidos.map(e => ({
           audiencia_id: inserted.id,
           nome: e.nome,
@@ -161,29 +131,14 @@ export default function AudienciasSection() {
           id_personagem: e.id_personagem || null,
           observacoes: e.observacoes || null,
         }));
-        await supabase.from("envolvidos_audiencia").insert(envsToInsert);
+        const { error: envErr } = await supabase.from("envolvidos_audiencia").insert(envsToInsert);
+        if (envErr) console.error("envolvidos:", envErr);
+      }
 
-        // Buscar user_ids dos envolvidos pelo id_personagem para notificar
-        const idsPersonagem = envolvidos.map(e => e.id_personagem).filter(Boolean);
-        if (idsPersonagem.length > 0) {
-          const { data: profiles } = await supabase
-            .from("profiles")
-            .select("user_id, id_personagem")
-            .in("id_personagem", idsPersonagem);
-
-          const userIds = new Set<string>();
-          profiles?.forEach(p => userIds.add(p.user_id));
-          if (user?.id) userIds.delete(user.id);
-
-          const notifs = Array.from(userIds).map(uid => ({
-            user_id: uid,
-            titulo: "Audiência Agendada",
-            mensagem: `Você foi incluído como envolvido em audiência de ${form.tipo} agendada para ${dataFormatada}. Local: ${form.local || "A definir"}`,
-            tipo: "audiencia",
-            link_secao: "audiencias",
-          }));
-          if (notifs.length > 0) await supabase.from("notificacoes").insert(notifs);
-        }
+      const { error: notifErr } = await (supabase.rpc as any)("notificar_audiencia", { _audiencia_id: inserted.id });
+      if (notifErr) {
+        console.error("notificar_audiencia:", notifErr);
+        toast.warning("Audiência criada, mas não foi possível notificar os envolvidos.");
       }
     },
     onSuccess: () => {
