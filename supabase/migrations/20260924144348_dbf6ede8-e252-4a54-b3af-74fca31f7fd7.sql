@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.notificar_audiencia(uuid) FROM PUBLIC, anon;
