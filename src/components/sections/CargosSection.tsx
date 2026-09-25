@@ -158,6 +158,16 @@ const ROLE_HIERARCHY = [
     permissions: ["inqueritos", "provas", "relatorios", "remessa_mp", "processos_criminais", "ver_processos"],
   },
   {
+    level: 14,
+    role: "corregedor",
+    label: "Corregedor(a)",
+    icon: Shield,
+    color: "text-rose-600",
+    bgColor: "bg-rose-600/10",
+    description: "Poderes de delegado. Combinado com Polícia Civil, Militar ou Federal, fiscaliza e nomeia/exonera os integrantes da respectiva instituição.",
+    permissions: ["inqueritos", "provas", "relatorios", "remessa_mp", "processos_criminais", "ver_processos"],
+  },
+  {
     level: 15,
     role: "gaeco",
     label: "GAECO",

@@ -2123,6 +2123,7 @@ export type Database = {
       cleanup_cargo_historico: { Args: never; Returns: number }
       cleanup_ranking_destaques: { Args: never; Returns: number }
       cleanup_read_notifications: { Args: never; Returns: number }
+      corregedor_instituicoes: { Args: { _uid: string }; Returns: string[] }
       delegado_assign_police_role: {
         Args: {
           p_role: Database["public"]["Enums"]["user_role"]
@@ -2248,6 +2249,7 @@ export type Database = {
         | "chefe_gaeco"
         | "defensor_publico_geral"
         | "defensor_publico"
+        | "corregedor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2414,6 +2416,7 @@ export const Constants = {
         "chefe_gaeco",
         "defensor_publico_geral",
         "defensor_publico",
+        "corregedor",
       ],
     },
   },

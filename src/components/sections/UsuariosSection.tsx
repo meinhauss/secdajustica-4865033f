@@ -127,8 +127,14 @@ export default function UsuariosSection() {
   ) || [];
 
   const isDelegadoPuro = roles.includes("delegado");
-  // Delegado vê todos; chefe GAECO (sem admin) só vê usuários com cargos policiais que ele detém
-  const filtered = isAdmin || isDelegadoPuro
+  const corregedorInst = roles.includes("corregedor")
+    ? roles.filter((r) => ["policia_civil", "policia_militar", "policia_federal"].includes(r))
+    : [];
+  const isCorregedor = corregedorInst.length > 0;
+  const userHasInst = (uid: string) =>
+    (allRoles || []).some((r) => r.user_id === uid && corregedorInst.includes(r.role));
+  // Delegado vê todos; corregedor vê todos (para nomear) mas só gerencia sua instituição; chefe GAECO só vê cargos que detém
+  const filtered = isAdmin || isDelegadoPuro || isCorregedor
     ? filteredBase
     : isDelegado
       ? filteredBase.filter((p) => {
@@ -139,10 +145,21 @@ export default function UsuariosSection() {
 
   const canDeleteProfile = (_p: any) => isAdmin;
 
+  const assignableFor = (uid: string): string[] => {
+    const set = new Set<string>();
+    if (isAdmin || isDelegadoPuro) DELEGADO_ASSIGNABLE.forEach((r) => set.add(r));
+    if (isAdmin) set.add("policia_militar");
+    corregedorInst.forEach((r) => set.add(r));
+    if (isAdmin || (isCorregedor && userHasInst(uid))) set.add("corregedor");
+    return [...set];
+  };
+
   const canRemoveRole = (role: string, targetUserId: string) => {
     if (targetUserId === user?.id) return false;
     if (isAdmin) return true;
     if (isDelegadoPuro && (DELEGADO_ASSIGNABLE as readonly string[]).includes(role)) return true;
+    if (corregedorInst.includes(role)) return true;
+    if (role === "corregedor" && isCorregedor && userHasInst(targetUserId)) return true;
     if (!isDelegado) return false;
     if (!["policia_civil","policia_militar","policia_federal","delegado", "gaeco", "chefe_gaeco"].includes(role)) return false;
     return roles.includes(role);
@@ -235,8 +252,8 @@ export default function UsuariosSection() {
                   {userRoles.length === 0 && (
                     <span className="text-[10px] text-muted-foreground italic">Sem cargos atribuídos</span>
                   )}
-                  {(isAdmin || isDelegadoPuro) && p.user_id !== user?.id && (() => {
-                    const faltando = DELEGADO_ASSIGNABLE.filter((r) => !userRoles.some((ur) => ur.role === r));
+                  {p.user_id !== user?.id && (() => {
+                    const faltando = assignableFor(p.user_id).filter((r) => !userRoles.some((ur) => ur.role === r));
                     if (!faltando.length) return null;
                     return (
                       <select

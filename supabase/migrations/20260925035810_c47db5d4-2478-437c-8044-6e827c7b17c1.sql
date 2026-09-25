@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.corregedor_instituicoes(uuid) FROM authenticated;
