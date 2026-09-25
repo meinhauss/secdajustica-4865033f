@@ -2123,6 +2123,13 @@ export type Database = {
       cleanup_cargo_historico: { Args: never; Returns: number }
       cleanup_ranking_destaques: { Args: never; Returns: number }
       cleanup_read_notifications: { Args: never; Returns: number }
+      delegado_assign_police_role: {
+        Args: {
+          p_role: Database["public"]["Enums"]["user_role"]
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       delegado_remove_police_role: {
         Args: { p_role_id: string }
         Returns: undefined
