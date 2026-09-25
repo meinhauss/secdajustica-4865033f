@@ -2248,6 +2248,7 @@ export type Database = {
         | "chefe_gaeco"
         | "defensor_publico_geral"
         | "defensor_publico"
+        | "corregedor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2414,6 +2415,7 @@ export const Constants = {
         "chefe_gaeco",
         "defensor_publico_geral",
         "defensor_publico",
+        "corregedor",
       ],
     },
   },
