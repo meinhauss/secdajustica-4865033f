@@ -33,6 +33,7 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 const POLICE_ROLES = ["policia_civil", "policia_militar", "policia_federal", "gaeco"] as const;
+const DELEGADO_ASSIGNABLE = ["delegado", "policia_civil", "policia_federal"] as const;
 
 export default function UsuariosSection() {
   const { user, roles } = useAuth();
@@ -125,8 +126,9 @@ export default function UsuariosSection() {
     p.discord?.toLowerCase().includes(search.toLowerCase())
   ) || [];
 
-  // Delegado (sem admin) só vê usuários que possuem algum dos cargos policiais que ele próprio detém
-  const filtered = isAdmin
+  const isDelegadoPuro = roles.includes("delegado");
+  // Delegado vê todos; chefe GAECO (sem admin) só vê usuários com cargos policiais que ele detém
+  const filtered = isAdmin || isDelegadoPuro
     ? filteredBase
     : isDelegado
       ? filteredBase.filter((p) => {
@@ -140,10 +142,23 @@ export default function UsuariosSection() {
   const canRemoveRole = (role: string, targetUserId: string) => {
     if (targetUserId === user?.id) return false;
     if (isAdmin) return true;
+    if (isDelegadoPuro && (DELEGADO_ASSIGNABLE as readonly string[]).includes(role)) return true;
     if (!isDelegado) return false;
     if (!["policia_civil","policia_militar","policia_federal","delegado", "gaeco", "chefe_gaeco"].includes(role)) return false;
     return roles.includes(role);
   };
+
+  const assignRole = useMutation({
+    mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
+      const { error } = await supabase.rpc("delegado_assign_police_role" as any, { p_user_id: userId, p_role: role });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["all-roles"] });
+      toast.success("Cargo atribuído!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
 
   return (
     <div className="space-y-6">
@@ -220,6 +235,27 @@ export default function UsuariosSection() {
                   {userRoles.length === 0 && (
                     <span className="text-[10px] text-muted-foreground italic">Sem cargos atribuídos</span>
                   )}
+                  {(isAdmin || isDelegadoPuro) && p.user_id !== user?.id && (() => {
+                    const faltando = DELEGADO_ASSIGNABLE.filter((r) => !userRoles.some((ur) => ur.role === r));
+                    if (!faltando.length) return null;
+                    return (
+                      <select
+                        aria-label="Dar cargo"
+                        className="ml-auto h-7 text-xs rounded-lg border border-border bg-background px-2"
+                        value=""
+                        disabled={assignRole.isPending}
+                        onChange={(e) => {
+                          const role = e.target.value;
+                          if (role && confirm(`Dar o cargo ${ROLE_LABELS[role]} a ${p.nome_completo}?`)) {
+                            assignRole.mutate({ userId: p.user_id, role });
+                          }
+                        }}
+                      >
+                        <option value="">+ Dar cargo</option>
+                        {faltando.map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
+                      </select>
+                    );
+                  })()}
                 </div>
               </div>
             );
