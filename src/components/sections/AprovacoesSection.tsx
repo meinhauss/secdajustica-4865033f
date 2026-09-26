@@ -121,49 +121,72 @@ export default function AprovacoesSection() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["analista-vinculos"] }),
   });
 
-  const paraMim = acoes.filter((a) => a.supervisor_id === user?.id || (isAdmin && a.analista_id !== user?.id));
-  const minhas = acoes.filter((a) => a.analista_id === user?.id);
+  // Agrupa ações feitas juntas (mesmo grupo) em um único pedido de aprovação.
+  const agrupar = (lista: any[]): any[][] => {
+    const mapa = new Map<string, any[]>();
+    for (const a of lista) {
+      const chave = a.grupo_id || a.id;
+      if (!mapa.has(chave)) mapa.set(chave, []);
+      mapa.get(chave)!.push(a);
+    }
+    return [...mapa.values()].map((g) => g.sort((x, y) => x.created_at.localeCompare(y.created_at)));
+  };
+
+  const paraMim = agrupar(acoes.filter((a) => a.supervisor_id === user?.id || (isAdmin && a.analista_id !== user?.id)));
+  const minhas = agrupar(acoes.filter((a) => a.analista_id === user?.id));
   const meuSuperior = vinculos.find((v: any) => v.analista_id === user?.id);
 
-  const Card = ({ a, decide }: { a: any; decide: boolean }) => (
-    <div className="bg-card rounded-xl p-4 border border-border shadow-institutional space-y-2">
-      <div className="flex items-center justify-between gap-2 flex-wrap">
-        <p className="text-sm font-medium text-foreground">{descricaoAmigavel(a)}</p>
-        <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${STATUS_CLS[a.status] || ""}`}>{a.status}</span>
+  const Card = ({ grupo, decide }: { grupo: any[]; decide: boolean }) => {
+    const primeiro = grupo[0];
+    const status = grupo.every((a) => a.status === "pendente") ? "pendente" : primeiro.status;
+    const titulo = grupo.length > 1
+      ? `${descricaoAmigavel(primeiro)} (+${grupo.length - 1} registro${grupo.length > 2 ? "s" : ""} vinculado${grupo.length > 2 ? "s" : ""})`
+      : descricaoAmigavel(primeiro);
+    return (
+      <div className="bg-card rounded-xl p-4 border border-border shadow-institutional space-y-3">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <p className="text-sm font-medium text-foreground">{titulo}</p>
+          <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${STATUS_CLS[status] || ""}`}>{status}</span>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {decide ? `Analista: ${primeiro.analista_nome || "—"} · ` : ""}{new Date(primeiro.created_at).toLocaleString("pt-BR")}
+        </p>
+        {grupo.map((a, i) => (
+          <div key={a.id} className={grupo.length > 1 ? "border-l-2 border-border pl-3 space-y-2" : "space-y-2"}>
+            {grupo.length > 1 && <p className="text-xs font-semibold text-foreground">{i + 1}. {descricaoAmigavel(a)}</p>}
+            {resumo(a.payload)?.length ? (
+              <ul className="text-xs text-muted-foreground bg-muted/40 rounded-lg p-2 space-y-0.5">
+                {resumo(a.payload)!.map((l) => <li key={l} className="break-words">{l}</li>)}
+              </ul>
+            ) : null}
+            {camposFormatados(a.payload).map(([k, v]) => (
+              <div key={k} className="space-y-1">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{rotuloCampo(k)}</p>
+                <div
+                  className="text-sm text-foreground bg-muted/40 rounded-lg p-3 prose prose-sm dark:prose-invert max-w-none break-words [&_p]:my-1"
+                  dangerouslySetInnerHTML={{ __html: v }}
+                />
+              </div>
+            ))}
+            {a.erro && <p className="text-xs text-destructive">Erro: {a.erro}</p>}
+          </div>
+        ))}
+        {primeiro.motivo && <p className="text-xs text-foreground">Observação: {primeiro.motivo}</p>}
+        {decide && status === "pendente" && (
+          <div className="flex gap-2 flex-wrap items-center pt-1">
+            <Input placeholder="Observação (opcional)" className="h-8 text-xs rounded-lg flex-1 min-w-40"
+              value={motivos[primeiro.id] || ""} onChange={(e) => setMotivos({ ...motivos, [primeiro.id]: e.target.value })} />
+            <Button size="sm" className="h-8 rounded-lg" disabled={decidir.isPending} onClick={() => decidir.mutate({ grupo, aprovar: true })}>
+              <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Aprovar
+            </Button>
+            <Button size="sm" variant="outline" className="h-8 rounded-lg text-destructive" disabled={decidir.isPending} onClick={() => decidir.mutate({ grupo, aprovar: false })}>
+              <XCircle className="h-3.5 w-3.5 mr-1" /> Rejeitar
+            </Button>
+          </div>
+        )}
       </div>
-      <p className="text-xs text-muted-foreground">
-        {decide ? `Analista: ${a.analista_nome || "—"} · ` : ""}{new Date(a.created_at).toLocaleString("pt-BR")}
-      </p>
-      {resumo(a.payload)?.length ? (
-        <ul className="text-xs text-muted-foreground bg-muted/40 rounded-lg p-2 space-y-0.5">
-          {resumo(a.payload)!.map((l) => <li key={l} className="break-words">{l}</li>)}
-        </ul>
-      ) : null}
-      {camposFormatados(a.payload).map(([k, v]) => (
-        <div key={k} className="space-y-1">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{rotuloCampo(k)}</p>
-          <div
-            className="text-sm text-foreground bg-muted/40 rounded-lg p-3 prose prose-sm dark:prose-invert max-w-none break-words [&_p]:my-1"
-            dangerouslySetInnerHTML={{ __html: v }}
-          />
-        </div>
-      ))}
-      {a.motivo && <p className="text-xs text-foreground">Observação: {a.motivo}</p>}
-      {a.erro && <p className="text-xs text-destructive">Erro: {a.erro}</p>}
-      {decide && a.status === "pendente" && (
-        <div className="flex gap-2 flex-wrap items-center pt-1">
-          <Input placeholder="Observação (opcional)" className="h-8 text-xs rounded-lg flex-1 min-w-40"
-            value={motivos[a.id] || ""} onChange={(e) => setMotivos({ ...motivos, [a.id]: e.target.value })} />
-          <Button size="sm" className="h-8 rounded-lg" disabled={decidir.isPending} onClick={() => decidir.mutate({ a, aprovar: true })}>
-            <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Aprovar
-          </Button>
-          <Button size="sm" variant="outline" className="h-8 rounded-lg text-destructive" disabled={decidir.isPending} onClick={() => decidir.mutate({ a, aprovar: false })}>
-            <XCircle className="h-3.5 w-3.5 mr-1" /> Rejeitar
-          </Button>
-        </div>
-      )}
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="space-y-6">
