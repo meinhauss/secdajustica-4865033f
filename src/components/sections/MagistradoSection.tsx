@@ -108,7 +108,8 @@ export default function MagistradoSection() {
 /*  DASHBOARD                                  */
 /* ═══════════════════════════════════════════ */
 function MagistradoDashboard({ onSelectProcesso }: { onSelectProcesso: (id: string) => void }) {
-  const { user } = useAuth();
+  const { user, roles } = useAuth();
+  const isAnalista = roles.includes("analista") && !roles.includes("admin");
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [filterClasse, setFilterClasse] = useState("all");
@@ -137,14 +138,26 @@ function MagistradoDashboard({ onSelectProcesso }: { onSelectProcesso: (id: stri
     onError: (err: any) => toast.error(err.message),
   });
 
-  const { data: processos } = useQuery({
-    queryKey: ["mag-processos", user?.id],
+  // Analista enxerga os processos do superior vinculado
+  const { data: vinculo } = useQuery({
+    queryKey: ["mag-analista-vinculo", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("processos").select("*").eq("juiz_id", user!.id).order("prioridade", { ascending: false }).order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("analista_vinculos").select("supervisor_id").eq("analista_id", user!.id).maybeSingle();
       if (error) throw error;
       return data;
     },
-    enabled: !!user,
+    enabled: !!user && isAnalista,
+  });
+  const juizEfetivo = isAnalista ? (vinculo?.supervisor_id ?? null) : user?.id;
+
+  const { data: processos } = useQuery({
+    queryKey: ["mag-processos", juizEfetivo],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("processos").select("*").eq("juiz_id", juizEfetivo!).order("prioridade", { ascending: false }).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!juizEfetivo,
   });
 
   const processoIds = processos?.map(p => p.id) || [];

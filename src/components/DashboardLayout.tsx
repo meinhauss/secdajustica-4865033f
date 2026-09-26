@@ -26,9 +26,9 @@ interface DashboardLayoutProps {
 const menuItems = [
   { id: "dashboard", label: "Painel Geral", icon: Home, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "procurador_estado", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal", "delegado", "corregedor", "gaeco", "chefe_gaeco", "hospital", "detran", "analista"] },
   { id: "meu-perfil", label: "Meu Perfil", icon: Users, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "procurador_estado", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal", "delegado", "corregedor", "gaeco", "chefe_gaeco", "hospital", "detran", "analista"] },
-  { id: "processos", label: "Consulta de Processos", icon: FileText, roles: ["admin", "magistrado", "desembargador", "ministerio_publico", "procurador_geral", "procurador_estado", "advogado", "oficial_justica", "delegado", "corregedor", "chefe_gaeco"] },
+  { id: "processos", label: "Consulta de Processos", icon: FileText, roles: ["admin", "magistrado", "desembargador", "ministerio_publico", "procurador_geral", "procurador_estado", "advogado", "oficial_justica", "delegado", "corregedor", "chefe_gaeco", "analista"] },
   { id: "meus-processos", label: "Meus Processos", icon: FileText, roles: ["advogado", "ministerio_publico", "procurador_geral", "procurador_estado", "oficial_justica", "cidadao", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal", "delegado", "corregedor", "gaeco", "chefe_gaeco", "hospital", "detran", "admin", "magistrado", "desembargador", "presidente_tribunal"] },
-  { id: "magistrado", label: "Portal do Juiz", icon: Gavel, roles: ["admin", "magistrado", "presidente_tribunal", "desembargador"] },
+  { id: "magistrado", label: "Portal do Juiz", icon: Gavel, roles: ["admin", "magistrado", "presidente_tribunal", "desembargador", "analista"] },
   { id: "tribunal", label: "Tribunal de Justiça", icon: Scale, roles: ["admin", "desembargador", "presidente_tribunal", "magistrado"] },
   { id: "mp", label: "Ministério Público", icon: Scale, roles: ["admin", "ministerio_publico", "procurador_geral"] },
   
