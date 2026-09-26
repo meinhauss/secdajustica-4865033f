@@ -55,6 +55,19 @@ export function rotuloCampo(campo: string): string {
   return CAMPO_LABEL[campo] || campo.replace(/_/g, " ");
 }
 
+// Ações enfileiradas em sequência rápida (ex.: despacho = ato judicial + movimentação)
+// compartilham um grupo e são aprovadas juntas.
+let grupoAtual: { id: string; em: number } | null = null;
+function grupoId(): string {
+  const agora = Date.now();
+  if (!grupoAtual || agora - grupoAtual.em > 3000) {
+    grupoAtual = { id: crypto.randomUUID(), em: agora };
+  } else {
+    grupoAtual.em = agora;
+  }
+  return grupoAtual.id;
+}
+
 async function enfileirar(tabela: string, operacao: string, payload: any, filtros: any[]) {
   const { data: v } = await supabase.from("analista_vinculos" as any).select("supervisor_id").eq("analista_id", mode.userId!).maybeSingle();
   const supervisor = (v as any)?.supervisor_id;
@@ -71,6 +84,7 @@ async function enfileirar(tabela: string, operacao: string, payload: any, filtro
     operacao,
     payload: payload ?? null,
     filtros,
+    grupo_id: grupoId(),
     descricao: `${OP_LABEL[operacao] || operacao}: ${rotuloTabela(tabela)}`,
   });
   if (error) return { data: null, error, count: null, status: 400, statusText: "" };

@@ -1,0 +1,1 @@
+ALTER TABLE public.acoes_pendentes ADD COLUMN IF NOT EXISTS grupo_id uuid;
