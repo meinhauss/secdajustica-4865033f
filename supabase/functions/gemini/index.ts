@@ -9,8 +9,8 @@ const CORS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const DEFAULT_TIMEOUT = 60_000;
-const MAX_RETRIES = 2;
+const DEFAULT_TIMEOUT = 100_000;
+const MAX_RETRIES = 1;
 const RETRY_BASE = 800;
 
 interface AIMessage { role: "user" | "model" | "system"; content: string }
@@ -93,12 +93,14 @@ Deno.serve(async (req: Request) => {
     chatMessages.push({ role: "user", content: body.prompt });
   }
 
+  const LONG_OPS = ["gerar_sentenca", "gerar_despacho", "gerar_peticao", "gerar_parecer"];
+  const minTokens = LONG_OPS.includes(body.operation) ? 12000 : 4096;
   const payload: Record<string, unknown> = {
     model,
     messages: chatMessages,
     temperature: opts.temperature ?? 0.7,
     top_p: opts.topP ?? 0.95,
-    max_tokens: opts.maxOutputTokens ?? 8192,
+    max_tokens: Math.min(16000, Math.max(opts.maxOutputTokens ?? 0, minTokens)),
   };
   if (opts.responseSchema) {
     payload.response_format = { type: "json_object" };
@@ -175,7 +177,29 @@ Deno.serve(async (req: Request) => {
         }
 
         const result: any = await res.json();
-        const text: string = result?.choices?.[0]?.message?.content ?? "";
+        let text: string = result?.choices?.[0]?.message?.content ?? "";
+        let finish = result?.choices?.[0]?.finish_reason;
+        // Continua automaticamente se o texto foi cortado por limite de tamanho.
+        for (let c = 0; c < 2 && finish === "length" && !opts.responseSchema && Date.now() - started < 90_000; c++) {
+          try {
+            const cont = await withTimeout(fetch(step.endpoint, {
+              method: "POST",
+              headers: { Authorization: `Bearer ${step.key}`, "Content-Type": "application/json" },
+              body: JSON.stringify({
+                ...currentPayload,
+                messages: [
+                  ...chatMessages,
+                  { role: "assistant", content: text },
+                  { role: "user", content: "Continue exatamente de onde parou, sem repetir nada e sem comentários." },
+                ],
+              }),
+            }), DEFAULT_TIMEOUT);
+            if (!cont.ok) break;
+            const cj: any = await cont.json();
+            text += cj?.choices?.[0]?.message?.content ?? "";
+            finish = cj?.choices?.[0]?.finish_reason;
+          } catch { break; }
+        }
 
         let parsedJson: unknown = undefined;
         if (opts.responseSchema && text) {

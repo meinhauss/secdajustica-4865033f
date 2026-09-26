@@ -9,8 +9,8 @@ export const AI_CONFIG = {
   temperature: 0.7,
   topP: 0.95,
   topK: 40,
-  maxOutputTokens: 2048,
-  timeoutMs: 60_000,
+  maxOutputTokens: 8192,
+  timeoutMs: 140_000,
   maxRetries: 2,
   retryBaseDelayMs: 800,
   cache: {
