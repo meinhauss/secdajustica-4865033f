@@ -14,6 +14,47 @@ export function setAnalistaMode(active: boolean, userId?: string, nome?: string)
 
 const OP_LABEL: Record<string, string> = { insert: "Criar", update: "Editar", upsert: "Salvar", delete: "Excluir", rpc: "Executar" };
 
+export const TABELA_LABEL: Record<string, string> = {
+  processos: "Processo", movimentacoes: "Movimentação", atos_judiciais: "Ato Judicial",
+  sentencas: "Sentença", apelacoes: "Apelação", embargos_declaracao: "Embargos de Declaração",
+  audiencias: "Audiência", envolvidos_audiencia: "Envolvido em Audiência", intimacoes: "Intimação",
+  mandados: "Mandado", prazos_processuais: "Prazo Processual", certificacoes: "Certidão",
+  documentos_processo: "Documento do Processo", interessados_processo: "Interessado no Processo",
+  procuracoes: "Procuração", renuncias_prazo: "Renúncia de Prazo", votos_apelacao: "Voto de Apelação",
+  jurisprudencias: "Jurisprudência", tcos: "TCO", envolvidos_tco: "Envolvido em TCO",
+  jurados: "Jurado", jurados_convocados: "Jurado Convocado", convocacoes_jurados: "Convocação de Jurados",
+  leis_municipais: "Lei", concursos: "Concurso", inscricoes_concurso: "Inscrição em Concurso",
+  questoes_concurso: "Questão de Concurso", respostas_concurso: "Resposta de Concurso",
+  comunicados_concurso: "Comunicado de Concurso", comunicados_oab: "Comunicado da OAB",
+  inscricoes_oab: "Inscrição na OAB", carteiras_oab: "Carteira da OAB",
+  procedimentos_disciplinares: "Procedimento Disciplinar", inscricoes_unisp: "Inscrição UNISP",
+  registros_cartorio: "Registro de Cartório", denuncias_ouvidoria: "Denúncia na Ouvidoria",
+  modelos_documentos: "Modelo de Documento", modelos_favoritos: "Modelo Favorito",
+  user_roles: "Cargo", cargo_historico: "Histórico de Cargo", ranking_destaques: "Destaque de Ranking",
+  config_sistema: "Configuração do Sistema",
+};
+
+export function rotuloTabela(tabela: string): string {
+  if (tabela.startsWith("rpc:")) return tabela.slice(4).replace(/_/g, " ");
+  return TABELA_LABEL[tabela] || tabela.replace(/_/g, " ");
+}
+
+export const CAMPO_LABEL: Record<string, string> = {
+  processo_id: "Processo", autor_id: "Autor (ID)", autor_nome: "Autor", tipo: "Tipo",
+  titulo: "Título", conteudo: "Conteúdo", descricao: "Descrição", assinado: "Assinado",
+  data_assinatura: "Data da assinatura", numero: "Número", status: "Situação",
+  fundamentacao: "Fundamentação", dispositivo: "Dispositivo", ementa: "Ementa",
+  destinatario_nome: "Destinatário", data_hora: "Data e hora", local: "Local",
+  observacoes: "Observações", magistrado_id: "Magistrado (ID)", advogado_nome: "Advogado",
+  parte: "Parte", nome: "Nome", nome_completo: "Nome completo", valor_causa: "Valor da causa",
+  assunto: "Assunto", classe: "Classe", vara: "Vara", pedido: "Pedido",
+  data_envio: "Data de envio", prazo_dias: "Prazo (dias)", cargo_intimado: "Cargo intimado",
+};
+
+export function rotuloCampo(campo: string): string {
+  return CAMPO_LABEL[campo] || campo.replace(/_/g, " ");
+}
+
 async function enfileirar(tabela: string, operacao: string, payload: any, filtros: any[]) {
   const { data: v } = await supabase.from("analista_vinculos" as any).select("supervisor_id").eq("analista_id", mode.userId!).maybeSingle();
   const supervisor = (v as any)?.supervisor_id;
@@ -30,7 +71,7 @@ async function enfileirar(tabela: string, operacao: string, payload: any, filtro
     operacao,
     payload: payload ?? null,
     filtros,
-    descricao: `${OP_LABEL[operacao] || operacao} em ${tabela.replace(/^rpc:/, "")}`,
+    descricao: `${OP_LABEL[operacao] || operacao}: ${rotuloTabela(tabela)}`,
   });
   if (error) return { data: null, error, count: null, status: 400, statusText: "" };
   toast.info("Ação enviada para aprovação do seu superior.");
