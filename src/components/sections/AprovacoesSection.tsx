@@ -83,20 +83,23 @@ export default function AprovacoesSection() {
   const analistas = [...new Set(analistaRoles.filter((r: any) => r.role === "analista").map((r: any) => r.user_id))] as string[];
 
   const decidir = useMutation({
-    mutationFn: async ({ a, aprovar }: { a: any; aprovar: boolean }) => {
-      if (aprovar) {
-        const res: any = await executarAcaoPendente(a);
-        if (res?.error) {
-          await db.from("acoes_pendentes").update({ status: "erro", erro: res.error.message, decidido_em: new Date().toISOString() }).eq("id", a.id);
-          throw new Error(res.error.message);
+    mutationFn: async ({ grupo, aprovar }: { grupo: any[]; aprovar: boolean }) => {
+      const gid = grupo[0]?.id;
+      for (const a of grupo) {
+        if (aprovar) {
+          const res: any = await executarAcaoPendente(a);
+          if (res?.error) {
+            await db.from("acoes_pendentes").update({ status: "erro", erro: res.error.message, decidido_em: new Date().toISOString() }).eq("id", a.id);
+            throw new Error(res.error.message);
+          }
         }
+        const { error } = await db.from("acoes_pendentes").update({
+          status: aprovar ? "aprovada" : "rejeitada",
+          motivo: motivos[gid] || null,
+          decidido_em: new Date().toISOString(),
+        }).eq("id", a.id);
+        if (error) throw error;
       }
-      const { error } = await db.from("acoes_pendentes").update({
-        status: aprovar ? "aprovada" : "rejeitada",
-        motivo: motivos[a.id] || null,
-        decidido_em: new Date().toISOString(),
-      }).eq("id", a.id);
-      if (error) throw error;
     },
     onSuccess: (_d, v) => { toast.success(v.aprovar ? "Ação aprovada e executada." : "Ação rejeitada."); qc.invalidateQueries(); },
     onError: (e: any) => { toast.error("Falha ao executar: " + e.message); qc.invalidateQueries({ queryKey: ["acoes-pendentes"] }); },
