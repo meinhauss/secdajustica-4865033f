@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { executarAcaoPendente } from "@/lib/analistaInterceptor";
+import { executarAcaoPendente, rotuloTabela, rotuloCampo } from "@/lib/analistaInterceptor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CheckCircle2, XCircle, ClipboardCheck, Link2, Trash2 } from "lucide-react";
@@ -23,7 +23,15 @@ function resumo(payload: any) {
   return Object.entries(obj || {})
     .filter(([, v]) => v !== null && v !== "" && typeof v !== "object")
     .slice(0, 8)
-    .map(([k, v]) => `${k}: ${String(v).replace(/<[^>]+>/g, " ").slice(0, 160)}`);
+    .map(([k, v]) => `${rotuloCampo(k)}: ${String(v).replace(/<[^>]+>/g, " ").slice(0, 160)}`);
+}
+
+// Converte descrições antigas no formato "Criar em movimentacoes" para rótulos amigáveis.
+function descricaoAmigavel(a: any): string {
+  const d: string = a.descricao || "";
+  const m = d.match(/^(\w+) em (.+)$/);
+  if (m) return `${m[1]}: ${rotuloTabela(m[2])}`;
+  return d || `${a.operacao}: ${rotuloTabela(a.tabela)}`;
 }
 
 export default function AprovacoesSection() {
@@ -106,7 +114,7 @@ export default function AprovacoesSection() {
   const Card = ({ a, decide }: { a: any; decide: boolean }) => (
     <div className="bg-card rounded-xl p-4 border border-border shadow-institutional space-y-2">
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <p className="text-sm font-medium text-foreground">{a.descricao}</p>
+        <p className="text-sm font-medium text-foreground">{descricaoAmigavel(a)}</p>
         <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${STATUS_CLS[a.status] || ""}`}>{a.status}</span>
       </div>
       <p className="text-xs text-muted-foreground">
