@@ -231,14 +231,14 @@ export default function AprovacoesSection() {
       {(paraMim.length > 0 || !roles.includes("analista")) && (
         <div className="space-y-2">
           <h3 className="text-sm font-semibold flex items-center gap-2"><ClipboardCheck className="h-4 w-4" /> Aguardando minha decisão</h3>
-          {paraMim.length ? paraMim.map((a) => <Card key={a.id} a={a} decide />) : <p className="text-sm text-muted-foreground">Nenhuma ação de analista.</p>}
+          {paraMim.length ? paraMim.map((g) => <Card key={g[0].grupo_id || g[0].id} grupo={g} decide />) : <p className="text-sm text-muted-foreground">Nenhuma ação de analista.</p>}
         </div>
       )}
 
       {minhas.length > 0 && (
         <div className="space-y-2">
           <h3 className="text-sm font-semibold">Minhas solicitações</h3>
-          {minhas.map((a) => <Card key={a.id} a={a} decide={false} />)}
+          {minhas.map((g) => <Card key={g[0].grupo_id || g[0].id} grupo={g} decide={false} />)}
         </div>
       )}
     </div>
