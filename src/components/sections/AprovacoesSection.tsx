@@ -52,6 +52,7 @@ export default function AprovacoesSection() {
   const [motivos, setMotivos] = useState<Record<string, string>>({});
   const [novoAnalista, setNovoAnalista] = useState("");
   const [novoSupervisor, setNovoSupervisor] = useState("");
+  const [aba, setAba] = useState<"pendentes" | "concluidas">("pendentes");
 
   const { data: acoes = [] } = useQuery({
     queryKey: ["acoes-pendentes", user?.id],
@@ -188,6 +189,20 @@ export default function AprovacoesSection() {
     );
   };
 
+  // Sub-abas: pendentes de um lado, aprovadas/rejeitadas/erro do outro.
+  const Abas = ({ grupos }: { grupos: any[][] }) => {
+    const pend = grupos.filter((g) => g.every((a) => a.status === "pendente")).length;
+    const conc = grupos.length - pend;
+    const cls = (ativo: boolean) =>
+      `px-3 py-1 rounded-full text-xs font-semibold transition-colors ${ativo ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"}`;
+    return (
+      <div className="flex gap-1">
+        <button className={cls(aba === "pendentes")} onClick={() => setAba("pendentes")}>Pendentes ({pend})</button>
+        <button className={cls(aba === "concluidas")} onClick={() => setAba("concluidas")}>Concluídas ({conc})</button>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -230,15 +245,31 @@ export default function AprovacoesSection() {
 
       {(paraMim.length > 0 || !roles.includes("analista")) && (
         <div className="space-y-2">
-          <h3 className="text-sm font-semibold flex items-center gap-2"><ClipboardCheck className="h-4 w-4" /> Aguardando minha decisão</h3>
-          {paraMim.length ? paraMim.map((g) => <Card key={g[0].grupo_id || g[0].id} grupo={g} decide />) : <p className="text-sm text-muted-foreground">Nenhuma ação de analista.</p>}
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <h3 className="text-sm font-semibold flex items-center gap-2"><ClipboardCheck className="h-4 w-4" /> Aguardando minha decisão</h3>
+            {paraMim.length > 0 && <Abas grupos={paraMim} />}
+          </div>
+          {(() => {
+            const lista = paraMim.filter((g) => (aba === "pendentes" ? g.every((a) => a.status === "pendente") : !g.every((a) => a.status === "pendente")));
+            return lista.length
+              ? lista.map((g) => <Card key={g[0].grupo_id || g[0].id} grupo={g} decide />)
+              : <p className="text-sm text-muted-foreground">{aba === "pendentes" ? "Nenhuma ação de analista." : "Nenhuma decisão concluída."}</p>;
+          })()}
         </div>
       )}
 
       {minhas.length > 0 && (
         <div className="space-y-2">
-          <h3 className="text-sm font-semibold">Minhas solicitações</h3>
-          {minhas.map((g) => <Card key={g[0].grupo_id || g[0].id} grupo={g} decide={false} />)}
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <h3 className="text-sm font-semibold">Minhas solicitações</h3>
+            <Abas grupos={minhas} />
+          </div>
+          {(() => {
+            const lista = minhas.filter((g) => (aba === "pendentes" ? g.every((a) => a.status === "pendente") : !g.every((a) => a.status === "pendente")));
+            return lista.length
+              ? lista.map((g) => <Card key={g[0].grupo_id || g[0].id} grupo={g} decide={false} />)
+              : <p className="text-sm text-muted-foreground">{aba === "pendentes" ? "Nenhuma solicitação pendente." : "Nenhuma decisão concluída."}</p>;
+          })()}
         </div>
       )}
     </div>
