@@ -14,6 +14,84 @@ export type Database = {
   }
   public: {
     Tables: {
+      acoes_pendentes: {
+        Row: {
+          analista_id: string
+          analista_nome: string | null
+          created_at: string
+          decidido_em: string | null
+          descricao: string | null
+          erro: string | null
+          filtros: Json
+          id: string
+          motivo: string | null
+          operacao: string
+          payload: Json | null
+          status: string
+          supervisor_id: string
+          tabela: string
+          updated_at: string
+        }
+        Insert: {
+          analista_id: string
+          analista_nome?: string | null
+          created_at?: string
+          decidido_em?: string | null
+          descricao?: string | null
+          erro?: string | null
+          filtros?: Json
+          id?: string
+          motivo?: string | null
+          operacao: string
+          payload?: Json | null
+          status?: string
+          supervisor_id: string
+          tabela: string
+          updated_at?: string
+        }
+        Update: {
+          analista_id?: string
+          analista_nome?: string | null
+          created_at?: string
+          decidido_em?: string | null
+          descricao?: string | null
+          erro?: string | null
+          filtros?: Json
+          id?: string
+          motivo?: string | null
+          operacao?: string
+          payload?: Json | null
+          status?: string
+          supervisor_id?: string
+          tabela?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      analista_vinculos: {
+        Row: {
+          analista_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          supervisor_id: string
+        }
+        Insert: {
+          analista_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          supervisor_id: string
+        }
+        Update: {
+          analista_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          supervisor_id?: string
+        }
+        Relationships: []
+      }
       apelacoes: {
         Row: {
           apelante_id: string | null
@@ -2160,6 +2238,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_analista: { Args: { _uid: string }; Returns: boolean }
       is_involved_cartorio: {
         Args: {
           _partes_envolvidas: string
@@ -2250,6 +2329,7 @@ export type Database = {
         | "defensor_publico_geral"
         | "defensor_publico"
         | "corregedor"
+        | "analista"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2417,6 +2497,7 @@ export const Constants = {
         "defensor_publico_geral",
         "defensor_publico",
         "corregedor",
+        "analista",
       ],
     },
   },
