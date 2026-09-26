@@ -23,6 +23,7 @@ export type Database = {
           descricao: string | null
           erro: string | null
           filtros: Json
+          grupo_id: string | null
           id: string
           motivo: string | null
           operacao: string
@@ -40,6 +41,7 @@ export type Database = {
           descricao?: string | null
           erro?: string | null
           filtros?: Json
+          grupo_id?: string | null
           id?: string
           motivo?: string | null
           operacao: string
@@ -57,6 +59,7 @@ export type Database = {
           descricao?: string | null
           erro?: string | null
           filtros?: Json
+          grupo_id?: string | null
           id?: string
           motivo?: string | null
           operacao?: string
