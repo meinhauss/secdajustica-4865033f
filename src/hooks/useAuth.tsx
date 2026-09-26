@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session?.user) {
           fetchUserData(session.user.id);
         } else {
-          setRoles([]);
+          setRoles([]); setAnalistaMode(false);
           setProfile(null);
         }
         setLoading(false);
@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
-    setRoles([]);
+    setRoles([]); setAnalistaMode(false);
     setProfile(null);
   };
 
