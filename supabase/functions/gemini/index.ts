@@ -9,8 +9,8 @@ const CORS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const DEFAULT_TIMEOUT = 60_000;
-const MAX_RETRIES = 2;
+const DEFAULT_TIMEOUT = 100_000;
+const MAX_RETRIES = 1;
 const RETRY_BASE = 800;
 
 interface AIMessage { role: "user" | "model" | "system"; content: string }
