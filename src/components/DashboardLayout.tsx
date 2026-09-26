@@ -98,6 +98,10 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
       hospital: "Hospital",
       detran: "DETRAN",
       procurador_estado: "Procurador(a) Geral do Estado",
+      defensor_publico_geral: "Defensor(a) Público(a)-Geral",
+      defensor_publico: "Defensor(a) Público(a)",
+      analista: "Analista",
+      investigador: "Investigador(a)",
     };
     return labels[role] || role;
   };

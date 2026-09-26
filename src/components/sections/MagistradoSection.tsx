@@ -796,6 +796,15 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     { value: "procurador_estado", label: "Procurador(a) Geral do Estado" },
     { value: "desembargador", label: "Desembargador(a)" },
     { value: "presidente_tribunal", label: "Presidente do Tribunal" },
+    { value: "magistrado", label: "Juiz(a) de Direito" },
+    { value: "defensor_publico_geral", label: "Defensor(a) Público(a)-Geral" },
+    { value: "defensor_publico", label: "Defensor(a) Público(a)" },
+    { value: "gaeco", label: "GAECO" },
+    { value: "chefe_gaeco", label: "Chefe GAECO" },
+    { value: "corregedor", label: "Corregedor(a)" },
+    { value: "analista", label: "Analista" },
+    { value: "investigador", label: "Investigador(a)" },
+    { value: "bacharel_direito", label: "Bacharel em Direito" },
   ];
   const [cargoIntForm, setCargoIntForm] = useState({ cargo: "ministerio_publico", conteudo: "", prazo: "24" });
   const intimarCargo = useMutation({

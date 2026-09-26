@@ -32,6 +32,9 @@ const ROLE_LABELS: Record<string, string> = {
   procurador_estado: "Procurador Geral do Estado",
   corregedor: "Corregedor(a)",
   analista: "Analista",
+  defensor_publico_geral: "Defensor(a) Público(a)-Geral",
+  defensor_publico: "Defensor(a) Público(a)",
+  investigador: "Investigador(a)",
 };
 
 const POLICE_ROLES = ["policia_civil", "policia_militar", "policia_federal", "gaeco"] as const;
