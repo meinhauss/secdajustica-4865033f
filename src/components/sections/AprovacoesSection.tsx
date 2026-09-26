@@ -136,6 +136,15 @@ export default function AprovacoesSection() {
           {resumo(a.payload)!.map((l) => <li key={l} className="break-words">{l}</li>)}
         </ul>
       ) : null}
+      {camposFormatados(a.payload).map(([k, v]) => (
+        <div key={k} className="space-y-1">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{rotuloCampo(k)}</p>
+          <div
+            className="text-sm text-foreground bg-muted/40 rounded-lg p-3 prose prose-sm dark:prose-invert max-w-none break-words [&_p]:my-1"
+            dangerouslySetInnerHTML={{ __html: v }}
+          />
+        </div>
+      ))}
       {a.motivo && <p className="text-xs text-foreground">Observação: {a.motivo}</p>}
       {a.erro && <p className="text-xs text-destructive">Erro: {a.erro}</p>}
       {decide && a.status === "pendente" && (
