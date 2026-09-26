@@ -15,6 +15,7 @@ import MPSection from "@/components/sections/MPSection";
 import AudienciasSection from "@/components/sections/AudienciasSection";
 import OABSection from "@/components/sections/OABSection";
 import UsuariosSection from "@/components/sections/UsuariosSection";
+import AprovacoesSection from "@/components/sections/AprovacoesSection";
 import CargosSection from "@/components/sections/CargosSection";
 import ConcursosSection from "@/components/sections/ConcursosSection";
 import MeuPerfilSection from "@/components/sections/MeuPerfilSection";
@@ -158,6 +159,7 @@ const Index = () => {
       case "oab": return <OABSection />;
       case "cargos": return <CargosSection />;
       case "usuarios": return <UsuariosSection />;
+      case "aprovacoes": return <AprovacoesSection />;
       case "estatisticas": return <Suspense fallback={<LazyFallback />}><EstatisticasSection /></Suspense>;
       case "concursos": return <ConcursosSection />;
       case "cartorio": return <Suspense fallback={<LazyFallback />}><CartorarioSection /></Suspense>;

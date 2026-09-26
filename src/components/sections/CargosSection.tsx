@@ -168,6 +168,16 @@ const ROLE_HIERARCHY = [
     permissions: ["inqueritos", "provas", "relatorios", "remessa_mp", "processos_criminais", "ver_processos"],
   },
   {
+    level: 20,
+    role: "analista",
+    label: "Analista",
+    icon: Shield,
+    color: "text-slate-600",
+    bgColor: "bg-slate-600/10",
+    description: "Assessor combinado com outro cargo (Promotor, Juiz, etc.). Todas as suas ações ficam pendentes até serem aprovadas pelo superior vinculado.",
+    permissions: ["ver_processos"],
+  },
+  {
     level: 15,
     role: "gaeco",
     label: "GAECO",

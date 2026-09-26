@@ -7,6 +7,10 @@ import "@fontsource/fira-sans/500.css";
 import "@fontsource/fira-sans/600.css";
 import "@fontsource/fira-sans/700.css";
 import "./index.css";
+import { installAnalistaInterceptor } from "./lib/analistaInterceptor";
+
+installAnalistaInterceptor();
+
 
 // Initialize theme as early as possible to avoid flash
 (() => {

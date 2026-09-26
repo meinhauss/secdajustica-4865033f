@@ -1,5 +1,6 @@
 import { useState, useEffect, createContext, useContext } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { setAnalistaMode } from "@/lib/analistaInterceptor";
 import type { User, Session } from "@supabase/supabase-js";
 
 interface AuthContextType {
@@ -28,7 +29,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       supabase.from("user_roles").select("role").eq("user_id", userId),
       supabase.from("profiles").select("*").eq("user_id", userId).single(),
     ]);
-    if (rolesRes.data) setRoles(rolesRes.data.map((r) => r.role));
+    if (rolesRes.data) {
+      const rs = rolesRes.data.map((r) => r.role as string);
+      setAnalistaMode(rs.includes("analista") && !rs.includes("admin"), userId, profileRes.data?.nome_completo);
+      setRoles(rs);
+    }
     if (profileRes.data) setProfile(profileRes.data);
   };
 
@@ -40,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session?.user) {
           fetchUserData(session.user.id);
         } else {
-          setRoles([]);
+          setRoles([]); setAnalistaMode(false);
           setProfile(null);
         }
         setLoading(false);
@@ -85,7 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
-    setRoles([]);
+    setRoles([]); setAnalistaMode(false);
     setProfile(null);
   };
 
