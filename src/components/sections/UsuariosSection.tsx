@@ -30,6 +30,8 @@ const ROLE_LABELS: Record<string, string> = {
   hospital: "Hospital",
   detran: "DETRAN",
   procurador_estado: "Procurador Geral do Estado",
+  corregedor: "Corregedor(a)",
+  analista: "Analista",
 };
 
 const POLICE_ROLES = ["policia_civil", "policia_militar", "policia_federal", "gaeco"] as const;
