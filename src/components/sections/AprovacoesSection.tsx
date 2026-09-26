@@ -52,6 +52,7 @@ export default function AprovacoesSection() {
   const [motivos, setMotivos] = useState<Record<string, string>>({});
   const [novoAnalista, setNovoAnalista] = useState("");
   const [novoSupervisor, setNovoSupervisor] = useState("");
+  const [aba, setAba] = useState<"pendentes" | "concluidas">("pendentes");
 
   const { data: acoes = [] } = useQuery({
     queryKey: ["acoes-pendentes", user?.id],
@@ -184,6 +185,20 @@ export default function AprovacoesSection() {
             </Button>
           </div>
         )}
+      </div>
+    );
+  };
+
+  // Sub-abas: pendentes de um lado, aprovadas/rejeitadas/erro do outro.
+  const Abas = ({ grupos }: { grupos: any[][] }) => {
+    const pend = grupos.filter((g) => g.every((a) => a.status === "pendente")).length;
+    const conc = grupos.length - pend;
+    const cls = (ativo: boolean) =>
+      `px-3 py-1 rounded-full text-xs font-semibold transition-colors ${ativo ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"}`;
+    return (
+      <div className="flex gap-1">
+        <button className={cls(aba === "pendentes")} onClick={() => setAba("pendentes")}>Pendentes ({pend})</button>
+        <button className={cls(aba === "concluidas")} onClick={() => setAba("concluidas")}>Concluídas ({conc})</button>
       </div>
     );
   };
