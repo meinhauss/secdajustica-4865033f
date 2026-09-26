@@ -17,11 +17,22 @@ const STATUS_CLS: Record<string, string> = {
   erro: "bg-destructive/10 text-destructive",
 };
 
+// Campos de texto longo/formatado que devem ser exibidos como o analista os escreveu.
+const CAMPOS_FORMATADOS = new Set(["conteudo", "descricao", "fundamentacao", "dispositivo", "ementa", "ata", "relato_bo", "descricao_fatos", "parecer", "justificativa", "motivacao", "pedido"]);
+
+function camposFormatados(payload: any): [string, string][] {
+  if (!payload) return [];
+  const obj = Array.isArray(payload) ? payload[0] : payload;
+  return Object.entries(obj || {})
+    .filter(([k, v]) => CAMPOS_FORMATADOS.has(k) && typeof v === "string" && v.trim() !== "")
+    .map(([k, v]) => [k, v as string]);
+}
+
 function resumo(payload: any) {
   if (!payload) return null;
   const obj = Array.isArray(payload) ? payload[0] : payload;
   return Object.entries(obj || {})
-    .filter(([, v]) => v !== null && v !== "" && typeof v !== "object")
+    .filter(([k, v]) => v !== null && v !== "" && typeof v !== "object" && !CAMPOS_FORMATADOS.has(k))
     .slice(0, 8)
     .map(([k, v]) => `${rotuloCampo(k)}: ${String(v).replace(/<[^>]+>/g, " ").slice(0, 160)}`);
 }
