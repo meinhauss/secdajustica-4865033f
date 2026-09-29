@@ -1,0 +1,1 @@
+CREATE POLICY "Analista edita suas pendentes" ON public.acoes_pendentes FOR UPDATE TO authenticated USING (status = 'pendente' AND analista_id = auth.uid()) WITH CHECK (status = 'pendente' AND analista_id = auth.uid());
