@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { executarAcaoPendente, rotuloTabela, rotuloCampo } from "@/lib/analistaInterceptor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CheckCircle2, XCircle, ClipboardCheck, Link2, Trash2 } from "lucide-react";
+import { CheckCircle2, XCircle, ClipboardCheck, Link2, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 const db = supabase as any;
@@ -148,6 +148,26 @@ export default function AprovacoesSection() {
     onSuccess: () => { toast.success("Solicitação retirada."); qc.invalidateQueries({ queryKey: ["acoes-pendentes"] }); },
     onError: (e: any) => toast.error(e.message),
   });
+
+  // Edição do pedido pelo próprio analista enquanto pendente.
+  const [editando, setEditando] = useState<any | null>(null);
+  const [editPayload, setEditPayload] = useState<Record<string, any>>({});
+  const salvarEdicao = useMutation({
+    mutationFn: async () => {
+      if (!editando) return;
+      const { error } = await db.from("acoes_pendentes")
+        .update({ payload: editPayload })
+        .eq("id", editando.id).eq("status", "pendente");
+      if (error) throw error;
+    },
+    onSuccess: () => { toast.success("Solicitação atualizada."); setEditando(null); qc.invalidateQueries({ queryKey: ["acoes-pendentes"] }); },
+    onError: (e: any) => toast.error(e.message),
+  });
+  const iniciarEdicao = (a: any) => {
+    const obj = Array.isArray(a.payload) ? a.payload[0] : a.payload;
+    setEditando(a);
+    setEditPayload({ ...(obj || {}) });
+  };
 
   // Agrupa ações feitas juntas (mesmo grupo) em um único pedido de aprovação.
   const agrupar = (lista: any[]): any[][] => {
