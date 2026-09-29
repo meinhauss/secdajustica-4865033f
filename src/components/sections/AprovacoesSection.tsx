@@ -180,9 +180,13 @@ export default function AprovacoesSection() {
         <p className="text-xs text-muted-foreground">
           {decide ? `Analista: ${primeiro.analista_nome || "—"} · ` : ""}{new Date(primeiro.created_at).toLocaleString("pt-BR")}
         </p>
-        {visiveis.map((a, i) => (
+        {visiveis.map((a, i) => {
+          const obj = Array.isArray(a.payload) ? a.payload[0] : a.payload;
+          const procNum = obj?.processo_id ? (processosMap as any)[obj.processo_id] : null;
+          return (
           <div key={a.id} className={visiveis.length > 1 ? "border-l-2 border-border pl-3 space-y-2" : "space-y-2"}>
             {visiveis.length > 1 && <p className="text-xs font-semibold text-foreground">{i + 1}. {descricaoAmigavel(a)}</p>}
+            {procNum && <p className="text-xs font-semibold text-primary">Processo: {procNum}</p>}
             {resumo(a.payload)?.length ? (
               <ul className="text-xs text-muted-foreground bg-muted/40 rounded-lg p-2 space-y-0.5">
                 {resumo(a.payload)!.map((l) => <li key={l} className="break-words">{l}</li>)}
