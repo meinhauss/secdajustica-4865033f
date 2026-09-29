@@ -28,11 +28,14 @@ function camposFormatados(payload: any): [string, string][] {
     .map(([k, v]) => [k, v as string]);
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function resumo(payload: any) {
   if (!payload) return null;
   const obj = Array.isArray(payload) ? payload[0] : payload;
   return Object.entries(obj || {})
-    .filter(([k, v]) => v !== null && v !== "" && typeof v !== "object" && !CAMPOS_FORMATADOS.has(k))
+    .filter(([k, v]) => v !== null && v !== "" && typeof v !== "object" && !CAMPOS_FORMATADOS.has(k)
+      && !k.endsWith("_id") && k !== "id" && !UUID_RE.test(String(v)))
     .slice(0, 8)
     .map(([k, v]) => `${rotuloCampo(k)}: ${String(v).replace(/<[^>]+>/g, " ").slice(0, 160)}`);
 }
@@ -120,6 +123,14 @@ export default function AprovacoesSection() {
   const desvincular = useMutation({
     mutationFn: async (id: string) => { const { error } = await db.from("analista_vinculos").delete().eq("id", id); if (error) throw error; },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["analista-vinculos"] }),
+  });
+  const retirar = useMutation({
+    mutationFn: async (grupo: any[]) => {
+      const { error } = await db.from("acoes_pendentes").delete().in("id", grupo.map((a) => a.id)).eq("status", "pendente");
+      if (error) throw error;
+    },
+    onSuccess: () => { toast.success("Solicitação retirada."); qc.invalidateQueries({ queryKey: ["acoes-pendentes"] }); },
+    onError: (e: any) => toast.error(e.message),
   });
 
   // Agrupa ações feitas juntas (mesmo grupo) em um único pedido de aprovação.
