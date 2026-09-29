@@ -83,6 +83,22 @@ export default function AprovacoesSection() {
     queryFn: async () => (await db.from("analista_vinculos").select("*")).data || [],
   });
 
+  // Busca os números dos processos referenciados nos pedidos (payload.processo_id).
+  const processoIds = [...new Set(
+    acoes.flatMap((a: any) => {
+      const obj = Array.isArray(a.payload) ? a.payload[0] : a.payload;
+      return obj?.processo_id && UUID_RE.test(String(obj.processo_id)) ? [String(obj.processo_id)] : [];
+    }),
+  )] as string[];
+  const { data: processosMap = {} } = useQuery({
+    queryKey: ["aprov-processos", processoIds.join(",")],
+    enabled: !!user && processoIds.length > 0,
+    queryFn: async () => {
+      const { data } = await db.from("processos").select("id,numero").in("id", processoIds);
+      return Object.fromEntries((data || []).map((p: any) => [p.id, p.numero]));
+    },
+  });
+
   const nome = (uid: string) => profiles.find((p: any) => p.user_id === uid)?.nome_completo || uid.slice(0, 8);
   const analistas = [...new Set(analistaRoles.filter((r: any) => r.role === "analista").map((r: any) => r.user_id))] as string[];
 
