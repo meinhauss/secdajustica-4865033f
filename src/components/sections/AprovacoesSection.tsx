@@ -203,24 +203,60 @@ export default function AprovacoesSection() {
         {visiveis.map((a, i) => {
           const obj = Array.isArray(a.payload) ? a.payload[0] : a.payload;
           const procNum = obj?.processo_id ? (processosMap as any)[obj.processo_id] : null;
+          const emEdicao = editando?.id === a.id;
+          const camposEditaveis = emEdicao
+            ? Object.entries(editPayload).filter(([k, v]) =>
+                !k.endsWith("_id") && k !== "id" && typeof v !== "object" && !UUID_RE.test(String(v ?? "")))
+            : [];
           return (
           <div key={a.id} className={visiveis.length > 1 ? "border-l-2 border-border pl-3 space-y-2" : "space-y-2"}>
             {visiveis.length > 1 && <p className="text-xs font-semibold text-foreground">{i + 1}. {descricaoAmigavel(a)}</p>}
             {procNum && <p className="text-xs font-semibold text-primary">Processo: {procNum}</p>}
-            {resumo(a.payload)?.length ? (
-              <ul className="text-xs text-muted-foreground bg-muted/40 rounded-lg p-2 space-y-0.5">
-                {resumo(a.payload)!.map((l) => <li key={l} className="break-words">{l}</li>)}
-              </ul>
-            ) : null}
-            {camposFormatados(a.payload).map(([k, v]) => (
-              <div key={k} className="space-y-1">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{rotuloCampo(k)}</p>
-                <div
-                  className="text-sm text-foreground bg-muted/40 rounded-lg p-3 prose prose-sm dark:prose-invert max-w-none break-words [&_p]:my-1"
-                  dangerouslySetInnerHTML={{ __html: v }}
-                />
+            {emEdicao ? (
+              <div className="space-y-2">
+                {camposEditaveis.map(([k, v]) => (
+                  <div key={k} className="space-y-1">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{rotuloCampo(k)}</p>
+                    {CAMPOS_FORMATADOS.has(k) ? (
+                      <textarea
+                        className="w-full min-h-32 text-sm rounded-lg border border-border bg-background p-2"
+                        value={String(v ?? "")}
+                        onChange={(e) => setEditPayload({ ...editPayload, [k]: e.target.value })}
+                      />
+                    ) : (
+                      <Input
+                        className="h-8 text-xs rounded-lg"
+                        value={String(v ?? "")}
+                        onChange={(e) => setEditPayload({ ...editPayload, [k]: e.target.value })}
+                      />
+                    )}
+                  </div>
+                ))}
+                <div className="flex gap-2 pt-1">
+                  <Button size="sm" className="h-8 rounded-lg" disabled={salvarEdicao.isPending} onClick={() => salvarEdicao.mutate()}>
+                    <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Salvar alterações
+                  </Button>
+                  <Button size="sm" variant="outline" className="h-8 rounded-lg" onClick={() => setEditando(null)}>Cancelar</Button>
+                </div>
               </div>
-            ))}
+            ) : (
+              <>
+                {resumo(a.payload)?.length ? (
+                  <ul className="text-xs text-muted-foreground bg-muted/40 rounded-lg p-2 space-y-0.5">
+                    {resumo(a.payload)!.map((l) => <li key={l} className="break-words">{l}</li>)}
+                  </ul>
+                ) : null}
+                {camposFormatados(a.payload).map(([k, v]) => (
+                  <div key={k} className="space-y-1">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{rotuloCampo(k)}</p>
+                    <div
+                      className="text-sm text-foreground bg-muted/40 rounded-lg p-3 prose prose-sm dark:prose-invert max-w-none break-words [&_p]:my-1"
+                      dangerouslySetInnerHTML={{ __html: v }}
+                    />
+                  </div>
+                ))}
+              </>
+            )}
           </div>
           );
         })}
@@ -239,10 +275,16 @@ export default function AprovacoesSection() {
           </div>
         )}
         {!decide && status === "pendente" && grupo[0].analista_id === user?.id && (
-          <Button size="sm" variant="outline" className="h-8 rounded-lg text-destructive" disabled={retirar.isPending}
-            onClick={() => { if (confirm("Retirar esta solicitação? Ela será excluída.")) retirar.mutate(grupo); }}>
-            <Trash2 className="h-3.5 w-3.5 mr-1" /> Retirar solicitação
-          </Button>
+          <div className="flex gap-2 flex-wrap pt-1">
+            <Button size="sm" variant="outline" className="h-8 rounded-lg" disabled={!!editando}
+              onClick={() => iniciarEdicao(visiveis[0])}>
+              <Pencil className="h-3.5 w-3.5 mr-1" /> Editar
+            </Button>
+            <Button size="sm" variant="outline" className="h-8 rounded-lg text-destructive" disabled={retirar.isPending}
+              onClick={() => { if (confirm("Retirar esta solicitação? Ela será excluída.")) retirar.mutate(grupo); }}>
+              <Trash2 className="h-3.5 w-3.5 mr-1" /> Retirar solicitação
+            </Button>
+          </div>
         )}
       </div>
     );
