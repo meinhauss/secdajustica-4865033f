@@ -2254,6 +2254,7 @@ export type Database = {
       is_magistrado_role: { Args: { _uid: string }; Returns: boolean }
       is_postulante_role: { Args: { _uid: string }; Returns: boolean }
       is_servidor_judiciario: { Args: { _uid: string }; Returns: boolean }
+      is_staff_processual: { Args: { _uid: string }; Returns: boolean }
       marcar_intimacoes_lidas: {
         Args: { _processo_id: string }
         Returns: number
@@ -2279,6 +2280,10 @@ export type Database = {
           _user_id: string
         }
         Returns: string
+      }
+      pode_atuar_processo: {
+        Args: { _processo_id: string; _uid: string }
+        Returns: boolean
       }
       sortear_desembargador: { Args: never; Returns: string }
       sortear_jurados: {
