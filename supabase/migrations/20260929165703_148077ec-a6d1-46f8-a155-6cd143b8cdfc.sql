@@ -1,0 +1,2 @@
+GRANT DELETE ON public.acoes_pendentes TO authenticated;
+CREATE POLICY "Analista exclui suas acoes pendentes" ON public.acoes_pendentes FOR DELETE TO authenticated USING (analista_id = auth.uid() AND status = 'pendente');

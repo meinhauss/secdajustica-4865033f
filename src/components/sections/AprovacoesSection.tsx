@@ -28,11 +28,14 @@ function camposFormatados(payload: any): [string, string][] {
     .map(([k, v]) => [k, v as string]);
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function resumo(payload: any) {
   if (!payload) return null;
   const obj = Array.isArray(payload) ? payload[0] : payload;
   return Object.entries(obj || {})
-    .filter(([k, v]) => v !== null && v !== "" && typeof v !== "object" && !CAMPOS_FORMATADOS.has(k))
+    .filter(([k, v]) => v !== null && v !== "" && typeof v !== "object" && !CAMPOS_FORMATADOS.has(k)
+      && !k.endsWith("_id") && k !== "id" && !UUID_RE.test(String(v)))
     .slice(0, 8)
     .map(([k, v]) => `${rotuloCampo(k)}: ${String(v).replace(/<[^>]+>/g, " ").slice(0, 160)}`);
 }
@@ -121,6 +124,14 @@ export default function AprovacoesSection() {
     mutationFn: async (id: string) => { const { error } = await db.from("analista_vinculos").delete().eq("id", id); if (error) throw error; },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["analista-vinculos"] }),
   });
+  const retirar = useMutation({
+    mutationFn: async (grupo: any[]) => {
+      const { error } = await db.from("acoes_pendentes").delete().in("id", grupo.map((a) => a.id)).eq("status", "pendente");
+      if (error) throw error;
+    },
+    onSuccess: () => { toast.success("Solicitação retirada."); qc.invalidateQueries({ queryKey: ["acoes-pendentes"] }); },
+    onError: (e: any) => toast.error(e.message),
+  });
 
   // Agrupa ações feitas juntas (mesmo grupo) em um único pedido de aprovação.
   const agrupar = (lista: any[]): any[][] => {
@@ -138,11 +149,12 @@ export default function AprovacoesSection() {
   const meuSuperior = vinculos.find((v: any) => v.analista_id === user?.id);
 
   const Card = ({ grupo, decide }: { grupo: any[]; decide: boolean }) => {
-    const primeiro = grupo[0];
+    // Um despacho gera ato judicial + movimentação: exibe só a movimentação.
+    const movs = grupo.filter((a) => a.tabela === "movimentacoes");
+    const visiveis = movs.length ? movs : grupo;
+    const primeiro = visiveis[0];
     const status = grupo.every((a) => a.status === "pendente") ? "pendente" : primeiro.status;
-    const titulo = grupo.length > 1
-      ? `${descricaoAmigavel(primeiro)} (+${grupo.length - 1} registro${grupo.length > 2 ? "s" : ""} vinculado${grupo.length > 2 ? "s" : ""})`
-      : descricaoAmigavel(primeiro);
+    const titulo = descricaoAmigavel(primeiro);
     return (
       <div className="bg-card rounded-xl p-4 border border-border shadow-institutional space-y-3">
         <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -152,9 +164,9 @@ export default function AprovacoesSection() {
         <p className="text-xs text-muted-foreground">
           {decide ? `Analista: ${primeiro.analista_nome || "—"} · ` : ""}{new Date(primeiro.created_at).toLocaleString("pt-BR")}
         </p>
-        {grupo.map((a, i) => (
-          <div key={a.id} className={grupo.length > 1 ? "border-l-2 border-border pl-3 space-y-2" : "space-y-2"}>
-            {grupo.length > 1 && <p className="text-xs font-semibold text-foreground">{i + 1}. {descricaoAmigavel(a)}</p>}
+        {visiveis.map((a, i) => (
+          <div key={a.id} className={visiveis.length > 1 ? "border-l-2 border-border pl-3 space-y-2" : "space-y-2"}>
+            {visiveis.length > 1 && <p className="text-xs font-semibold text-foreground">{i + 1}. {descricaoAmigavel(a)}</p>}
             {resumo(a.payload)?.length ? (
               <ul className="text-xs text-muted-foreground bg-muted/40 rounded-lg p-2 space-y-0.5">
                 {resumo(a.payload)!.map((l) => <li key={l} className="break-words">{l}</li>)}
@@ -169,14 +181,14 @@ export default function AprovacoesSection() {
                 />
               </div>
             ))}
-            {a.erro && <p className="text-xs text-destructive">Erro: {a.erro}</p>}
           </div>
         ))}
-        {primeiro.motivo && <p className="text-xs text-foreground">Observação: {primeiro.motivo}</p>}
+        {grupo.filter((a) => a.erro).map((a) => <p key={a.id} className="text-xs text-destructive">Erro: {a.erro}</p>)}
+        {grupo[0].motivo && <p className="text-xs text-foreground">Observação: {grupo[0].motivo}</p>}
         {decide && status === "pendente" && (
           <div className="flex gap-2 flex-wrap items-center pt-1">
             <Input placeholder="Observação (opcional)" className="h-8 text-xs rounded-lg flex-1 min-w-40"
-              value={motivos[primeiro.id] || ""} onChange={(e) => setMotivos({ ...motivos, [primeiro.id]: e.target.value })} />
+              value={motivos[grupo[0].id] || ""} onChange={(e) => setMotivos({ ...motivos, [grupo[0].id]: e.target.value })} />
             <Button size="sm" className="h-8 rounded-lg" disabled={decidir.isPending} onClick={() => decidir.mutate({ grupo, aprovar: true })}>
               <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Aprovar
             </Button>
@@ -184,6 +196,12 @@ export default function AprovacoesSection() {
               <XCircle className="h-3.5 w-3.5 mr-1" /> Rejeitar
             </Button>
           </div>
+        )}
+        {!decide && status === "pendente" && grupo[0].analista_id === user?.id && (
+          <Button size="sm" variant="outline" className="h-8 rounded-lg text-destructive" disabled={retirar.isPending}
+            onClick={() => { if (confirm("Retirar esta solicitação? Ela será excluída.")) retirar.mutate(grupo); }}>
+            <Trash2 className="h-3.5 w-3.5 mr-1" /> Retirar solicitação
+          </Button>
         )}
       </div>
     );
