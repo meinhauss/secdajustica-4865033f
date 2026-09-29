@@ -83,6 +83,22 @@ export default function AprovacoesSection() {
     queryFn: async () => (await db.from("analista_vinculos").select("*")).data || [],
   });
 
+  // Busca os números dos processos referenciados nos pedidos (payload.processo_id).
+  const processoIds = [...new Set(
+    acoes.flatMap((a: any) => {
+      const obj = Array.isArray(a.payload) ? a.payload[0] : a.payload;
+      return obj?.processo_id && UUID_RE.test(String(obj.processo_id)) ? [String(obj.processo_id)] : [];
+    }),
+  )] as string[];
+  const { data: processosMap = {} } = useQuery({
+    queryKey: ["aprov-processos", processoIds.join(",")],
+    enabled: !!user && processoIds.length > 0,
+    queryFn: async () => {
+      const { data } = await db.from("processos").select("id,numero").in("id", processoIds);
+      return Object.fromEntries((data || []).map((p: any) => [p.id, p.numero]));
+    },
+  });
+
   const nome = (uid: string) => profiles.find((p: any) => p.user_id === uid)?.nome_completo || uid.slice(0, 8);
   const analistas = [...new Set(analistaRoles.filter((r: any) => r.role === "analista").map((r: any) => r.user_id))] as string[];
 
@@ -164,9 +180,13 @@ export default function AprovacoesSection() {
         <p className="text-xs text-muted-foreground">
           {decide ? `Analista: ${primeiro.analista_nome || "—"} · ` : ""}{new Date(primeiro.created_at).toLocaleString("pt-BR")}
         </p>
-        {visiveis.map((a, i) => (
+        {visiveis.map((a, i) => {
+          const obj = Array.isArray(a.payload) ? a.payload[0] : a.payload;
+          const procNum = obj?.processo_id ? (processosMap as any)[obj.processo_id] : null;
+          return (
           <div key={a.id} className={visiveis.length > 1 ? "border-l-2 border-border pl-3 space-y-2" : "space-y-2"}>
             {visiveis.length > 1 && <p className="text-xs font-semibold text-foreground">{i + 1}. {descricaoAmigavel(a)}</p>}
+            {procNum && <p className="text-xs font-semibold text-primary">Processo: {procNum}</p>}
             {resumo(a.payload)?.length ? (
               <ul className="text-xs text-muted-foreground bg-muted/40 rounded-lg p-2 space-y-0.5">
                 {resumo(a.payload)!.map((l) => <li key={l} className="break-words">{l}</li>)}
@@ -182,7 +202,8 @@ export default function AprovacoesSection() {
               </div>
             ))}
           </div>
-        ))}
+          );
+        })}
         {grupo.filter((a) => a.erro).map((a) => <p key={a.id} className="text-xs text-destructive">Erro: {a.erro}</p>)}
         {grupo[0].motivo && <p className="text-xs text-foreground">Observação: {grupo[0].motivo}</p>}
         {decide && status === "pendente" && (
