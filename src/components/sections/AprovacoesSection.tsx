@@ -202,7 +202,8 @@ export default function AprovacoesSection() {
               </div>
             ))}
           </div>
-        ))}
+          );
+        })}
         {grupo.filter((a) => a.erro).map((a) => <p key={a.id} className="text-xs text-destructive">Erro: {a.erro}</p>)}
         {grupo[0].motivo && <p className="text-xs text-foreground">Observação: {grupo[0].motivo}</p>}
         {decide && status === "pendente" && (
