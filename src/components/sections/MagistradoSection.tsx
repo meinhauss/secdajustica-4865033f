@@ -149,15 +149,19 @@ function MagistradoDashboard({ onSelectProcesso }: { onSelectProcesso: (id: stri
     enabled: !!user && isAnalista,
   });
   const juizEfetivo = isAnalista ? (vinculo?.supervisor_id ?? null) : user?.id;
+  const idsJuiz = [...new Set([user?.id, isAnalista ? vinculo?.supervisor_id : null].filter(Boolean))] as string[];
 
   const { data: processos } = useQuery({
-    queryKey: ["mag-processos", juizEfetivo],
+    queryKey: ["mag-processos", idsJuiz.join(",")],
     queryFn: async () => {
-      const { data, error } = await supabase.from("processos").select("*").eq("juiz_id", juizEfetivo!).order("prioridade", { ascending: false }).order("created_at", { ascending: false });
+      const lista = idsJuiz.join(",");
+      const { data, error } = await supabase.from("processos").select("*")
+        .or(`juiz_id.in.(${lista}),relator_id.in.(${lista})`)
+        .order("prioridade", { ascending: false }).order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
-    enabled: !!juizEfetivo,
+    enabled: !!user && (!isAnalista || vinculo !== undefined),
   });
 
   const processoIds = processos?.map(p => p.id) || [];
