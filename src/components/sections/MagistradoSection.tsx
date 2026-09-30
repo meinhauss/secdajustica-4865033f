@@ -167,7 +167,7 @@ function MagistradoDashboard({ onSelectProcesso }: { onSelectProcesso: (id: stri
   const processoIds = processos?.map(p => p.id) || [];
 
   const { data: atos } = useQuery({
-    queryKey: ["mag-atos", user?.id],
+    queryKey: ["mag-atos", processoIds.join(",")],
     queryFn: async () => {
       if (!processoIds.length) return [];
       const { data, error } = await supabase.from("atos_judiciais").select("*").in("processo_id", processoIds).order("created_at", { ascending: false }).limit(50);
@@ -178,7 +178,7 @@ function MagistradoDashboard({ onSelectProcesso }: { onSelectProcesso: (id: stri
   });
 
   const { data: audiencias } = useQuery({
-    queryKey: ["mag-audiencias", user?.id],
+    queryKey: ["mag-audiencias", processoIds.join(",")],
     queryFn: async () => {
       if (!processoIds.length) return [];
       const { data, error } = await supabase.from("audiencias").select("*").in("processo_id", processoIds).order("data_hora", { ascending: true });
@@ -189,7 +189,7 @@ function MagistradoDashboard({ onSelectProcesso }: { onSelectProcesso: (id: stri
   });
 
   const { data: mandados } = useQuery({
-    queryKey: ["mag-mandados", user?.id],
+    queryKey: ["mag-mandados", processoIds.join(",")],
     queryFn: async () => {
       if (!processoIds.length) return [];
       const { data, error } = await supabase.from("mandados").select("*").in("processo_id", processoIds).order("created_at", { ascending: false });
@@ -200,7 +200,7 @@ function MagistradoDashboard({ onSelectProcesso }: { onSelectProcesso: (id: stri
   });
 
   const { data: sentencas } = useQuery({
-    queryKey: ["mag-sentencas", user?.id],
+    queryKey: ["mag-sentencas", processoIds.join(",")],
     queryFn: async () => {
       if (!processoIds.length) return [];
       const { data, error } = await supabase.from("sentencas").select("*").in("processo_id", processoIds).order("created_at", { ascending: false });
