@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.pode_outorgar(uuid, user_role) FROM PUBLIC, anon, authenticated;
