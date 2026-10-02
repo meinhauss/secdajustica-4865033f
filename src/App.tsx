@@ -11,6 +11,7 @@ import Calculadora from "./pages/Calculadora.tsx";
 import OrdenamentoJuridico from "./pages/OrdenamentoJuridico.tsx";
 import BotLegal from "./pages/BotLegal.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import AccessibilityZoom from "./components/AccessibilityZoom";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <AccessibilityZoom />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
