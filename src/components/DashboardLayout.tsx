@@ -107,7 +107,7 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
   };
 
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="min-h-dvh flex bg-background">
       {/* Mobile overlay */}
       <AnimatePresence>
         {sidebarOpen && (
@@ -187,7 +187,7 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
       </motion.aside>
 
       {/* Main */}
-      <div className="flex-1 flex flex-col min-h-screen min-w-0">
+      <div className="flex-1 flex flex-col min-h-dvh min-w-0">
         {/* Top bar */}
         <header className="h-14 bg-card/80 backdrop-blur-md border-b border-border flex items-center px-3 sm:px-4 gap-2 sm:gap-4 shadow-institutional sticky top-0 z-30">
           <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-foreground flex-shrink-0" aria-label="Abrir menu">

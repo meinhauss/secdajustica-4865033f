@@ -9,7 +9,7 @@ const ATUALIZACAO = "10 de julho de 2026";
 
 export default function BotLegal() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <header className="border-b bg-institutional text-gold-light">
         <div className="max-w-4xl mx-auto px-4 py-6 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
