@@ -43,7 +43,7 @@ const menuItems = [
   { id: "modelos", label: "Modelos", icon: FileStack, roles: ["admin", "magistrado", "desembargador", "presidente_tribunal", "ministerio_publico", "procurador_geral", "procurador_estado", "advogado", "bacharel_direito", "presidente_oab", "oficial_justica", "policia_civil", "policia_militar", "policia_federal", "delegado", "corregedor", "gaeco", "chefe_gaeco"] },
   { id: "aprovacoes", label: "Aprovações", icon: ClipboardList, roles: ["admin", "analista", "magistrado", "ministerio_publico", "procurador_geral", "procurador_estado", "desembargador", "presidente_tribunal", "defensor_publico", "defensor_publico_geral", "delegado", "corregedor", "chefe_gaeco", "oficial_justica", "presidente_oab", "advogado", "gaeco", "policia_civil", "policia_militar", "policia_federal", "hospital", "detran"] },
   { id: "cargos", label: "Cargos e Hierarquia", icon: Crown, roles: ["admin"] },
-  { id: "usuarios", label: "Usuários", icon: Users, roles: ["admin", "delegado", "corregedor", "chefe_gaeco"] },
+  { id: "usuarios", label: "Usuários", icon: Users, roles: ["admin", "delegado", "corregedor", "chefe_gaeco", "presidente_tribunal", "desembargador", "magistrado", "procurador_geral", "ministerio_publico", "defensor_publico_geral", "defensor_publico", "procurador_estado", "presidente_oab"] },
   { id: "estatisticas", label: "Estatísticas", icon: BarChart3, roles: ["admin", "magistrado", "presidente_tribunal"] },
 ];
 

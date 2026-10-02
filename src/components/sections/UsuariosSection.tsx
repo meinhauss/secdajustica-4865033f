@@ -70,6 +70,15 @@ export default function UsuariosSection() {
     },
   });
 
+  const { data: regras } = useQuery({
+    queryKey: ["outorga-regras"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).from("outorga_regras").select("outorgante,cargo");
+      if (error) throw error;
+      return data as { outorgante: string; cargo: string }[];
+    },
+  });
+
   const updateProfile = useMutation({
     mutationFn: async ({ profileId, data }: { profileId: string; data: any }) => {
       const { error } = await supabase.from("profiles").update(data).eq("id", profileId);
@@ -131,15 +140,15 @@ export default function UsuariosSection() {
     p.discord?.toLowerCase().includes(search.toLowerCase())
   ) || [];
 
-  const isDelegadoPuro = roles.includes("delegado");
   const corregedorInst = roles.includes("corregedor")
     ? roles.filter((r) => ["policia_civil", "policia_militar", "policia_federal"].includes(r))
     : [];
   const isCorregedor = corregedorInst.length > 0;
   const userHasInst = (uid: string) =>
     (allRoles || []).some((r) => r.user_id === uid && corregedorInst.includes(r.role));
-  // Delegado vê todos; corregedor vê todos (para nomear) mas só gerencia sua instituição; chefe GAECO só vê cargos que detém
-  const filtered = isAdmin || isDelegadoPuro || isCorregedor
+  const isLider = (regras || []).some((r: any) => roles.includes(r.outorgante));
+  // Líderes e corregedores veem todos (para nomear); chefe GAECO só vê quem tem cargos que ele detém
+  const filtered = isAdmin || isLider || isCorregedor
     ? filteredBase
     : isDelegado
       ? filteredBase.filter((p) => {
@@ -150,10 +159,13 @@ export default function UsuariosSection() {
 
   const canDeleteProfile = (_p: any) => isAdmin;
 
+  const regraCargos = new Set(
+    (regras || []).filter((r: any) => roles.includes(r.outorgante)).map((r: any) => r.cargo as string)
+  );
+
   const assignableFor = (uid: string): string[] => {
-    const set = new Set<string>();
-    if (isAdmin || isDelegadoPuro) DELEGADO_ASSIGNABLE.forEach((r) => set.add(r));
-    if (isAdmin) set.add("policia_militar");
+    const set = new Set<string>(regraCargos);
+    if (isAdmin) { Object.keys(ROLE_LABELS).forEach((r) => set.add(r)); }
     corregedorInst.forEach((r) => set.add(r));
     if (isAdmin || (isCorregedor && userHasInst(uid))) set.add("corregedor");
     return [...set];
@@ -162,10 +174,10 @@ export default function UsuariosSection() {
   const canRemoveRole = (role: string, targetUserId: string) => {
     if (targetUserId === user?.id) return false;
     if (isAdmin) return true;
-    if (isDelegadoPuro && (DELEGADO_ASSIGNABLE as readonly string[]).includes(role)) return true;
+    if (regraCargos.has(role)) return true;
     if (corregedorInst.includes(role)) return true;
     if (role === "corregedor" && isCorregedor && userHasInst(targetUserId)) return true;
-    if (!isDelegado) return false;
+    if (!roles.includes("chefe_gaeco")) return false;
     if (!["policia_civil","policia_militar","policia_federal","delegado", "gaeco", "chefe_gaeco"].includes(role)) return false;
     return roles.includes(role);
   };
