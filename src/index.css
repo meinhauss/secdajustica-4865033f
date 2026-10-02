@@ -174,3 +174,19 @@
     box-shadow: 0 4px 24px -4px hsl(var(--gold) / 0.25);
   }
 }
+
+/* ─── Ajustes responsivos globais (celular/tablet) ─── */
+@layer base {
+  main { overflow-wrap: anywhere; }
+  img, video, iframe { max-width: 100%; height: auto; }
+  @media (max-width: 1023px) {
+    main table:not([data-keep]) { display: block; max-width: 100%; overflow-x: auto; }
+    main pre { white-space: pre-wrap; }
+  }
+  @media (max-width: 640px) {
+    /* Evita o zoom automático do iOS ao focar campos */
+    input, select, textarea { font-size: 16px !important; }
+    [role="tablist"] { overflow-x: auto; flex-wrap: nowrap; justify-content: flex-start; max-width: 100%; }
+    [role="tablist"] > * { flex-shrink: 0; }
+  }
+}

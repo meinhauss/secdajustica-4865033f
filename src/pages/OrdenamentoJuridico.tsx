@@ -338,7 +338,7 @@ export default function OrdenamentoJuridicoPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-dvh bg-background flex flex-col">
       <header className="bg-institutional border-b border-sidebar-border">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center gap-2 sm:gap-4">
           <img src={brasaoJaguare.url} alt="Brasão da República Federativa de Jaguaré" className="h-10 sm:h-14 drop-shadow flex-shrink-0 object-contain" />

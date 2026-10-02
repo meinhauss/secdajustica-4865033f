@@ -55,7 +55,7 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-dvh flex flex-col bg-background">
       <div className="bg-institutional-dark">
         <div className="max-w-7xl mx-auto px-4 py-1.5 flex items-center gap-3">
           <img src={govLogo} alt="gov.br" className="h-6" />

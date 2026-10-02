@@ -47,7 +47,7 @@ export default function CodigoPenalPage() {
   }, [filtrados]);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-dvh bg-background flex flex-col">
       {/* Header */}
       <header className="bg-institutional border-b border-sidebar-border">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center gap-2 sm:gap-4">

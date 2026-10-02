@@ -148,7 +148,7 @@ export default function LoginPage() {
 
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-dvh flex flex-col bg-background">
 
       {/* Header */}
       <header className="bg-institutional border-b border-sidebar-border sticky top-0 z-40">

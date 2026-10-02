@@ -99,7 +99,7 @@ const Index = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-dvh flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin mx-auto mb-3" />
           <p className="text-sm text-muted-foreground">Carregando sistema...</p>
@@ -113,7 +113,7 @@ const Index = () => {
   // Aguarda o perfil carregar antes de avaliar a obrigatoriedade
   if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-dvh flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin mx-auto mb-3" />
           <p className="text-sm text-muted-foreground">Carregando perfil...</p>
@@ -127,7 +127,7 @@ const Index = () => {
   const discordValido = /^\d{17,20}$/.test(String(discordRaw).replace(/\D/g, ""));
   if (profile?.precisa_atualizar_cadastro || !discordValido) {
     return (
-      <div className="min-h-screen bg-background p-4 sm:p-8">
+      <div className="min-h-dvh bg-background p-4 sm:p-8">
         <div className="max-w-2xl mx-auto">
           <div className="mb-6 p-4 rounded-xl border border-gold/40 bg-gold/10 text-sm text-foreground">
             <p className="font-semibold text-gold-dark mb-1">Atualização de cadastro obrigatória</p>
