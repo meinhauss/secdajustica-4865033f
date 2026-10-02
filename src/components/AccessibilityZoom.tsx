@@ -97,8 +97,15 @@ export default function AccessibilityZoom() {
     );
   }
 
+  // Altura aproximada do painel aberto (5 botões de 44px + espaços + padding).
+  const PANEL_H = 300;
+  // O painel abre ACIMA do botão; ao abrir, sobe o container para que o
+  // botão (e o painel) continuem dentro da tela, mesmo perto da borda inferior.
   const style: React.CSSProperties = pos
-    ? { left: pos.x, top: pos.y }
+    ? {
+        left: pos.x,
+        top: Math.max(8, Math.min(pos.y - (open ? PANEL_H : 0), window.innerHeight - 56 - (open ? PANEL_H : 0))),
+      }
     : { bottom: "6rem" };
 
   return (
