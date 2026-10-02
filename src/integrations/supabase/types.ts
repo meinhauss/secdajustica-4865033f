@@ -1456,6 +1456,27 @@ export type Database = {
         }
         Relationships: []
       }
+      outorga_regras: {
+        Row: {
+          cargo: Database["public"]["Enums"]["user_role"]
+          created_at: string
+          id: string
+          outorgante: Database["public"]["Enums"]["user_role"]
+        }
+        Insert: {
+          cargo: Database["public"]["Enums"]["user_role"]
+          created_at?: string
+          id?: string
+          outorgante: Database["public"]["Enums"]["user_role"]
+        }
+        Update: {
+          cargo?: Database["public"]["Enums"]["user_role"]
+          created_at?: string
+          id?: string
+          outorgante?: Database["public"]["Enums"]["user_role"]
+        }
+        Relationships: []
+      }
       prazos_processuais: {
         Row: {
           created_at: string
@@ -2283,6 +2304,10 @@ export type Database = {
       }
       pode_atuar_processo: {
         Args: { _processo_id: string; _uid: string }
+        Returns: boolean
+      }
+      pode_outorgar: {
+        Args: { _cargo: Database["public"]["Enums"]["user_role"]; _uid: string }
         Returns: boolean
       }
       sortear_desembargador: { Args: never; Returns: string }
