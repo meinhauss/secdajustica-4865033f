@@ -18,7 +18,7 @@ export default function AccessibilityZoom() {
   const btn = "h-11 w-11 flex items-center justify-center rounded-full bg-card text-foreground border border-border shadow-lg hover:bg-muted disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
   return (
-    <div className="fixed right-3 bottom-24 lg:bottom-6 z-[60] flex flex-col items-end gap-2 print:hidden">
+    <div className="fixed left-3 bottom-24 lg:bottom-6 z-[60] flex flex-col items-start gap-2 print:hidden">
       {open && (
         <div role="group" aria-label="Ajuste de tamanho do texto" className="flex flex-col items-center gap-2 rounded-2xl bg-card/95 backdrop-blur p-2 border border-border shadow-xl">
           <button className={btn} aria-label="Aumentar zoom" disabled={zoom >= MAX} onClick={() => setZoom((z) => Math.min(MAX, z + STEP))}><ZoomIn className="h-5 w-5" /></button>
