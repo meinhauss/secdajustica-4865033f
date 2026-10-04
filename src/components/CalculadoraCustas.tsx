@@ -154,8 +154,7 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "limpeza_ficha", 
     name: "Exclusão de Antecedentes Criminais", 
     items: [
-      { label: "Valor Base do Processo", value: 12500, type: 'custa', required: true },
-      { label: "Ação Judicial", value: 0, type: 'custa', required: false }
+      { label: "Valor Base do Processo", value: 12500, type: 'custa', required: true }
     ],
     obs: "Valores calculados conforme gravidade dos crimes (Decreto Lei 003/2024).",
     pisoHonorario: 55000
@@ -356,25 +355,19 @@ export default function CalculadoraCustas() {
         // Ignora "Valor Base do Processo" da lista pré-definida pois já adicionamos acima
         if (item.label === "Valor Base do Processo" || item.label === "Petição Inicial" || item.label === "Taxa Judiciária (Inicial)") return;
 
+        if (selectedProcess.id === 'limpeza_ficha' && item.label === 'Ação Judicial') return;
         if (item.required || selectedItems[item.label]) {
-          let val = item.value;
-          
-          if (selectedProcess.id === 'limpeza_ficha' && item.label === 'Ação Judicial') {
-            crimesLimpeza.forEach(c => {
-              val += GRAVIDADE_CRIMES[c.typeIndex].value;
-              itemizedDetails.push({ 
-                label: `Exclusão: Pena ${GRAVIDADE_CRIMES[c.typeIndex].label}`, 
-                value: GRAVIDADE_CRIMES[c.typeIndex].value, 
-                type: 'custa' 
-              });
-            });
-            // We don't want to push the "Ação Judicial" itself if it's 0 and we have items
-            if (val === 0) itemizedDetails.push({ ...item, value: 0 });
-          } else {
-            itemizedDetails.push({ ...item, value: val });
-          }
+          itemizedDetails.push({ ...item, value: item.value });
         }
       });
+
+      // Passagens da exclusão de antecedentes: sempre somadas, uma linha por passagem
+      if (selectedProcess.id === 'limpeza_ficha') {
+        crimesLimpeza.forEach((c, i) => {
+          const g = GRAVIDADE_CRIMES[c.typeIndex] ?? GRAVIDADE_CRIMES[0];
+          itemizedDetails.push({ label: `Passagem ${i + 1} — pena ${g.label}`, value: g.value, type: 'custa' });
+        });
+      }
 
       // Honorários - Controlados exclusivamente pela personalização
       if (includeHonorarios) {
@@ -733,9 +726,14 @@ export default function CalculadoraCustas() {
                                 </Button>
                               </motion.div>
                             ))}
-                            {crimesLimpeza.length === 0 && (
+                            {crimesLimpeza.length === 0 ? (
                               <p className="text-[10px] text-center py-4 border border-dashed border-gold/10 rounded-xl text-muted-foreground">
-                                Nenhuma passagem adicionada para cálculo.
+                                Nenhuma passagem adicionada. Clique em "Adicionar Passagem" para cada crime na ficha.
+                              </p>
+                            ) : (
+                              <p className="text-xs flex justify-between font-semibold pt-1">
+                                <span>{crimesLimpeza.length} passagem(ns)</span>
+                                <span className="text-gold">{formatBRL(crimesLimpeza.reduce((s, c) => s + (GRAVIDADE_CRIMES[c.typeIndex]?.value ?? 0), 0))}</span>
                               </p>
                             )}
                           </div>
