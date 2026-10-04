@@ -134,7 +134,7 @@ export default function LoginPage() {
     { kind: "tab", tab: "credencial", label: "Consultar Credencial", icon: Scale, desc: "Verificar carteira de servidor, advogado, juiz ou promotor" },
     { kind: "link", href: "/codigo-penal", label: "Código Penal", icon: BookOpen, desc: "Íntegra dos artigos penais" },
     { kind: "link", href: "/ordenamento", label: "Ordenamento Jurídico", icon: Landmark, desc: "Constituição, Decretos-Lei e Códigos" },
-    { kind: "link", href: "/calculadora", label: "Calculadora Penal", icon: Calculator, desc: "Penas, multas e custas processuais" },
+    { kind: "link", href: "/calculadora", label: "Calculadora de Custas", icon: Calculator, desc: "Custas processuais conforme o Decreto-Lei 001/2024" },
   ];
   const [publicMenuOpenMobile, setPublicMenuOpenMobile] = useState(true);
   const [institucionalOpenMobile, setInstitucionalOpenMobile] = useState(true);
