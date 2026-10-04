@@ -830,7 +830,7 @@ export default function CalculadoraCustas() {
                       <div className="space-y-3">
                         <Label className="flex justify-between text-xs font-bold uppercase tracking-wider">
                           Diligências Judiciais
-                          <span className="text-gold font-mono">{formatBRL(diligencias * 20000)}</span>
+                          <span className="text-gold font-mono">{formatBRL(diligencias * 10000)}</span>
                         </Label>
                         <div className="flex items-center gap-4">
                           <Input 
@@ -1011,7 +1011,7 @@ export default function CalculadoraCustas() {
                         {diligencias > 0 && (
                           <div className="flex justify-between text-[11px] py-0.5">
                             <span className="text-muted-foreground">Diligências ({diligencias}x)</span>
-                            <span className="font-mono text-gold/90">{formatBRL(diligencias * 20000)}</span>
+                            <span className="font-mono text-gold/90">{formatBRL(diligencias * 10000)}</span>
                           </div>
                         )}
                         {(hasJuiz || hasPromotor || hasDesembargador) && (
@@ -1219,7 +1219,7 @@ export default function CalculadoraCustas() {
                         {diligencias > 0 && (
                           <tr className="border-b border-gray-100">
                             <td className="py-2 text-gray-700">Diligências de Oficial de Justiça ({diligencias}x)</td>
-                            <td className="py-2 text-right font-mono">{formatBRL(diligencias * 20000)}</td>
+                            <td className="py-2 text-right font-mono">{formatBRL(diligencias * 10000)}</td>
                           </tr>
                         )}
                         {hasJuiz && <tr className="border-b border-gray-100"><td className="py-2 text-gray-700">Verba — Juiz(a) de Direito</td><td className="py-2 text-right font-mono">{formatBRL(30000)}</td></tr>}
