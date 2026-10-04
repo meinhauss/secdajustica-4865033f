@@ -62,6 +62,7 @@ const CARGOS = [
   { value: "presidente_tribunal", label: "Presidente Tribunal" },
   { value: "ministerio_publico", label: "Promotor(a)" },
   { value: "procurador_geral", label: "Procurador(a)-Geral" },
+  { value: "procurador_geral_adjunto", label: "Procurador(a)-Geral Adjunto(a)" },
   { value: "procurador_estado", label: "Procurador(a) do Estado" },
   { value: "oficial_justica", label: "Oficial de Justiça" },
   { value: "policia_civil", label: "Polícia Civil" },

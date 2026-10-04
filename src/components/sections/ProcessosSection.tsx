@@ -311,7 +311,7 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
   ];
 
   const podeAbrirSegundaInstancia = roles.some(r =>
-    ["admin", "advogado", "ministerio_publico", "procurador_geral", "desembargador", "presidente_tribunal"].includes(r)
+    ["admin", "advogado", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "desembargador", "presidente_tribunal"].includes(r)
   ) || isCidadao; // cidadão pode impetrar HC
 
   const { data: processos, isLoading } = useQuery({
@@ -833,7 +833,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const isPolicia = roles.some(r => ["policia_civil", "policia_militar", "policia_federal"].includes(r));
   const isHospital = roles.includes("hospital");
   const isDetran = roles.includes("detran");
-  const isProcuradorGeral = roles.includes("procurador_geral");
+  const isProcuradorGeral = roles.includes("procurador_geral") || roles.includes("procurador_geral_adjunto");
   const isProcuradorEstado = roles.includes("procurador_estado");
   const isInstitucional = isMP || isProcuradorGeral || isProcuradorEstado || isPolicia || isHospital || isDetran;
   // Move processo query up so we can compute permissions based on juiz_id
@@ -1388,6 +1388,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     { role: "magistrado", label: "Magistratura" },
     { role: "ministerio_publico", label: "Ministério Público" },
     { role: "procurador_geral", label: "Procuradoria-Geral" },
+    { role: "procurador_geral_adjunto", label: "Procuradoria-Geral (Adjunto)" },
     { role: "procurador_estado", label: "Procuradoria Geral do Estado" },
     { role: "oficial_justica", label: "Oficial de Justiça" },
     { role: "advogado", label: "Advocacia" },
@@ -1425,7 +1426,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const manifestarInteresse = useMutation({
     mutationFn: async () => {
       if (!userOrgao) throw new Error("Seu cargo não permite manifestar-se como interessado.");
-      const qualificacao = (roles.includes("ministerio_publico") || roles.includes("procurador_geral") || roles.includes("procurador_estado")) && processo?.classe !== "criminal" ? "custos legis" : "interessado";
+      const qualificacao = (roles.includes("ministerio_publico") || roles.includes("procurador_geral") || roles.includes("procurador_geral_adjunto") || roles.includes("procurador_estado")) && processo?.classe !== "criminal" ? "custos legis" : "interessado";
       const { error } = await supabase.from("interessados_processo").insert({
         processo_id: processoId, user_id: user?.id, orgao: userOrgao, qualificacao,
       } as any);
@@ -2423,6 +2424,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               const cargoLabels: Record<string, string> = {
                 ministerio_publico: "Ministério Público",
                 procurador_geral: "Procurador-Geral de Justiça",
+                procurador_geral_adjunto: "Procurador(a) Geral de Justiça Adjunto(a)",
                 magistrado: "Juiz(a) de Direito",
                 desembargador: "Desembargador(a)",
                 presidente_tribunal: "Presidente do Tribunal",

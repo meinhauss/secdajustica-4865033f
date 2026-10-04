@@ -26,6 +26,7 @@ const ROLE_LABELS: Record<string, string> = {
   desembargador: "Desembargador",
   presidente_oab: "Presidente da OAB",
   procurador_geral: "Procurador-Geral",
+  procurador_geral_adjunto: "Procurador(a) Geral de Justiça Adjunto(a)",
   bacharel_direito: "Bacharel em Direito",
   hospital: "Hospital",
   detran: "DETRAN",

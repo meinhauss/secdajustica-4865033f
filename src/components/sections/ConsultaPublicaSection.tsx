@@ -35,6 +35,7 @@ const ROLE_LABELS: Record<string, string> = {
   desembargador: "Desembargador(a)",
   presidente_oab: "Presidente da OAB",
   procurador_geral: "Procurador(a)-Geral",
+  procurador_geral_adjunto: "Procurador(a)-Geral Adjunto(a)",
   bacharel_direito: "Bacharel em Direito",
   procurador_estado: "Procurador(a) Geral do Estado",
   defensor_publico: "Defensor(a) Público(a)",
@@ -55,6 +56,7 @@ function getInstitutionForRole(role: string): InstitutionInfo {
       return { name: "Tribunal de Justiça de São Paulo", logo: logoTjsp };
     case "ministerio_publico":
     case "procurador_geral":
+    case "procurador_geral_adjunto":
       return { name: "Ministério Público de São Paulo", logo: logoMpsp };
     case "defensor_publico":
     case "defensor_publico_geral":
@@ -73,7 +75,7 @@ function getInstitutionForRole(role: string): InstitutionInfo {
 function getPrimaryRole(roles: string[]): string {
   const priority = [
     "presidente_tribunal", "desembargador", "magistrado",
-    "procurador_geral", "procurador_estado", "ministerio_publico",
+    "procurador_geral", "procurador_geral_adjunto", "procurador_estado", "ministerio_publico",
     "defensor_publico_geral", "defensor_publico",
     "presidente_oab", "advogado",
     "oficial_justica", "bacharel_direito",
@@ -105,6 +107,7 @@ const ROLES_COM_PORTE_ARMA = new Set([
   "presidente_tribunal",
   "ministerio_publico",
   "procurador_geral",
+  "procurador_geral_adjunto",
   "procurador_estado",
   "defensor_publico",
   "defensor_publico_geral",
@@ -122,6 +125,7 @@ function getBaseLegalPorte(role: string): { label: string; url: string } | null 
       };
     case "ministerio_publico":
     case "procurador_geral":
+    case "procurador_geral_adjunto":
       return {
         label: "Lei 8.625/1993, art. 42 (LONMP)",
         url: "https://www.planalto.gov.br/ccivil_03/leis/l8625.htm",
