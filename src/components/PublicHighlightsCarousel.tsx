@@ -28,7 +28,7 @@ const slides = [
     href: "/calculadora",
     icon: Calculator,
     tag: "Ferramenta Pública",
-    title: "Calculadora Penal & de Custas",
+    title: "Calculadora de Custas",
     desc: (<>Estime <strong className="text-gold">penas</strong>, <strong className="text-gold">multas</strong> e <strong className="text-gold">custas processuais</strong> conforme o Código Penal e Decretos-Lei vigentes.</>),
     cta: "Abrir Calculadora",
     path: "/calculadora",
