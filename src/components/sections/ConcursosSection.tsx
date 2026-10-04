@@ -129,7 +129,7 @@ export default function ConcursosSection() {
 
   useAutoStatusUpdate();
 
-  const isAdmin = roles.some((r) => ["admin", "presidente_tribunal", "ministerio_publico", "procurador_geral", "chefe_gaeco"].includes(r));
+  const isAdmin = roles.some((r) => ["admin", "presidente_tribunal", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "chefe_gaeco"].includes(r));
   const isPresidenteTribunal = roles.includes("presidente_tribunal");
   const isMP = roles.some((r) => ["ministerio_publico", "procurador_geral"].includes(r));
   const isChefeGaeco = roles.includes("chefe_gaeco");

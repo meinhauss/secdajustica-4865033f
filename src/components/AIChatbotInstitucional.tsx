@@ -79,7 +79,7 @@ export default function AIChatbotInstitucional({
   const { profile, user, roles } = useAuth();
   const ROLE_PRIORITY = [
     "admin", "presidente_tribunal", "desembargador", "magistrado",
-    "procurador_geral", "ministerio_publico", "procurador_estado",
+    "procurador_geral", "procurador_geral_adjunto", "ministerio_publico", "procurador_estado",
     "presidente_oab", "advogado", "bacharel_direito",
     "chefe_gaeco", "gaeco", "delegado",
     "policia_federal", "policia_civil", "policia_militar",

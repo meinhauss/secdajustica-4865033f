@@ -86,7 +86,7 @@ const Index = () => {
     if (!user || !profile || profile.avatar_url) return;
     const advogadoPlus = new Set([
       "advogado", "magistrado", "desembargador", "presidente_tribunal",
-      "ministerio_publico", "procurador_geral", "procurador_estado",
+      "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado",
       "delegado", "presidente_oab", "bacharel_direito", "admin",
     ]);
     if (!roles.some((r) => advogadoPlus.has(r))) return;
