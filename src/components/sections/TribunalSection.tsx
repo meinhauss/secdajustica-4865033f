@@ -424,7 +424,7 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
 
   const isAdvAutor = (apelacao as any)?.processos?.advogado_autor_id === user?.id;
   const isAdvReu = (apelacao as any)?.processos?.advogado_reu_id === user?.id;
-  const isMP = roles.includes("ministerio_publico") || roles.includes("procurador_geral");
+  const isMP = roles.includes("ministerio_publico") || roles.includes("procurador_geral") || roles.includes("procurador_geral_adjunto");
   const podePedirDestaque = (isAdvAutor || isAdvReu || isMP || isDesembargador) && !apelacao?.destaque_solicitado && apelacao?.status !== "julgada" && apelacao?.status !== "inadmitida";
 
   const minhaQualificacao = isAdvAutor

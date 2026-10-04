@@ -68,6 +68,16 @@ const ROLE_HIERARCHY = [
     permissions: ["ver_inqueritos", "denuncias", "arquivamentos", "pareceres", "concursos_mp", "supervisao_mp", "nomeacoes_mp"],
   },
   {
+    level: 5,
+    role: "procurador_geral_adjunto",
+    label: "Procurador(a) Geral de Justiça Adjunto(a)",
+    icon: Scale,
+    color: "text-violet-500",
+    bgColor: "bg-violet-500/10",
+    description: "Auxilia o Procurador-Geral na chefia do Ministério Público, com atuação em inquéritos, denúncias, pareceres e supervisão funcional.",
+    permissions: ["ver_inqueritos", "denuncias", "arquivamentos", "pareceres", "supervisao_mp"],
+  },
+  {
     level: 6,
     role: "ministerio_publico",
     label: "Promotor de Justiça",

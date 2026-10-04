@@ -143,6 +143,7 @@ function PromotorRanking() {
   const CARGO_LABELS: Record<string, string> = {
     ministerio_publico: "Promotor(a) de Justiça",
     procurador_geral: "Procurador(a)-Geral",
+    procurador_geral_adjunto: "Procurador(a)-Geral Adjunto(a)",
   };
 
   if (isLoading) return <ListSkeleton rows={5} />;
