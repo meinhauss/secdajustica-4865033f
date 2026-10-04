@@ -1016,9 +1016,9 @@ export default function CalculadoraCustas() {
                         )}
                         {(hasJuiz || hasPromotor || hasDesembargador) && (
                           <div className="space-y-1">
-                            {hasJuiz && <div className="flex justify-between text-[11px]"><span className="text-muted-foreground">Juiz:</span> <span className="font-mono">{formatBRL(60000)}</span></div>}
-                            {hasPromotor && <div className="flex justify-between text-[11px]"><span className="text-muted-foreground">Promotor:</span> <span className="font-mono">{formatBRL(80000)}</span></div>}
-                            {hasDesembargador && <div className="flex justify-between text-[11px]"><span className="text-muted-foreground">Desemb.:</span> <span className="font-mono">{formatBRL(120000)}</span></div>}
+                            {hasJuiz && <div className="flex justify-between text-[11px]"><span className="text-muted-foreground">Juiz:</span> <span className="font-mono">{formatBRL(30000)}</span></div>}
+                            {hasPromotor && <div className="flex justify-between text-[11px]"><span className="text-muted-foreground">Promotor:</span> <span className="font-mono">{formatBRL(40000)}</span></div>}
+                            {hasDesembargador && <div className="flex justify-between text-[11px]"><span className="text-muted-foreground">Desemb.:</span> <span className="font-mono">{formatBRL(60000)}</span></div>}
                           </div>
                         )}
                         {outrasCustas.map((c) => (
@@ -1222,9 +1222,9 @@ export default function CalculadoraCustas() {
                             <td className="py-2 text-right font-mono">{formatBRL(diligencias * 20000)}</td>
                           </tr>
                         )}
-                        {hasJuiz && <tr className="border-b border-gray-100"><td className="py-2 text-gray-700">Verba — Juiz(a) de Direito</td><td className="py-2 text-right font-mono">{formatBRL(60000)}</td></tr>}
-                        {hasPromotor && <tr className="border-b border-gray-100"><td className="py-2 text-gray-700">Verba — Promotor(a) de Justiça</td><td className="py-2 text-right font-mono">{formatBRL(80000)}</td></tr>}
-                        {hasDesembargador && <tr className="border-b border-gray-100"><td className="py-2 text-gray-700">Verba — Desembargador(a)</td><td className="py-2 text-right font-mono">{formatBRL(120000)}</td></tr>}
+                        {hasJuiz && <tr className="border-b border-gray-100"><td className="py-2 text-gray-700">Verba — Juiz(a) de Direito</td><td className="py-2 text-right font-mono">{formatBRL(30000)}</td></tr>}
+                        {hasPromotor && <tr className="border-b border-gray-100"><td className="py-2 text-gray-700">Verba — Promotor(a) de Justiça</td><td className="py-2 text-right font-mono">{formatBRL(40000)}</td></tr>}
+                        {hasDesembargador && <tr className="border-b border-gray-100"><td className="py-2 text-gray-700">Verba — Desembargador(a)</td><td className="py-2 text-right font-mono">{formatBRL(60000)}</td></tr>}
                         {outrasCustas.map(c => (
                           <tr key={c.id} className="border-b border-gray-100">
                             <td className="py-2 text-gray-700">{c.description || "Outra despesa"}</td>
