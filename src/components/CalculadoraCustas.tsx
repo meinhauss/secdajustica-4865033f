@@ -154,8 +154,7 @@ const PROCESS_TYPES: ProcessType[] = [
     id: "limpeza_ficha", 
     name: "Exclusão de Antecedentes Criminais", 
     items: [
-      { label: "Valor Base do Processo", value: 12500, type: 'custa', required: true },
-      { label: "Ação Judicial", value: 0, type: 'custa', required: false }
+      { label: "Valor Base do Processo", value: 12500, type: 'custa', required: true }
     ],
     obs: "Valores calculados conforme gravidade dos crimes (Decreto Lei 003/2024).",
     pisoHonorario: 55000
@@ -727,9 +726,14 @@ export default function CalculadoraCustas() {
                                 </Button>
                               </motion.div>
                             ))}
-                            {crimesLimpeza.length === 0 && (
+                            {crimesLimpeza.length === 0 ? (
                               <p className="text-[10px] text-center py-4 border border-dashed border-gold/10 rounded-xl text-muted-foreground">
-                                Nenhuma passagem adicionada para cálculo.
+                                Nenhuma passagem adicionada. Clique em "Adicionar Passagem" para cada crime na ficha.
+                              </p>
+                            ) : (
+                              <p className="text-xs flex justify-between font-semibold pt-1">
+                                <span>{crimesLimpeza.length} passagem(ns)</span>
+                                <span className="text-gold">{formatBRL(crimesLimpeza.reduce((s, c) => s + (GRAVIDADE_CRIMES[c.typeIndex]?.value ?? 0), 0))}</span>
                               </p>
                             )}
                           </div>
