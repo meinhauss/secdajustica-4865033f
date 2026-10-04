@@ -356,25 +356,19 @@ export default function CalculadoraCustas() {
         // Ignora "Valor Base do Processo" da lista pré-definida pois já adicionamos acima
         if (item.label === "Valor Base do Processo" || item.label === "Petição Inicial" || item.label === "Taxa Judiciária (Inicial)") return;
 
+        if (selectedProcess.id === 'limpeza_ficha' && item.label === 'Ação Judicial') return;
         if (item.required || selectedItems[item.label]) {
-          let val = item.value;
-          
-          if (selectedProcess.id === 'limpeza_ficha' && item.label === 'Ação Judicial') {
-            crimesLimpeza.forEach(c => {
-              val += GRAVIDADE_CRIMES[c.typeIndex].value;
-              itemizedDetails.push({ 
-                label: `Exclusão: Pena ${GRAVIDADE_CRIMES[c.typeIndex].label}`, 
-                value: GRAVIDADE_CRIMES[c.typeIndex].value, 
-                type: 'custa' 
-              });
-            });
-            // We don't want to push the "Ação Judicial" itself if it's 0 and we have items
-            if (val === 0) itemizedDetails.push({ ...item, value: 0 });
-          } else {
-            itemizedDetails.push({ ...item, value: val });
-          }
+          itemizedDetails.push({ ...item, value: item.value });
         }
       });
+
+      // Passagens da exclusão de antecedentes: sempre somadas, uma linha por passagem
+      if (selectedProcess.id === 'limpeza_ficha') {
+        crimesLimpeza.forEach((c, i) => {
+          const g = GRAVIDADE_CRIMES[c.typeIndex] ?? GRAVIDADE_CRIMES[0];
+          itemizedDetails.push({ label: `Passagem ${i + 1} — pena ${g.label}`, value: g.value, type: 'custa' });
+        });
+      }
 
       // Honorários - Controlados exclusivamente pela personalização
       if (includeHonorarios) {
