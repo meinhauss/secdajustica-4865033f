@@ -1199,6 +1199,18 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["movimentacoes", processoId] }),
   });
 
+  const deleteMovimentacao = useMutation({
+    mutationFn: async (movId: string) => {
+      const { error } = await supabase.from("movimentacoes").delete().eq("id", movId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Movimentação excluída.");
+      queryClient.invalidateQueries({ queryKey: ["movimentacoes", processoId] });
+    },
+    onError: () => toast.error("Não foi possível excluir a movimentação."),
+  });
+
   const updateStatus = useMutation({
     mutationFn: async (newStatus: string) => {
       const { error } = await supabase.from("processos").update({ status: newStatus as any }).eq("id", processoId);
