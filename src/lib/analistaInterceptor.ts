@@ -4,7 +4,7 @@ import { toast } from "sonner";
 // Quando o usuário logado é "analista", toda escrita (insert/update/upsert/delete/rpc de escrita)
 // é desviada para a fila `acoes_pendentes` e só é executada quando o superior aprova.
 const EXEMPT_TABLES = new Set(["acoes_pendentes", "analista_vinculos", "notificacoes", "profiles"]);
-const READ_RPC = /^(get_|can_|is_|has_|marcar_intimacoes_lidas)/;
+const READ_RPC = /^(get_|can_|is_|has_|marcar_intimacoes_lidas|sortear_magistrado$|sortear_desembargador$)/;
 const PASSTHROUGH = new Set(["select", "single", "maybeSingle", "order", "limit", "throwOnError", "returns", "abortSignal"]);
 
 let mode: { active: boolean; userId?: string; nome?: string } = { active: false };
