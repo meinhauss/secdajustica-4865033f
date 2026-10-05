@@ -129,7 +129,7 @@ export function installAnalistaInterceptor() {
   installed = true;
   (supabase as any).from = (table: string) => {
     const b: any = origFrom(table as any);
-    if (!mode.active || EXEMPT_TABLES.has(table)) return b;
+    if (!mode.active || EXEMPT_TABLES.has(table) || !requerAprovacao(table)) return b;
     return new Proxy(b, {
       get(target, prop: string) {
         if (["insert", "update", "upsert", "delete"].includes(prop)) {
