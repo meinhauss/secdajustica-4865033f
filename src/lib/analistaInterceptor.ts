@@ -8,9 +8,18 @@ const READ_RPC = /^(get_|can_|is_|has_|marcar_intimacoes_lidas|sortear_magistrad
 const PASSTHROUGH = new Set(["select", "single", "maybeSingle", "order", "limit", "throwOnError", "returns", "abortSignal"]);
 
 let mode: { active: boolean; userId?: string; nome?: string } = { active: false };
+// Tabelas ligadas ao cargo do superior: só essas exigem aprovação. null = ainda carregando (tudo exige).
+let tabelasAprovacao: Set<string> | null = null;
 export function setAnalistaMode(active: boolean, userId?: string, nome?: string) {
   mode = { active, userId, nome };
+  tabelasAprovacao = null;
+  if (active) {
+    origRpc("get_analista_tabelas_aprovacao" as any).then(({ data }: any) => {
+      if (Array.isArray(data)) tabelasAprovacao = new Set(data);
+    });
+  }
 }
+const requerAprovacao = (t: string) => !tabelasAprovacao || tabelasAprovacao.has(t);
 
 const OP_LABEL: Record<string, string> = { insert: "Criar", update: "Editar", upsert: "Salvar", delete: "Excluir", rpc: "Executar" };
 
@@ -120,7 +129,7 @@ export function installAnalistaInterceptor() {
   installed = true;
   (supabase as any).from = (table: string) => {
     const b: any = origFrom(table as any);
-    if (!mode.active || EXEMPT_TABLES.has(table)) return b;
+    if (!mode.active || EXEMPT_TABLES.has(table) || !requerAprovacao(table)) return b;
     return new Proxy(b, {
       get(target, prop: string) {
         if (["insert", "update", "upsert", "delete"].includes(prop)) {

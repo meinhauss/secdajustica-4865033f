@@ -2211,6 +2211,7 @@ export type Database = {
     }
     Functions: {
       admin_remove_role: { Args: { p_role_id: string }; Returns: undefined }
+      analista_tabelas_aprovacao: { Args: { _uid: string }; Returns: string[] }
       can_view_processo: {
         Args: {
           _advogado_autor_id: string
@@ -2239,6 +2240,7 @@ export type Database = {
       }
       expirar_procuracoes_cartorio: { Args: never; Returns: Json }
       get_advogado_ranking: { Args: never; Returns: Json }
+      get_analista_tabelas_aprovacao: { Args: never; Returns: string[] }
       get_last_friday: { Args: never; Returns: string }
       get_magistrado_ranking: { Args: never; Returns: Json }
       get_processo_stats: { Args: never; Returns: Json }
