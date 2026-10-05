@@ -2522,6 +2522,22 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                         >
                           <Download className="h-3 w-3 mr-1" /> PDF
                         </Button>
+                        {isAdmin && item.id.startsWith("mov-") && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 px-2 rounded-lg text-[10px] text-destructive hover:text-destructive"
+                            title="Excluir movimentação"
+                            disabled={deleteMovimentacao.isPending}
+                            onClick={() => {
+                              if (window.confirm("Excluir esta movimentação definitivamente?")) {
+                                deleteMovimentacao.mutate(item.id.replace(/^mov-/, ""));
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-3 w-3 mr-1" /> Excluir
+                          </Button>
+                        )}
                       </div>
                       {item.titulo && <p className="text-sm font-semibold text-foreground mb-1">{item.titulo}</p>}
                       <AIExplicarSelecao>
