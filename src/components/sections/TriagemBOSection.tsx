@@ -182,8 +182,19 @@ export default function TriagemBOSection() {
       {resultado && !loading && (
         <div className="rounded-2xl border border-institutional/20 bg-institutional/5 p-5">
           <div className="mb-2 flex items-center gap-2 font-semibold text-institutional"><CheckCircle2 className="h-4 w-4" /> Análise estruturada recebida</div>
-          <pre className="max-h-96 overflow-auto whitespace-pre-wrap text-xs text-foreground">{JSON.stringify(resultado, null, 2)}</pre>
-          <p className="mt-3 text-xs text-muted-foreground">A apresentação detalhada dos resultados, ações rápidas e preenchimento automático do TCO será adicionada na próxima etapa.</p>
+                    <pre className="max-h-96 overflow-auto whitespace-pre-wrap text-xs text-foreground">{JSON.stringify(resultado, null, 2)}</pre>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button variant="outline" className="rounded-xl" onClick={gerarRelatorio}>
+              <FileDown className="mr-2 h-4 w-4" /> Gerar relatório PDF
+            </Button>
+            <Button variant="outline" className="rounded-xl" onClick={prepararTCO}>
+              <ClipboardCheck className="mr-2 h-4 w-4" /> Preparar preenchimento do TCO
+            </Button>
+            <Button variant="outline" className="rounded-xl" onClick={() => navigator.clipboard?.writeText(JSON.stringify(resultado, null, 2))}>
+              <FileText className="mr-2 h-4 w-4" /> Copiar análise estruturada
+            </Button>
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">A análise é auxiliar e deve ser revisada pela autoridade policial antes de qualquer formalização.</p>
         </div>
       )}
     </div>
