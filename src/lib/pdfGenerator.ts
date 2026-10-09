@@ -862,7 +862,7 @@ export function generateTriagemBOPDF(params: {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(50);
-        const plainValue = typeof value === "string" ? value : JSON.stringify(value, null, 2);
+                const plainValue = typeof value === "string" ? value : JSON.stringify(value, null, 2);
     y = addWrappedText(doc, stripHtml(plainValue), MARGIN, y, CONTENT_W, 3.8);
     y += 3;
   };
