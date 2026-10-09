@@ -868,7 +868,7 @@ export function generateTriagemBOPDF(params: {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(15);
   doc.setTextColor(25, 55, 85);
-  doc.text("RELATÓRIO DE TRIAGEM DE B.O.", PAGE_W / 2, y, { align: "center" });
+    doc.text("RELATÓRIO DE TRIAGEM PENAL", PAGE_W / 2, y, { align: "center" });
   y += 8;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
