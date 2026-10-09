@@ -200,6 +200,14 @@ export default function TriagemBOSection({ onNavigate }: { onNavigate?: (section
           <AlertTriangle className="h-4 w-4 text-gold" />
           <h3 className="font-display font-semibold">Relato da ocorrência</h3>
         </div>
+                <Input
+          value={numeroBo}
+          onChange={(event) => setNumeroBo(event.target.value)}
+          placeholder="Ex: BO-000001/2026"
+          aria-label="Número do Boletim de Ocorrência"
+          required
+          className="mb-3 rounded-xl"
+        />
         <Textarea
           value={relato}
           onChange={(event) => setRelato(event.target.value)}
