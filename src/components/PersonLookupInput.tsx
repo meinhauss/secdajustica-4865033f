@@ -49,7 +49,7 @@ export function PersonLookupInput({
     setFound(null);
     const { data } = await supabase
       .from("profiles")
-      .select("nome_completo, id_personagem, cpf")
+      .select("nome_completo, id_personagem, cpf, oab_numero")
       .eq("id_personagem", id)
       .maybeSingle();
     if (data) {
@@ -76,7 +76,7 @@ export function PersonLookupInput({
     setFound(null);
     const { data } = await supabase
       .from("profiles")
-      .select("nome_completo, id_personagem, cpf")
+      .select("nome_completo, id_personagem, cpf, oab_numero")
       .ilike("nome_completo", `%${nome}%`)
       .limit(1)
       .maybeSingle();

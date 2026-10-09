@@ -1,4 +1,5 @@
 import jsPDF from "jspdf";
+import { formatTriagemValue } from "@/lib/triagemFormatting";
 
 /** Parse JSON array partes or plain text for PDF display */
 function formatPartesForPdf(value: string): string {
@@ -845,11 +846,12 @@ export function generateCartorioPDF(params: {
 /* ─── RELATÓRIO DE TRIAGEM DE B.O. ─── */
 export function generateTriagemBOPDF(params: {
   relato: string;
-  resultado: any;
+  resultado: unknown;
   circunstancias: string[];
 }) {
-    const { relato, resultado, circunstancias } = params;
-  const stripHtml = (txt: string) => String(txt ?? "").replace(/<[^>]+>/g, "").trim();
+  const { relato, circunstancias } = params;
+  if (!params.resultado || typeof params.resultado !== "object" || Array.isArray(params.resultado)) return;
+  const resultado = params.resultado as Record<string, unknown>;
   const doc = new jsPDF();
   let y = 20;
   const write = (label: string, value: unknown) => {
@@ -862,8 +864,7 @@ export function generateTriagemBOPDF(params: {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(50);
-                const plainValue = typeof value === "string" ? value : JSON.stringify(value, null, 2);
-    y = addWrappedText(doc, stripHtml(plainValue), MARGIN, y, CONTENT_W, 3.8);
+    y = renderRichText(doc, formatTriagemValue(value), MARGIN, y, CONTENT_W, 4.2, 8);
     y += 3;
   };
 
@@ -881,7 +882,7 @@ export function generateTriagemBOPDF(params: {
   write("Relato analisado", relato);
   write("Qualificação", resultado.qualificacao);
   write("Tipificação penal", resultado.tipificacao);
-  write("Cabimento de TCO", `${resultado.cabimentoTCO || "-"} — ${resultado.fundamentoTCO || ""}`);
+  write("Cabimento de TCO", { cabimento: resultado.cabimentoTCO, fundamento: resultado.fundamentoTCO });
   write("Fiança", resultado.fiança);
   write("Dosimetria simulada", resultado.dosimetria);
   write("Alertas", resultado.alertas);

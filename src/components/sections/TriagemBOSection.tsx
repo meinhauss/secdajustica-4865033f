@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertTriangle, Brain, CheckCircle2, ClipboardCheck, FileDown, FileText, Loader2, ShieldCheck } from "lucide-react";
+import { AlertTriangle, Grid3X3, CheckCircle2, ClipboardCheck, FileDown, FileText, Loader2, ShieldCheck } from "lucide-react";
 import { PersonLookupInput } from "@/components/PersonLookupInput";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CODIGO_PENAL, formatBRL, formatFianca, formatPena } from "@/data/codigoPenal";
 import { toast } from "sonner";
 import { generateTriagemBOPDF } from "@/lib/pdfGenerator";
+import { formatTriagemValue, triagemValueToText } from "@/lib/triagemFormatting";
 
 
 const CIRCUNSTANCIAS = [
@@ -48,8 +49,7 @@ export default function TriagemBOSection() {
   const [confissaoReducao, setConfissaoReducao] = useState(5);
   const [custodiaReducao, setCustodiaReducao] = useState(0);
   const [resultado, setResultado] = useState<unknown>(null);
-    const stripHtml = (txt: string) => txt.replace(/<[^>]+>/g, '').trim();
-  const limparTexto = (valor: unknown) => stripHtml(String(valor ?? "-") ) || "-";
+  const limparTexto = triagemValueToText;
     const advogadoValidado = presoAssistido && Boolean(nomeAdvogado.trim() && idAdvogado.trim() && registroAdvogado.trim());
   const reducoesSelecionadas = {
     primario: selecionadas.includes("primario") ? 50 : 0,
@@ -158,7 +158,7 @@ export default function TriagemBOSection() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <Brain className="h-6 w-6 text-institutional" />
+            <Grid3X3 className="h-6 w-6 text-institutional" />
                         <h2 className="font-display text-2xl font-bold text-foreground">Triagem Penal</h2>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">Análise penal auxiliar para Polícia Civil, Delegados, PM, PF, Corregedoria, GAECO e Administração, com revisão obrigatória da autoridade policial.</p>
@@ -235,7 +235,7 @@ export default function TriagemBOSection() {
       </div>
 
             <Button onClick={analisar} disabled={loading} className="h-12 w-full rounded-xl bg-primary text-primary-foreground shadow hover:bg-primary/90 font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-auto sm:px-8">
-        {loading ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Analisando ocorrência...</> : <><Brain className="mr-2 h-5 w-5" /> Analisar Ocorrência e Enquadrar com IA</>}
+        {loading ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Analisando ocorrência...</> : <><Grid3X3 className="mr-2 h-5 w-5" /> Analisar Ocorrência e Enquadrar com IA</>}
       </Button>
 
       {loading && (
@@ -253,14 +253,17 @@ export default function TriagemBOSection() {
             {[
               ["Qualificação dos Envolvidos", (resultado as any).qualificacao],
               ["Crimes e Artigos", (resultado as any).tipificacao],
-              ["Cabimento de TCO", `${limparTexto((resultado as any).cabimentoTCO)} — ${limparTexto((resultado as any).fundamentoTCO)}`],
+              ["Cabimento de TCO", { cabimento: (resultado as any).cabimentoTCO, fundamento: (resultado as any).fundamentoTCO }],
               ["Fiança", (resultado as any).fiança],
               ["Dosimetria", (resultado as any).dosimetria],
               ["Alertas", (resultado as any).alertas],
             ].map(([titulo, valor]) => (
               <div key={String(titulo)} className="rounded-xl border border-border bg-card p-4">
                 <h4 className="font-display text-sm font-semibold text-institutional">{titulo}</h4>
-                <p className="mt-2 whitespace-pre-wrap text-sm text-foreground">{limparTexto(typeof valor === "string" ? valor : JSON.stringify(valor, null, 2))}</p>
+                 <div
+                   className="mt-2 break-words text-sm leading-relaxed text-foreground [&_p]:mb-2 [&_ul]:mb-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:mb-3 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-1 [&_h1]:font-semibold [&_h2]:font-semibold [&_h3]:font-semibold [&_h4]:font-semibold [&_blockquote]:border-l-2 [&_blockquote]:border-border [&_blockquote]:pl-3"
+                   dangerouslySetInnerHTML={{ __html: formatTriagemValue(valor) }}
+                 />
               </div>
             ))}
           </div>
@@ -271,7 +274,7 @@ export default function TriagemBOSection() {
             <Button variant="outline" className="rounded-xl" onClick={prepararTCO}>
               <ClipboardCheck className="mr-2 h-4 w-4" /> Preparar preenchimento do TCO
             </Button>
-            <Button variant="outline" className="rounded-xl" onClick={() => navigator.clipboard?.writeText(JSON.stringify(resultado, null, 2))}>
+             <Button variant="outline" className="rounded-xl" onClick={() => navigator.clipboard?.writeText(limparTexto(resultado))}>
               <FileText className="mr-2 h-4 w-4" /> Copiar análise estruturada
             </Button>
           </div>
