@@ -846,10 +846,12 @@ export function generateCartorioPDF(params: {
 /* ─── RELATÓRIO DE TRIAGEM DE B.O. ─── */
 export function generateTriagemBOPDF(params: {
   relato: string;
-  resultado: Record<string, unknown>;
+  resultado: unknown;
   circunstancias: string[];
 }) {
-    const { relato, resultado, circunstancias } = params;
+  const { relato, circunstancias } = params;
+  if (!params.resultado || typeof params.resultado !== "object" || Array.isArray(params.resultado)) return;
+  const resultado = params.resultado as Record<string, unknown>;
   const doc = new jsPDF();
   let y = 20;
   const write = (label: string, value: unknown) => {
