@@ -860,6 +860,7 @@ export function generateTriagemBOPDF(params: {
     doc.setFontSize(10);
     doc.setTextColor(50);
     const lines: string[] = doc.splitTextToSize(pdfText(value), CONTENT_W);
+    y = checkPage(doc, y, Math.min(lines.length * 5 + 4, 40));
     for (const line of lines) {
       y = checkPage(doc, y, 7);
       doc.text(line, MARGIN, y);
