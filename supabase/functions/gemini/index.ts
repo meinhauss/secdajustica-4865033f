@@ -119,9 +119,11 @@ Deno.serve(async (req: Request) => {
     ] : []),
     ...(geminiKey ? [
       { endpoint: GEMINI_OAI, model: "gemini-3.6-flash", key: geminiKey, provider: "gemini-direct" },
+      { endpoint: GEMINI_OAI, model: "gemini-flash-latest", key: geminiKey, provider: "gemini-direct" },
     ] : []),
     ...(groqKey ? [
-      { endpoint: "https://api.groq.com/openai/v1/chat/completions", model: "llama-3.3-70b-versatile", key: groqKey, provider: "groq" },
+      { endpoint: "https://api.groq.com/openai/v1/chat/completions", model: "openai/gpt-oss-120b", key: groqKey, provider: "groq" },
+      { endpoint: "https://api.groq.com/openai/v1/chat/completions", model: "llama-3.1-8b-instant", key: groqKey, provider: "groq" },
     ] : []),
   ].filter((s, i, a) => a.findIndex((x) => x.endpoint === s.endpoint && x.model === s.model) === i);
 
@@ -150,7 +152,7 @@ Deno.serve(async (req: Request) => {
         );
         lastStatus = res.status;
 
-        if (res.status === 429 || res.status === 402 || res.status === 401) {
+        if ([400, 401, 402, 403, 404, 413, 429].includes(res.status)) {
           const errText = await res.text().catch(() => "");
           lastErr = new Error(`${step.provider} ${res.status}: ${errText.slice(0, 200)}`);
           console.warn(`[gemini] provider=${step.provider} model=${step.model} status=${res.status} → fallback`);
