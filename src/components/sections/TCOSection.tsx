@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ListSkeleton } from "@/components/ui/list-skeleton";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -343,7 +343,21 @@ export default function TCOSection() {
     setView("new");
   };
 
+    useEffect(() => {
+    const handleTriagemTCO = (event: Event) => {
+      const detail = (event as CustomEvent).detail || {};
+      setNatureza(detail.natureza || "");
+      setTipificacao(detail.tipificacao || "");
+      setDescricao(detail.descricao || "");
+      setRelatoBo(detail.relato || "");
+      setView("new");
+    };
+    window.addEventListener("triagem-bo-preencher-tco", handleTriagemTCO);
+    return () => window.removeEventListener("triagem-bo-preencher-tco", handleTriagemTCO);
+  }, []);
+
   const resetForm = () => {
+
     setNatureza("");
     setTipificacao("");
     setDescricao("");

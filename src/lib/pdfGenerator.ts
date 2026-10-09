@@ -842,6 +842,51 @@ export function generateCartorioPDF(params: {
   doc.save(`Cartorio_${registro.numero_registro.replace(/\W/g, "_")}.pdf`);
 }
 
+/* ─── RELATÓRIO DE TRIAGEM DE B.O. ─── */
+export function generateTriagemBOPDF(params: {
+  relato: string;
+  resultado: any;
+  circunstancias: string[];
+}) {
+  const { relato, resultado, circunstancias } = params;
+  const doc = new jsPDF();
+  let y = 20;
+  const write = (label: string, value: unknown) => {
+    y = checkPage(doc, y, 12);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(25, 55, 85);
+    doc.text(sanitize(label), MARGIN, y);
+    y += 4;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(50);
+    y = addWrappedText(doc, typeof value === "string" ? value : JSON.stringify(value, null, 2), MARGIN, y, CONTENT_W, 3.8);
+    y += 3;
+  };
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(15);
+  doc.setTextColor(25, 55, 85);
+  doc.text("RELATÓRIO DE TRIAGEM DE B.O.", PAGE_W / 2, y, { align: "center" });
+  y += 8;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(100);
+  doc.text(`Emitido em ${new Date().toLocaleString("pt-BR")}`, PAGE_W / 2, y, { align: "center" });
+  y += 10;
+  write("Circunstâncias consideradas", circunstancias.length ? circunstancias.join(", ") : "Nenhuma");
+  write("Relato analisado", relato);
+  write("Qualificação", resultado.qualificacao);
+  write("Tipificação penal", resultado.tipificacao);
+  write("Cabimento de TCO", `${resultado.cabimentoTCO || "-"} — ${resultado.fundamentoTCO || ""}`);
+  write("Fiança", resultado.fiança);
+  write("Dosimetria simulada", resultado.dosimetria);
+  write("Alertas", resultado.alertas);
+  addFooter(doc, "Relatório auxiliar de triagem policial — revisão obrigatória pela autoridade policial");
+  doc.save(`Triagem_BO_${new Date().toISOString().slice(0, 10)}.pdf`);
+}
+
 /* ─── Logo to Base64 converter ─── */
 export function imageToBase64(src: string): Promise<string> {
   return new Promise((resolve) => {

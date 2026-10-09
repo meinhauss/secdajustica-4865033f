@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertTriangle, Brain, CheckCircle2, Loader2, ShieldCheck } from "lucide-react";
+import { AlertTriangle, Brain, CheckCircle2, ClipboardCheck, FileDown, FileText, Loader2, ShieldCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -7,6 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAI } from "@/hooks/useAI";
 import { CODIGO_PENAL, formatBRL, formatFianca, formatPena } from "@/data/codigoPenal";
 import { toast } from "sonner";
+import { generateTriagemBOPDF } from "@/lib/pdfGenerator";
+
 
 const CIRCUNSTANCIAS = [
   { id: "primario", label: "Réu Primário", percentual: "-20%" },
@@ -41,7 +43,36 @@ export default function TriagemBOSection() {
     else setSelecionadas((atual) => atual.filter((item) => item !== id));
   };
 
+    const circunstaciasSelecionadas = () => CIRCUNSTANCIAS
+    .filter((item) => selecionadas.includes(item.id))
+    .map(({ label, percentual }) => `${label} (${percentual})`);
+
+  const gerarRelatorio = () => {
+    if (!resultado) return;
+    generateTriagemBOPDF({ relato, resultado, circunstancias: circunstaciasSelecionadas() });
+    toast.success("Relatório PDF gerado");
+  };
+
+  const prepararTCO = () => {
+    if (!resultado || typeof resultado !== "object") return;
+    const dados = resultado as any;
+    const primeiraTipificacao = Array.isArray(dados.tipificacao) ? dados.tipificacao[0] : null;
+    const textoTipificacao = primeiraTipificacao
+      ? `${primeiraTipificacao.artigo || ""} — ${primeiraTipificacao.crime || ""}`.trim()
+      : "";
+    window.dispatchEvent(new CustomEvent("triagem-bo-preencher-tco", {
+      detail: {
+        relato,
+        tipificacao: textoTipificacao,
+        natureza: primeiraTipificacao?.crime || "",
+        descricao: relato.slice(0, 120),
+      },
+    }));
+    toast.success("Dados preparados para o TCO");
+  };
+
   const analisar = async () => {
+
     if (!relato.trim()) {
       toast.error("Cole o B.O., histórico da ocorrência ou depoimento antes de analisar.");
       return;
@@ -151,8 +182,19 @@ export default function TriagemBOSection() {
       {resultado && !loading && (
         <div className="rounded-2xl border border-institutional/20 bg-institutional/5 p-5">
           <div className="mb-2 flex items-center gap-2 font-semibold text-institutional"><CheckCircle2 className="h-4 w-4" /> Análise estruturada recebida</div>
-          <pre className="max-h-96 overflow-auto whitespace-pre-wrap text-xs text-foreground">{JSON.stringify(resultado, null, 2)}</pre>
-          <p className="mt-3 text-xs text-muted-foreground">A apresentação detalhada dos resultados, ações rápidas e preenchimento automático do TCO será adicionada na próxima etapa.</p>
+                    <pre className="max-h-96 overflow-auto whitespace-pre-wrap text-xs text-foreground">{JSON.stringify(resultado, null, 2)}</pre>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button variant="outline" className="rounded-xl" onClick={gerarRelatorio}>
+              <FileDown className="mr-2 h-4 w-4" /> Gerar relatório PDF
+            </Button>
+            <Button variant="outline" className="rounded-xl" onClick={prepararTCO}>
+              <ClipboardCheck className="mr-2 h-4 w-4" /> Preparar preenchimento do TCO
+            </Button>
+            <Button variant="outline" className="rounded-xl" onClick={() => navigator.clipboard?.writeText(JSON.stringify(resultado, null, 2))}>
+              <FileText className="mr-2 h-4 w-4" /> Copiar análise estruturada
+            </Button>
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">A análise é auxiliar e deve ser revisada pela autoridade policial antes de qualquer formalização.</p>
         </div>
       )}
     </div>
