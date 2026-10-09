@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import { formatTriagemValue } from "@/lib/triagemFormatting";
+import { buildTriagemReport } from "@/lib/triagemReport";
 
 /** Parse JSON array partes or plain text for PDF display */
 function formatPartesForPdf(value: string): string {
@@ -851,21 +852,21 @@ export function generateTriagemBOPDF(params: {
 }) {
   const { relato, circunstancias } = params;
   if (!params.resultado || typeof params.resultado !== "object" || Array.isArray(params.resultado)) return;
-  const resultado = params.resultado as Record<string, unknown>;
   const doc = new jsPDF();
   let y = 20;
-  const write = (label: string, value: unknown) => {
-    y = checkPage(doc, y, 12);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
-    doc.setTextColor(25, 55, 85);
-    doc.text(sanitize(label), MARGIN, y);
-    y += 4;
+  const pdfText = (value: string) => value.replace(/[\u2013\u2014]/g, "-").replace(/[\u201c\u201d]/g, '"').replace(/[\u2018\u2019]/g, "'").replace(/\u2022/g, "-").replace(/[^\x20-\x7E\xA0-\xFF\n\r\t]/g, "");
+  const writeParagraph = (value: string) => {
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
+    doc.setFontSize(10);
     doc.setTextColor(50);
-    y = renderRichText(doc, formatTriagemValue(value), MARGIN, y, CONTENT_W, 4.2, 8);
-    y += 3;
+    const lines: string[] = doc.splitTextToSize(pdfText(value), CONTENT_W);
+    y = checkPage(doc, y, Math.min(lines.length * 5 + 4, 40));
+    for (const line of lines) {
+      y = checkPage(doc, y, 7);
+      doc.text(line, MARGIN, y);
+      y += 5;
+    }
+    y += 4;
   };
 
   doc.setFont("helvetica", "bold");
@@ -878,14 +879,16 @@ export function generateTriagemBOPDF(params: {
   doc.setTextColor(100);
   doc.text(`Emitido em ${new Date().toLocaleString("pt-BR")}`, PAGE_W / 2, y, { align: "center" });
   y += 10;
-  write("Circunstâncias consideradas", circunstancias.length ? circunstancias.join(", ") : "Nenhuma");
-  write("Relato analisado", relato);
-  write("Qualificação", resultado.qualificacao);
-  write("Tipificação penal", resultado.tipificacao);
-  write("Cabimento de TCO", { cabimento: resultado.cabimentoTCO, fundamento: resultado.fundamentoTCO });
-  write("Fiança", resultado.fiança);
-  write("Dosimetria simulada", resultado.dosimetria);
-  write("Alertas", resultado.alertas);
+  for (const section of buildTriagemReport(relato, params.resultado, circunstancias)) {
+    y = checkPage(doc, y, 28);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(25, 55, 85);
+    doc.text(pdfText(section.title), MARGIN, y);
+    y += 8;
+    section.paragraphs.forEach(writeParagraph);
+    y += 3;
+  }
   addFooter(doc, "Relatório auxiliar de triagem policial — revisão obrigatória pela autoridade policial");
   doc.save(`Triagem_BO_${new Date().toISOString().slice(0, 10)}.pdf`);
 }
