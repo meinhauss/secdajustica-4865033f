@@ -98,21 +98,23 @@ export default function TriagemBOSection({ onNavigate }: { onNavigate?: (section
     }
   };
 
-  const prepararTCO = () => {
+    const prepararTCO = () => {
     if (!resultado || typeof resultado !== "object") return;
     const dados = resultado as any;
     const primeiraTipificacao = Array.isArray(dados.tipificacao) ? dados.tipificacao[0] : null;
-    const textoTipificacao = primeiraTipificacao
-      ? `${primeiraTipificacao.artigo || ""} — ${primeiraTipificacao.crime || ""}`.trim()
-      : "";
-    window.dispatchEvent(new CustomEvent("triagem-bo-preencher-tco", {
-      detail: {
-        relato,
-        tipificacao: textoTipificacao,
-        natureza: primeiraTipificacao?.crime || "",
-        descricao: relato.slice(0, 120),
-      },
+    const envolvidos = [
+      ...(Array.isArray(dados.qualificacao?.autoresInvestigados) ? dados.qualificacao.autoresInvestigados.map((envolvido: any) => ({ tipo: "autor_fato", nome: envolvido.nome || "", qualificacao: envolvido.papel || envolvido.evidencias || "", id_personagem: envolvido.id_personagem || "", observacoes: "" })) : []),
+      ...(Array.isArray(dados.qualificacao?.vitimas) ? dados.qualificacao.vitimas.map((envolvido: any) => ({ tipo: "vitima", nome: envolvido.nome || "", qualificacao: envolvido.papel || envolvido.evidencias || "", id_personagem: envolvido.id_personagem || "", observacoes: "" })) : []),
+    ].filter((envolvido) => envolvido.nome.trim());
+    sessionStorage.setItem("tco_prefill_data", JSON.stringify({
+      relato,
+      natureza: primeiraTipificacao?.crime || "",
+      tipificacao: primeiraTipificacao ? `${primeiraTipificacao.artigo || ""} — ${primeiraTipificacao.crime || ""}`.trim() : "",
+      descricao: dados.descricao || relato.trim(),
+      envolvidos,
     }));
+    onNavigate?.("tco");
+    window.dispatchEvent(new CustomEvent("triagem-bo-preencher-tco"));
     toast.success("Dados preparados para o TCO");
   };
 
