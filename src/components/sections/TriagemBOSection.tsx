@@ -12,7 +12,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { CODIGO_PENAL, formatBRL, formatFianca, formatPena } from "@/data/codigoPenal";
 import { toast } from "sonner";
 import { generateTriagemBOPDF } from "@/lib/pdfGenerator";
-import { formatTriagemValue, triagemValueToText } from "@/lib/triagemFormatting";
+import { triagemValueToText } from "@/lib/triagemFormatting";
+import TriagemResults from "@/components/triagem/TriagemResults";
 
 
 const CIRCUNSTANCIAS = [
@@ -247,26 +248,9 @@ export default function TriagemBOSection() {
       )}
 
       {resultado && !loading && (
-        <div className="rounded-2xl border border-institutional/20 bg-institutional/5 p-5">
-          <div className="mb-2 flex items-center gap-2 font-semibold text-institutional"><CheckCircle2 className="h-4 w-4" /> Análise estruturada recebida</div>
-                              <div className="grid gap-4 md:grid-cols-2">
-            {[
-              ["Qualificação dos Envolvidos", (resultado as any).qualificacao],
-              ["Crimes e Artigos", (resultado as any).tipificacao],
-              ["Cabimento de TCO", { cabimento: (resultado as any).cabimentoTCO, fundamento: (resultado as any).fundamentoTCO }],
-              ["Fiança", (resultado as any).fiança],
-              ["Dosimetria", (resultado as any).dosimetria],
-              ["Alertas", (resultado as any).alertas],
-            ].map(([titulo, valor]) => (
-              <div key={String(titulo)} className="rounded-xl border border-border bg-card p-4">
-                <h4 className="font-display text-sm font-semibold text-institutional">{titulo}</h4>
-                 <div
-                   className="mt-2 break-words text-sm leading-relaxed text-foreground [&_p]:mb-2 [&_ul]:mb-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:mb-3 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-1 [&_h1]:font-semibold [&_h2]:font-semibold [&_h3]:font-semibold [&_h4]:font-semibold [&_blockquote]:border-l-2 [&_blockquote]:border-border [&_blockquote]:pl-3"
-                   dangerouslySetInnerHTML={{ __html: formatTriagemValue(valor) }}
-                 />
-              </div>
-            ))}
-          </div>
+        <div className="space-y-4 border-t border-border pt-6">
+          <div className="flex items-center gap-2 font-semibold text-institutional"><CheckCircle2 className="h-4 w-4" /> Resultado da análise</div>
+          <TriagemResults resultado={resultado} />
           <div className="mt-4 flex flex-wrap gap-2">
             <Button variant="outline" className="rounded-xl" onClick={gerarRelatorio}>
               <FileDown className="mr-2 h-4 w-4" /> Gerar relatório PDF
