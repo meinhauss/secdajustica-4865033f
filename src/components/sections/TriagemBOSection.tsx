@@ -42,7 +42,7 @@ const SYSTEM_TRIAGEM = `Você é uma autoridade auxiliar de triagem penal para u
 CATÁLOGO DO CÓDIGO PENAL DO SERVIDOR:
 ${JSON.stringify(CATALOGO_PENAL)}`;
 
-export default function TriagemBOSection() {
+export default function TriagemBOSection({ onNavigate }: { onNavigate?: (section: string) => void }) {
   const { user, profile } = useAuth();
   const [exportando, setExportando] = useState(false);
   const [relato, setRelato] = useState("");
