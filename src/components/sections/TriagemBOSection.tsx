@@ -82,9 +82,13 @@ export default function TriagemBOSection() {
     });
 
     if (res.ok) {
-      let estruturado: unknown = res.json;
+            let estruturado: unknown = res.json;
       if (!estruturado) {
-        try { estruturado = JSON.parse(res.data as string); } catch { estruturado = res.data; }
+        try { estruturado = JSON.parse(res.data as string); } catch { estruturado = null; }
+      }
+      if (!estruturado || typeof estruturado !== "object") {
+        toast.error("A IA retornou uma resposta fora do formato estruturado esperado.");
+        return;
       }
       setResultado(estruturado);
       toast.success("Ocorrência analisada pela IA");
