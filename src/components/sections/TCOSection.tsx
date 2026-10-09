@@ -385,8 +385,7 @@ export default function TCOSection() {
     setTipificacao("");
     setDescricao("");
     setDataFato("");
-    setLocalFato("");
-    setCompromisso(false);
+        setLocalFato("");
     setRelatoBo("");
     setLinks([""]);
     setEnvolvidos([
