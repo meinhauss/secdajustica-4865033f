@@ -35,8 +35,13 @@ ${JSON.stringify(CATALOGO_PENAL)}`;
 
 export default function TriagemBOSection() {
   const [relato, setRelato] = useState("");
-  const [selecionadas, setSelecionadas] = useState<string[]>([]);
+    const [selecionadas, setSelecionadas] = useState<string[]>([]);
+  const [presoAssistido, setPresoAssistido] = useState(false);
+  const [nomeAdvogado, setNomeAdvogado] = useState("");
+  const [registroAdvogado, setRegistroAdvogado] = useState("");
   const [resultado, setResultado] = useState<unknown>(null);
+  const limparTexto = (valor: unknown) => String(valor ?? "-").replace(/<[^>]+>/g, "").trim() || "-";
+  const advogadoValidado = presoAssistido && nomeAdvogado.trim() && registroAdvogado.trim();
   const { run, loading } = useAI();
 
   const alternarCircunstancia = (id: string, checked: boolean | "indeterminate") => {
