@@ -273,7 +273,7 @@ export default function TriagemBOSection({ onNavigate }: { onNavigate?: (section
       </div>
 
             <Button onClick={analisar} disabled={loading} className="h-12 w-full rounded-xl bg-primary text-primary-foreground shadow hover:bg-primary/90 font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-auto sm:px-8">
-        {loading ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Analisando ocorrência...</> : <><Grid3X3 className="mr-2 h-5 w-5" /> Analisar Ocorrência e Enquadrar com IA</>}
+        {loading ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Analisando ocorrência...</>  : <><Handcuffs className="mr-2 h-5 w-5" /> Analisar Ocorrência e Enquadrar com IA</>}
       </Button>
 
       {loading && (
