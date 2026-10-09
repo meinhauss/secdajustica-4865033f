@@ -69,7 +69,8 @@ export default function TCOSection() {
 
   // Form state
   const [natureza, setNatureza] = useState("");
-  const [tipificacao, setTipificacao] = useState("");
+    const [tipificacao, setTipificacao] = useState("");
+  const [numeroBo, setNumeroBo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [dataFato, setDataFato] = useState("");
   const [localFato, setLocalFato] = useState("");

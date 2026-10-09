@@ -45,7 +45,8 @@ ${JSON.stringify(CATALOGO_PENAL)}`;
 export default function TriagemBOSection({ onNavigate }: { onNavigate?: (section: string) => void }) {
   const { user, profile } = useAuth();
   const [exportando, setExportando] = useState(false);
-  const [relato, setRelato] = useState("");
+    const [relato, setRelato] = useState("");
+  const [numeroBo, setNumeroBo] = useState("");
     const [selecionadas, setSelecionadas] = useState<string[]>([]);
   const [presoAssistido, setPresoAssistido] = useState(false);
     const [nomeAdvogado, setNomeAdvogado] = useState("");
@@ -86,8 +87,8 @@ export default function TriagemBOSection({ onNavigate }: { onNavigate?: (section
     try {
       const logoBase64 = await imageToBase64(logoSjc);
       if (!logoBase64) throw new Error("Timbrado indisponível");
-      generateTriagemBOPDF({
-        relato, resultado, circunstancias: circunstaciasSelecionadas(), logoBase64,
+            generateTriagemBOPDF({
+        numeroBo, relato, resultado, circunstancias: circunstaciasSelecionadas(), logoBase64,
         agente: { nome: profile.nome_completo, idPersonagem: profile.id_personagem || undefined },
       });
       toast.success("Relatório PDF gerado");
@@ -110,6 +111,7 @@ export default function TriagemBOSection({ onNavigate }: { onNavigate?: (section
       relato,
       natureza: primeiraTipificacao?.crime || "",
       tipificacao: primeiraTipificacao ? `${primeiraTipificacao.artigo || ""} — ${primeiraTipificacao.crime || ""}`.trim() : "",
+            numeroBo: numeroBo.trim(),
       descricao: dados.descricao || relato.trim(),
       envolvidos,
     }));
@@ -118,9 +120,13 @@ export default function TriagemBOSection({ onNavigate }: { onNavigate?: (section
     toast.success("Dados preparados para o TCO");
   };
 
-    const analisar = async () => {
+      const analisar = async () => {
 
-        if (!relato.trim()) {
+    if (!numeroBo.trim()) {
+      toast.error("Informe o número do Boletim de Ocorrência antes de prosseguir com a análise.");
+      return;
+    }
+    if (!relato.trim()) {
       toast.error("Cole o B.O., histórico da ocorrência ou depoimento antes de analisar.");
       return;
     }
@@ -134,7 +140,7 @@ export default function TriagemBOSection({ onNavigate }: { onNavigate?: (section
       .map(({ label, percentual }) => `${label} (${percentual})`);
     const res = await run({
       operation: "custom",
-      prompt: `Analise o B.O. abaixo com estrita prioridade aos fatos narrados no corpo do relato. Ignore capitulações, enquadramentos, títulos de crimes e indicações jurídicas previamente anotados no cabeçalho ou no texto do B.O.; eles são apenas referências a serem confrontadas, nunca prova. Para cada crime, exija que a narrativa descreva claramente a conduta e preencha integralmente os elementos do tipo penal do catálogo; diante de relato genérico, vago ou incompleto, não tipifique. Compare obrigatoriamente o título ou enquadramento prévio com os fatos e, se houver incongruência, inclua no array alertas uma advertência objetiva sobre a discrepância e sobre o que os fatos efetivamente sustentam. Separe os papéis, indique somente os crimes do catálogo que forem sustentados pelos fatos, calcule a soma das penas máximas e a fiança conforme as regras fornecidas. Circunstâncias selecionadas: ${circunstancias.join(", ") || "nenhuma"}. Relato:\n${relato.trim().slice(0, 18000)}`,
+      prompt: `Analise o B.O. abaixo com estrita prioridade aos fatos narrados no corpo do relato. Ignore capitulações, enquadramentos, títulos de crimes e indicações jurídicas previamente anotados no cabeçalho ou no texto do B.O.; eles são apenas referências a serem confrontadas, nunca prova. Para cada crime, exija que a narrativa descreva claramente a conduta e preencha integralmente os elementos do tipo penal do catálogo; diante de relato genérico, vago ou incompleto, não tipifique. Compare obrigatoriamente o título ou enquadramento prévio com os fatos e, se houver incongruência, inclua no array alertas uma advertência objetiva sobre a discrepância e sobre o que os fatos efetivamente sustentam. Separe os papéis, indique somente os crimes do catálogo que forem sustentados pelos fatos, calcule a soma das penas máximas e a fiança conforme as regras fornecidas. Número do B.O.: ${numeroBo.trim()}. Circunstâncias selecionadas: ${circunstancias.join(", ") || "nenhuma"}. Relato:\n${relato.trim().slice(0, 18000)}`,
       options: {
         systemInstruction: SYSTEM_TRIAGEM,
         temperature: 0.1,
@@ -195,6 +201,14 @@ export default function TriagemBOSection({ onNavigate }: { onNavigate?: (section
           <AlertTriangle className="h-4 w-4 text-gold" />
           <h3 className="font-display font-semibold">Relato da ocorrência</h3>
         </div>
+                <Input
+          value={numeroBo}
+          onChange={(event) => setNumeroBo(event.target.value)}
+          placeholder="Ex: BO-000001/2026"
+          aria-label="Número do Boletim de Ocorrência"
+          required
+          className="mb-3 rounded-xl"
+        />
         <Textarea
           value={relato}
           onChange={(event) => setRelato(event.target.value)}
