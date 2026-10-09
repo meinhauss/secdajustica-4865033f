@@ -846,6 +846,7 @@ export function generateCartorioPDF(params: {
 
 /* ─── RELATÓRIO DE TRIAGEM DE B.O. ─── */
 export function generateTriagemBOPDF(params: {
+  numeroBo: string;
   relato: string;
   resultado: unknown;
   circunstancias: string[];
