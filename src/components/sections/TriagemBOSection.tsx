@@ -14,6 +14,9 @@ import { toast } from "sonner";
 import { generateTriagemBOPDF } from "@/lib/pdfGenerator";
 import { triagemValueToText } from "@/lib/triagemFormatting";
 import TriagemResults from "@/components/triagem/TriagemResults";
+import { useAuth } from "@/hooks/useAuth";
+import { imageToBase64 } from "@/lib/pdfGenerator";
+import logoSjc from "@/assets/logo-sjc.jpg";
 
 
 const CIRCUNSTANCIAS = [
@@ -40,6 +43,8 @@ CATÁLOGO DO CÓDIGO PENAL DO SERVIDOR:
 ${JSON.stringify(CATALOGO_PENAL)}`;
 
 export default function TriagemBOSection() {
+  const { user, profile } = useAuth();
+  const [exportando, setExportando] = useState(false);
   const [relato, setRelato] = useState("");
     const [selecionadas, setSelecionadas] = useState<string[]>([]);
   const [presoAssistido, setPresoAssistido] = useState(false);
@@ -71,10 +76,26 @@ export default function TriagemBOSection() {
     .filter((item) => selecionadas.includes(item.id))
     .map(({ label, percentual }) => `${label} (${percentual})`);
 
-  const gerarRelatorio = () => {
-    if (!resultado) return;
-    generateTriagemBOPDF({ relato, resultado, circunstancias: circunstaciasSelecionadas() });
-    toast.success("Relatório PDF gerado");
+  const gerarRelatorio = async () => {
+    if (!resultado || exportando) return;
+    if (!user || profile?.user_id !== user.id || !profile?.nome_completo?.trim()) {
+      toast.error("Aguarde a identificação do agente logado antes de exportar o relatório.");
+      return;
+    }
+    setExportando(true);
+    try {
+      const logoBase64 = await imageToBase64(logoSjc);
+      if (!logoBase64) throw new Error("Timbrado indisponível");
+      generateTriagemBOPDF({
+        relato, resultado, circunstancias: circunstaciasSelecionadas(), logoBase64,
+        agente: { nome: profile.nome_completo, idPersonagem: profile.id_personagem || undefined },
+      });
+      toast.success("Relatório PDF gerado");
+    } catch {
+      toast.error("Não foi possível gerar o relatório com timbrado. Tente novamente.");
+    } finally {
+      setExportando(false);
+    }
   };
 
   const prepararTCO = () => {
@@ -252,8 +273,8 @@ export default function TriagemBOSection() {
           <div className="flex items-center gap-2 font-semibold text-institutional"><CheckCircle2 className="h-4 w-4" /> Resultado da análise</div>
           <TriagemResults resultado={resultado} />
           <div className="mt-4 flex flex-wrap gap-2">
-            <Button variant="outline" className="rounded-xl" onClick={gerarRelatorio}>
-              <FileDown className="mr-2 h-4 w-4" /> Gerar relatório PDF
+            <Button variant="outline" className="rounded-xl" onClick={gerarRelatorio} disabled={exportando}>
+              {exportando ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />} Gerar relatório PDF
             </Button>
             <Button variant="outline" className="rounded-xl" onClick={prepararTCO}>
               <ClipboardCheck className="mr-2 h-4 w-4" /> Preparar preenchimento do TCO
