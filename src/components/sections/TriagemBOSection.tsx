@@ -198,17 +198,16 @@ export default function TriagemBOSection() {
             {advogadoValidado && <p className="text-xs text-green-600">✓ Advogado identificado e validado para a dosimetria.</p>}
           </div>
         )}
-        <p className="mt-3 text-xs text-muted-foreground">Conforme o Art. 39 do DL 006/2024, as reduções ficam indisponíveis sem a validação completa da assistência do advogado.</p>
+                {!advogadoValidado && <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">Art. 39 do Decreto-Lei nº 006/2024: Sem a assistência de um advogado constituído, a autoridade policial não concede benefícios de redução de pena.</div>}
         <h3 className="mt-6 font-display font-semibold">Reduções e majorações legais</h3>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {CIRCUNSTANCIAS.map((item) => (
-            <label key={item.id} className="flex cursor-pointer items-center gap-3 rounded-xl border border-border p-3 transition-colors hover:bg-muted/50">
-              <Checkbox checked={selecionadas.includes(item.id)} onCheckedChange={(checked) => alternarCircunstancia(item.id, checked)} />
-              <span className="text-sm font-medium">{item.label}</span>
-              <span className="ml-auto text-xs text-muted-foreground">{item.percentual}</span>
-            </label>
-          ))}
+        <div className={`mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 ${!advogadoValidado ? "pointer-events-none opacity-50" : ""}`} aria-disabled={!advogadoValidado}>
+          <label className="flex items-center gap-3 rounded-xl border border-border p-3"><Checkbox disabled={!advogadoValidado} checked={selecionadas.includes("primario")} onCheckedChange={(checked) => alternarCircunstancia("primario", checked)} /><span className="text-sm font-medium">Réu Primário</span><span className="ml-auto text-xs text-muted-foreground">-50% (Art. 37, I)</span></label>
+          <div className="rounded-xl border border-border p-3"><div className="flex justify-between text-sm font-medium"><span>Atuação do Advogado Constituído</span><span>{atuacaoAdvogado}%</span></div><Slider disabled={!advogadoValidado} value={[atuacaoAdvogado]} onValueChange={([value]) => { setAtuacaoAdvogado(value); if (!selecionadas.includes("advogado")) alternarCircunstancia("advogado", true); }} min={30} max={50} step={5} className="mt-3" /><p className="mt-1 text-xs text-muted-foreground">Art. 37, II · 30% a 50%</p></div>
+          <div className="rounded-xl border border-border p-3"><div className="flex justify-between text-sm font-medium"><span>Réu Confesso</span><span>{confissaoReducao}%</span></div><Slider disabled={!advogadoValidado} value={[confissaoReducao]} onValueChange={([value]) => { setConfissaoReducao(value); if (!selecionadas.includes("confissao")) alternarCircunstancia("confissao", true); }} min={5} max={10} step={1} className="mt-3" /><p className="mt-1 text-xs text-muted-foreground">Art. 37, III · 5% a 10%</p></div>
+          <div className="rounded-xl border border-border p-3"><div className="flex justify-between text-sm font-medium"><span>Tempo de Custódia</span><span>{custodiaReducao ? `${custodiaReducao}%` : "Não selecionado"}</span></div><div className="mt-3 flex gap-2"><Button type="button" size="sm" variant={custodiaReducao === 10 ? "default" : "outline"} disabled={!advogadoValidado} onClick={() => { setCustodiaReducao(10); setSelecionadas((atual) => [...atual.filter((id) => id !== "custodia60"), "custodia15"]); }}>10% · 15–30 min</Button><Button type="button" size="sm" variant={custodiaReducao === 30 ? "default" : "outline"} disabled={!advogadoValidado} onClick={() => { setCustodiaReducao(30); setSelecionadas((atual) => [...atual.filter((id) => id !== "custodia15"), "custodia60"]); }}>30% · 60+ min</Button></div><p className="mt-1 text-xs text-muted-foreground">Art. 37, IV</p></div>
+          <label className="flex items-center gap-3 rounded-xl border border-border p-3"><Checkbox disabled={!advogadoValidado} checked={selecionadas.includes("reincidente")} onCheckedChange={(checked) => alternarCircunstancia("reincidente", checked)} /><span className="text-sm font-medium">Reincidente</span><span className="ml-auto text-xs text-muted-foreground">+25%</span></label>
         </div>
+        <div className={`mt-4 rounded-xl border p-3 text-sm ${tetoAtingido ? "border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-200" : "border-border bg-muted/30"}`}><strong>Redução total: {totalReducoes}% / 70%</strong>{tetoAtingido && <span className="ml-2">Teto legal do Art. 37, parágrafo único, aplicado automaticamente.</span>}</div>
       </div>
 
             <Button onClick={analisar} disabled={loading} className="h-12 w-full rounded-xl bg-primary text-primary-foreground shadow hover:bg-primary/90 font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-auto sm:px-8">
