@@ -347,7 +347,7 @@ export default function TCOSection() {
         const importarTriagem = (dados: any) => {
       setNatureza(dados.natureza || "");
       setTipificacao(dados.tipificacao || "");
-      setDescricao(dados.descricao || "");
+      setDescricao(dados.numeroBo || "");
       setRelatoBo(dados.relato || "");
       if (Array.isArray(dados.envolvidos) && dados.envolvidos.length > 0) {
         setEnvolvidos(dados.envolvidos.map((envolvido: any) => ({
