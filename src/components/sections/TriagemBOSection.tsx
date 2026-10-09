@@ -119,9 +119,13 @@ export default function TriagemBOSection({ onNavigate }: { onNavigate?: (section
     toast.success("Dados preparados para o TCO");
   };
 
-    const analisar = async () => {
+      const analisar = async () => {
 
-        if (!relato.trim()) {
+    if (!numeroBo.trim()) {
+      toast.error("Informe o número do Boletim de Ocorrência antes de prosseguir com a análise.");
+      return;
+    }
+    if (!relato.trim()) {
       toast.error("Cole o B.O., histórico da ocorrência ou depoimento antes de analisar.");
       return;
     }
