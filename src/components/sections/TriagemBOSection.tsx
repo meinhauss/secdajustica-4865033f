@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useAI } from "@/hooks/useAI";
+import { supabase } from "@/integrations/supabase/client";
 import { CODIGO_PENAL, formatBRL, formatFianca, formatPena } from "@/data/codigoPenal";
 import { toast } from "sonner";
 import { generateTriagemBOPDF } from "@/lib/pdfGenerator";
@@ -43,11 +44,12 @@ export default function TriagemBOSection() {
     const [nomeAdvogado, setNomeAdvogado] = useState("");
   const [idAdvogado, setIdAdvogado] = useState("");
   const [registroAdvogado, setRegistroAdvogado] = useState("");
-  const [atuacaoAdvogado, setAtuacaoAdvogado] = useState(30);
+    const [atuacaoAdvogado, setAtuacaoAdvogado] = useState(30);
   const [confissaoReducao, setConfissaoReducao] = useState(5);
   const [custodiaReducao, setCustodiaReducao] = useState(0);
   const [resultado, setResultado] = useState<unknown>(null);
-  const limparTexto = (valor: unknown) => String(valor ?? "-").replace(/<[^>]+>/g, "").trim() || "-";
+    const stripHtml = (txt: string) => txt.replace(/<[^>]+>/g, '').trim();
+  const limparTexto = (valor: unknown) => stripHtml(String(valor ?? "-") ) || "-";
     const advogadoValidado = presoAssistido && Boolean(nomeAdvogado.trim() && idAdvogado.trim() && registroAdvogado.trim());
   const reducoesSelecionadas = {
     primario: selecionadas.includes("primario") ? 50 : 0,
@@ -192,9 +194,23 @@ export default function TriagemBOSection() {
               nomeValue={nomeAdvogado}
               onIdChange={setIdAdvogado}
               onNomeChange={setNomeAdvogado}
-              onLookupResult={(result) => {
+                            onLookupResult={async (result) => {
                 setNomeAdvogado(result?.nome_completo || "");
                 setIdAdvogado(result?.id_personagem || "");
+                if (!result) {
+                  setRegistroAdvogado("");
+                  return;
+                }
+                if (result.oab_numero) {
+                  setRegistroAdvogado(result.oab_numero);
+                  return;
+                }
+                const { data } = await supabase
+                  .from("carteiras_oab")
+                  .select("numero_oab")
+                  .eq("id_personagem", result.id_personagem)
+                  .maybeSingle();
+                setRegistroAdvogado(data?.numero_oab || "");
               }}
               idLabel="ID do Personagem do Advogado"
               idPlaceholder="Buscar por ID do Personagem"
