@@ -623,9 +623,14 @@ export default function TCOSection() {
           <h2 className="font-display text-2xl font-bold text-foreground">Termos Circunstanciados (TCO)</h2>
           <p className="text-sm text-muted-foreground">Registro de infrações de menor potencial ofensivo</p>
         </div>
-        <Button onClick={() => setView("new")} className="rounded-xl">
-          <Plus className="h-4 w-4 mr-2" /> Novo TCO
-        </Button>
+                <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" onClick={() => setView("triagem")} className="rounded-xl border-institutional/40 text-institutional hover:bg-institutional/10">
+            <Brain className="mr-2 h-4 w-4" /> Triagem de B.O. & Enquadramento Penal IA
+          </Button>
+          <Button onClick={() => setView("new")} className="rounded-xl">
+            <Plus className="mr-2 h-4 w-4" /> Novo TCO
+          </Button>
+        </div>
       </div>
 
       <div className="relative">
