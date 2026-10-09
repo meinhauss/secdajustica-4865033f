@@ -56,14 +56,39 @@ export default function TriagemBOSection() {
       options: {
         systemInstruction: SYSTEM_TRIAGEM,
         temperature: 0.1,
-        responseSchema: { type: "object" },
+                maxOutputTokens: 8192,
+        responseSchema: {
+          type: "object",
+          properties: {
+            qualificacao: {
+              type: "object",
+              properties: {
+                vitimas: { type: "array", items: { type: "object" } },
+                testemunhas: { type: "array", items: { type: "object" } },
+                policiaisCondutores: { type: "array", items: { type: "object" } },
+                autoresInvestigados: { type: "array", items: { type: "object" } },
+              },
+            },
+            tipificacao: { type: "array", items: { type: "object" } },
+            cabimentoTCO: { type: "string", enum: ["cabível", "não cabível"] },
+            fundamentoTCO: { type: "string" },
+            fiança: { type: "object" },
+            dosimetria: { type: "object" },
+            alertas: { type: "array", items: { type: "string" } },
+          },
+          required: ["qualificacao", "tipificacao", "cabimentoTCO", "fundamentoTCO", "fiança", "dosimetria", "alertas"],
+        },
       },
     });
 
     if (res.ok) {
-      let estruturado: unknown = res.json;
+            let estruturado: unknown = res.json;
       if (!estruturado) {
-        try { estruturado = JSON.parse(res.data as string); } catch { estruturado = res.data; }
+        try { estruturado = JSON.parse(res.data as string); } catch { estruturado = null; }
+      }
+      if (!estruturado || typeof estruturado !== "object") {
+        toast.error("A IA retornou uma resposta fora do formato estruturado esperado.");
+        return;
       }
       setResultado(estruturado);
       toast.success("Ocorrência analisada pela IA");
