@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertTriangle, Brain, CheckCircle2, Loader2, ShieldCheck } from "lucide-react";
+import { AlertTriangle, Brain, CheckCircle2, ClipboardCheck, FileDown, FileText, Loader2, ShieldCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
