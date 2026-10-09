@@ -374,6 +374,17 @@ export default function TCOSection() {
       t.autor_policial_nome?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+    if (view === "triagem") {
+    return (
+      <div className="space-y-4">
+        <Button variant="ghost" size="sm" onClick={() => setView("list")}>
+          <ArrowLeft className="mr-1 h-4 w-4" /> Voltar para TCO
+        </Button>
+        <TriagemBOSection />
+      </div>
+    );
+  }
+
   // DETAIL VIEW
   if (view === "detail" && tcoDetail) {
     const t = tcoDetail as any;
