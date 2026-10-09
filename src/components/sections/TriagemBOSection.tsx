@@ -188,7 +188,21 @@ export default function TriagemBOSection() {
       {resultado && !loading && (
         <div className="rounded-2xl border border-institutional/20 bg-institutional/5 p-5">
           <div className="mb-2 flex items-center gap-2 font-semibold text-institutional"><CheckCircle2 className="h-4 w-4" /> Análise estruturada recebida</div>
-                    <pre className="max-h-96 overflow-auto whitespace-pre-wrap text-xs text-foreground">{JSON.stringify(resultado, null, 2)}</pre>
+                              <div className="grid gap-4 md:grid-cols-2">
+            {[
+              ["Qualificação dos Envolvidos", (resultado as any).qualificacao],
+              ["Crimes e Artigos", (resultado as any).tipificacao],
+              ["Cabimento de TCO", `${limparTexto((resultado as any).cabimentoTCO)} — ${limparTexto((resultado as any).fundamentoTCO)}`],
+              ["Fiança", (resultado as any).fiança],
+              ["Dosimetria", (resultado as any).dosimetria],
+              ["Alertas", (resultado as any).alertas],
+            ].map(([titulo, valor]) => (
+              <div key={String(titulo)} className="rounded-xl border border-border bg-card p-4">
+                <h4 className="font-display text-sm font-semibold text-institutional">{titulo}</h4>
+                <p className="mt-2 whitespace-pre-wrap text-sm text-foreground">{limparTexto(typeof valor === "string" ? valor : JSON.stringify(valor, null, 2))}</p>
+              </div>
+            ))}
+          </div>
           <div className="mt-4 flex flex-wrap gap-2">
             <Button variant="outline" className="rounded-xl" onClick={gerarRelatorio}>
               <FileDown className="mr-2 h-4 w-4" /> Gerar relatório PDF
