@@ -45,7 +45,8 @@ ${JSON.stringify(CATALOGO_PENAL)}`;
 export default function TriagemBOSection({ onNavigate }: { onNavigate?: (section: string) => void }) {
   const { user, profile } = useAuth();
   const [exportando, setExportando] = useState(false);
-  const [relato, setRelato] = useState("");
+    const [relato, setRelato] = useState("");
+  const [numeroBo, setNumeroBo] = useState("");
     const [selecionadas, setSelecionadas] = useState<string[]>([]);
   const [presoAssistido, setPresoAssistido] = useState(false);
     const [nomeAdvogado, setNomeAdvogado] = useState("");
