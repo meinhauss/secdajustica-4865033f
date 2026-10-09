@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { RichTextEditor, RichTextView } from "@/components/ui/rich-text-editor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Plus, ArrowLeft, Trash2, Send, Eye, Search, Edit, Brain } from "lucide-react";
+import { FileText, Plus, ArrowLeft, Trash2, Send, Eye, Search, Edit, Handcuffs } from "lucide-react";
 import TriagemBOSection from "@/components/sections/TriagemBOSection";
 import { format } from "date-fns";
 import { PersonLookupInput } from "@/components/PersonLookupInput";
