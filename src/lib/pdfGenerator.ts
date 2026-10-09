@@ -1,5 +1,5 @@
 import jsPDF from "jspdf";
-import { formatTriagemValue } from "@/lib/triagemFormatting";
+import { formatTriagemValue, triagemValueToText } from "@/lib/triagemFormatting";
 import { buildTriagemReport } from "@/lib/triagemReport";
 
 /** Parse JSON array partes or plain text for PDF display */
@@ -899,7 +899,7 @@ export function generateTriagemBOPDF(params: {
     section.paragraphs.forEach(writeParagraph);
     y += 3;
   }
-  const nomeAgente = pdfText(triagemValueToPlain(params.agente.nome));
+  const nomeAgente = pdfText(triagemValueToText(params.agente.nome));
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
   const nomeLinhas: string[] = doc.splitTextToSize(nomeAgente, CONTENT_W - 20);
@@ -916,7 +916,7 @@ export function generateTriagemBOPDF(params: {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   if (params.agente.idPersonagem) {
-    doc.text(pdfText(`ID do personagem: ${triagemValueToPlain(params.agente.idPersonagem)}`), PAGE_W / 2, y, { align: "center" });
+    doc.text(pdfText(`ID do personagem: ${triagemValueToText(params.agente.idPersonagem)}`), PAGE_W / 2, y, { align: "center" });
     y += 5;
   }
   doc.text("Agente responsável pela emissão do relatório", PAGE_W / 2, y, { align: "center" });
