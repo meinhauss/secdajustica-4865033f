@@ -189,7 +189,7 @@ export default function TriagemBOSection({ onNavigate }: { onNavigate?: (section
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-                        <Handcuffs className="h-6 w-6 text-institutional" />
+                        <AlgemaIcon className="h-6 w-6 text-institutional" />
                         <h2 className="font-display text-2xl font-bold text-foreground">Triagem Penal</h2>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">Análise penal auxiliar para Polícia Civil, Delegados, PM, PF, Corregedoria, GAECO e Administração, com revisão obrigatória da autoridade policial.</p>
@@ -274,7 +274,7 @@ export default function TriagemBOSection({ onNavigate }: { onNavigate?: (section
       </div>
 
             <Button onClick={analisar} disabled={loading} className="h-12 w-full rounded-xl bg-primary text-primary-foreground shadow hover:bg-primary/90 font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-auto sm:px-8">
-        {loading ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Analisando ocorrência...</>  : <><Handcuffs className="mr-2 h-5 w-5" /> Analisar Ocorrência e Enquadrar com IA</>}
+        {loading ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Analisando ocorrência...</>  : <><AlgemaIcon className="mr-2 h-5 w-5" /> Analisar Ocorrência e Enquadrar com IA</>}
       </Button>
 
       {loading && (

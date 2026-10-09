@@ -665,7 +665,7 @@ export default function TCOSection() {
         </div>
                 <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" onClick={() => setView("triagem")} className="rounded-xl border-institutional/40 text-institutional hover:bg-institutional/10">
-                        <Handcuffs className="mr-2 h-4 w-4" /> Triagem de B.O. & Enquadramento Penal IA
+                        <AlgemaIcon className="mr-2 h-4 w-4" /> Triagem Penal
           </Button>
           <Button onClick={() => setView("new")} className="rounded-xl">
             <Plus className="mr-2 h-4 w-4" /> Novo TCO
