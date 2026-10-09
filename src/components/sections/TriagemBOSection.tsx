@@ -132,7 +132,7 @@ export default function TriagemBOSection({ onNavigate }: { onNavigate?: (section
       .map(({ label, percentual }) => `${label} (${percentual})`);
     const res = await run({
       operation: "custom",
-      prompt: `Analise o relato policial abaixo. Separe os papéis, indique somente os crimes do catálogo que forem sustentados pelos fatos, calcule a soma das penas máximas e a fiança conforme as regras fornecidas. Circunstâncias selecionadas: ${circunstancias.join(", ") || "nenhuma"}. Relato:\n${relato.trim().slice(0, 18000)}`,
+      prompt: `Analise o B.O. abaixo com estrita prioridade aos fatos narrados no corpo do relato. Ignore capitulações, enquadramentos, títulos de crimes e indicações jurídicas previamente anotados no cabeçalho ou no texto do B.O.; eles são apenas referências a serem confrontadas, nunca prova. Para cada crime, exija que a narrativa descreva claramente a conduta e preencha integralmente os elementos do tipo penal do catálogo; diante de relato genérico, vago ou incompleto, não tipifique. Compare obrigatoriamente o título ou enquadramento prévio com os fatos e, se houver incongruência, inclua no array alertas uma advertência objetiva sobre a discrepância e sobre o que os fatos efetivamente sustentam. Separe os papéis, indique somente os crimes do catálogo que forem sustentados pelos fatos, calcule a soma das penas máximas e a fiança conforme as regras fornecidas. Circunstâncias selecionadas: ${circunstancias.join(", ") || "nenhuma"}. Relato:\n${relato.trim().slice(0, 18000)}`,
       options: {
         systemInstruction: SYSTEM_TRIAGEM,
         temperature: 0.1,
