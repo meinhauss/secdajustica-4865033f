@@ -54,7 +54,7 @@ export function PersonLookupInput({
     if (data) {
       setFound(true);
       // Use callback to batch updates and avoid stale closure issues
-      const result: PersonLookupResult = { nome_completo: data.nome_completo, id_personagem: data.id_personagem || id, cpf: data.cpf };
+      const result: PersonLookupResult = { nome_completo: data.nome_completo, id_personagem: data.id_personagem || id, cpf: data.cpf, oab_numero: data.oab_numero };
       if (onLookupResult) {
         onLookupResult(result);
       } else {
