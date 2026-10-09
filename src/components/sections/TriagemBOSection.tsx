@@ -188,7 +188,7 @@ export default function TriagemBOSection({ onNavigate }: { onNavigate?: (section
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <Grid3X3 className="h-6 w-6 text-institutional" />
+                        <Handcuffs className="h-6 w-6 text-institutional" />
                         <h2 className="font-display text-2xl font-bold text-foreground">Triagem Penal</h2>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">Análise penal auxiliar para Polícia Civil, Delegados, PM, PF, Corregedoria, GAECO e Administração, com revisão obrigatória da autoridade policial.</p>
