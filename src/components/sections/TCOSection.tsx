@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { RichTextEditor, RichTextView } from "@/components/ui/rich-text-editor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Plus, ArrowLeft, Trash2, Send, Eye, Search, Edit, Brain } from "lucide-react";
+import { FileText, Plus, ArrowLeft, Trash2, Send, Eye, Search, Edit, Handcuffs } from "lucide-react";
 import TriagemBOSection from "@/components/sections/TriagemBOSection";
 import { format } from "date-fns";
 import { PersonLookupInput } from "@/components/PersonLookupInput";
@@ -664,7 +664,7 @@ export default function TCOSection() {
         </div>
                 <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" onClick={() => setView("triagem")} className="rounded-xl border-institutional/40 text-institutional hover:bg-institutional/10">
-            <Brain className="mr-2 h-4 w-4" /> Triagem de B.O. & Enquadramento Penal IA
+                        <Handcuffs className="mr-2 h-4 w-4" /> Triagem de B.O. & Enquadramento Penal IA
           </Button>
           <Button onClick={() => setView("new")} className="rounded-xl">
             <Plus className="mr-2 h-4 w-4" /> Novo TCO
