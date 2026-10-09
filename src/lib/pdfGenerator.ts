@@ -848,7 +848,8 @@ export function generateTriagemBOPDF(params: {
   resultado: any;
   circunstancias: string[];
 }) {
-  const { relato, resultado, circunstancias } = params;
+    const { relato, resultado, circunstancias } = params;
+  const stripHtml = (txt: string) => String(txt ?? "").replace(/<[^>]+>/g, "").trim();
   const doc = new jsPDF();
   let y = 20;
   const write = (label: string, value: unknown) => {
@@ -861,7 +862,8 @@ export function generateTriagemBOPDF(params: {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(50);
-    y = addWrappedText(doc, typeof value === "string" ? value : JSON.stringify(value, null, 2), MARGIN, y, CONTENT_W, 3.8);
+        const plainValue = typeof value === "string" ? value : JSON.stringify(value, null, 2);
+    y = addWrappedText(doc, stripHtml(plainValue), MARGIN, y, CONTENT_W, 3.8);
     y += 3;
   };
 

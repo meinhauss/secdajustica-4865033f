@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { AlertTriangle, Brain, CheckCircle2, ClipboardCheck, FileDown, FileText, Loader2, ShieldCheck } from "lucide-react";
+import { PersonLookupInput } from "@/components/PersonLookupInput";
+import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -29,7 +31,7 @@ const CATALOGO_PENAL = CODIGO_PENAL.map((artigo) => ({
   inafiançavel: artigo.fianca === "sem_fianca",
 }));
 
-const SYSTEM_TRIAGEM = `Você é uma autoridade auxiliar de triagem penal para uso interno policial. Não retorne marcações HTML, incluindo <p>, <br> ou <strong>; retorne texto limpo ou markdown leve, sempre dentro do JSON estrito. Analise exclusivamente o relato fornecido e o catálogo do Código Penal abaixo. Não invente artigos, crimes, penas, multas ou fianças: use somente correspondências existentes no catálogo e sinalize incertezas. A resposta deve ser JSON estrito, sem markdown, com as chaves: qualificacao (objeto com vitimas, testemunhas, policiaisCondutores e autoresInvestigados, todos arrays de objetos {nome, papel, evidencias}), tipificacao (array de {autor, artigo, crime, penaBaseMeses, multaBase, fianca, inafiançavel}), cabimentoTCO ("cabível" ou "não cabível"), fundamentoTCO, fiança ("inafiançável" ou "cabível", valorTotal, fundamento), dosimetria (penaBaseMeses, multaBase, reducoes, majoracoes, penaFinalMeses, multaFinal) e alertas. Considere TCO cabível somente quando a soma das penas máximas for de até 20 meses e nenhum crime for inafiançável. Os percentuais selecionados são uma simulação auxiliar e devem ser aplicados em cascata sobre pena e multa. Isso não substitui a decisão da autoridade policial.
+const SYSTEM_TRIAGEM = `Você é uma autoridade auxiliar de triagem penal para uso interno policial. PROIBIDO retornar qualquer marcação HTML em qualquer campo do JSON, incluindo <p>, <br>, <strong> ou <div>; use somente texto puro e conciso ou markdown leve, sempre dentro do JSON estrito. Analise exclusivamente o relato fornecido e o catálogo do Código Penal abaixo. Não invente artigos, crimes, penas, multas ou fianças: use somente correspondências existentes no catálogo e sinalize incertezas. A resposta deve ser JSON estrito, sem markdown, com as chaves: qualificacao (objeto com vitimas, testemunhas, policiaisCondutores e autoresInvestigados, todos arrays de objetos {nome, papel, evidencias}), tipificacao (array de {autor, artigo, crime, penaBaseMeses, multaBase, fianca, inafiançavel}), cabimentoTCO ("cabível" ou "não cabível"), fundamentoTCO, fiança ("inafiançável" ou "cabível", valorTotal, fundamento), dosimetria (penaBaseMeses, multaBase, reducoes, majoracoes, penaFinalMeses, multaFinal) e alertas. Considere TCO cabível somente quando a soma das penas máximas for de até 20 meses e nenhum crime for inafiançável. Os percentuais selecionados são uma simulação auxiliar e devem ser aplicados em cascata sobre pena e multa. Isso não substitui a decisão da autoridade policial.
 
 CATÁLOGO DO CÓDIGO PENAL DO SERVIDOR:
 ${JSON.stringify(CATALOGO_PENAL)}`;
@@ -38,11 +40,23 @@ export default function TriagemBOSection() {
   const [relato, setRelato] = useState("");
     const [selecionadas, setSelecionadas] = useState<string[]>([]);
   const [presoAssistido, setPresoAssistido] = useState(false);
-  const [nomeAdvogado, setNomeAdvogado] = useState("");
+    const [nomeAdvogado, setNomeAdvogado] = useState("");
+  const [idAdvogado, setIdAdvogado] = useState("");
   const [registroAdvogado, setRegistroAdvogado] = useState("");
+  const [atuacaoAdvogado, setAtuacaoAdvogado] = useState(30);
+  const [confissaoReducao, setConfissaoReducao] = useState(5);
+  const [custodiaReducao, setCustodiaReducao] = useState(0);
   const [resultado, setResultado] = useState<unknown>(null);
   const limparTexto = (valor: unknown) => String(valor ?? "-").replace(/<[^>]+>/g, "").trim() || "-";
-  const advogadoValidado = presoAssistido && nomeAdvogado.trim() && registroAdvogado.trim();
+    const advogadoValidado = presoAssistido && Boolean(nomeAdvogado.trim() && idAdvogado.trim() && registroAdvogado.trim());
+  const reducoesSelecionadas = {
+    primario: selecionadas.includes("primario") ? 50 : 0,
+    advogado: selecionadas.includes("advogado") ? atuacaoAdvogado : 0,
+    confissao: selecionadas.includes("confissao") ? confissaoReducao : 0,
+    custodia: selecionadas.includes("custodia15") || selecionadas.includes("custodia60") ? custodiaReducao : 0,
+  };
+  const totalReducoes = Math.min(70, Object.values(reducoesSelecionadas).reduce((total, valor) => total + valor, 0));
+  const tetoAtingido = Object.values(reducoesSelecionadas).reduce((total, valor) => total + valor, 0) > 70;
   const { run, loading } = useAI();
 
   const alternarCircunstancia = (id: string, checked: boolean | "indeterminate") => {
@@ -80,8 +94,12 @@ export default function TriagemBOSection() {
 
     const analisar = async () => {
 
-    if (!relato.trim()) {
+        if (!relato.trim()) {
       toast.error("Cole o B.O., histórico da ocorrência ou depoimento antes de analisar.");
+      return;
+    }
+    if (selecionadas.some((id) => id !== "reincidente") && !advogadoValidado) {
+      toast.error("Valide o advogado constituído antes de selecionar reduções de pena.");
       return;
     }
 
@@ -167,23 +185,37 @@ export default function TriagemBOSection() {
           <Checkbox checked={presoAssistido} onCheckedChange={(checked) => setPresoAssistido(checked === true)} />
           <span className="text-sm font-medium">Preso assistido por Advogado Constituído?</span>
         </label>
-        {presoAssistido && (
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            <Input value={nomeAdvogado} onChange={(event) => setNomeAdvogado(event.target.value)} placeholder="Nome do Advogado" aria-label="Nome do Advogado" />
-            <Input value={registroAdvogado} onChange={(event) => setRegistroAdvogado(event.target.value)} placeholder="Nº OAB ou RG do Advogado" aria-label="Nº OAB ou RG do Advogado" />
+                {presoAssistido && (
+          <div className="mt-3 space-y-3">
+            <PersonLookupInput
+              idValue={idAdvogado}
+              nomeValue={nomeAdvogado}
+              onIdChange={setIdAdvogado}
+              onNomeChange={setNomeAdvogado}
+              onLookupResult={(result) => {
+                setNomeAdvogado(result?.nome_completo || "");
+                setIdAdvogado(result?.id_personagem || "");
+              }}
+              idLabel="ID do Personagem do Advogado"
+              idPlaceholder="Buscar por ID do Personagem"
+              nomeLabel="Nome Completo do Advogado"
+              nomePlaceholder="Buscar por nome completo"
+              required
+            />
+            <Input value={registroAdvogado} onChange={(event) => setRegistroAdvogado(event.target.value)} placeholder="Nº OAB ou RG do Advogado" aria-label="Nº OAB ou RG do Advogado" required />
+            {advogadoValidado && <p className="text-xs text-green-600">✓ Advogado identificado e validado para a dosimetria.</p>}
           </div>
         )}
-        <p className="mt-3 text-xs text-muted-foreground">Conforme o Art. 39 do DL 006/2024, as reduções ficam indisponíveis sem a validação completa da assistência do advogado.</p>
+                {!advogadoValidado && <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">Art. 39 do Decreto-Lei nº 006/2024: Sem a assistência de um advogado constituído, a autoridade policial não concede benefícios de redução de pena.</div>}
         <h3 className="mt-6 font-display font-semibold">Reduções e majorações legais</h3>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {CIRCUNSTANCIAS.map((item) => (
-            <label key={item.id} className="flex cursor-pointer items-center gap-3 rounded-xl border border-border p-3 transition-colors hover:bg-muted/50">
-              <Checkbox checked={selecionadas.includes(item.id)} onCheckedChange={(checked) => alternarCircunstancia(item.id, checked)} />
-              <span className="text-sm font-medium">{item.label}</span>
-              <span className="ml-auto text-xs text-muted-foreground">{item.percentual}</span>
-            </label>
-          ))}
+        <div className={`mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 ${!advogadoValidado ? "pointer-events-none opacity-50" : ""}`} aria-disabled={!advogadoValidado}>
+          <label className="flex items-center gap-3 rounded-xl border border-border p-3"><Checkbox disabled={!advogadoValidado} checked={selecionadas.includes("primario")} onCheckedChange={(checked) => alternarCircunstancia("primario", checked)} /><span className="text-sm font-medium">Réu Primário</span><span className="ml-auto text-xs text-muted-foreground">-50% (Art. 37, I)</span></label>
+          <div className="rounded-xl border border-border p-3"><div className="flex justify-between text-sm font-medium"><span>Atuação do Advogado Constituído</span><span>{atuacaoAdvogado}%</span></div><Slider disabled={!advogadoValidado} value={[atuacaoAdvogado]} onValueChange={([value]) => { setAtuacaoAdvogado(value); if (!selecionadas.includes("advogado")) alternarCircunstancia("advogado", true); }} min={30} max={50} step={5} className="mt-3" /><p className="mt-1 text-xs text-muted-foreground">Art. 37, II · 30% a 50%</p></div>
+          <div className="rounded-xl border border-border p-3"><div className="flex justify-between text-sm font-medium"><span>Réu Confesso</span><span>{confissaoReducao}%</span></div><Slider disabled={!advogadoValidado} value={[confissaoReducao]} onValueChange={([value]) => { setConfissaoReducao(value); if (!selecionadas.includes("confissao")) alternarCircunstancia("confissao", true); }} min={5} max={10} step={1} className="mt-3" /><p className="mt-1 text-xs text-muted-foreground">Art. 37, III · 5% a 10%</p></div>
+          <div className="rounded-xl border border-border p-3"><div className="flex justify-between text-sm font-medium"><span>Tempo de Custódia</span><span>{custodiaReducao ? `${custodiaReducao}%` : "Não selecionado"}</span></div><div className="mt-3 flex gap-2"><Button type="button" size="sm" variant={custodiaReducao === 10 ? "default" : "outline"} disabled={!advogadoValidado} onClick={() => { setCustodiaReducao(10); setSelecionadas((atual) => [...atual.filter((id) => id !== "custodia60"), "custodia15"]); }}>10% · 15–30 min</Button><Button type="button" size="sm" variant={custodiaReducao === 30 ? "default" : "outline"} disabled={!advogadoValidado} onClick={() => { setCustodiaReducao(30); setSelecionadas((atual) => [...atual.filter((id) => id !== "custodia15"), "custodia60"]); }}>30% · 60+ min</Button></div><p className="mt-1 text-xs text-muted-foreground">Art. 37, IV</p></div>
+          <label className="flex items-center gap-3 rounded-xl border border-border p-3"><Checkbox disabled={!advogadoValidado} checked={selecionadas.includes("reincidente")} onCheckedChange={(checked) => alternarCircunstancia("reincidente", checked)} /><span className="text-sm font-medium">Reincidente</span><span className="ml-auto text-xs text-muted-foreground">+25%</span></label>
         </div>
+        <div className={`mt-4 rounded-xl border p-3 text-sm ${tetoAtingido ? "border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-200" : "border-border bg-muted/30"}`}><strong>Redução total: {totalReducoes}% / 70%</strong>{tetoAtingido && <span className="ml-2">Teto legal do Art. 37, parágrafo único, aplicado automaticamente.</span>}</div>
       </div>
 
             <Button onClick={analisar} disabled={loading} className="h-12 w-full rounded-xl bg-primary text-primary-foreground shadow hover:bg-primary/90 font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-auto sm:px-8">
