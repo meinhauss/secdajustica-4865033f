@@ -344,14 +344,37 @@ export default function TCOSection() {
   };
 
     useEffect(() => {
-    const handleTriagemTCO = (event: Event) => {
-      const detail = (event as CustomEvent).detail || {};
-      setNatureza(detail.natureza || "");
-      setTipificacao(detail.tipificacao || "");
-      setDescricao(detail.descricao || "");
-      setRelatoBo(detail.relato || "");
+        const importarTriagem = (dados: any) => {
+      setNatureza(dados.natureza || "");
+      setTipificacao(dados.tipificacao || "");
+      setDescricao(dados.descricao || "");
+      setRelatoBo(dados.relato || "");
+      if (Array.isArray(dados.envolvidos) && dados.envolvidos.length > 0) {
+        setEnvolvidos(dados.envolvidos.map((envolvido: any) => ({
+          ...emptyEnvolvido(),
+          nome: envolvido.nome || "",
+          tipo: envolvido.tipo || "autor_fato",
+          id_personagem: envolvido.id_personagem || "",
+          qualificacao: envolvido.qualificacao || "",
+          observacoes: envolvido.observacoes || "",
+        })));
+      }
       setView("new");
+      toast.success("Dados da Triagem importados para o novo TCO");
     };
+    const handleTriagemTCO = () => {
+      const salvo = sessionStorage.getItem("tco_prefill_data");
+      if (!salvo) return;
+      try {
+        importarTriagem(JSON.parse(salvo));
+        sessionStorage.removeItem("tco_prefill_data");
+      } catch {
+        sessionStorage.removeItem("tco_prefill_data");
+        toast.error("Não foi possível importar os dados da Triagem para o TCO");
+      }
+    };
+    const salvo = sessionStorage.getItem("tco_prefill_data");
+    if (salvo) handleTriagemTCO();
     window.addEventListener("triagem-bo-preencher-tco", handleTriagemTCO);
     return () => window.removeEventListener("triagem-bo-preencher-tco", handleTriagemTCO);
   }, []);

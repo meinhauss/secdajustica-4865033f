@@ -37,12 +37,12 @@ const CATALOGO_PENAL = CODIGO_PENAL.map((artigo) => ({
   inafiançavel: artigo.fianca === "sem_fianca",
 }));
 
-const SYSTEM_TRIAGEM = `Você é uma autoridade auxiliar de triagem penal para uso interno policial. PROIBIDO retornar qualquer marcação HTML em qualquer campo do JSON, incluindo <p>, <br>, <strong> ou <div>; use somente texto puro e conciso ou markdown leve, sempre dentro do JSON estrito. Analise exclusivamente o relato fornecido e o catálogo do Código Penal abaixo. Não invente artigos, crimes, penas, multas ou fianças: use somente correspondências existentes no catálogo e sinalize incertezas. A resposta deve ser JSON estrito, sem markdown, com as chaves: qualificacao (objeto com vitimas, testemunhas, policiaisCondutores e autoresInvestigados, todos arrays de objetos {nome, papel, evidencias}), tipificacao (array de {autor, artigo, crime, penaBaseMeses, multaBase, fianca, inafiançavel}), cabimentoTCO ("cabível" ou "não cabível"), fundamentoTCO, fiança ("inafiançável" ou "cabível", valorTotal, fundamento), dosimetria (penaBaseMeses, multaBase, reducoes, majoracoes, penaFinalMeses, multaFinal) e alertas. Considere TCO cabível somente quando a soma das penas máximas for de até 20 meses e nenhum crime for inafiançável. Os percentuais selecionados são uma simulação auxiliar e devem ser aplicados em cascata sobre pena e multa. Isso não substitui a decisão da autoridade policial.
+const SYSTEM_TRIAGEM = `Você é uma autoridade auxiliar de triagem penal para uso interno policial. Faça análise estritamente fática: ignore capitulações, enquadramentos, títulos de crimes e indicações jurídicas previamente escritos no cabeçalho ou em outras partes do B.O.; considere somente os fatos narrados no corpo do relato. Só tipifique um crime do catálogo quando a conduta narrada preencher integralmente, de forma clara, todos os elementos do tipo penal. Se o relato for genérico, vago ou insuficiente, não tipifique o crime. Compare obrigatoriamente qualquer capitulação prévia do B.O. com os fatos narrados e, se houver discrepância ou incongruência (inclusive crime mais grave que os fatos sustentam), inclua no array alertas uma advertência clara descrevendo a divergência fática e o enquadramento que os fatos realmente permitem, sem repetir a capitulação como se fosse comprovada. PROIBIDO retornar qualquer marcação HTML em qualquer campo do JSON, incluindo <p>, <br>, <strong> ou <div>; use somente texto puro e conciso ou markdown leve, sempre dentro do JSON estrito. Analise exclusivamente o relato fornecido e o catálogo do Código Penal abaixo. Não invente artigos, crimes, penas, multas ou fianças: use somente correspondências existentes no catálogo e sinalize incertezas. A resposta deve ser JSON estrito, sem markdown, com as chaves: qualificacao (objeto com vitimas, testemunhas, policiaisCondutores e autoresInvestigados, todos arrays de objetos {nome, papel, evidencias}), tipificacao (array de {autor, artigo, crime, penaBaseMeses, multaBase, fianca, inafiançavel}), cabimentoTCO ("cabível" ou "não cabível"), fundamentoTCO, fiança ("inafiançável" ou "cabível", valorTotal, fundamento), dosimetria (penaBaseMeses, multaBase, reducoes, majoracoes, penaFinalMeses, multaFinal) e alertas. Considere TCO cabível somente quando a soma das penas máximas for de até 20 meses e nenhum crime for inafiançável. Os percentuais selecionados são uma simulação auxiliar e devem ser aplicados em cascata sobre pena e multa. Isso não substitui a decisão da autoridade policial.
 
 CATÁLOGO DO CÓDIGO PENAL DO SERVIDOR:
 ${JSON.stringify(CATALOGO_PENAL)}`;
 
-export default function TriagemBOSection() {
+export default function TriagemBOSection({ onNavigate }: { onNavigate?: (section: string) => void }) {
   const { user, profile } = useAuth();
   const [exportando, setExportando] = useState(false);
   const [relato, setRelato] = useState("");
@@ -98,21 +98,23 @@ export default function TriagemBOSection() {
     }
   };
 
-  const prepararTCO = () => {
+    const prepararTCO = () => {
     if (!resultado || typeof resultado !== "object") return;
     const dados = resultado as any;
     const primeiraTipificacao = Array.isArray(dados.tipificacao) ? dados.tipificacao[0] : null;
-    const textoTipificacao = primeiraTipificacao
-      ? `${primeiraTipificacao.artigo || ""} — ${primeiraTipificacao.crime || ""}`.trim()
-      : "";
-    window.dispatchEvent(new CustomEvent("triagem-bo-preencher-tco", {
-      detail: {
-        relato,
-        tipificacao: textoTipificacao,
-        natureza: primeiraTipificacao?.crime || "",
-        descricao: relato.slice(0, 120),
-      },
+    const envolvidos = [
+      ...(Array.isArray(dados.qualificacao?.autoresInvestigados) ? dados.qualificacao.autoresInvestigados.map((envolvido: any) => ({ tipo: "autor_fato", nome: envolvido.nome || "", qualificacao: envolvido.papel || envolvido.evidencias || "", id_personagem: envolvido.id_personagem || "", observacoes: "" })) : []),
+      ...(Array.isArray(dados.qualificacao?.vitimas) ? dados.qualificacao.vitimas.map((envolvido: any) => ({ tipo: "vitima", nome: envolvido.nome || "", qualificacao: envolvido.papel || envolvido.evidencias || "", id_personagem: envolvido.id_personagem || "", observacoes: "" })) : []),
+    ].filter((envolvido) => envolvido.nome.trim());
+    sessionStorage.setItem("tco_prefill_data", JSON.stringify({
+      relato,
+      natureza: primeiraTipificacao?.crime || "",
+      tipificacao: primeiraTipificacao ? `${primeiraTipificacao.artigo || ""} — ${primeiraTipificacao.crime || ""}`.trim() : "",
+      descricao: dados.descricao || relato.trim(),
+      envolvidos,
     }));
+    onNavigate?.("tco");
+    window.dispatchEvent(new CustomEvent("triagem-bo-preencher-tco"));
     toast.success("Dados preparados para o TCO");
   };
 
@@ -132,7 +134,7 @@ export default function TriagemBOSection() {
       .map(({ label, percentual }) => `${label} (${percentual})`);
     const res = await run({
       operation: "custom",
-      prompt: `Analise o relato policial abaixo. Separe os papéis, indique somente os crimes do catálogo que forem sustentados pelos fatos, calcule a soma das penas máximas e a fiança conforme as regras fornecidas. Circunstâncias selecionadas: ${circunstancias.join(", ") || "nenhuma"}. Relato:\n${relato.trim().slice(0, 18000)}`,
+      prompt: `Analise o B.O. abaixo com estrita prioridade aos fatos narrados no corpo do relato. Ignore capitulações, enquadramentos, títulos de crimes e indicações jurídicas previamente anotados no cabeçalho ou no texto do B.O.; eles são apenas referências a serem confrontadas, nunca prova. Para cada crime, exija que a narrativa descreva claramente a conduta e preencha integralmente os elementos do tipo penal do catálogo; diante de relato genérico, vago ou incompleto, não tipifique. Compare obrigatoriamente o título ou enquadramento prévio com os fatos e, se houver incongruência, inclua no array alertas uma advertência objetiva sobre a discrepância e sobre o que os fatos efetivamente sustentam. Separe os papéis, indique somente os crimes do catálogo que forem sustentados pelos fatos, calcule a soma das penas máximas e a fiança conforme as regras fornecidas. Circunstâncias selecionadas: ${circunstancias.join(", ") || "nenhuma"}. Relato:\n${relato.trim().slice(0, 18000)}`,
       options: {
         systemInstruction: SYSTEM_TRIAGEM,
         temperature: 0.1,
