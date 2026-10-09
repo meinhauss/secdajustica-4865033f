@@ -44,7 +44,7 @@ export default function TriagemBOSection() {
     const [nomeAdvogado, setNomeAdvogado] = useState("");
   const [idAdvogado, setIdAdvogado] = useState("");
   const [registroAdvogado, setRegistroAdvogado] = useState("");
-  const [atuacaoAdvogado, setAtuacaoAdvogado] = useState(30);
+    const [atuacaoAdvogado, setAtuacaoAdvogado] = useState(30);
   const [confissaoReducao, setConfissaoReducao] = useState(5);
   const [custodiaReducao, setCustodiaReducao] = useState(0);
   const [resultado, setResultado] = useState<unknown>(null);
