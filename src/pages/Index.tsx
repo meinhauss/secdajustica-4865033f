@@ -165,7 +165,7 @@ const Index = () => {
       case "concursos": return <ConcursosSection />;
       case "cartorio": return <Suspense fallback={<LazyFallback />}><CartorarioSection /></Suspense>;
             case "tco": return <TCOSection />;
-      case "triagem-bo": return <TriagemBOSection />;
+      case "triagem-bo": return <TriagemBOSection onNavigate={setActiveSection} />;
       case "jurados": return <JuradosSection onOpenProcesso={(id) => { setOpenProcessoId(id); setActiveSection("processos"); }} />;
       case "modelos": return <ModelosSection />;
       default: return <DashboardHome />;
