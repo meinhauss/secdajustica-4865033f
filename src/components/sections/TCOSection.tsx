@@ -74,8 +74,7 @@ export default function TCOSection() {
   const [descricao, setDescricao] = useState("");
   const [dataFato, setDataFato] = useState("");
   const [localFato, setLocalFato] = useState("");
-  const [compromisso, setCompromisso] = useState(false);
-  const [relatoBo, setRelatoBo] = useState("");
+    const [relatoBo, setRelatoBo] = useState("");
   const [links, setLinks] = useState<string[]>([""]);
   const [envolvidos, setEnvolvidos] = useState<Envolvido[]>([
     { ...emptyEnvolvido(), tipo: "autor_fato" },
@@ -134,7 +133,7 @@ export default function TCOSection() {
           relato_bo: relatoBo || null,
           data_fato: dataFato || null,
           local_fato: localFato || null,
-          compromisso_jecrim: compromisso,
+                    compromisso_jecrim: true,
           data_compromisso: null,
           local_compromisso: null,
           links: validLinks,
@@ -285,7 +284,7 @@ export default function TCOSection() {
           relato_bo: relatoBo || null,
           data_fato: dataFato || null,
           local_fato: localFato || null,
-          compromisso_jecrim: compromisso,
+                    compromisso_jecrim: true,
           links: validLinks,
         } as any)
         .eq("id", editingTcoId);
@@ -326,8 +325,7 @@ export default function TCOSection() {
     setDescricao(t.descricao_fatos || "");
     setDataFato(t.data_fato ? new Date(t.data_fato).toISOString().slice(0, 16) : "");
     setLocalFato(t.local_fato || "");
-    setCompromisso(!!t.compromisso_jecrim);
-    setRelatoBo(t.relato_bo || "");
+        setRelatoBo(t.relato_bo || "");
     setLinks(Array.isArray(t.links) && t.links.length > 0 ? t.links : [""]);
     setEnvolvidos(
       (t.envolvidos || []).length > 0
@@ -386,8 +384,7 @@ export default function TCOSection() {
     setTipificacao("");
     setDescricao("");
     setDataFato("");
-    setLocalFato("");
-    setCompromisso(false);
+        setLocalFato("");
     setRelatoBo("");
     setLinks([""]);
     setEnvolvidos([
@@ -580,15 +577,8 @@ export default function TCOSection() {
               />
             </div>
 
-            {/* Compromisso JECrim */}
-            <div>
-              <label className="flex items-center gap-2">
-                <input type="checkbox" checked={compromisso} onChange={(e) => setCompromisso(e.target.checked)} className="rounded" />
-                <span className="text-sm font-medium">Compromisso de comparecimento ao JECrim</span>
-              </label>
-              {compromisso && (
-                <p className="text-xs text-muted-foreground ml-6 mt-1">A data da audiência será agendada pelo juiz no decorrer do processo.</p>
-              )}
+                        <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-3 text-sm text-blue-800 dark:text-blue-200">
+              <p><span className="font-semibold">Aviso:</span> Os envolvidos devem ser orientados e cientificados de que deverão comparecer ao JECrim quando devidamente intimados pelo Juízo.</p>
             </div>
           </motion.div>
 
