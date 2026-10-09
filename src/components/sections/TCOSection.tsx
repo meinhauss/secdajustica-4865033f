@@ -62,7 +62,7 @@ const emptyEnvolvido = (): Envolvido => ({
 export default function TCOSection() {
   const { user, profile, roles } = useAuth();
   const queryClient = useQueryClient();
-  const [view, setView] = useState<"list" | "new" | "detail">("list");
+    const [view, setView] = useState<"list" | "new" | "detail" | "triagem">("list");
   const [selectedTco, setSelectedTco] = useState<string | null>(null);
   const [editingTcoId, setEditingTcoId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
