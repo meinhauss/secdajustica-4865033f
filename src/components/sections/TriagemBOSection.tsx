@@ -111,6 +111,7 @@ export default function TriagemBOSection({ onNavigate }: { onNavigate?: (section
       relato,
       natureza: primeiraTipificacao?.crime || "",
       tipificacao: primeiraTipificacao ? `${primeiraTipificacao.artigo || ""} — ${primeiraTipificacao.crime || ""}`.trim() : "",
+            numeroBo: numeroBo.trim(),
       descricao: dados.descricao || relato.trim(),
       envolvidos,
     }));
