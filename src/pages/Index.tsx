@@ -20,6 +20,7 @@ import CargosSection from "@/components/sections/CargosSection";
 import ConcursosSection from "@/components/sections/ConcursosSection";
 import MeuPerfilSection from "@/components/sections/MeuPerfilSection";
 import TCOSection from "@/components/sections/TCOSection";
+import TriagemBOSection from "@/components/sections/TriagemBOSection";
 import JuradosSection from "@/components/sections/JuradosSection";
 import ModelosSection from "@/components/sections/ModelosSection";
 import { ListSkeleton } from "@/components/ui/list-skeleton";
@@ -163,7 +164,8 @@ const Index = () => {
       case "estatisticas": return <Suspense fallback={<LazyFallback />}><EstatisticasSection /></Suspense>;
       case "concursos": return <ConcursosSection />;
       case "cartorio": return <Suspense fallback={<LazyFallback />}><CartorarioSection /></Suspense>;
-      case "tco": return <TCOSection />;
+            case "tco": return <TCOSection />;
+      case "triagem-bo": return <TriagemBOSection />;
       case "jurados": return <JuradosSection onOpenProcesso={(id) => { setOpenProcessoId(id); setActiveSection("processos"); }} />;
       case "modelos": return <ModelosSection />;
       default: return <DashboardHome />;

@@ -11,7 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { RichTextEditor, RichTextView } from "@/components/ui/rich-text-editor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Plus, ArrowLeft, Trash2, Send, Eye, Search, Edit } from "lucide-react";
+import { FileText, Plus, ArrowLeft, Trash2, Send, Eye, Search, Edit, Brain } from "lucide-react";
+import TriagemBOSection from "@/components/sections/TriagemBOSection";
 import { format } from "date-fns";
 import { PersonLookupInput } from "@/components/PersonLookupInput";
 
@@ -61,7 +62,7 @@ const emptyEnvolvido = (): Envolvido => ({
 export default function TCOSection() {
   const { user, profile, roles } = useAuth();
   const queryClient = useQueryClient();
-  const [view, setView] = useState<"list" | "new" | "detail">("list");
+    const [view, setView] = useState<"list" | "new" | "detail" | "triagem">("list");
   const [selectedTco, setSelectedTco] = useState<string | null>(null);
   const [editingTcoId, setEditingTcoId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -373,6 +374,17 @@ export default function TCOSection() {
       t.autor_policial_nome?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+    if (view === "triagem") {
+    return (
+      <div className="space-y-4">
+        <Button variant="ghost" size="sm" onClick={() => setView("list")}>
+          <ArrowLeft className="mr-1 h-4 w-4" /> Voltar para TCO
+        </Button>
+        <TriagemBOSection />
+      </div>
+    );
+  }
+
   // DETAIL VIEW
   if (view === "detail" && tcoDetail) {
     const t = tcoDetail as any;
@@ -622,9 +634,14 @@ export default function TCOSection() {
           <h2 className="font-display text-2xl font-bold text-foreground">Termos Circunstanciados (TCO)</h2>
           <p className="text-sm text-muted-foreground">Registro de infrações de menor potencial ofensivo</p>
         </div>
-        <Button onClick={() => setView("new")} className="rounded-xl">
-          <Plus className="h-4 w-4 mr-2" /> Novo TCO
-        </Button>
+                <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" onClick={() => setView("triagem")} className="rounded-xl border-institutional/40 text-institutional hover:bg-institutional/10">
+            <Brain className="mr-2 h-4 w-4" /> Triagem de B.O. & Enquadramento Penal IA
+          </Button>
+          <Button onClick={() => setView("new")} className="rounded-xl">
+            <Plus className="mr-2 h-4 w-4" /> Novo TCO
+          </Button>
+        </div>
       </div>
 
       <div className="relative">
