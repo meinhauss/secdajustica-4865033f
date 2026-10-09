@@ -5,7 +5,7 @@ import { useTheme } from "@/hooks/useTheme";
 import {
   Scale, Gavel, BookOpen, FileText, Users, BarChart3,
   LogOut, Menu, X, Home, Briefcase, Calendar, Crown, GraduationCap, Stamp, ClipboardList, UsersRound,
-      Sun, Moon, FileStack, IdCard, Handcuffs
+      import AlgemaIcon from "@/components/icons/AlgemaIcon";
  } from "lucide-react";
 import logoSjc from "@/assets/logo-sjc.jpg";
 import logoMpsp from "@/assets/logo-mpsp.png";
