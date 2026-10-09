@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useAI } from "@/hooks/useAI";
+import { supabase } from "@/integrations/supabase/client";
 import { CODIGO_PENAL, formatBRL, formatFianca, formatPena } from "@/data/codigoPenal";
 import { toast } from "sonner";
 import { generateTriagemBOPDF } from "@/lib/pdfGenerator";
