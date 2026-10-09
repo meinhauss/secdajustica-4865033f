@@ -48,7 +48,8 @@ export default function TriagemBOSection() {
   const [confissaoReducao, setConfissaoReducao] = useState(5);
   const [custodiaReducao, setCustodiaReducao] = useState(0);
   const [resultado, setResultado] = useState<unknown>(null);
-  const limparTexto = (valor: unknown) => String(valor ?? "-").replace(/<[^>]+>/g, "").trim() || "-";
+    const stripHtml = (txt: string) => txt.replace(/<[^>]+>/g, '').trim();
+  const limparTexto = (valor: unknown) => stripHtml(String(valor ?? "-") ) || "-";
     const advogadoValidado = presoAssistido && Boolean(nomeAdvogado.trim() && idAdvogado.trim() && registroAdvogado.trim());
   const reducoesSelecionadas = {
     primario: selecionadas.includes("primario") ? 50 : 0,
