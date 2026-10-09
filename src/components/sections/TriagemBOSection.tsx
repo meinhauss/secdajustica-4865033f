@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertTriangle, Grid3X3, CheckCircle2, ClipboardCheck, FileDown, FileText, Loader2, ShieldCheck } from "lucide-react";
+import { AlertTriangle, Handcuffs, CheckCircle2, ClipboardCheck, FileDown, FileText, Loader2, ShieldCheck } from "lucide-react";
 import { PersonLookupInput } from "@/components/PersonLookupInput";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
