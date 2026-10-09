@@ -87,8 +87,8 @@ export default function TriagemBOSection({ onNavigate }: { onNavigate?: (section
     try {
       const logoBase64 = await imageToBase64(logoSjc);
       if (!logoBase64) throw new Error("Timbrado indisponível");
-      generateTriagemBOPDF({
-        relato, resultado, circunstancias: circunstaciasSelecionadas(), logoBase64,
+            generateTriagemBOPDF({
+        numeroBo, relato, resultado, circunstancias: circunstaciasSelecionadas(), logoBase64,
         agente: { nome: profile.nome_completo, idPersonagem: profile.id_personagem || undefined },
       });
       toast.success("Relatório PDF gerado");
