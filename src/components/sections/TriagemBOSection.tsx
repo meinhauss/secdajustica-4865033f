@@ -56,7 +56,28 @@ export default function TriagemBOSection() {
       options: {
         systemInstruction: SYSTEM_TRIAGEM,
         temperature: 0.1,
-        responseSchema: { type: "object" },
+                maxOutputTokens: 8192,
+        responseSchema: {
+          type: "object",
+          properties: {
+            qualificacao: {
+              type: "object",
+              properties: {
+                vitimas: { type: "array", items: { type: "object" } },
+                testemunhas: { type: "array", items: { type: "object" } },
+                policiaisCondutores: { type: "array", items: { type: "object" } },
+                autoresInvestigados: { type: "array", items: { type: "object" } },
+              },
+            },
+            tipificacao: { type: "array", items: { type: "object" } },
+            cabimentoTCO: { type: "string", enum: ["cabível", "não cabível"] },
+            fundamentoTCO: { type: "string" },
+            fiança: { type: "object" },
+            dosimetria: { type: "object" },
+            alertas: { type: "array", items: { type: "string" } },
+          },
+          required: ["qualificacao", "tipificacao", "cabimentoTCO", "fundamentoTCO", "fiança", "dosimetria", "alertas"],
+        },
       },
     });
 
