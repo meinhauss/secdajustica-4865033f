@@ -84,8 +84,12 @@ export default function TriagemBOSection() {
 
     const analisar = async () => {
 
-    if (!relato.trim()) {
+        if (!relato.trim()) {
       toast.error("Cole o B.O., histórico da ocorrência ou depoimento antes de analisar.");
+      return;
+    }
+    if (selecionadas.some((id) => id !== "reincidente") && !advogadoValidado) {
+      toast.error("Valide o advogado constituído antes de selecionar reduções de pena.");
       return;
     }
 
