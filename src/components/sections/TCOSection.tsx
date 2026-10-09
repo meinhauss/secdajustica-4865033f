@@ -325,8 +325,7 @@ export default function TCOSection() {
     setDescricao(t.descricao_fatos || "");
     setDataFato(t.data_fato ? new Date(t.data_fato).toISOString().slice(0, 16) : "");
     setLocalFato(t.local_fato || "");
-    setCompromisso(!!t.compromisso_jecrim);
-    setRelatoBo(t.relato_bo || "");
+        setRelatoBo(t.relato_bo || "");
     setLinks(Array.isArray(t.links) && t.links.length > 0 ? t.links : [""]);
     setEnvolvidos(
       (t.envolvidos || []).length > 0
