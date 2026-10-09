@@ -167,10 +167,25 @@ export default function TriagemBOSection() {
           <Checkbox checked={presoAssistido} onCheckedChange={(checked) => setPresoAssistido(checked === true)} />
           <span className="text-sm font-medium">Preso assistido por Advogado Constituído?</span>
         </label>
-        {presoAssistido && (
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            <Input value={nomeAdvogado} onChange={(event) => setNomeAdvogado(event.target.value)} placeholder="Nome do Advogado" aria-label="Nome do Advogado" />
-            <Input value={registroAdvogado} onChange={(event) => setRegistroAdvogado(event.target.value)} placeholder="Nº OAB ou RG do Advogado" aria-label="Nº OAB ou RG do Advogado" />
+                {presoAssistido && (
+          <div className="mt-3 space-y-3">
+            <PersonLookupInput
+              idValue={idAdvogado}
+              nomeValue={nomeAdvogado}
+              onIdChange={setIdAdvogado}
+              onNomeChange={setNomeAdvogado}
+              onLookupResult={(result) => {
+                setNomeAdvogado(result?.nome_completo || "");
+                setIdAdvogado(result?.id_personagem || "");
+              }}
+              idLabel="ID do Personagem do Advogado"
+              idPlaceholder="Buscar por ID do Personagem"
+              nomeLabel="Nome Completo do Advogado"
+              nomePlaceholder="Buscar por nome completo"
+              required
+            />
+            <Input value={registroAdvogado} onChange={(event) => setRegistroAdvogado(event.target.value)} placeholder="Nº OAB ou RG do Advogado" aria-label="Nº OAB ou RG do Advogado" required />
+            {advogadoValidado && <p className="text-xs text-green-600">✓ Advogado identificado e validado para a dosimetria.</p>}
           </div>
         )}
         <p className="mt-3 text-xs text-muted-foreground">Conforme o Art. 39 do DL 006/2024, as reduções ficam indisponíveis sem a validação completa da assistência do advogado.</p>
