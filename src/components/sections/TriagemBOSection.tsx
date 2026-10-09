@@ -77,7 +77,7 @@ export default function TriagemBOSection() {
     toast.success("Dados preparados para o TCO");
   };
 
-  const analisar = async () => {
+    const analisar = async () => {
 
     if (!relato.trim()) {
       toast.error("Cole o B.O., histórico da ocorrência ou depoimento antes de analisar.");
