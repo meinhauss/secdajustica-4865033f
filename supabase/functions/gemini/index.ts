@@ -53,7 +53,7 @@ Deno.serve(async (req: Request) => {
 
   const openaiKeyEarly = Deno.env.get("OPENAI_API_KEY");
   const geminiKeyEarly = Deno.env.get("GEMINI_API_KEY");
-  if (!openaiKeyEarly && !geminiKeyEarly) {
+  if (!openaiKeyEarly && !geminiKeyEarly && !Deno.env.get("GROQ_API_KEY")) {
     return json({
       ok: false,
       data: "",
@@ -109,6 +109,7 @@ Deno.serve(async (req: Request) => {
   // Cadeia de fallback: OpenAI direto → Gemini direto. Lovable AI desabilitado.
   const openaiKey = openaiKeyEarly;
   const geminiKey = geminiKeyEarly;
+  const groqKey = Deno.env.get("GROQ_API_KEY");
   const GEMINI_OAI = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
   type ChainStep = { endpoint: string; model: string; key: string; provider: string };
   const FALLBACK_CHAIN: ChainStep[] = [
@@ -118,6 +119,9 @@ Deno.serve(async (req: Request) => {
     ] : []),
     ...(geminiKey ? [
       { endpoint: GEMINI_OAI, model: "gemini-3.6-flash", key: geminiKey, provider: "gemini-direct" },
+    ] : []),
+    ...(groqKey ? [
+      { endpoint: "https://api.groq.com/openai/v1/chat/completions", model: "llama-3.3-70b-versatile", key: groqKey, provider: "groq" },
     ] : []),
   ].filter((s, i, a) => a.findIndex((x) => x.endpoint === s.endpoint && x.model === s.model) === i);
 
