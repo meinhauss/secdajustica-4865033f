@@ -38,8 +38,12 @@ export default function TriagemBOSection() {
   const [relato, setRelato] = useState("");
     const [selecionadas, setSelecionadas] = useState<string[]>([]);
   const [presoAssistido, setPresoAssistido] = useState(false);
-  const [nomeAdvogado, setNomeAdvogado] = useState("");
+    const [nomeAdvogado, setNomeAdvogado] = useState("");
+  const [idAdvogado, setIdAdvogado] = useState("");
   const [registroAdvogado, setRegistroAdvogado] = useState("");
+  const [atuacaoAdvogado, setAtuacaoAdvogado] = useState(30);
+  const [confissaoReducao, setConfissaoReducao] = useState(5);
+  const [custodiaReducao, setCustodiaReducao] = useState(0);
   const [resultado, setResultado] = useState<unknown>(null);
   const limparTexto = (valor: unknown) => String(valor ?? "-").replace(/<[^>]+>/g, "").trim() || "-";
   const advogadoValidado = presoAssistido && nomeAdvogado.trim() && registroAdvogado.trim();
