@@ -284,7 +284,7 @@ export default function TCOSection() {
           relato_bo: relatoBo || null,
           data_fato: dataFato || null,
           local_fato: localFato || null,
-          compromisso_jecrim: compromisso,
+                    compromisso_jecrim: true,
           links: validLinks,
         } as any)
         .eq("id", editingTcoId);
