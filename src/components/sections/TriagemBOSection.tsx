@@ -138,9 +138,9 @@ export default function TriagemBOSection() {
         <div>
           <div className="flex items-center gap-2">
             <Brain className="h-6 w-6 text-institutional" />
-            <h2 className="font-display text-2xl font-bold text-foreground">Triagem de B.O. & Enquadramento Penal IA</h2>
+                        <h2 className="font-display text-2xl font-bold text-foreground">Triagem Penal</h2>
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">Análise auxiliar para Polícia Civil, Delegados, PM, PF, Corregedoria, GAECO e Administração.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Análise penal auxiliar para Polícia Civil, Delegados, PM, PF, Corregedoria, GAECO e Administração, com revisão obrigatória da autoridade policial.</p>
         </div>
         <Badge variant="outline" className="w-fit gap-1 border-institutional/30 text-institutional"><ShieldCheck className="h-3 w-3" /> Uso interno policial</Badge>
       </div>
