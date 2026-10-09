@@ -11,10 +11,11 @@ import { generateTriagemBOPDF } from "@/lib/pdfGenerator";
 
 
 const CIRCUNSTANCIAS = [
-  { id: "primario", label: "Réu Primário", percentual: "-20%" },
-  { id: "confissao", label: "Confissão Espontânea", percentual: "-20%" },
-  { id: "advogado", label: "Advogado Constituído Presente", percentual: "-20%" },
-  { id: "colaboracao", label: "Colaboração / Delação Efetiva", percentual: "-30%" },
+  { id: "primario", label: "Réu Primário", percentual: "-50% (Art. 37, I)" },
+  { id: "advogado", label: "Assistência de Advogado constituído com atuação", percentual: "-30% a -50% (Art. 37, II)" },
+  { id: "confissao", label: "Réu Confesso", percentual: "-5% a -10% (Art. 37, III)" },
+  { id: "custodia15", label: "Custódia de 15 a 30 minutos", percentual: "-10% (Art. 37, IV)" },
+  { id: "custodia60", label: "Custódia de 60 minutos ou mais", percentual: "-30% (Art. 37, IV)" },
   { id: "reincidente", label: "Reincidente", percentual: "+25%" },
 ] as const;
 
