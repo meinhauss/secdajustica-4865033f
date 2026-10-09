@@ -849,20 +849,30 @@ export function generateTriagemBOPDF(params: {
   relato: string;
   resultado: unknown;
   circunstancias: string[];
+  logoBase64: string;
+  agente: { nome: string; idPersonagem?: string };
 }) {
   const { relato, circunstancias } = params;
   if (!params.resultado || typeof params.resultado !== "object" || Array.isArray(params.resultado)) return;
+  if (!params.agente.nome.trim() || !params.logoBase64) throw new Error("Agente e timbrado obrigatórios");
   const doc = new jsPDF();
-  let y = 20;
+  const emitidoEm = new Date().toLocaleString("pt-BR");
+  let y = 40;
   const pdfText = (value: string) => value.replace(/[\u2013\u2014]/g, "-").replace(/[\u201c\u201d]/g, '"').replace(/[\u2018\u2019]/g, "'").replace(/\u2022/g, "-").replace(/[^\x20-\x7E\xA0-\xFF\n\r\t]/g, "");
+  const ensureSpace = (needed: number) => {
+    if (y + needed > 272) {
+      doc.addPage();
+      y = 40;
+    }
+  };
   const writeParagraph = (value: string) => {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
     doc.setTextColor(50);
     const lines: string[] = doc.splitTextToSize(pdfText(value), CONTENT_W);
-    y = checkPage(doc, y, Math.min(lines.length * 5 + 4, 40));
+    ensureSpace(Math.min(lines.length * 5 + 4, 40));
     for (const line of lines) {
-      y = checkPage(doc, y, 7);
+      ensureSpace(7);
       doc.text(line, MARGIN, y);
       y += 5;
     }
@@ -877,10 +887,10 @@ export function generateTriagemBOPDF(params: {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(100);
-  doc.text(`Emitido em ${new Date().toLocaleString("pt-BR")}`, PAGE_W / 2, y, { align: "center" });
+  doc.text(`Emitido em ${emitidoEm}`, PAGE_W / 2, y, { align: "center" });
   y += 10;
   for (const section of buildTriagemReport(relato, params.resultado, circunstancias)) {
-    y = checkPage(doc, y, 28);
+    ensureSpace(28);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
     doc.setTextColor(25, 55, 85);
@@ -889,7 +899,51 @@ export function generateTriagemBOPDF(params: {
     section.paragraphs.forEach(writeParagraph);
     y += 3;
   }
-  addFooter(doc, "Relatório auxiliar de triagem policial — revisão obrigatória pela autoridade policial");
+  const nomeAgente = pdfText(triagemValueToPlain(params.agente.nome));
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  const nomeLinhas: string[] = doc.splitTextToSize(nomeAgente, CONTENT_W - 20);
+  ensureSpace(33 + nomeLinhas.length * 5);
+  y += 9;
+  doc.setDrawColor(100);
+  doc.setLineWidth(0.3);
+  doc.line(PAGE_W / 2 - 45, y, PAGE_W / 2 + 45, y);
+  y += 7;
+  for (const line of nomeLinhas) {
+    doc.text(line, PAGE_W / 2, y, { align: "center" });
+    y += 5;
+  }
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  if (params.agente.idPersonagem) {
+    doc.text(pdfText(`ID do personagem: ${triagemValueToPlain(params.agente.idPersonagem)}`), PAGE_W / 2, y, { align: "center" });
+    y += 5;
+  }
+  doc.text("Agente responsável pela emissão do relatório", PAGE_W / 2, y, { align: "center" });
+  y += 5;
+  doc.setFontSize(7);
+  doc.text("Identificação pelo acesso ao sistema; sem certificação digital.", PAGE_W / 2, y, { align: "center" });
+
+  for (let page = 1; page <= doc.getNumberOfPages(); page++) {
+    doc.setPage(page);
+    doc.setFillColor(25, 55, 85);
+    doc.rect(0, 0, PAGE_W, 3, "F");
+    doc.addImage(params.logoBase64, "PNG", MARGIN, 7, 22, 18);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(25, 55, 85);
+    doc.text("SECRETARIA DA JUSTIÇA E CIDADANIA", 125, 14, { align: "center" });
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text("Estado de São Paulo - Jaguare RP", 125, 20, { align: "center" });
+    doc.setDrawColor(25, 55, 85);
+    doc.setLineWidth(0.6);
+    doc.line(MARGIN, 29, PAGE_W - MARGIN, 29);
+    doc.setDrawColor(180, 140, 50);
+    doc.setLineWidth(0.3);
+    doc.line(MARGIN, 30, PAGE_W - MARGIN, 30);
+  }
+  addFooter(doc, "Relatório auxiliar de triagem policial - revisão obrigatória pela autoridade policial");
   doc.save(`Triagem_BO_${new Date().toISOString().slice(0, 10)}.pdf`);
 }
 
