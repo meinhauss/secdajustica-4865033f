@@ -43,7 +43,36 @@ export default function TriagemBOSection() {
     else setSelecionadas((atual) => atual.filter((item) => item !== id));
   };
 
+    const circunstaciasSelecionadas = () => CIRCUNSTANCIAS
+    .filter((item) => selecionadas.includes(item.id))
+    .map(({ label, percentual }) => `${label} (${percentual})`);
+
+  const gerarRelatorio = () => {
+    if (!resultado) return;
+    generateTriagemBOPDF({ relato, resultado, circunstancias: circunstaciasSelecionadas() });
+    toast.success("Relatório PDF gerado");
+  };
+
+  const prepararTCO = () => {
+    if (!resultado || typeof resultado !== "object") return;
+    const dados = resultado as any;
+    const primeiraTipificacao = Array.isArray(dados.tipificacao) ? dados.tipificacao[0] : null;
+    const textoTipificacao = primeiraTipificacao
+      ? `${primeiraTipificacao.artigo || ""} — ${primeiraTipificacao.crime || ""}`.trim()
+      : "";
+    window.dispatchEvent(new CustomEvent("triagem-bo-preencher-tco", {
+      detail: {
+        relato,
+        tipificacao: textoTipificacao,
+        natureza: primeiraTipificacao?.crime || "",
+        descricao: relato.slice(0, 120),
+      },
+    }));
+    toast.success("Dados preparados para o TCO");
+  };
+
   const analisar = async () => {
+
     if (!relato.trim()) {
       toast.error("Cole o B.O., histórico da ocorrência ou depoimento antes de analisar.");
       return;
