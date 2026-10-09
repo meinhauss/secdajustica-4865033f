@@ -6,4 +6,4 @@
 - [x] Verificar a nova apresentação com dados fictícios, abertura dos detalhes e sete testes de formatação; sem erros de compilação.
 - [x] Converter o PDF em relatório narrativo com fundamentos disponíveis e indicação explícita dos ausentes.
 - [x] Verificar nove testes e as duas páginas exportadas; corrigir acentos e parágrafo dividido entre páginas.
-- [ ] Incluir timbrado do sistema e assinatura identificada do agente logado; verificar o PDF exportado.
+- [x] Incluir timbrado em todas as páginas e assinatura identificada pelo perfil logado; nove testes passaram e PDF fictício verificado visualmente sem sobreposição ou HTML; acesso autenticado indisponível nesta conexão externa.
