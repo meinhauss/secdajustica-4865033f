@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command";
-import type { LucideIcon } from "lucide-react";
+import type { ComponentType } from "react";
 
 export interface PaletteItem {
   id: string;
   label: string;
-  icon: LucideIcon;
+  /** Aceita ícones Lucide e componentes SVG próprios (ex.: AlgemaIcon). */
+  icon: ComponentType<{ className?: string }>;
   shortcut?: string; // ex: "g p"
 }
 
