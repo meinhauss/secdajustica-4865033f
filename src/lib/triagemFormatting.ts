@@ -44,6 +44,7 @@ function formatString(input: string): string {
     const nodes: Node[] = [];
     while (walker.nextNode()) nodes.push(walker.currentNode);
     for (const node of nodes) {
+      if (!/\*|__/.test(node.textContent || "")) continue;
       const span = doc.createElement("span");
       span.innerHTML = inline(node.textContent || "");
       node.parentNode?.replaceChild(span, node);
