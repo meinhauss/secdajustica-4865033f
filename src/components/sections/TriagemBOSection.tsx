@@ -3,6 +3,7 @@ import { AlertTriangle, Brain, CheckCircle2, ClipboardCheck, FileDown, FileText,
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useAI } from "@/hooks/useAI";
 import { CODIGO_PENAL, formatBRL, formatFianca, formatPena } from "@/data/codigoPenal";
