@@ -3,6 +3,7 @@ import { AlertTriangle, Brain, CheckCircle2, ClipboardCheck, FileDown, FileText,
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useAI } from "@/hooks/useAI";
 import { CODIGO_PENAL, formatBRL, formatFianca, formatPena } from "@/data/codigoPenal";
@@ -11,10 +12,11 @@ import { generateTriagemBOPDF } from "@/lib/pdfGenerator";
 
 
 const CIRCUNSTANCIAS = [
-  { id: "primario", label: "Réu Primário", percentual: "-20%" },
-  { id: "confissao", label: "Confissão Espontânea", percentual: "-20%" },
-  { id: "advogado", label: "Advogado Constituído Presente", percentual: "-20%" },
-  { id: "colaboracao", label: "Colaboração / Delação Efetiva", percentual: "-30%" },
+  { id: "primario", label: "Réu Primário", percentual: "-50% (Art. 37, I)" },
+  { id: "advogado", label: "Assistência de Advogado constituído com atuação", percentual: "-30% a -50% (Art. 37, II)" },
+  { id: "confissao", label: "Réu Confesso", percentual: "-5% a -10% (Art. 37, III)" },
+  { id: "custodia15", label: "Custódia de 15 a 30 minutos", percentual: "-10% (Art. 37, IV)" },
+  { id: "custodia60", label: "Custódia de 60 minutos ou mais", percentual: "-30% (Art. 37, IV)" },
   { id: "reincidente", label: "Reincidente", percentual: "+25%" },
 ] as const;
 
@@ -27,15 +29,20 @@ const CATALOGO_PENAL = CODIGO_PENAL.map((artigo) => ({
   inafiançavel: artigo.fianca === "sem_fianca",
 }));
 
-const SYSTEM_TRIAGEM = `Você é uma autoridade auxiliar de triagem penal para uso interno policial. Analise exclusivamente o relato fornecido e o catálogo do Código Penal abaixo. Não invente artigos, crimes, penas, multas ou fianças: use somente correspondências existentes no catálogo e sinalize incertezas. A resposta deve ser JSON estrito, sem markdown, com as chaves: qualificacao (objeto com vitimas, testemunhas, policiaisCondutores e autoresInvestigados, todos arrays de objetos {nome, papel, evidencias}), tipificacao (array de {autor, artigo, crime, penaBaseMeses, multaBase, fianca, inafiançavel}), cabimentoTCO ("cabível" ou "não cabível"), fundamentoTCO, fiança ("inafiançável" ou "cabível", valorTotal, fundamento), dosimetria (penaBaseMeses, multaBase, reducoes, majoracoes, penaFinalMeses, multaFinal) e alertas. Considere TCO cabível somente quando a soma das penas máximas for de até 20 meses e nenhum crime for inafiançável. Os percentuais selecionados são uma simulação auxiliar e devem ser aplicados em cascata sobre pena e multa. Isso não substitui a decisão da autoridade policial.
+const SYSTEM_TRIAGEM = `Você é uma autoridade auxiliar de triagem penal para uso interno policial. Não retorne marcações HTML, incluindo <p>, <br> ou <strong>; retorne texto limpo ou markdown leve, sempre dentro do JSON estrito. Analise exclusivamente o relato fornecido e o catálogo do Código Penal abaixo. Não invente artigos, crimes, penas, multas ou fianças: use somente correspondências existentes no catálogo e sinalize incertezas. A resposta deve ser JSON estrito, sem markdown, com as chaves: qualificacao (objeto com vitimas, testemunhas, policiaisCondutores e autoresInvestigados, todos arrays de objetos {nome, papel, evidencias}), tipificacao (array de {autor, artigo, crime, penaBaseMeses, multaBase, fianca, inafiançavel}), cabimentoTCO ("cabível" ou "não cabível"), fundamentoTCO, fiança ("inafiançável" ou "cabível", valorTotal, fundamento), dosimetria (penaBaseMeses, multaBase, reducoes, majoracoes, penaFinalMeses, multaFinal) e alertas. Considere TCO cabível somente quando a soma das penas máximas for de até 20 meses e nenhum crime for inafiançável. Os percentuais selecionados são uma simulação auxiliar e devem ser aplicados em cascata sobre pena e multa. Isso não substitui a decisão da autoridade policial.
 
 CATÁLOGO DO CÓDIGO PENAL DO SERVIDOR:
 ${JSON.stringify(CATALOGO_PENAL)}`;
 
 export default function TriagemBOSection() {
   const [relato, setRelato] = useState("");
-  const [selecionadas, setSelecionadas] = useState<string[]>([]);
+    const [selecionadas, setSelecionadas] = useState<string[]>([]);
+  const [presoAssistido, setPresoAssistido] = useState(false);
+  const [nomeAdvogado, setNomeAdvogado] = useState("");
+  const [registroAdvogado, setRegistroAdvogado] = useState("");
   const [resultado, setResultado] = useState<unknown>(null);
+  const limparTexto = (valor: unknown) => String(valor ?? "-").replace(/<[^>]+>/g, "").trim() || "-";
+  const advogadoValidado = presoAssistido && nomeAdvogado.trim() && registroAdvogado.trim();
   const { run, loading } = useAI();
 
   const alternarCircunstancia = (id: string, checked: boolean | "indeterminate") => {
@@ -71,7 +78,7 @@ export default function TriagemBOSection() {
     toast.success("Dados preparados para o TCO");
   };
 
-  const analisar = async () => {
+    const analisar = async () => {
 
     if (!relato.trim()) {
       toast.error("Cole o B.O., histórico da ocorrência ou depoimento antes de analisar.");
@@ -132,9 +139,9 @@ export default function TriagemBOSection() {
         <div>
           <div className="flex items-center gap-2">
             <Brain className="h-6 w-6 text-institutional" />
-            <h2 className="font-display text-2xl font-bold text-foreground">Triagem de B.O. & Enquadramento Penal IA</h2>
+                        <h2 className="font-display text-2xl font-bold text-foreground">Triagem Penal</h2>
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">Análise auxiliar para Polícia Civil, Delegados, PM, PF, Corregedoria, GAECO e Administração.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Análise penal auxiliar para Polícia Civil, Delegados, PM, PF, Corregedoria, GAECO e Administração, com revisão obrigatória da autoridade policial.</p>
         </div>
         <Badge variant="outline" className="w-fit gap-1 border-institutional/30 text-institutional"><ShieldCheck className="h-3 w-3" /> Uso interno policial</Badge>
       </div>
@@ -154,8 +161,20 @@ export default function TriagemBOSection() {
         <p className="mt-2 text-xs text-muted-foreground">A IA fará uma sugestão preliminar. Revise todos os dados e fundamentos antes de formalizar o procedimento.</p>
       </div>
 
-      <div className="rounded-2xl border border-border bg-card p-5 shadow-institutional sm:p-6">
-        <h3 className="font-display font-semibold">Circunstâncias rápidas</h3>
+            <div className="rounded-2xl border border-border bg-card p-5 shadow-institutional sm:p-6">
+        <h3 className="font-display font-semibold">Validação da assistência jurídica</h3>
+        <label className="mt-4 flex cursor-pointer items-center gap-3 rounded-xl border border-border p-3">
+          <Checkbox checked={presoAssistido} onCheckedChange={(checked) => setPresoAssistido(checked === true)} />
+          <span className="text-sm font-medium">Preso assistido por Advogado Constituído?</span>
+        </label>
+        {presoAssistido && (
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <Input value={nomeAdvogado} onChange={(event) => setNomeAdvogado(event.target.value)} placeholder="Nome do Advogado" aria-label="Nome do Advogado" />
+            <Input value={registroAdvogado} onChange={(event) => setRegistroAdvogado(event.target.value)} placeholder="Nº OAB ou RG do Advogado" aria-label="Nº OAB ou RG do Advogado" />
+          </div>
+        )}
+        <p className="mt-3 text-xs text-muted-foreground">Conforme o Art. 39 do DL 006/2024, as reduções ficam indisponíveis sem a validação completa da assistência do advogado.</p>
+        <h3 className="mt-6 font-display font-semibold">Reduções e majorações legais</h3>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {CIRCUNSTANCIAS.map((item) => (
             <label key={item.id} className="flex cursor-pointer items-center gap-3 rounded-xl border border-border p-3 transition-colors hover:bg-muted/50">
@@ -167,7 +186,7 @@ export default function TriagemBOSection() {
         </div>
       </div>
 
-      <Button onClick={analisar} disabled={loading} className="h-12 w-full rounded-xl bg-institutional text-base font-semibold hover:bg-institutional/90 sm:w-auto sm:px-8">
+            <Button onClick={analisar} disabled={loading} className="h-12 w-full rounded-xl bg-primary text-primary-foreground shadow hover:bg-primary/90 font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-auto sm:px-8">
         {loading ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Analisando ocorrência...</> : <><Brain className="mr-2 h-5 w-5" /> Analisar Ocorrência e Enquadrar com IA</>}
       </Button>
 
@@ -182,7 +201,21 @@ export default function TriagemBOSection() {
       {resultado && !loading && (
         <div className="rounded-2xl border border-institutional/20 bg-institutional/5 p-5">
           <div className="mb-2 flex items-center gap-2 font-semibold text-institutional"><CheckCircle2 className="h-4 w-4" /> Análise estruturada recebida</div>
-                    <pre className="max-h-96 overflow-auto whitespace-pre-wrap text-xs text-foreground">{JSON.stringify(resultado, null, 2)}</pre>
+                              <div className="grid gap-4 md:grid-cols-2">
+            {[
+              ["Qualificação dos Envolvidos", (resultado as any).qualificacao],
+              ["Crimes e Artigos", (resultado as any).tipificacao],
+              ["Cabimento de TCO", `${limparTexto((resultado as any).cabimentoTCO)} — ${limparTexto((resultado as any).fundamentoTCO)}`],
+              ["Fiança", (resultado as any).fiança],
+              ["Dosimetria", (resultado as any).dosimetria],
+              ["Alertas", (resultado as any).alertas],
+            ].map(([titulo, valor]) => (
+              <div key={String(titulo)} className="rounded-xl border border-border bg-card p-4">
+                <h4 className="font-display text-sm font-semibold text-institutional">{titulo}</h4>
+                <p className="mt-2 whitespace-pre-wrap text-sm text-foreground">{limparTexto(typeof valor === "string" ? valor : JSON.stringify(valor, null, 2))}</p>
+              </div>
+            ))}
+          </div>
           <div className="mt-4 flex flex-wrap gap-2">
             <Button variant="outline" className="rounded-xl" onClick={gerarRelatorio}>
               <FileDown className="mr-2 h-4 w-4" /> Gerar relatório PDF
