@@ -34,13 +34,22 @@ function formatString(input: string): string {
   if (/^[\[{]/.test(text)) {
     try { return formatTriagemValue(JSON.parse(text)); } catch { /* ordinary prose */ }
   }
-  if (/<\/?[a-z][^>]*>/i.test(text)) {
-    return sanitizeRichHtml(text).replace(/&lt;\/?[a-z][^&]*&gt;/gi, "");
-  }
   const inline = (line: string) => escapeHtml(line)
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
     .replace(/__([^_]+)__/g, "<strong>$1</strong>")
     .replace(/\*([^*]+)\*/g, "<em>$1</em>");
+  if (/<\/?[a-z][^>]*>/i.test(text)) {
+    const doc = new DOMParser().parseFromString(sanitizeRichHtml(text), "text/html");
+    const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+    const nodes: Node[] = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    for (const node of nodes) {
+      const span = doc.createElement("span");
+      span.innerHTML = inline(node.textContent || "");
+      node.parentNode?.replaceChild(span, node);
+    }
+    return sanitizeRichHtml(doc.body.innerHTML);
+  }
   return text.split(/\r?\n/).map((line) => {
     const heading = /^#{1,6}\s+(.+)/.exec(line);
     if (heading) return `<p><strong>${inline(heading[1])}</strong></p>`;
@@ -55,6 +64,9 @@ export function formatTriagemValue(value: unknown): string {
   if (value === null || value === undefined || value === "") return "<p>Não informado</p>";
   if (Array.isArray(value)) {
     if (!value.length) return "<p>Nenhum registro</p>";
+    if (value.some((item) => item !== null && typeof item === "object")) {
+      return value.map((item, index) => `<p><strong>Registro ${index + 1}</strong></p>${formatTriagemValue(item)}`).join("");
+    }
     return `<ul>${value.map((item) => `<li>${formatTriagemValue(item)}</li>`).join("")}</ul>`;
   }
   if (typeof value === "object") {
