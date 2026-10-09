@@ -133,7 +133,7 @@ export default function TCOSection() {
           relato_bo: relatoBo || null,
           data_fato: dataFato || null,
           local_fato: localFato || null,
-          compromisso_jecrim: compromisso,
+                    compromisso_jecrim: true,
           data_compromisso: null,
           local_compromisso: null,
           links: validLinks,
