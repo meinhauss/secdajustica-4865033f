@@ -82,7 +82,7 @@ export function PersonLookupInput({
       .maybeSingle();
     if (data) {
       setFound(true);
-      const result: PersonLookupResult = { nome_completo: data.nome_completo, id_personagem: data.id_personagem || "", cpf: data.cpf };
+      const result: PersonLookupResult = { nome_completo: data.nome_completo, id_personagem: data.id_personagem || "", cpf: data.cpf, oab_numero: data.oab_numero };
       if (onLookupResult) {
         onLookupResult(result);
       } else {
