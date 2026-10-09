@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { AlertTriangle, Handcuffs, CheckCircle2, ClipboardCheck, FileDown, FileText, Loader2, ShieldCheck } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ClipboardCheck, FileDown, FileText, Loader2, ShieldCheck } from "lucide-react";
+import AlgemaIcon from "@/components/icons/AlgemaIcon";
 import { PersonLookupInput } from "@/components/PersonLookupInput";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";

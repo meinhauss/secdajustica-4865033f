@@ -155,7 +155,7 @@ Deno.serve(async (req: Request) => {
         if ([400, 401, 402, 403, 404, 413, 429].includes(res.status)) {
           const errText = await res.text().catch(() => "");
           lastErr = new Error(`${step.provider} ${res.status}: ${errText.slice(0, 200)}`);
-          console.warn(`[gemini] provider=${step.provider} model=${step.model} status=${res.status} → fallback`);
+          console.warn(`[gemini] provider=${step.provider} model=${step.model} status=${res.status} body=${errText.slice(0, 400)} → fallback`);
           continue outer;
         }
 
