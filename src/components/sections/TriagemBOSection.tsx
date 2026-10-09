@@ -160,8 +160,20 @@ export default function TriagemBOSection() {
         <p className="mt-2 text-xs text-muted-foreground">A IA fará uma sugestão preliminar. Revise todos os dados e fundamentos antes de formalizar o procedimento.</p>
       </div>
 
-      <div className="rounded-2xl border border-border bg-card p-5 shadow-institutional sm:p-6">
-        <h3 className="font-display font-semibold">Circunstâncias rápidas</h3>
+            <div className="rounded-2xl border border-border bg-card p-5 shadow-institutional sm:p-6">
+        <h3 className="font-display font-semibold">Validação da assistência jurídica</h3>
+        <label className="mt-4 flex cursor-pointer items-center gap-3 rounded-xl border border-border p-3">
+          <Checkbox checked={presoAssistido} onCheckedChange={(checked) => setPresoAssistido(checked === true)} />
+          <span className="text-sm font-medium">Preso assistido por Advogado Constituído?</span>
+        </label>
+        {presoAssistido && (
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <Input value={nomeAdvogado} onChange={(event) => setNomeAdvogado(event.target.value)} placeholder="Nome do Advogado" aria-label="Nome do Advogado" />
+            <Input value={registroAdvogado} onChange={(event) => setRegistroAdvogado(event.target.value)} placeholder="Nº OAB ou RG do Advogado" aria-label="Nº OAB ou RG do Advogado" />
+          </div>
+        )}
+        <p className="mt-3 text-xs text-muted-foreground">Conforme o Art. 39 do DL 006/2024, as reduções ficam indisponíveis sem a validação completa da assistência do advogado.</p>
+        <h3 className="mt-6 font-display font-semibold">Reduções e majorações legais</h3>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {CIRCUNSTANCIAS.map((item) => (
             <label key={item.id} className="flex cursor-pointer items-center gap-3 rounded-xl border border-border p-3 transition-colors hover:bg-muted/50">
