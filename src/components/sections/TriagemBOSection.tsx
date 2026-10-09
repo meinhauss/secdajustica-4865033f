@@ -48,7 +48,15 @@ export default function TriagemBOSection() {
   const [custodiaReducao, setCustodiaReducao] = useState(0);
   const [resultado, setResultado] = useState<unknown>(null);
   const limparTexto = (valor: unknown) => String(valor ?? "-").replace(/<[^>]+>/g, "").trim() || "-";
-  const advogadoValidado = presoAssistido && nomeAdvogado.trim() && registroAdvogado.trim();
+    const advogadoValidado = presoAssistido && Boolean(nomeAdvogado.trim() && idAdvogado.trim() && registroAdvogado.trim());
+  const reducoesSelecionadas = {
+    primario: selecionadas.includes("primario") ? 50 : 0,
+    advogado: selecionadas.includes("advogado") ? atuacaoAdvogado : 0,
+    confissao: selecionadas.includes("confissao") ? confissaoReducao : 0,
+    custodia: selecionadas.includes("custodia15") || selecionadas.includes("custodia60") ? custodiaReducao : 0,
+  };
+  const totalReducoes = Math.min(70, Object.values(reducoesSelecionadas).reduce((total, valor) => total + valor, 0));
+  const tetoAtingido = Object.values(reducoesSelecionadas).reduce((total, valor) => total + valor, 0) > 70;
   const { run, loading } = useAI();
 
   const alternarCircunstancia = (id: string, checked: boolean | "indeterminate") => {
