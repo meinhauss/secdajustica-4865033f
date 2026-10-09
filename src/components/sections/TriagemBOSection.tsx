@@ -193,9 +193,23 @@ export default function TriagemBOSection() {
               nomeValue={nomeAdvogado}
               onIdChange={setIdAdvogado}
               onNomeChange={setNomeAdvogado}
-              onLookupResult={(result) => {
+                            onLookupResult={async (result) => {
                 setNomeAdvogado(result?.nome_completo || "");
                 setIdAdvogado(result?.id_personagem || "");
+                if (!result) {
+                  setRegistroAdvogado("");
+                  return;
+                }
+                if (result.oab_numero) {
+                  setRegistroAdvogado(result.oab_numero);
+                  return;
+                }
+                const { data } = await supabase
+                  .from("carteiras_oab")
+                  .select("numero_oab")
+                  .eq("id_personagem", result.id_personagem)
+                  .maybeSingle();
+                setRegistroAdvogado(data?.numero_oab || "");
               }}
               idLabel="ID do Personagem do Advogado"
               idPlaceholder="Buscar por ID do Personagem"
