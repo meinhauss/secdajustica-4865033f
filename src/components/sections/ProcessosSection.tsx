@@ -1760,6 +1760,14 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                 disabled={deleteProcesso.isPending}>
                 <Trash2 className="h-3.5 w-3.5 mr-1" /> {deleteProcesso.isPending ? "Excluindo..." : "Excluir"}
               </Button>
+                        )}
+            {isAdmin && (
+              <RedistribuicaoProcessoDialog
+                processo={processo}
+                userId={user?.id}
+                juizAtual={juizProfile}
+                relatorAtual={relatorProfile}
+              />
             )}
             <Button variant="outline" size="sm" className="rounded-xl text-xs"
               onClick={async () => {
