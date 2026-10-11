@@ -152,3 +152,6 @@ $$;
 
 REVOKE ALL ON FUNCTION public.redistribuir_processo_admin(UUID, UUID, TEXT, TEXT) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.redistribuir_processo_admin(UUID, UUID, TEXT, TEXT) TO authenticated;
+
+NOTIFY pgrst, 'reload schema';
+
