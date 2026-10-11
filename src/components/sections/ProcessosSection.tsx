@@ -861,7 +861,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     queryKey: ["relator-profile", processo?.relator_id],
     queryFn: async () => {
       if (!processo?.relator_id) return null;
-      const { data } = await supabase.from("profiles").select("nome_completo").eq("user_id", processo.relator_id).maybeSingle();
+      const { data } = await supabase.from("profiles").select("nome_completo, recesso").eq("user_id", processo.relator_id).maybeSingle();
       return data;
     },
     enabled: !!processo?.relator_id,
