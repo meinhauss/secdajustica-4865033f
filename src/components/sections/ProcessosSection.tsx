@@ -16,7 +16,8 @@ import {
   Plus, FileText, Search, Eye, User, ArrowLeft, Clock, Gavel,
   Upload, Calendar, AlertTriangle, CheckCircle, PenTool, History,
   File, Scale, Timer, ChevronRight, X, ExternalLink, ScrollText,
-  ShieldCheck, ShieldOff, UserCheck, Lock, Trash2, Download, Edit, Stamp, XCircle, Star
+    ShieldCheck, ShieldOff, UserCheck, Lock, Trash2, Download, Edit, Stamp, XCircle, Star,
+  ArrowRightLeft, Loader2
 } from "lucide-react";
 import { generateProcessoPDF, generateMovimentacaoPDF, imageToBase64 } from "@/lib/pdfGenerator";
 import logoTjsp from "@/assets/tjsp-logo.png";
@@ -39,6 +40,8 @@ import { appendAiHtml } from "@/lib/ai/insertHtml";
 import AIFerramentas from "@/components/AIFerramentas";
 import AIBuscaSemantica from "@/components/AIBuscaSemantica";
 import AIExplicarSelecao from "@/components/AIExplicarSelecao";
+import RedistribuicaoProcessoDialog from "@/components/RedistribuicaoProcessoDialog";
+
 
 /* ─── Currency helpers ─── */
 const formatCurrency = (value: string) => {
@@ -851,7 +854,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     queryKey: ["juiz-profile", processo?.juiz_id],
     queryFn: async () => {
       if (!processo?.juiz_id) return null;
-      const { data } = await supabase.from("profiles").select("nome_completo").eq("user_id", processo.juiz_id).maybeSingle();
+      const { data } = await supabase.from("profiles").select("nome_completo, recesso").eq("user_id", processo.juiz_id).maybeSingle();
       return data;
     },
     enabled: !!processo?.juiz_id,
@@ -861,7 +864,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     queryKey: ["relator-profile", processo?.relator_id],
     queryFn: async () => {
       if (!processo?.relator_id) return null;
-      const { data } = await supabase.from("profiles").select("nome_completo").eq("user_id", processo.relator_id).maybeSingle();
+      const { data } = await supabase.from("profiles").select("nome_completo, recesso").eq("user_id", processo.relator_id).maybeSingle();
       return data;
     },
     enabled: !!processo?.relator_id,
@@ -1759,6 +1762,14 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                 disabled={deleteProcesso.isPending}>
                 <Trash2 className="h-3.5 w-3.5 mr-1" /> {deleteProcesso.isPending ? "Excluindo..." : "Excluir"}
               </Button>
+                        )}
+            {isAdmin && (
+              <RedistribuicaoProcessoDialog
+                processo={processo}
+                userId={user?.id}
+                juizAtual={juizProfile}
+                relatorAtual={relatorProfile}
+              />
             )}
             <Button variant="outline" size="sm" className="rounded-xl text-xs"
               onClick={async () => {
