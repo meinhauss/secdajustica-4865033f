@@ -852,7 +852,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     queryKey: ["juiz-profile", processo?.juiz_id],
     queryFn: async () => {
       if (!processo?.juiz_id) return null;
-      const { data } = await supabase.from("profiles").select("nome_completo").eq("user_id", processo.juiz_id).maybeSingle();
+      const { data } = await supabase.from("profiles").select("nome_completo, recesso").eq("user_id", processo.juiz_id).maybeSingle();
       return data;
     },
     enabled: !!processo?.juiz_id,
