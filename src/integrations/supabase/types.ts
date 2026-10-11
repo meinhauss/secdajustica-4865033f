@@ -2312,8 +2312,17 @@ export type Database = {
         Args: { _cargo: Database["public"]["Enums"]["user_role"]; _uid: string }
         Returns: boolean
       }
-      redistribuir_por_suspeicao: {
+            redistribuir_por_suspeicao: {
         Args: { _justificativa: string; _processo_id: string }
+        Returns: string
+      }
+      redistribuir_processo_admin: {
+        Args: {
+          _justificativa?: string
+          _metodo?: string
+          _novo_responsavel_id?: string
+          _processo_id: string
+        }
         Returns: string
       }
       sortear_desembargador: { Args: never; Returns: string }
