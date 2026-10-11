@@ -87,8 +87,10 @@ export default function RedistribuicaoProcessoDialog({ processo, userId, juizAtu
       return metodo === "manual" ? candidatos.find((candidato) => candidato.user_id === novoResponsavelId)?.nome_completo : "novo responsável";
     },
     onSuccess: (nome) => {
-      queryClient.invalidateQueries({ queryKey: ["processos"] });
+            queryClient.invalidateQueries({ queryKey: ["processos"] });
       queryClient.invalidateQueries({ queryKey: ["processo", processo.id] });
+      queryClient.invalidateQueries({ queryKey: ["juiz-profile"] });
+      queryClient.invalidateQueries({ queryKey: ["relator-profile"] });
       queryClient.invalidateQueries({ queryKey: ["movimentacoes", processo.id] });
       setOpen(false);
       setJustificativa("");
