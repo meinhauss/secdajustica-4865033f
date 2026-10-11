@@ -40,6 +40,8 @@ import { appendAiHtml } from "@/lib/ai/insertHtml";
 import AIFerramentas from "@/components/AIFerramentas";
 import AIBuscaSemantica from "@/components/AIBuscaSemantica";
 import AIExplicarSelecao from "@/components/AIExplicarSelecao";
+import RedistribuicaoProcessoDialog from "@/components/RedistribuicaoProcessoDialog";
+
 
 /* ─── Currency helpers ─── */
 const formatCurrency = (value: string) => {
