@@ -668,8 +668,10 @@ REGRAS OBRIGATÓRIAS:
 
     const { error } = await supabase.from("registros_cartorio").insert(insertData);
 
-    if (error) {
+        if (error) {
       toast({ title: "Erro ao solicitar", description: error.message, variant: "destructive" });
+      setSubmitting(false);
+      setUploadProgress("");
       return;
     }
 
