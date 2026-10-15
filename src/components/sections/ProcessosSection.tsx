@@ -1597,7 +1597,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         pedido: "Constante nas razões recursais",
       } as any);
       if (error) throw error;
-      await addMovimentacao.mutateAsync({ tipo: "apelacao", descricao: `RECURSO DE APELAÇÃO interposto por ${profile?.nome_completo || "Apelante"} (${apelacaoForm.apelante_tipo === "reu" ? "Réu" : apelacaoForm.apelante_tipo === "autor" ? "Autor" : "Ambas as partes"}).` });
+      await addMovimentacao.mutateAsync({ tipo: "apelacao", descricao: `RECURSO DE APELAÇÃO interposto por ${profile?.nome_completo || "Apelante"} (${apelacaoForm.apelante_tipo === "reu" ? "Réu" : apelacaoForm.apelante_tipo === "autor" ? "Autor" : "Ambas as partes"}).\n\n${apelacaoForm.fundamentacao}` });
       // Notificar desembargadores sobre novo recurso
       const { data: desembs } = await supabase.from("user_roles").select("user_id").eq("role", "desembargador" as any);
       const notifs = (desembs || []).map((d: any) => ({
