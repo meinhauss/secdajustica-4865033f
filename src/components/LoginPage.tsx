@@ -26,6 +26,7 @@ import logoDefensoriaAsset from "@/assets/logo-defensoria-sp.jpg.asset.json";
 const logoDefensoria = logoDefensoriaAsset.url;
 import { toast } from "sonner";
 import { formatTelefoneIngame } from "@/lib/formatPhone";
+import { uploadArquivoAnexo } from "@/lib/r2Files";
 
 type Tab = "inicio" | "institucional" | "transparencia" | "concursos" | "login" | "credencial" | "ouvidoria" | "unisp";
 
