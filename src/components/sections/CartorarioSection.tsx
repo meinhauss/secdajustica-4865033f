@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { generateCartorioPDF, imageToBase64 } from "@/lib/pdfGenerator";
 import { isValidPublicUrl } from "@/lib/sanitize";
+import { uploadArquivoAnexo } from "@/lib/r2Files";
 import logoCartorio from "@/assets/logo-cartorio-sp.png";
 
 /* ─── Types ─── */
