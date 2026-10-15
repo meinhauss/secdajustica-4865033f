@@ -530,11 +530,10 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
         payload.decisao_tipo = votoRelator.decisao_tipo;
         if (vRessalvas && vRessalvas !== "<p></p>") payload.ressalvas = vRessalvas;
       } else {
-        if (!vFund || vFund === "<p></p>") throw new Error("Informe a fundamentação.");
-        if (!vDisp || vDisp === "<p></p>") throw new Error("Informe o dispositivo.");
+                if (!vFund || vFund === "<p></p>") throw new Error("Informe o voto integral.");
         payload.decisao_tipo = vDecisao;
         payload.fundamentacao = vFund;
-        payload.dispositivo = vDisp;
+        payload.dispositivo = " ";
       }
       const { error } = await supabase.from("votos_apelacao").insert(payload);
       if (error) throw error;
