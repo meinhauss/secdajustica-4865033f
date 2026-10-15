@@ -1334,10 +1334,14 @@ REGRAS OBRIGATÓRIAS:
                 {/* Ações do cartorário — only for non-auto types */}
                 {isCartorario && showDetalhes.status !== "emitido" && showDetalhes.status !== "recusado" && showDetalhes.status !== "aguardando_confirmacao" && (
                   <div className="space-y-3 pt-2 border-t border-border">
-                    <LinksInput
-                      label="Anexar Links ao Emitir"
+                                        <LinksInput
+                      label="Anexos ao Emitir"
                       links={emitirLinks}
                       onChange={setEmitirLinks}
+                      files={emitFiles}
+                      onFilesSelected={(files) => setEmitFiles((current) => [...current, ...files])}
+                      onRemoveFile={(index) => setEmitFiles((current) => current.filter((_, i) => i !== index))}
+                      disabled={submitting}
                     />
                     <div className="flex gap-2">
                       {showDetalhes.status === "solicitado" && (
