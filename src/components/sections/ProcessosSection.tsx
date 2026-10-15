@@ -3396,7 +3396,7 @@ function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles
                 <Plus className="h-3 w-3 mr-1" /> Anexar
               </Button>
             </div>
-            {processo?.id && (
+                        {false && processo?.id && (
               <label className="inline-flex items-center gap-1 text-xs text-primary hover:underline cursor-pointer">
                 <Upload className="h-3 w-3" /> Enviar arquivo do computador (PDF/imagem, até 20 MB)
                 <input
