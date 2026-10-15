@@ -3351,6 +3351,17 @@ function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles
               )}
             </AnimatePresence>
 
+                        {processo?.id && (
+              <div className="space-y-2">
+                <FileUploadZone
+                  processoId={processo.id}
+                  onUploaded={(url, name) => setAnexos((prev) => [...prev, { nome: name, url }])}
+                  onRemove={(url) => setAnexos((prev) => prev.filter((anexo) => anexo.url !== url))}
+                />
+                <p className="text-center text-xs text-muted-foreground">Ou se preferir, cole um link externo</p>
+              </div>
+            )}
+
             {/* Lista de anexos já adicionados */}
             {anexos.length > 0 && (
               <div className="space-y-1.5">
