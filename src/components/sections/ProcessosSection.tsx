@@ -2924,33 +2924,19 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                         </SelectContent>
                       </Select>
                     </div>
-                    <div>
+                                        <div className="space-y-2">
                       <div className="flex items-center justify-between mb-1">
-                        <label className="text-sm font-medium text-foreground">Fundamentação</label>
+                        <label className="text-sm font-medium text-foreground">Petição de Embargos de Declaração (Peça Integral)</label>
                         <AISugerirDespacho
                           tipoAto="embargos_declaracao"
-                          tituloAto="Fundamentação dos embargos"
-                          rascunhoAtual={embargosForm.fundamentacao}
+                          tituloAto={`Embargos de Declaração (${embargosForm.tipo})`}
+                          rascunhoAtual={`${embargosForm.tipo}: ${embargosForm.fundamentacao}`}
                           processo={processo}
                           movimentacoes={movimentacoes || []}
                           onInsert={(h) => setEmbargosForm((f) => ({ ...f, fundamentacao: appendAiHtml(f.fundamentacao, h) }))}
                         />
                       </div>
-                      <RichTextEditor value={embargosForm.fundamentacao} onChange={(html) => setEmbargosForm({ ...embargosForm, fundamentacao: html })} placeholder="Indique o ponto omisso, contraditório ou obscuro da sentença..." minHeight="200px" className="mt-1" />
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="text-sm font-medium text-foreground">Pedido</label>
-                        <AISugerirDespacho
-                          tipoAto="embargos_declaracao"
-                          tituloAto="Pedido dos embargos"
-                          rascunhoAtual={embargosForm.pedido}
-                          processo={processo}
-                          movimentacoes={movimentacoes || []}
-                          onInsert={(h) => setEmbargosForm((f) => ({ ...f, pedido: appendAiHtml(f.pedido, h) }))}
-                        />
-                      </div>
-                      <RichTextEditor value={embargosForm.pedido} onChange={(html) => setEmbargosForm({ ...embargosForm, pedido: html })} placeholder="O que se requer ao Juízo..." minHeight="140px" className="mt-1" />
+                      <RichTextEditor value={embargosForm.fundamentacao} onChange={(html) => setEmbargosForm({ ...embargosForm, fundamentacao: html })} placeholder="Demonstre o ponto omisso, contraditório ou obscuro e formule o pedido de saneamento/efeitos infringentes..." minHeight="280px" className="mt-1" />
                     </div>
                     <Button type="submit" disabled={oporEmbargos.isPending} className="w-full gap-2">
                       <FileText className="h-4 w-4" /> Opor Embargos
