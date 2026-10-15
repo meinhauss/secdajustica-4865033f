@@ -361,7 +361,26 @@ function LinksInput({ label, links, onChange }: {
   links: string[];
   onChange: (links: string[]) => void;
 }) {
-  const [input, setInput] = useState("");
+    const [input, setInput] = useState("");
+  const [uploading, setUploading] = useState(false);
+
+  const uploadFile = async (file?: File) => {
+    if (!file) return;
+    if (file.size > 20 * 1024 * 1024 || (file.type !== "application/pdf" && !file.type.startsWith("image/"))) {
+      toast({ title: "Arquivo inválido", description: "Envie um PDF ou uma imagem de até 20 MB.", variant: "destructive" });
+      return;
+    }
+    setUploading(true);
+    try {
+      const url = await uploadArquivoAnexo(file, "cartorio");
+      onChange([...links, url]);
+      toast({ title: "Arquivo anexado com sucesso" });
+    } catch (error) {
+      toast({ title: "Falha no envio", description: (error as Error).message, variant: "destructive" });
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const addLink = () => {
     const url = input.trim();
