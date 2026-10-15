@@ -781,8 +781,8 @@ function TabOuvidoria() {
   const [contato, setContato] = useState("");
   const [descricao, setDescricao] = useState("");
   const [envolvidos, setEnvolvidos] = useState<{ nome: string; funcao: string }[]>([]);
-    const [links, setLinks] = useState<string[]>([]);
-  const [uploadedFiles, setUploadedFiles] = useState<{ url: string; name: string }[]>([]);
+      const [links, setLinks] = useState<string[]>([]);
+  const [arquivosPendentes, setArquivosPendentes] = useState<File[]>([]);
   const [novoEnvolvidoNome, setNovoEnvolvidoNome] = useState("");
   const [novoEnvolvidoFuncao, setNovoEnvolvidoFuncao] = useState("");
     const [novoLink, setNovoLink] = useState("");
