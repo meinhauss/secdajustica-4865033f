@@ -51,7 +51,13 @@ Deno.serve(async (req) => {
         results.push(`${r.tipo}: error - ${error.message}`);
         continue;
       }
-      const list = ((data as any[]) || []).filter((x) => Number(x.score) > 0).slice(0, 3);
+            const uniqueByUser = new Map<string, any>();
+      for (const item of ((data as any[]) || []).filter((x) => Number(x.score) > 0)) {
+        if (!item.user_id) continue;
+        const current = uniqueByUser.get(item.user_id);
+        if (!current || Number(item.score) > Number(current.score)) uniqueByUser.set(item.user_id, item);
+      }
+      const list = Array.from(uniqueByUser.values()).slice(0, 3);
       if (list.length === 0) {
         results.push(`${r.tipo}: nenhum destaque (sem pontuação)`);
         continue;
@@ -67,7 +73,15 @@ Deno.serve(async (req) => {
         semana_inicio: semanaInicio,
         semana_fim: semanaFim,
       }));
-      await supabase.from("ranking_destaques").insert(rows);
+            const { error: deleteWeekError } = await supabase
+        .from("ranking_destaques")
+        .delete()
+        .eq("tipo_ranking", r.tipo)
+        .eq("semana_inicio", semanaInicio);
+      if (deleteWeekError) throw deleteWeekError;
+
+      const { error: insertError } = await supabase.from("ranking_destaques").insert(rows);
+      if (insertError) throw insertError;
       results.push(`${r.tipo}: top ${rows.length} salvos`);
     }
 
