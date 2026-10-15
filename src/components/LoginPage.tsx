@@ -857,7 +857,7 @@ function TabOuvidoria() {
             Sua denúncia foi registrada com sucesso e será analisada pelo Ministério Público. 
             O sigilo da sua identidade será preservado conforme a legislação vigente.
           </p>
-          <Button onClick={() => { setEnviado(false); setDescricao(""); setEnvolvidos([]); setLinks([]); setUploadedFiles([]); setNome(""); setContato(""); }}
+                    <Button onClick={() => { setEnviado(false); setDescricao(""); setEnvolvidos([]); setLinks([]); setArquivosPendentes([]); setNome(""); setContato(""); }}
             variant="outline" className="rounded-xl">
             Enviar Nova Denúncia
           </Button>
