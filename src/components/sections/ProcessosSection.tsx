@@ -3744,12 +3744,31 @@ function AddCertidao({ onAdd, isPending }: { onAdd: (cert: { tipo: string; conte
   );
 }
 
-function AddAtoCartorio({ onAdd, isPending }: { onAdd: (ato: { tipo: string; titulo: string; conteudo: string; anexo_urls?: string[] }) => void; isPending: boolean }) {
+function AddAtoCartorio({ processoId, onAdd, isPending }: { processoId: string; onAdd: (ato: { tipo: string; titulo: string; conteudo: string; anexo_urls?: string[] }) => void; isPending: boolean }) {
   const [open, setOpen] = useState(false);
   const [tipo, setTipo] = useState("juntada");
   const [titulo, setTitulo] = useState("");
   const [conteudo, setConteudo] = useState("");
   const [anexoUrls, setAnexoUrls] = useState<string[]>([""]);
+  const [uploadingAnexo, setUploadingAnexo] = useState(false);
+
+  const handleUploadAnexo = async (file?: File) => {
+    if (!file) return;
+    if (file.size > 20 * 1024 * 1024 || (file.type !== "application/pdf" && !file.type.startsWith("image/"))) {
+      toast.error("Envie um PDF ou uma imagem de até 20 MB.");
+      return;
+    }
+    setUploadingAnexo(true);
+    try {
+      const url = await uploadArquivoProcesso(file, processoId);
+      setAnexoUrls((prev) => [...prev.filter((item) => item.trim()), url, ""]);
+      toast.success("Arquivo anexado.");
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setUploadingAnexo(false);
+    }
+  };
 
   const handleAddLink = () => setAnexoUrls(prev => [...prev, ""]);
   const handleRemoveLink = (idx: number) => setAnexoUrls(prev => prev.filter((_, i) => i !== idx));
