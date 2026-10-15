@@ -496,7 +496,7 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
         await supabase.from("movimentacoes").insert({
           processo_id: apelacao.processo_id,
           tipo: "voto_relator",
-          descricao: `Voto do Relator ${profile?.nome_completo || ""} na apelação ${apelacao.numero_acordao}: ${DECISAO_LABELS[decisaoTipo] || decisaoTipo}.\n\nFundamentação:\n${decisaoFund}\n\nDispositivo:\n${decisaoDisp}`,
+                    descricao: `Voto do Relator ${profile?.nome_completo || ""} na apelação ${apelacao.numero_acordao}: ${DECISAO_LABELS[decisaoTipo] || decisaoTipo}.\n\n${decisaoFund}`,
           autor_id: user!.id,
         });
       }
