@@ -12,7 +12,13 @@ import { installR2LinkHandler } from "./lib/r2Files";
 
 installAnalistaInterceptor();
 installR2LinkHandler();
-
+window.addEventListener("vite:preloadError", (e) => {
+  if (!sessionStorage.getItem("chunk-reload")) {
+    e.preventDefault();
+    sessionStorage.setItem("chunk-reload", "1");
+    window.location.reload();
+  }
+});
 
 // Initialize theme as early as possible to avoid flash
 (() => {
