@@ -24,10 +24,11 @@ Deno.serve(async (req) => {
       global: { headers: { Authorization: auth } },
     });
     const { data: u } = await sb.auth.getUser(auth.replace("Bearer ", ""));
-    if (!u?.user) return json({ error: "Não autenticado" }, 401);
-
     const url = new URL(req.url);
     const action = url.searchParams.get("action");
+    if (!u?.user && !(action === "upload" && req.method === "POST")) {
+      return json({ error: "Não autenticado" }, 401);
+    }
 
     if (action === "upload" && req.method === "POST") {
       const form = await req.formData();
