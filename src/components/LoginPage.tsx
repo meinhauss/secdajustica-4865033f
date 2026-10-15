@@ -27,6 +27,7 @@ const logoDefensoria = logoDefensoriaAsset.url;
 import { toast } from "sonner";
 import { formatTelefoneIngame } from "@/lib/formatPhone";
 import { uploadArquivoAnexo } from "@/lib/r2Files";
+import FileUploadZone from "@/components/sections/FileUploadZone";
 
 type Tab = "inicio" | "institucional" | "transparencia" | "concursos" | "login" | "credencial" | "ouvidoria" | "unisp";
 
@@ -780,12 +781,13 @@ function TabOuvidoria() {
   const [contato, setContato] = useState("");
   const [descricao, setDescricao] = useState("");
   const [envolvidos, setEnvolvidos] = useState<{ nome: string; funcao: string }[]>([]);
-    const [links, setLinks] = useState<string[]>([]);
-  const [uploadedFiles, setUploadedFiles] = useState<{ url: string; name: string }[]>([]);
+      const [links, setLinks] = useState<string[]>([]);
+  const [arquivosPendentes, setArquivosPendentes] = useState<File[]>([]);
   const [novoEnvolvidoNome, setNovoEnvolvidoNome] = useState("");
   const [novoEnvolvidoFuncao, setNovoEnvolvidoFuncao] = useState("");
-  const [novoLink, setNovoLink] = useState("");
+    const [novoLink, setNovoLink] = useState("");
   const [enviando, setEnviando] = useState(false);
+  const [statusEnvio, setStatusEnvio] = useState("");
   const [enviado, setEnviado] = useState(false);
 
   const addEnvolvido = () => {
@@ -797,35 +799,49 @@ function TabOuvidoria() {
 
   const removeEnvolvido = (i: number) => setEnvolvidos(envolvidos.filter((_, idx) => idx !== i));
 
-  const addLink = () => {
-    if (!novoLink.trim()) return;
-    setLinks([...links, novoLink.trim()]);
+    const addLink = () => {
+    const url = novoLink.trim();
+    if (!url) return;
+    if (!/^https:\/\//i.test(url)) {
+      toast.error("Informe um link externo iniciado por https://.");
+      return;
+    }
+    setLinks([...links, url]);
     setNovoLink("");
   };
 
   const removeLink = (i: number) => setLinks(links.filter((_, idx) => idx !== i));
 
-  const handleEnviar = async () => {
+    const handleEnviar = async () => {
     if (!descricao.trim()) {
       toast.error("Descreva os fatos da denúncia.");
       return;
     }
     setEnviando(true);
     try {
+      const urlsR2: string[] = [];
+      for (let index = 0; index < arquivosPendentes.length; index += 1) {
+        setStatusEnvio(`Enviando arquivo ${index + 1} de ${arquivosPendentes.length}...`);
+        urlsR2.push(await uploadArquivoAnexo(arquivosPendentes[index], "ouvidoria"));
+      }
+
+      setStatusEnvio("Gravando denúncia...");
       const { error } = await supabase.from("denuncias_ouvidoria" as any).insert({
         nome_denunciante: nome.trim() || "Anônimo",
         contato_denunciante: contato.trim() || null,
         descricao: descricao.trim(),
         envolvidos: envolvidos.length > 0 ? envolvidos : [],
-        links: links.length > 0 ? links : [],
+        links: [...links, ...urlsR2],
       } as any);
       if (error) throw error;
+      setArquivosPendentes([]);
       toast.success("Denúncia enviada com sucesso! O Ministério Público irá analisar.");
       setEnviado(true);
     } catch (err: any) {
-      toast.error(err.message || "Erro ao enviar denúncia.");
+      toast.error(err.message || "Erro ao enviar denúncia. Seus arquivos continuam na fila para nova tentativa.");
     } finally {
       setEnviando(false);
+      setStatusEnvio("");
     }
   };
 
@@ -841,7 +857,7 @@ function TabOuvidoria() {
             Sua denúncia foi registrada com sucesso e será analisada pelo Ministério Público. 
             O sigilo da sua identidade será preservado conforme a legislação vigente.
           </p>
-          <Button onClick={() => { setEnviado(false); setDescricao(""); setEnvolvidos([]); setLinks([]); setUploadedFiles([]); setNome(""); setContato(""); }}
+                    <Button onClick={() => { setEnviado(false); setDescricao(""); setEnvolvidos([]); setLinks([]); setArquivosPendentes([]); setNome(""); setContato(""); }}
             variant="outline" className="rounded-xl">
             Enviar Nova Denúncia
           </Button>
@@ -927,36 +943,12 @@ function TabOuvidoria() {
               <Input placeholder="https://drive.google.com/..." value={novoLink} onChange={e => setNovoLink(e.target.value)} className="flex-1" />
               <Button onClick={addLink} size="sm" variant="outline" className="rounded-lg">Adicionar</Button>
             </div>
-            <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-primary/40 bg-primary/5 px-4 py-3 text-sm font-medium text-primary hover:bg-primary/10">
-              Enviar foto ou documento do computador (PDF/imagem, até 20 MB)
-              <input type="file" accept="application/pdf,image/*" className="hidden" onChange={async (event) => {
-                const file = event.target.files?.[0];
-                event.target.value = "";
-                if (!file) return;
-                if (file.size > 20 * 1024 * 1024 || (file.type !== "application/pdf" && !file.type.startsWith("image/"))) {
-                  toast.error("Envie um PDF ou uma imagem de até 20 MB.");
-                  return;
-                }
-                try {
-                  const url = await uploadArquivoAnexo(file, "ouvidoria");
-                  setLinks((prev) => [...prev, url]);
-                  setUploadedFiles((prev) => [...prev, { url, name: file.name }]);
-                  toast.success("Arquivo anexado à denúncia.");
-                } catch (error) {
-                  toast.error((error as Error).message || "Falha no envio do arquivo.");
-                }
-              }} />
-            </label>
-            {uploadedFiles.length > 0 && (
-              <div className="space-y-2">
-                {uploadedFiles.map((file) => (
-                  <div key={file.url} className="flex items-center gap-2 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
-                    <span className="min-w-0 flex-1 truncate font-medium">{file.name}</span>
-                    <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold dark:bg-emerald-900">✓ Anexado</span>
-                  </div>
-                ))}
-              </div>
-            )}
+                        <FileUploadZone
+              files={arquivosPendentes}
+              disabled={enviando}
+              onFilesSelected={(newFiles) => setArquivosPendentes((current) => [...current, ...newFiles])}
+              onRemoveFile={(index) => setArquivosPendentes((current) => current.filter((_, fileIndex) => fileIndex !== index))}
+            />
             {links.length > 0 && (
               <div className="space-y-2">
                 {links.map((l, i) => (
@@ -972,7 +964,7 @@ function TabOuvidoria() {
 
           <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
             <Button onClick={handleEnviar} disabled={enviando || !descricao.trim()} className="w-full h-12 rounded-xl bg-gold hover:bg-gold-light text-institutional-dark font-semibold text-base">
-              {enviando ? "Enviando..." : "Enviar Denúncia"}
+                            {enviando ? statusEnvio || "Enviando..." : "Enviar Denúncia"}
             </Button>
           </motion.div>
         </div>
