@@ -1593,8 +1593,8 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         apelante_tipo: apelacaoForm.apelante_tipo,
         apelante_nome: profile?.nome_completo || "Apelante",
         apelante_id: user?.id,
-        fundamentacao: apelacaoForm.fundamentacao,
-        pedido: apelacaoForm.pedido,
+                fundamentacao: apelacaoForm.fundamentacao,
+        pedido: "Constante nas razões recursais",
       } as any);
       if (error) throw error;
       await addMovimentacao.mutateAsync({ tipo: "apelacao", descricao: `RECURSO DE APELAÇÃO interposto por ${profile?.nome_completo || "Apelante"} (${apelacaoForm.apelante_tipo === "reu" ? "Réu" : apelacaoForm.apelante_tipo === "autor" ? "Autor" : "Ambas as partes"}).` });
