@@ -785,8 +785,9 @@ function TabOuvidoria() {
   const [uploadedFiles, setUploadedFiles] = useState<{ url: string; name: string }[]>([]);
   const [novoEnvolvidoNome, setNovoEnvolvidoNome] = useState("");
   const [novoEnvolvidoFuncao, setNovoEnvolvidoFuncao] = useState("");
-  const [novoLink, setNovoLink] = useState("");
+    const [novoLink, setNovoLink] = useState("");
   const [enviando, setEnviando] = useState(false);
+  const [statusEnvio, setStatusEnvio] = useState("");
   const [enviado, setEnviado] = useState(false);
 
   const addEnvolvido = () => {
