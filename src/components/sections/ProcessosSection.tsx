@@ -1115,17 +1115,17 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
 
   const createAtoCartorio = useMutation({
     mutationFn: async (ato: { tipo: string; titulo: string; conteudo: string; anexo_urls?: string[]; arquivos?: File[] }) => {
-      const autorNome = "Escrevente Técnico Judiciário Abel Haus";
+            const autorNome = "Escrevente Técnico Judiciário Abel Haus";
+      const uploadedUrls: string[] = [];
+      for (const arquivo of ato.arquivos || []) {
+        uploadedUrls.push(await uploadArquivoProcesso(arquivo, processoId));
+      }
+      const validUrls = [...(ato.anexo_urls || []).filter(u => u.trim()), ...uploadedUrls];
       const { error } = await supabase.from("atos_judiciais").insert({
         processo_id: processoId, tipo: ato.tipo, titulo: ato.titulo, conteudo: ato.conteudo,
         autor_id: null, autor_nome: autorNome, assinado: true, data_assinatura: new Date().toISOString(),
       });
       if (error) throw error;
-            const uploadedUrls: string[] = [];
-      for (const arquivo of ato.arquivos || []) {
-        uploadedUrls.push(await uploadArquivoProcesso(arquivo, processoId));
-      }
-      const validUrls = [...(ato.anexo_urls || []).filter(u => u.trim()), ...uploadedUrls];
       if (validUrls.length > 0) {
         const docsToInsert = validUrls.map((url, idx) => ({
           processo_id: processoId, nome: validUrls.length === 1 ? ato.titulo : `${ato.titulo} (${idx + 1})`,
