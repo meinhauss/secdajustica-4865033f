@@ -2242,7 +2242,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         {/* TIMELINE — unified view */}
         <TabsContent value="timeline" className="mt-4 space-y-4">
           <div className="flex flex-wrap gap-2">
-            {canAddMovimentacao && <AddMovimentacao roles={roles} processo={processo} juizNome={juizProfile?.nome_completo} userNome={profile?.nome_completo} onAdd={(tipo, desc) => addMovimentacao.mutate({ tipo, descricao: desc })} />}
+            {canAddMovimentacao && <AddMovimentacao roles={roles} processo={processo} juizNome={juizProfile?.nome_completo} userNome={profile?.nome_completo} onAdd={(tipo, desc) => addMovimentacao.mutateAsync({ tipo, descricao: desc }).then(() => undefined)} />}
                         {isJudicialReadOnly && <AddAtoCartorio processoId={processoId} onAdd={(ato) => createAtoCartorio.mutate(ato)} isPending={createAtoCartorio.isPending} />}
           </div>
           {isSentenciado && !prazoApelacaoExpirado && (
