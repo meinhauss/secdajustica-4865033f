@@ -3003,10 +3003,13 @@ function InfoCard({ label, value }: { label: string; value: string }) {
 
 function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles: string[]; onAdd: (tipo: string, desc: string) => void; processo?: any; juizNome?: string | null; userNome?: string | null }) {
   const [open, setOpen] = useState(false);
-  const [anexos, setAnexos] = useState<{ nome: string; url: string }[]>([]);
+    const [anexos, setAnexos] = useState<{ nome: string; url: string }[]>([]);
+  const [arquivosPendentes, setArquivosPendentes] = useState<File[]>([]);
   const [novoAnexoNome, setNovoAnexoNome] = useState("");
   const [novoAnexoUrl, setNovoAnexoUrl] = useState("");
   const [showInstrucoes, setShowInstrucoes] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState("");
 
   useEffect(() => {
     const h = () => setOpen(true);
