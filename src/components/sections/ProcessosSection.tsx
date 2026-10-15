@@ -42,6 +42,7 @@ import AIFerramentas from "@/components/AIFerramentas";
 import AIBuscaSemantica from "@/components/AIBuscaSemantica";
 import AIExplicarSelecao from "@/components/AIExplicarSelecao";
 import RedistribuicaoProcessoDialog from "@/components/RedistribuicaoProcessoDialog";
+import FileUploadZone from "@/components/sections/FileUploadZone";
 
 
 /* ─── Currency helpers ─── */
