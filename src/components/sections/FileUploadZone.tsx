@@ -12,7 +12,8 @@ type FileUploadZoneProps = {
 
 export default function FileUploadZone({ processoId, onUploaded, onRemove }: FileUploadZoneProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [sending, setSending] = useState(false);
+    const [sending, setSending] = useState(false);
+  const [progress, setProgress] = useState("");
   const [dragging, setDragging] = useState(false);
   const [uploaded, setUploaded] = useState<{ url: string; name: string } | null>(null);
   const [error, setError] = useState("");
