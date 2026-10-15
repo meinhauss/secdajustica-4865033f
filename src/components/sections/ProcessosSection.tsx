@@ -1945,7 +1945,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                   <p className="text-[10px] text-muted-foreground">Advogado(a) do(a) {(() => { const [lado, ...rest] = (p.parte || "").split(":"); const nome = rest.join(":"); return nome ? `${lado === "autor" ? "AUTOR" : "RÉU"} ${nome}` : (lado === "autor" ? "AUTOR" : "RÉU"); })()} — desde {format(new Date(p.created_at), "dd/MM/yyyy", { locale: ptBR })}</p>
                 </div>
                 {p.documento_url && (
-                  /^https?:\/\//i.test(p.documento_url) ? (
+                  /^(?:https?|r2):\/\//i.test(p.documento_url) ? (
                     <a href={p.documento_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1">
                       <ExternalLink className="h-3 w-3" /> Procuração
                     </a>
@@ -2556,8 +2556,8 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                         {/^<.*>/.test((item.descricao || "").trim()) || /<\/(p|strong|em|u|s|ul|ol|li|h[1-4]|blockquote|span|div)>/i.test(item.descricao || "") ? (
                           <RichTextView html={item.descricao} className="text-sm text-foreground" />
                         ) : (
-                          <p className="text-sm text-foreground whitespace-pre-wrap">{item.descricao.split(/(https?:\/\/[^\s<>]+)/gi).map((part, i) =>
-                            /^https?:\/\//i.test(part) ? (
+                          <p className="text-sm text-foreground whitespace-pre-wrap">{item.descricao.split(/((?:https?|r2):\/\/[^\s<>]+)/gi).map((part, i) =>
+                            /^(?:https?|r2):\/\//i.test(part) ? (
                               <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80 break-all inline-flex items-center gap-1">
                                 <ExternalLink className="h-3 w-3 inline flex-shrink-0" />{part}
                               </a>
@@ -2567,7 +2567,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                       </AIExplicarSelecao>
                       <AIResumirTexto texto={item.descricao} cacheKey={`mov-tldr:${item.id}`} />
                       {item.link && (
-                        /^https?:\/\//i.test(item.link) ? (
+                        /^(?:https?|r2):\/\//i.test(item.link) ? (
                           <a href={item.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-2 text-xs text-primary hover:underline">
                             <ExternalLink className="h-3 w-3" /> Abrir documento
                           </a>

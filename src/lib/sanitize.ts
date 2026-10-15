@@ -90,6 +90,7 @@ export function isValidPublicUrl(value: string | null | undefined): boolean {
   if (!value) return false;
   const raw = String(value).trim();
   if (!raw) return false;
+  if (/^r2:\/\/processos\//.test(raw)) return true;
   // Rejeitar padrões locais/anti-web comuns
   if (/^(file:|about:|javascript:|data:|blob:|vbscript:)/i.test(raw)) return false;
   if (/^[a-zA-Z]:[\\/]/.test(raw)) return false; // C:\ ou C:/
