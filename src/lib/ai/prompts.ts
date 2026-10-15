@@ -277,14 +277,11 @@ Devolva APENAS o texto do documento, sem markdown de código.`;
       embargos_declaracao: "EMBARGOS DE DECLARAÇÃO",
       agravo: "AGRAVO DE INSTRUMENTO",
     };
-    return `Gere ${titulo[ctx.tipo]} em português formal, como advogado(a) subscritor(a). Estrutura clássica pertinente à peça:
-- Endereçamento ao Juízo/Tribunal competente
-- Qualificação das partes (use dados do contexto; [colchetes] para faltantes)
-- Dos fatos
-- Do direito (fundamentação jurídica com dispositivos aplicáveis)
-- Dos pedidos (rol claro e específico)
-- Valor da causa quando cabível
-- Fecho (Nestes termos, pede deferimento — Local, data — OAB)
+        const pecaContinua = ctx.tipo === "recurso_apelacao" || ctx.tipo === "embargos_declaracao";
+    return `Gere ${titulo[ctx.tipo]} em português formal, como advogado(a) subscritor(a). ${pecaContinua
+      ? "Redija como peça integral e contínua, reunindo fatos, fundamentos e pedidos no mesmo texto, sem separar fundamentação e pedidos em campos ou blocos independentes. Na apelação, formule razões de reforma ou anulação; nos embargos, trate o vício indicado e conclua com pedido de saneamento, sem presumir informações ausentes."
+      : "Estruture a peça conforme sua finalidade, com endereçamento ao Juízo/Tribunal competente, qualificação das partes, exposição dos fatos e do direito, pedidos claros, valor da causa quando cabível e fecho apropriado."}
+Use dados do contexto; indique lacunas com [colchetes].
 
 ${ctx.extenso
   ? "Elabore de forma DETALHADA e EXTENSA, com fundamentação aprofundada."
