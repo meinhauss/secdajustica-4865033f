@@ -79,7 +79,7 @@ export default function FileUploadZone({ processoId, onUploaded, onRemove }: Fil
           void upload(files || undefined);
         }}
       />
-      {uploaded ? (
+            {uploaded && (
         <div className="flex items-center gap-3 rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
           <CheckCircle className="h-5 w-5 shrink-0" />
           <span className="min-w-0 flex-1 truncate text-sm font-medium">Anexado: {uploaded.name}</span>
@@ -87,8 +87,8 @@ export default function FileUploadZone({ processoId, onUploaded, onRemove }: Fil
             <X className="mr-1 h-4 w-4" /> Remover
           </Button>
         </div>
-      ) : (
-        <button
+      )}
+      <button
           type="button"
           disabled={sending}
           onClick={() => inputRef.current?.click()}
