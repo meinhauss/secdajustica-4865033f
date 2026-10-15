@@ -694,17 +694,40 @@ REGRAS OBRIGATÓRIAS:
     fetchRegistros();
   };
 
-  const handleUpdateStatus = async (id: string, status: string) => {
+    const handleUpdateStatus = async (id: string, status: string) => {
     const updateData: any = { status };
     if (status === "emitido") {
+      setSubmitting(true);
+      const uploadedUrls: string[] = [];
+      try {
+        for (const [index, file] of emitFiles.entries()) {
+          setUploadProgress(`Enviando arquivo ${index + 1} de ${emitFiles.length}...`);
+          uploadedUrls.push(await uploadArquivoAnexo(file, "cartorio"));
+        }
+      } catch (error) {
+        toast({ title: "Falha no envio do anexo", description: (error as Error).message, variant: "destructive" });
+        setSubmitting(false);
+        setUploadProgress("");
+        return;
+      }
       updateData.emitido_por = user?.id;
       updateData.emitido_por_nome = profile?.nome_completo || "Servidor";
-      if (emitirLinks.length > 0) {
+      const newLinks = [...emitirLinks, ...uploadedUrls];
+      if (newLinks.length > 0) {
         const existing = parseLinks(showDetalhes?.documento_url || null);
-        updateData.documento_url = JSON.stringify([...existing, ...emitirLinks]);
+        updateData.documento_url = JSON.stringify([...existing, ...newLinks]);
       }
+      setUploadProgress("Gravando registro...");
     }
-    await supabase.from("registros_cartorio").update(updateData).eq("id", id);
+    const { error } = await supabase.from("registros_cartorio").update(updateData).eq("id", id);
+    if (error) {
+      toast({ title: "Erro ao atualizar registro", description: error.message, variant: "destructive" });
+      setSubmitting(false);
+      setUploadProgress("");
+      return;
+    }
+    setSubmitting(false);
+    setUploadProgress("");
     toast({ title: `Status atualizado para: ${statusLabel(status)}` });
     setEmitirLinks([]);
     fetchRegistros();
