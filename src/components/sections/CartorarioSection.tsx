@@ -505,7 +505,11 @@ export default function CartorarioSection() {
   const [formEnvolvidos, setFormEnvolvidos] = useState<PersonEntry[]>([]);
   const [formDescricao, setFormDescricao] = useState("");
   const [formObservacoes, setFormObservacoes] = useState("");
-  const [formLinks, setFormLinks] = useState<string[]>([]);
+    const [formLinks, setFormLinks] = useState<string[]>([]);
+  const [formFiles, setFormFiles] = useState<File[]>([]);
+  const [emitFiles, setEmitFiles] = useState<File[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState("");
   const { run: runAI, loading: aiLoading } = useAI();
 
   const gerarTextoPadrao = async () => {
