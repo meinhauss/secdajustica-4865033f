@@ -3116,26 +3116,52 @@ function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles
     setNovoAnexoUrl("");
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Warn if attachment fields have content but weren't added
+    if (isSubmitting) return;
     if ((novoAnexoNome.trim() || novoAnexoUrl.trim()) && anexos.every(a => a.nome !== novoAnexoNome.trim() || a.url !== novoAnexoUrl.trim())) {
       toast.error("Você preencheu os campos de anexo mas não clicou em adicionar. Clique no botão '+' para anexar ou limpe os campos antes de enviar.");
       return;
     }
-    let descFinal = desc;
-    if (anexos.length > 0) {
-      descFinal += "\n\n📎 DOCUMENTOS ANEXOS:\n" + anexos.map((a, i) => `${i + 1}. ${a.nome}: ${a.url}`).join("\n");
+
+    setIsSubmitting(true);
+    const enviados: { nome: string; url: string }[] = [];
+    try {
+      for (let i = 0; i < arquivosPendentes.length; i += 1) {
+        const arquivo = arquivosPendentes[i];
+        setUploadProgress(`Enviando arquivos (${i + 1} de ${arquivosPendentes.length})...`);
+        try {
+          const url = await uploadArquivoProcesso(arquivo, processo.id);
+          enviados.push({ nome: arquivo.name, url });
+        } catch (error) {
+          const motivo = error instanceof Error ? error.message : "falha desconhecida";
+          toast.error(`Falha ao enviar "${arquivo.name}": ${motivo}`);
+          return;
+        }
+      }
+
+      const todosAnexos = [...anexos, ...enviados];
+      const escapeHtml = (value: string) => value.replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[char] || char));
+      const linksHtml = todosAnexos.length
+        ? `<p><strong>📎 DOCUMENTOS ANEXOS:</strong></p><ul>${todosAnexos.map((anexo) => `<li><a href="${escapeHtml(anexo.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(anexo.nome)}</a></li>`).join("")}</ul>`
+        : "";
+      const descFinal = `${desc || ""}${linksHtml}`;
+      await onAdd(tipo, descFinal);
+      if (processo?.id) {
+        const prazo = await agendarPrazoAutomatico(processo.id, tipo);
+        if (prazo) toast.success(`Prazo automático de ${prazo.horas}h agendado.`);
+      }
+      clearDraft();
+      setAnexos([]);
+      setArquivosPendentes([]);
+      setOpen(false);
+    } catch (error) {
+      const motivo = error instanceof Error ? error.message : "não foi possível registrar a movimentação";
+      toast.error(motivo);
+    } finally {
+      setIsSubmitting(false);
+      setUploadProgress("");
     }
-    onAdd(tipo, descFinal);
-    // Agendar prazo automático (silencioso)
-    if (processo?.id) {
-      const prazo = await agendarPrazoAutomatico(processo.id, tipo);
-      if (prazo) toast.success(`Prazo automático de ${prazo.horas}h agendado.`);
-    }
-    clearDraft();
-    setAnexos([]);
-    setOpen(false);
   };
 
   const prazoInfo = getPrazoAutomatico(tipo);
