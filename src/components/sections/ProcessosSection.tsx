@@ -42,6 +42,8 @@ import AIFerramentas from "@/components/AIFerramentas";
 import AIBuscaSemantica from "@/components/AIBuscaSemantica";
 import AIExplicarSelecao from "@/components/AIExplicarSelecao";
 import RedistribuicaoProcessoDialog from "@/components/RedistribuicaoProcessoDialog";
+import FileUploadZone from "@/components/sections/FileUploadZone";
+import FileUploadZone from "@/components/sections/FileUploadZone";
 
 
 /* ─── Currency helpers ─── */
@@ -3349,6 +3351,17 @@ function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles
               )}
             </AnimatePresence>
 
+                        {processo?.id && (
+              <div className="space-y-2">
+                <FileUploadZone
+                  processoId={processo.id}
+                  onUploaded={(url, name) => setAnexos((prev) => [...prev, { nome: name, url }])}
+                  onRemove={(url) => setAnexos((prev) => prev.filter((anexo) => anexo.url !== url))}
+                />
+                <p className="text-center text-xs text-muted-foreground">Ou se preferir, cole um link externo</p>
+              </div>
+            )}
+
             {/* Lista de anexos já adicionados */}
             {anexos.length > 0 && (
               <div className="space-y-1.5">
@@ -3383,7 +3396,17 @@ function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles
                 <Plus className="h-3 w-3 mr-1" /> Anexar
               </Button>
             </div>
-            {processo?.id && (
+                                    {processo?.id && (
+              <div className="space-y-2">
+                <FileUploadZone
+                  processoId={processo.id}
+                  onUploaded={(url, name) => setAnexos((prev) => [...prev, { nome: name, url }])}
+                  onRemove={(url) => setAnexos((prev) => prev.filter((anexo) => anexo.url !== url))}
+                />
+                <p className="text-center text-xs text-muted-foreground">Ou se preferir, cole um link externo</p>
+              </div>
+            )}
+            {false && processo?.id && (
               <label className="inline-flex items-center gap-1 text-xs text-primary hover:underline cursor-pointer">
                 <Upload className="h-3 w-3" /> Enviar arquivo do computador (PDF/imagem, até 20 MB)
                 <input
@@ -3509,11 +3532,37 @@ function UploadDoc({ onUpload, isPending, processoId }: { onUpload: (link: strin
             </SelectContent>
           </Select>
           <Input placeholder="Nome do documento" value={nome} onChange={(e) => setNome(e.target.value)} className="rounded-xl" />
-          {processoId && (
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-foreground">Enviar arquivo (PDF ou imagem, até 20 MB)</label>
-              <Input type="file" accept="application/pdf,image/*,text/plain" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="rounded-xl" />
-              <p className="text-[11px] text-muted-foreground">Ou cole um link abaixo.</p>
+                    {processoId && (
+            <div className="space-y-2">
+              {file ? (
+                <div className="flex items-center gap-3 rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
+                  <CheckCircle className="h-5 w-5 shrink-0" />
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium">Arquivo selecionado: {file.name}</span>
+                  <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={() => setFile(null)}>Trocar</Button>
+                  <Button type="button" variant="ghost" size="icon" className="shrink-0" aria-label="Remover arquivo selecionado" onClick={() => setFile(null)}><X className="h-4 w-4" /></Button>
+                </div>
+              ) : (
+                <label className="flex min-h-36 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 p-5 text-center transition-colors hover:border-primary hover:bg-primary/10">
+                  <Upload className="h-8 w-8 text-primary" />
+                  <span className="text-sm font-semibold text-foreground">Clique para selecionar um arquivo do computador — Recomendado</span>
+                  <span className="text-xs text-muted-foreground">PDF, PNG ou JPG • até 20 MB</span>
+                  <Input type="file" accept="application/pdf,image/*" className="hidden" onChange={(e) => {
+                    const selected = e.target.files?.[0] ?? null;
+                    if (selected && selected.size > 20 * 1024 * 1024) {
+                      toast.error("O arquivo excede o limite de 20 MB.");
+                      e.target.value = "";
+                      return;
+                    }
+                    if (selected && selected.type !== "application/pdf" && !selected.type.startsWith("image/")) {
+                      toast.error("Envie um PDF ou uma imagem.");
+                      e.target.value = "";
+                      return;
+                    }
+                    setFile(selected);
+                  }} />
+                </label>
+              )}
+              <p className="text-center text-xs text-muted-foreground">Ou se preferir, cole um link externo</p>
             </div>
           )}
           <Input placeholder="Cole o link do Google Drive ou Google Docs" value={link} onChange={(e) => setLink(e.target.value)} disabled={!!file} className="rounded-xl" />
