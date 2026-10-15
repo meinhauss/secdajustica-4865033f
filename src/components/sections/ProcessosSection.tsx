@@ -22,6 +22,7 @@ import {
 import { generateProcessoPDF, generateMovimentacaoPDF, imageToBase64 } from "@/lib/pdfGenerator";
 import logoTjsp from "@/assets/tjsp-logo.png";
 import { toast } from "sonner";
+import { uploadArquivoProcesso } from "@/lib/r2Files";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { normalizeRichText, isValidPublicUrl } from "@/lib/sanitize";
@@ -1944,7 +1945,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                   <p className="text-[10px] text-muted-foreground">Advogado(a) do(a) {(() => { const [lado, ...rest] = (p.parte || "").split(":"); const nome = rest.join(":"); return nome ? `${lado === "autor" ? "AUTOR" : "RÉU"} ${nome}` : (lado === "autor" ? "AUTOR" : "RÉU"); })()} — desde {format(new Date(p.created_at), "dd/MM/yyyy", { locale: ptBR })}</p>
                 </div>
                 {p.documento_url && (
-                  /^https?:\/\//i.test(p.documento_url) ? (
+                  /^(?:https?|r2):\/\//i.test(p.documento_url) ? (
                     <a href={p.documento_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1">
                       <ExternalLink className="h-3 w-3" /> Procuração
                     </a>
@@ -2555,8 +2556,8 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                         {/^<.*>/.test((item.descricao || "").trim()) || /<\/(p|strong|em|u|s|ul|ol|li|h[1-4]|blockquote|span|div)>/i.test(item.descricao || "") ? (
                           <RichTextView html={item.descricao} className="text-sm text-foreground" />
                         ) : (
-                          <p className="text-sm text-foreground whitespace-pre-wrap">{item.descricao.split(/(https?:\/\/[^\s<>]+)/gi).map((part, i) =>
-                            /^https?:\/\//i.test(part) ? (
+                          <p className="text-sm text-foreground whitespace-pre-wrap">{item.descricao.split(/((?:https?|r2):\/\/[^\s<>]+)/gi).map((part, i) =>
+                            /^(?:https?|r2):\/\//i.test(part) ? (
                               <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80 break-all inline-flex items-center gap-1">
                                 <ExternalLink className="h-3 w-3 inline flex-shrink-0" />{part}
                               </a>
@@ -2566,7 +2567,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                       </AIExplicarSelecao>
                       <AIResumirTexto texto={item.descricao} cacheKey={`mov-tldr:${item.id}`} />
                       {item.link && (
-                        /^https?:\/\//i.test(item.link) ? (
+                        /^(?:https?|r2):\/\//i.test(item.link) ? (
                           <a href={item.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-2 text-xs text-primary hover:underline">
                             <ExternalLink className="h-3 w-3" /> Abrir documento
                           </a>
@@ -3382,6 +3383,30 @@ function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles
                 <Plus className="h-3 w-3 mr-1" /> Anexar
               </Button>
             </div>
+            {processo?.id && (
+              <label className="inline-flex items-center gap-1 text-xs text-primary hover:underline cursor-pointer">
+                <Upload className="h-3 w-3" /> Enviar arquivo do computador (PDF/imagem, até 20 MB)
+                <input
+                  type="file"
+                  accept="application/pdf,image/*,text/plain"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const f = e.target.files?.[0];
+                    e.target.value = "";
+                    if (!f) return;
+                    const t = toast.loading("Enviando arquivo...");
+                    try {
+                      const url = await uploadArquivoProcesso(f, processo.id);
+                      setAnexos((prev) => [...prev, { nome: novoAnexoNome.trim() || f.name, url }]);
+                      setNovoAnexoNome("");
+                      toast.success("Arquivo anexado.", { id: t });
+                    } catch (err) {
+                      toast.error((err as Error).message, { id: t });
+                    }
+                  }}
+                />
+              </label>
+            )}
           </div>
 
           <Button type="submit" className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">Registrar</Button>
@@ -3436,20 +3461,41 @@ function AddAto({ onAdd, processo, movimentacoes }: { onAdd: (ato: { tipo: strin
   );
 }
 
-function UploadDoc({ onUpload, isPending }: { onUpload: (link: string, nome: string, tipo: string) => void; isPending: boolean }) {
+function UploadDoc({ onUpload, isPending, processoId }: { onUpload: (link: string, nome: string, tipo: string) => void; isPending: boolean; processoId?: string }) {
   const [open, setOpen] = useState(false);
   const [link, setLink] = useState("");
   const [nome, setNome] = useState("");
   const [tipo, setTipo] = useState("peticao");
   const [showInstrucoes, setShowInstrucoes] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [sending, setSending] = useState(false);
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    let finalLink = link.trim();
+    if (file) {
+      if (!processoId) return;
+      setSending(true);
+      try {
+        finalLink = await uploadArquivoProcesso(file, processoId);
+      } catch (err) {
+        toast.error((err as Error).message);
+        setSending(false);
+        return;
+      }
+      setSending(false);
+    }
+    if (!finalLink) return;
+    onUpload(finalLink, nome || file?.name || "Documento", tipo);
+    setOpen(false); setLink(""); setNome(""); setFile(null);
+  };
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="rounded-xl"><Upload className="h-4 w-4 mr-2" /> Juntar Documento</Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader><DialogTitle>Juntar Documento por Link</DialogTitle></DialogHeader>
-        <form onSubmit={(e) => { e.preventDefault(); if (link.trim()) { onUpload(link.trim(), nome, tipo); setOpen(false); setLink(""); setNome(""); } }} className="space-y-3 mt-3">
+        <DialogHeader><DialogTitle>Juntar Documento</DialogTitle></DialogHeader>
+        <form onSubmit={submit} className="space-y-3 mt-3">
           <Select value={tipo} onValueChange={setTipo}>
             <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -3462,8 +3508,15 @@ function UploadDoc({ onUpload, isPending }: { onUpload: (link: string, nome: str
               <SelectItem value="outros">Outros</SelectItem>
             </SelectContent>
           </Select>
-          <Input placeholder="Nome do documento" value={nome} onChange={(e) => setNome(e.target.value)} required className="rounded-xl" />
-          <Input placeholder="Cole o link do Google Drive ou Google Docs" value={link} onChange={(e) => setLink(e.target.value)} required className="rounded-xl" />
+          <Input placeholder="Nome do documento" value={nome} onChange={(e) => setNome(e.target.value)} className="rounded-xl" />
+          {processoId && (
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-foreground">Enviar arquivo (PDF ou imagem, até 20 MB)</label>
+              <Input type="file" accept="application/pdf,image/*,text/plain" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="rounded-xl" />
+              <p className="text-[11px] text-muted-foreground">Ou cole um link abaixo.</p>
+            </div>
+          )}
+          <Input placeholder="Cole o link do Google Drive ou Google Docs" value={link} onChange={(e) => setLink(e.target.value)} disabled={!!file} className="rounded-xl" />
           
           <button type="button" onClick={() => setShowInstrucoes(!showInstrucoes)} className="text-xs text-primary hover:underline flex items-center gap-1">
             <FileText className="h-3 w-3" />
@@ -3508,8 +3561,8 @@ function UploadDoc({ onUpload, isPending }: { onUpload: (link: string, nome: str
             </div>
           )}
 
-          <Button type="submit" disabled={isPending || !link.trim()} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
-            {isPending ? "Salvando..." : "Juntar Documento"}
+          <Button type="submit" disabled={isPending || sending || (!link.trim() && !file)} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
+            {sending ? "Enviando arquivo..." : isPending ? "Salvando..." : "Juntar Documento"}
           </Button>
         </form>
       </DialogContent>
