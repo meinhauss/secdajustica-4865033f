@@ -2791,33 +2791,19 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                         </SelectContent>
                       </Select>
                     </div>
-                    <div>
+                                        <div className="space-y-2">
                       <div className="flex items-center justify-between mb-1">
-                        <label className="text-sm font-medium text-foreground">Fundamentação do Recurso</label>
+                        <label className="text-sm font-medium text-foreground">Razões da Apelação e Pedidos (Peça Integral)</label>
                         <AISugerirDespacho
                           tipoAto="recurso_apelacao"
-                          tituloAto="Fundamentação da apelação"
+                          tituloAto="Recurso de Apelação (Peça Completa)"
                           rascunhoAtual={apelacaoForm.fundamentacao}
-                          processo={processo}
+                          processo={{ ...processo, sentencaRecorrida: sentencasProc?.find((s: any) => s.id === apelacaoForm.sentenca_id) }}
                           movimentacoes={movimentacoes || []}
                           onInsert={(h) => setApelacaoForm((f) => ({ ...f, fundamentacao: appendAiHtml(f.fundamentacao, h) }))}
                         />
                       </div>
-                      <RichTextEditor value={apelacaoForm.fundamentacao} onChange={(html) => setApelacaoForm({ ...apelacaoForm, fundamentacao: html })} placeholder="Razões da apelação e fundamentos jurídicos..." minHeight="200px" className="mt-1" />
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="text-sm font-medium text-foreground">Pedido</label>
-                        <AISugerirDespacho
-                          tipoAto="recurso_apelacao"
-                          tituloAto="Pedido da apelação"
-                          rascunhoAtual={apelacaoForm.pedido}
-                          processo={processo}
-                          movimentacoes={movimentacoes || []}
-                          onInsert={(h) => setApelacaoForm((f) => ({ ...f, pedido: appendAiHtml(f.pedido, h) }))}
-                        />
-                      </div>
-                      <RichTextEditor value={apelacaoForm.pedido} onChange={(html) => setApelacaoForm({ ...apelacaoForm, pedido: html })} placeholder="O que se requer ao Tribunal..." minHeight="140px" className="mt-1" />
+                      <RichTextEditor value={apelacaoForm.fundamentacao} onChange={(html) => setApelacaoForm({ ...apelacaoForm, fundamentacao: html })} placeholder="Redija as razões recursais e os pedidos de reforma em peça única..." minHeight="320px" className="mt-1" />
                     </div>
                     <Button type="submit" disabled={interporApelacao.isPending} className="w-full gap-2">
                       <Scale className="h-4 w-4" /> Interpor Apelação
