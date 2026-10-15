@@ -687,6 +687,8 @@ REGRAS OBRIGATÓRIAS:
     } else {
       toast({ title: "Solicitação registrada com sucesso" });
     }
+        setSubmitting(false);
+    setUploadProgress("");
     setShowNovoRegistro(false);
     resetForm();
     fetchRegistros();
