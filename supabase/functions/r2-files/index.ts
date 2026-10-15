@@ -33,8 +33,8 @@ Deno.serve(async (req) => {
     if (action === "upload" && req.method === "POST") {
       const form = await req.formData();
       const file = form.get("file");
-      const processoId = String(form.get("processo_id") ?? "");
-      const contexto = String(form.get("contexto") ?? "");
+      const processoId = String(form.get("processo_id") ?? "").trim().replace(/^(undefined|null)$/, "");
+      const contexto = String(form.get("contexto") ?? "").trim();
       if (!(file instanceof File)) return json({ error: "Arquivo ausente" }, 400);
       if (file.size > MAX_BYTES) return json({ error: "Arquivo maior que 20 MB" }, 400);
       if (!ALLOWED.includes(file.type)) return json({ error: "Tipo não permitido (use PDF ou imagem PNG, JPEG, WebP ou GIF)" }, 400);
