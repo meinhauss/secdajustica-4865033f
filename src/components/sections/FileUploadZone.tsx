@@ -18,29 +18,44 @@ export default function FileUploadZone({ processoId, onUploaded, onRemove }: Fil
   const [uploaded, setUploaded] = useState<{ url: string; name: string } | null>(null);
   const [error, setError] = useState("");
 
-  const upload = async (file?: File) => {
-    if (!file) return;
-    if (file.size > 20 * 1024 * 1024) {
-      setError("O arquivo excede o limite de 20 MB.");
-      return;
-    }
-    if (file.type !== "application/pdf" && !file.type.startsWith("image/")) {
-      setError("Envie um PDF ou uma imagem (PNG/JPG). ");
-      return;
-    }
+    const upload = async (files?: FileList | File[]) => {
+    const selectedFiles = Array.from(files || []);
+    if (!selectedFiles.length) return;
+
+    const validFiles = selectedFiles.filter((file) => {
+      if (file.size > 20 * 1024 * 1024) {
+        toast.error(`${file.name}: excede o limite de 20 MB.`);
+        return false;
+      }
+      if (file.type !== "application/pdf" && !file.type.startsWith("image/")) {
+        toast.error(`${file.name}: envie um PDF ou uma imagem.`);
+        return false;
+      }
+      return true;
+    });
+    if (!validFiles.length) return;
 
     setError("");
     setSending(true);
-    try {
-      const url = await uploadArquivoProcesso(file, processoId);
-      setUploaded({ url, name: file.name });
-      onUploaded(url, file.name);
-      toast.success("Arquivo enviado com sucesso.");
-    } catch (err) {
-      setError((err as Error).message || "Não foi possível enviar o arquivo.");
-    } finally {
-      setSending(false);
+    setProgress(`Enviando 0 de ${validFiles.length} arquivos...`);
+    let completed = 0;
+    let failed = 0;
+    for (const file of validFiles) {
+      try {
+        const url = await uploadArquivoProcesso(file, processoId);
+        onUploaded(url, file.name);
+        setUploaded({ url, name: file.name });
+        completed += 1;
+      } catch (err) {
+        failed += 1;
+        toast.error(`${file.name}: ${(err as Error).message || "não foi possível enviar."}`);
+      }
+      setProgress(`Enviando ${completed + failed} de ${validFiles.length} arquivos...`);
     }
+    setSending(false);
+    setProgress(completed ? `${completed} arquivo(s) enviado(s) com sucesso.` : "");
+    if (completed) toast.success(`${completed} arquivo(s) enviado(s) com sucesso.`);
+    if (!completed && failed) setError("Nenhum arquivo pôde ser enviado.");
   };
 
   const remove = () => {
