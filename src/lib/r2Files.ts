@@ -20,6 +20,16 @@ export async function uploadArquivoProcesso(file: File, processoId: string): Pro
   return body.url as string;
 }
 
+export async function uploadArquivoAnexo(file: File, contexto: "cartorio" | "ouvidoria"): Promise<string> {
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("contexto", contexto);
+  const r = await fetch(`${FN_URL}?action=upload`, { method: "POST", headers: await authHeaders(), body: fd });
+  const body = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(body.error || "Falha no envio do arquivo");
+  return body.url as string;
+}
+
 export async function abrirArquivoR2(ref: string) {
   const win = window.open("", "_blank");
   try {
