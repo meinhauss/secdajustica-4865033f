@@ -3536,8 +3536,8 @@ function UploadDoc({ onUpload, isPending, processoId }: { onUpload: (link: strin
             </div>
           )}
 
-          <Button type="submit" disabled={isPending || !link.trim()} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
-            {isPending ? "Salvando..." : "Juntar Documento"}
+          <Button type="submit" disabled={isPending || sending || (!link.trim() && !file)} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
+            {sending ? "Enviando arquivo..." : isPending ? "Salvando..." : "Juntar Documento"}
           </Button>
         </form>
       </DialogContent>
