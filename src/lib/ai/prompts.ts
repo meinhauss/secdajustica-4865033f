@@ -205,11 +205,7 @@ ${(ctx.movimentacoes || []).slice(0, 15).map((m, i) => `${i + 1}. [${m.tipo}] ${
 
 export const PROMPTS_EXTRA = {
   minutaJudicial: (ctx: ProcCtx & { tipo: "sentenca" | "decisao"; tese?: string; instrucao?: string; extenso?: boolean }) =>
-    `Gere a minuta de ${ctx.tipo === "sentenca" ? "SENTENÇA" : "DECISÃO INTERLOCUTÓRIA"} em português formal, com estrutura clássica:
-
-I – RELATÓRIO
-II – FUNDAMENTAÇÃO
-III – DISPOSITIVO
+        `Gere a minuta de ${ctx.tipo === "sentenca" ? "SENTENÇA" : "DECISÃO INTERLOCUTÓRIA"} em português formal como peça única e contínua. Integre relatório sucinto, análise jurídica e conclusão decisória no mesmo fluxo, sem separar o conteúdo em blocos rotulados de relatório, fundamentação ou dispositivo; encerre com a decisão apropriada ao contexto.
 
 ${ctx.extenso
   ? "Elabore de forma DETALHADA e EXTENSA, com fundamentação aprofundada."
