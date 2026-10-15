@@ -66,11 +66,14 @@ Deno.serve(async (req) => {
 
     if (action === "view") {
       const ref = url.searchParams.get("ref") ?? "";
-      if (!ref.startsWith("r2://processos/")) return json({ error: "Referência inválida" }, 400);
       const key = ref.slice(5);
-      const processoId = key.split("/")[1];
-      const { data: proc } = await sb.from("processos").select("id").eq("id", processoId).maybeSingle();
-      if (!proc) return json({ error: "Sem acesso a este documento" }, 403);
+      if (ref.startsWith("r2://processos/")) {
+        const processoId = key.split("/")[1];
+        const { data: proc } = await sb.from("processos").select("id").eq("id", processoId).maybeSingle();
+        if (!proc) return json({ error: "Sem acesso a este documento" }, 403);
+      } else if (!ref.startsWith("r2://anexos/cartorio/") && !ref.startsWith("r2://anexos/ouvidoria/")) {
+        return json({ error: "Referência inválida" }, 400);
+      }
       const signed = await r2.sign(
         new Request(`${BASE}/${key}?X-Amz-Expires=900`, { method: "GET" }),
         { aws: { signQuery: true } },
