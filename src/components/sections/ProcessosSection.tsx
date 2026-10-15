@@ -3726,22 +3726,17 @@ function AddAtoCartorio({ processoId, onAdd, isPending }: { processoId: string; 
     const [anexoUrls, setAnexoUrls] = useState<string[]>([""]);
   const [arquivosPendentes, setArquivosPendentes] = useState<File[]>([]);
 
-  const handleUploadAnexo = async (file?: File) => {
+    const handleUploadAnexo = (file?: File) => {
     if (!file) return;
     if (file.size > 20 * 1024 * 1024 || (file.type !== "application/pdf" && !file.type.startsWith("image/"))) {
       toast.error("Envie um PDF ou uma imagem de até 20 MB.");
       return;
     }
-    setUploadingAnexo(true);
-    try {
-      const url = await uploadArquivoProcesso(file, processoId);
-      setAnexoUrls((prev) => [...prev.filter((item) => item.trim()), url, ""]);
-      toast.success("Arquivo anexado.");
-    } catch (err) {
-      toast.error((err as Error).message);
-    } finally {
-      setUploadingAnexo(false);
+    if (arquivosPendentes.some((item) => item.name === file.name && item.size === file.size)) {
+      toast.info("Este arquivo já está na fila de envio.");
+      return;
     }
+    setArquivosPendentes((prev) => [...prev, file]);
   };
 
   const handleAddLink = () => setAnexoUrls(prev => [...prev, ""]);
