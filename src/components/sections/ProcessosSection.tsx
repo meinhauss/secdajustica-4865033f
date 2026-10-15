@@ -3785,7 +3785,7 @@ function AddAtoCartorio({ processoId, onAdd, isPending }: { processoId: string; 
         <form onSubmit={(e) => {
           e.preventDefault();
           const validUrls = anexoUrls.filter(u => u.trim());
-          const invalid = validUrls.find(u => !isValidPublicUrl(u));
+                    const invalid = validUrls.find(u => !u.startsWith("r2://") && !isValidPublicUrl(u));
           if (invalid) {
             toast.error(`Link inválido: "${invalid.slice(0, 40)}...". Use um link público (https://...). Caminhos locais como file:/// ou C:\\ não são acessíveis.`);
             return;
