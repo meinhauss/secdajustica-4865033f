@@ -1114,14 +1114,18 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   });
 
   const createAtoCartorio = useMutation({
-    mutationFn: async (ato: { tipo: string; titulo: string; conteudo: string; anexo_urls?: string[] }) => {
-      const autorNome = "Escrevente Técnico Judiciário Abel Haus";
+    mutationFn: async (ato: { tipo: string; titulo: string; conteudo: string; anexo_urls?: string[]; arquivos?: File[] }) => {
+            const autorNome = "Escrevente Técnico Judiciário Abel Haus";
+      const uploadedUrls: string[] = [];
+      for (const arquivo of ato.arquivos || []) {
+        uploadedUrls.push(await uploadArquivoProcesso(arquivo, processoId));
+      }
+      const validUrls = [...(ato.anexo_urls || []).filter(u => u.trim()), ...uploadedUrls];
       const { error } = await supabase.from("atos_judiciais").insert({
         processo_id: processoId, tipo: ato.tipo, titulo: ato.titulo, conteudo: ato.conteudo,
         autor_id: null, autor_nome: autorNome, assinado: true, data_assinatura: new Date().toISOString(),
       });
       if (error) throw error;
-      const validUrls = (ato.anexo_urls || []).filter(u => u.trim());
       if (validUrls.length > 0) {
         const docsToInsert = validUrls.map((url, idx) => ({
           processo_id: processoId, nome: validUrls.length === 1 ? ato.titulo : `${ato.titulo} (${idx + 1})`,
@@ -2243,7 +2247,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         <TabsContent value="timeline" className="mt-4 space-y-4">
           <div className="flex flex-wrap gap-2">
             {canAddMovimentacao && <AddMovimentacao roles={roles} processo={processo} juizNome={juizProfile?.nome_completo} userNome={profile?.nome_completo} onAdd={(tipo, desc) => addMovimentacao.mutateAsync({ tipo, descricao: desc }).then(() => undefined)} />}
-                        {isJudicialReadOnly && <AddAtoCartorio processoId={processoId} onAdd={(ato) => createAtoCartorio.mutate(ato)} isPending={createAtoCartorio.isPending} />}
+                        {isJudicialReadOnly && <AddAtoCartorio processoId={processoId} onAdd={(ato) => createAtoCartorio.mutateAsync(ato).then(() => undefined)} isPending={createAtoCartorio.isPending} />}
           </div>
           {isSentenciado && !prazoApelacaoExpirado && (
             <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-xl p-4 text-sm text-green-800 dark:text-green-300 flex items-center gap-2">
@@ -3719,25 +3723,20 @@ function AddAtoCartorio({ processoId, onAdd, isPending }: { processoId: string; 
   const [tipo, setTipo] = useState("juntada");
   const [titulo, setTitulo] = useState("");
   const [conteudo, setConteudo] = useState("");
-  const [anexoUrls, setAnexoUrls] = useState<string[]>([""]);
-  const [uploadingAnexo, setUploadingAnexo] = useState(false);
+    const [anexoUrls, setAnexoUrls] = useState<string[]>([""]);
+  const [arquivosPendentes, setArquivosPendentes] = useState<File[]>([]);
 
-  const handleUploadAnexo = async (file?: File) => {
+    const handleUploadAnexo = (file?: File) => {
     if (!file) return;
     if (file.size > 20 * 1024 * 1024 || (file.type !== "application/pdf" && !file.type.startsWith("image/"))) {
       toast.error("Envie um PDF ou uma imagem de até 20 MB.");
       return;
     }
-    setUploadingAnexo(true);
-    try {
-      const url = await uploadArquivoProcesso(file, processoId);
-      setAnexoUrls((prev) => [...prev.filter((item) => item.trim()), url, ""]);
-      toast.success("Arquivo anexado.");
-    } catch (err) {
-      toast.error((err as Error).message);
-    } finally {
-      setUploadingAnexo(false);
+    if (arquivosPendentes.some((item) => item.name === file.name && item.size === file.size)) {
+      toast.info("Este arquivo já está na fila de envio.");
+      return;
     }
+    setArquivosPendentes((prev) => [...prev, file]);
   };
 
   const handleAddLink = () => setAnexoUrls(prev => [...prev, ""]);
@@ -3760,11 +3759,12 @@ function AddAtoCartorio({ processoId, onAdd, isPending }: { processoId: string; 
             toast.error(`Link inválido: "${invalid.slice(0, 40)}...". Use um link público (https://...). Caminhos locais como file:/// ou C:\\ não são acessíveis.`);
             return;
           }
-          onAdd({ tipo, titulo, conteudo, anexo_urls: validUrls.length > 0 ? validUrls : undefined });
+                    onAdd({ tipo, titulo, conteudo, anexo_urls: validUrls.length > 0 ? validUrls : undefined, arquivos: arquivosPendentes });
           setOpen(false);
           setTitulo("");
           setConteudo("");
           setAnexoUrls([""]);
+          setArquivosPendentes([]);
         }} className="space-y-3 mt-2">
           <Select value={tipo} onValueChange={setTipo}>
             <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
@@ -3790,10 +3790,18 @@ function AddAtoCartorio({ processoId, onAdd, isPending }: { processoId: string; 
                         <Button type="button" variant="outline" size="sm" className="rounded-xl text-xs" onClick={handleAddLink}>
               + Adicionar outro link
             </Button>
-            <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-primary/40 bg-primary/5 px-3 py-2 text-xs font-medium text-primary hover:bg-primary/10">
-              {uploadingAnexo ? "Enviando arquivo..." : "Enviar arquivo do computador (PDF/imagem, até 20 MB)"}
-              <input type="file" accept="application/pdf,image/*" className="hidden" disabled={uploadingAnexo} onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ""; void handleUploadAnexo(file); }} />
+                        <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-primary/40 bg-primary/5 px-3 py-2 text-xs font-medium text-primary hover:bg-primary/10">
+              {isPending ? "Registrando ato..." : "Selecionar arquivo do computador (PDF/imagem, até 20 MB)"}
+              <input type="file" multiple accept="application/pdf,image/*" className="hidden" disabled={isPending} onChange={(event) => { Array.from(event.target.files || []).forEach((file) => handleUploadAnexo(file)); event.target.value = ""; }} />
             </label>
+            {arquivosPendentes.map((file, idx) => (
+              <div key={`${file.name}-${file.lastModified}-${idx}`} className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-xs">
+                <FileText className="h-4 w-4 shrink-0 text-institutional" />
+                <span className="min-w-0 flex-1 truncate">{file.name}</span>
+                <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">Aguardando registro</span>
+                <Button type="button" variant="ghost" size="icon" className="h-7 w-7" disabled={isPending} onClick={() => setArquivosPendentes((prev) => prev.filter((_, index) => index !== idx))} aria-label={`Remover ${file.name}`}><X className="h-3.5 w-3.5" /></Button>
+              </div>
+            ))}
           </div>
           <Button type="submit" disabled={isPending} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
             {isPending ? "Registrando..." : "Registrar Ato do Cartório"}
