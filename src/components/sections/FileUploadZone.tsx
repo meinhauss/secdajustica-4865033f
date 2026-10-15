@@ -109,6 +109,7 @@ export default function FileUploadZone({ processoId, onUploaded, onRemove }: Fil
           {!sending && <span className="inline-flex items-center gap-1 text-xs font-medium text-primary"><Upload className="h-3.5 w-3.5" /> Selecionar arquivo</span>}
         </button>
       )}
+            {progress && !sending && <p className="text-center text-xs text-emerald-700 dark:text-emerald-400">{progress}</p>}
       {error && <p role="alert" className="text-xs text-destructive">{error}</p>}
     </div>
   );
