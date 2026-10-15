@@ -95,7 +95,7 @@ export default function FileUploadZone({ files, disabled = false, onFilesSelecte
                 <Icon className="h-4 w-4 shrink-0 text-institutional" />
                 <span className="min-w-0 flex-1 truncate font-medium">{file.name}</span>
                 <span className="shrink-0 text-muted-foreground">{formatSize(file.size)}</span>
-                <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">Pendente de envio</span>
+                <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">Aguardando envio</span>
                 <Button type="button" variant="ghost" size="icon" className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive" aria-label={`Remover ${file.name} da fila`} disabled={disabled} onClick={() => onRemoveFile(index)}>
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
