@@ -819,10 +819,12 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Fundamentação</h4>
                 <RichTextView html={apelacao.decisao_fundamentacao} className="text-sm mt-1" />
               </div>
-              <div>
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Dispositivo</h4>
-                <RichTextView html={apelacao.decisao_dispositivo} className="text-sm mt-1" />
-              </div>
+                            {apelacao.decisao_dispositivo?.trim() && (
+                <div>
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Dispositivo</h4>
+                  <RichTextView html={apelacao.decisao_dispositivo} className="text-sm mt-1" />
+                </div>
+              )}
               {apelacao.data_julgamento && (
                 <p className="text-xs text-muted-foreground">Julgado em: {format(new Date(apelacao.data_julgamento), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
               )}
