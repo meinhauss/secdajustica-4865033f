@@ -3367,30 +3367,7 @@ function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles
                 <Plus className="h-3 w-3 mr-1" /> Anexar
               </Button>
             </div>
-                                                                                    {false && processo?.id && (
-              <label className="inline-flex items-center gap-1 text-xs text-primary hover:underline cursor-pointer">
-                <Upload className="h-3 w-3" /> Enviar arquivo do computador (PDF/imagem, até 20 MB)
-                <input
-                  type="file"
-                  accept="application/pdf,image/*,text/plain"
-                  className="hidden"
-                  onChange={async (e) => {
-                    const f = e.target.files?.[0];
-                    e.target.value = "";
-                    if (!f) return;
-                    const t = toast.loading("Enviando arquivo...");
-                    try {
-                      const url = await uploadArquivoProcesso(f, processo.id);
-                      setAnexos((prev) => [...prev, { nome: novoAnexoNome.trim() || f.name, url }]);
-                      setNovoAnexoNome("");
-                      toast.success("Arquivo anexado.", { id: t });
-                    } catch (err) {
-                      toast.error((err as Error).message, { id: t });
-                    }
-                  }}
-                />
-              </label>
-            )}
+                                                                                    
           </div>
 
           <Button type="submit" className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">Registrar</Button>
