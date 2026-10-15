@@ -550,8 +550,10 @@ REGRAS OBRIGATÓRIAS:
     setFormRequerentes([]);
     setFormEnvolvidos([]);
     setFormDescricao("");
-    setFormObservacoes("");
+        setFormObservacoes("");
     setFormLinks([]);
+    setFormFiles([]);
+    setUploadProgress("");
   };
 
   const fieldConfig = getFieldConfig(formTipo);
