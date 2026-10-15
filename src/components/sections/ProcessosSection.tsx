@@ -3723,8 +3723,8 @@ function AddAtoCartorio({ processoId, onAdd, isPending }: { processoId: string; 
   const [tipo, setTipo] = useState("juntada");
   const [titulo, setTitulo] = useState("");
   const [conteudo, setConteudo] = useState("");
-  const [anexoUrls, setAnexoUrls] = useState<string[]>([""]);
-  const [uploadingAnexo, setUploadingAnexo] = useState(false);
+    const [anexoUrls, setAnexoUrls] = useState<string[]>([""]);
+  const [arquivosPendentes, setArquivosPendentes] = useState<File[]>([]);
 
   const handleUploadAnexo = async (file?: File) => {
     if (!file) return;
