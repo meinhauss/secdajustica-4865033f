@@ -42,7 +42,7 @@ export function sanitizeRichHtml(html: string | null | undefined): string {
   const sanitized = DOMPurify.sanitize(html, {
     ALLOWED_TAGS,
     ALLOWED_ATTR,
-    ALLOWED_URI_REGEXP: /^(?:https?:|mailto:|tel:)/i,
+    ALLOWED_URI_REGEXP: /^(?:https?:|mailto:|tel:|r2:)/i,
   });
   const withTargets = typeof document !== "undefined"
     ? (() => {

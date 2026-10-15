@@ -22,6 +22,7 @@ import {
 import { generateProcessoPDF, generateMovimentacaoPDF, imageToBase64 } from "@/lib/pdfGenerator";
 import logoTjsp from "@/assets/tjsp-logo.png";
 import { toast } from "sonner";
+import { uploadArquivoProcesso } from "@/lib/r2Files";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { normalizeRichText, isValidPublicUrl } from "@/lib/sanitize";
