@@ -1121,7 +1121,11 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         autor_id: null, autor_nome: autorNome, assinado: true, data_assinatura: new Date().toISOString(),
       });
       if (error) throw error;
-      const validUrls = (ato.anexo_urls || []).filter(u => u.trim());
+            const uploadedUrls: string[] = [];
+      for (const arquivo of ato.arquivos || []) {
+        uploadedUrls.push(await uploadArquivoProcesso(arquivo, processoId));
+      }
+      const validUrls = [...(ato.anexo_urls || []).filter(u => u.trim()), ...uploadedUrls];
       if (validUrls.length > 0) {
         const docsToInsert = validUrls.map((url, idx) => ({
           processo_id: processoId, nome: validUrls.length === 1 ? ato.titulo : `${ato.titulo} (${idx + 1})`,
