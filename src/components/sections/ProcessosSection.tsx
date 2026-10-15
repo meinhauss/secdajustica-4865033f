@@ -1666,7 +1666,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const [embargosForm, setEmbargosForm] = useState({ sentenca_id: "", tipo: "omissao", fundamentacao: "", pedido: "" });
   const oporEmbargos = useMutation({
     mutationFn: async () => {
-      if (!embargosForm.sentenca_id || !embargosForm.fundamentacao || !embargosForm.pedido) throw new Error("Preencha todos os campos.");
+            if (!embargosForm.sentenca_id || !embargosForm.fundamentacao || embargosForm.fundamentacao === "<p></p>") throw new Error("Selecione a sentença e redija a petição integral.");
       const { error } = await supabase.from("embargos_declaracao").insert({
         processo_id: processoId,
         sentenca_id: embargosForm.sentenca_id,
