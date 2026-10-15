@@ -1586,7 +1586,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const [apelacaoForm, setApelacaoForm] = useState({ sentenca_id: "", apelante_tipo: "reu", fundamentacao: "", pedido: "" });
   const interporApelacao = useMutation({
     mutationFn: async () => {
-      if (!apelacaoForm.sentenca_id || !apelacaoForm.fundamentacao || !apelacaoForm.pedido) throw new Error("Preencha todos os campos.");
+            if (!apelacaoForm.sentenca_id || !apelacaoForm.fundamentacao || apelacaoForm.fundamentacao === "<p></p>") throw new Error("Selecione a sentença e redija a peça integral.");
       const { error } = await supabase.from("apelacoes").insert({
         processo_id: processoId,
         sentenca_id: apelacaoForm.sentenca_id,
