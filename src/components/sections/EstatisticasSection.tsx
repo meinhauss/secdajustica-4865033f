@@ -15,6 +15,24 @@ import { CURRENT_VERSION } from "@/lib/version";
 
 const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
   {
+    version: "4.0.0",
+    date: "15/10/2026",
+    changes: [
+      "Nova ferramenta Triagem Penal: análise factual do B.O. por IA, qualificação dos envolvidos, capitulação, TCO, fiança e dosimetria com reduções condicionadas à identificação do advogado",
+      "Triagem Penal: número do B.O. obrigatório, encaminhamento com pré-preenchimento do TCO e relatório em PDF timbrado, fundamentado e identificado pelo agente logado",
+      "Novo cargo Analista com fila de Aprovações (pendentes/concluídas), agrupamento de atos, edição e retirada de pedidos antes da decisão",
+      "Novos cargos Corregedor e Procurador(a) Geral de Justiça Adjunto(a); outorga de cargos organizada por liderança institucional",
+      "Envio em massa de mensagens no Discord por cargo do servidor e notificações de audiências corrigidas (sino e Discord)",
+      "Upload de documentos com armazenamento em nuvem (Cloudflare R2), visualização sem download e envio de vários arquivos",
+      "Redistribuição de processos por suspeição e pelo administrador; administrador pode excluir movimentações",
+      "IA com cadeia OpenAI → Gemini → Groq, continuação automática de textos longos",
+      "Layout responsivo para celular e tablet e botão de acessibilidade (zoom) móvel e ocultável",
+      "Calculadora de Custas corrigida (exclusão de antecedentes por passagem) e valores de verbas indenizatórias ajustados",
+      "Carteiras da OAB com quatro dígitos e ordenamento jurídico municipal pesquisável",
+      "Recarregamento automático da página quando uma versão antiga do sistema deixa de existir",
+    ],
+  },
+  {
     version: "3.6.6",
     date: "10/07/2026",
     changes: [
