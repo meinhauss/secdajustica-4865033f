@@ -3759,11 +3759,12 @@ function AddAtoCartorio({ processoId, onAdd, isPending }: { processoId: string; 
             toast.error(`Link inválido: "${invalid.slice(0, 40)}...". Use um link público (https://...). Caminhos locais como file:/// ou C:\\ não são acessíveis.`);
             return;
           }
-          onAdd({ tipo, titulo, conteudo, anexo_urls: validUrls.length > 0 ? validUrls : undefined });
+                    onAdd({ tipo, titulo, conteudo, anexo_urls: validUrls.length > 0 ? validUrls : undefined, arquivos: arquivosPendentes });
           setOpen(false);
           setTitulo("");
           setConteudo("");
           setAnexoUrls([""]);
+          setArquivosPendentes([]);
         }} className="space-y-3 mt-2">
           <Select value={tipo} onValueChange={setTipo}>
             <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
