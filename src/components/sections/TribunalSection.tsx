@@ -1015,8 +1015,8 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
                   </Select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-foreground">Fundamentação</label>
-                  <RichTextEditor value={vFund} onChange={setVFund} placeholder="Fundamentação do seu voto..." minHeight="160px" className="mt-1" />
+                                    <label className="text-sm font-medium text-foreground">Voto Divergente (Peça Integral)</label>
+                  <RichTextEditor value={vFund} onChange={setVFund} placeholder="Redija seu voto próprio com fundamentação e dispositivo iniciado por 'ISTO POSTO,'..." minHeight="280px" className="mt-1" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-foreground">Dispositivo</label>
