@@ -572,9 +572,25 @@ REGRAS OBRIGATÓRIAS:
       return;
     }
 
+        setSubmitting(true);
+    const uploadedUrls: string[] = [];
+    try {
+      for (const [index, file] of formFiles.entries()) {
+        setUploadProgress(`Enviando arquivo ${index + 1} de ${formFiles.length}...`);
+        uploadedUrls.push(await uploadArquivoAnexo(file, "cartorio"));
+      }
+    } catch (error) {
+      toast({ title: "Falha no envio do anexo", description: (error as Error).message, variant: "destructive" });
+      setSubmitting(false);
+      setUploadProgress("");
+      return;
+    }
+
+    setUploadProgress("Gravando registro...");
     const requerenteNome = JSON.stringify(formRequerentes);
     const partesEnvolvidas = formEnvolvidos.length > 0 ? JSON.stringify(formEnvolvidos) : null;
-    const documentoUrl = formLinks.length > 0 ? JSON.stringify(formLinks) : null;
+    const documentoLinks = [...formLinks, ...uploadedUrls];
+    const documentoUrl = documentoLinks.length > 0 ? JSON.stringify(documentoLinks) : null;
     const primaryId = formRequerentes[0]?.id_personagem || null;
 
     // Determine initial status and observacoes
