@@ -34,15 +34,23 @@ Deno.serve(async (req) => {
       const form = await req.formData();
       const file = form.get("file");
       const processoId = String(form.get("processo_id") ?? "");
+      const contexto = String(form.get("contexto") ?? "");
       if (!(file instanceof File)) return json({ error: "Arquivo ausente" }, 400);
-      if (!/^[0-9a-f-]{36}$/i.test(processoId)) return json({ error: "Processo inválido" }, 400);
       if (file.size > MAX_BYTES) return json({ error: "Arquivo maior que 20 MB" }, 400);
-      if (!ALLOWED.includes(file.type)) return json({ error: "Tipo não permitido (use PDF, imagem ou texto)" }, 400);
-      const { data: proc } = await sb.from("processos").select("id").eq("id", processoId).maybeSingle();
-      if (!proc) return json({ error: "Sem acesso a este processo" }, 403);
+      if (!ALLOWED.includes(file.type)) return json({ error: "Tipo não permitido (use PDF ou imagem PNG, JPEG, WebP ou GIF)" }, 400);
 
       const safe = file.name.normalize("NFD").replace(/[^\w.\-]+/g, "_").slice(-100);
-      const key = `processos/${processoId}/${crypto.randomUUID()}-${safe}`;
+      let key: string;
+      if (processoId) {
+        if (!/^[0-9a-f-]{36}$/i.test(processoId)) return json({ error: "Processo inválido" }, 400);
+        const { data: proc } = await sb.from("processos").select("id").eq("id", processoId).maybeSingle();
+        if (!proc) return json({ error: "Sem acesso a este processo" }, 403);
+        key = `processos/${processoId}/${crypto.randomUUID()}-${safe}`;
+      } else {
+        if (contexto !== "cartorio" && contexto !== "ouvidoria") return json({ error: "Contexto de anexo inválido" }, 400);
+        if (!u?.user && contexto !== "ouvidoria") return json({ error: "Não autenticado" }, 401);
+        key = `anexos/${contexto}/${u?.user?.id ?? "public"}/${crypto.randomUUID()}-${safe}`;
+      }
       const r = await r2.fetch(`${BASE}/${key}`, {
         method: "PUT",
         body: await file.arrayBuffer(),
