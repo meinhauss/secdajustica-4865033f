@@ -788,10 +788,12 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
                       <h5 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Fundamentação</h5>
                       <RichTextView html={v.fundamentacao} className="text-sm" />
                     </div>
-                    <div className="mt-2">
-                      <h5 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Dispositivo</h5>
-                      <RichTextView html={v.dispositivo} className="text-sm" />
-                    </div>
+                                        {v.dispositivo?.trim() && (
+                      <div className="mt-2">
+                        <h5 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Dispositivo</h5>
+                        <RichTextView html={v.dispositivo} className="text-sm" />
+                      </div>
+                    )}
                   </>
                 )}
                 {v.tipo === "acompanha" && v.ressalvas && (
