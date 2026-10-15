@@ -1299,12 +1299,16 @@ REGRAS OBRIGATÓRIAS:
                     <div>
                       <p className="text-xs text-muted-foreground mb-1">Documentos Anexos</p>
                       <div className="space-y-1">
-                        {links.map((url, i) => (
-                          <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/60 border border-border text-xs text-primary hover:underline">
-                            <ExternalLink className="h-3 w-3 flex-shrink-0" />
-                            <span className="truncate">{url}</span>
-                          </a>
-                        ))}
+                                                {links.map((url, i) => {
+                          const isR2 = url.startsWith("r2://");
+                          const fileName = url.split("/").pop()?.replace(/^\d+-/, "") || "Documento anexado";
+                          return (
+                            <button key={i} type="button" onClick={() => isR2 ? void abrirArquivoR2(url) : window.open(url, "_blank", "noopener,noreferrer")} className="flex w-full items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/60 border border-border text-xs text-primary hover:underline text-left">
+                              <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                              <span className="truncate">{isR2 ? fileName : url}</span>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   );
