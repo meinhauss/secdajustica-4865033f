@@ -3790,10 +3790,18 @@ function AddAtoCartorio({ processoId, onAdd, isPending }: { processoId: string; 
                         <Button type="button" variant="outline" size="sm" className="rounded-xl text-xs" onClick={handleAddLink}>
               + Adicionar outro link
             </Button>
-            <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-primary/40 bg-primary/5 px-3 py-2 text-xs font-medium text-primary hover:bg-primary/10">
-              {uploadingAnexo ? "Enviando arquivo..." : "Enviar arquivo do computador (PDF/imagem, até 20 MB)"}
-              <input type="file" accept="application/pdf,image/*" className="hidden" disabled={uploadingAnexo} onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ""; void handleUploadAnexo(file); }} />
+                        <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-primary/40 bg-primary/5 px-3 py-2 text-xs font-medium text-primary hover:bg-primary/10">
+              {isPending ? "Registrando ato..." : "Selecionar arquivo do computador (PDF/imagem, até 20 MB)"}
+              <input type="file" multiple accept="application/pdf,image/*" className="hidden" disabled={isPending} onChange={(event) => { Array.from(event.target.files || []).forEach((file) => handleUploadAnexo(file)); event.target.value = ""; }} />
             </label>
+            {arquivosPendentes.map((file, idx) => (
+              <div key={`${file.name}-${file.lastModified}-${idx}`} className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-xs">
+                <FileText className="h-4 w-4 shrink-0 text-institutional" />
+                <span className="min-w-0 flex-1 truncate">{file.name}</span>
+                <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">Aguardando registro</span>
+                <Button type="button" variant="ghost" size="icon" className="h-7 w-7" disabled={isPending} onClick={() => setArquivosPendentes((prev) => prev.filter((_, index) => index !== idx))} aria-label={`Remover ${file.name}`}><X className="h-3.5 w-3.5" /></Button>
+              </div>
+            ))}
           </div>
           <Button type="submit" disabled={isPending} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
             {isPending ? "Registrando..." : "Registrar Ato do Cartório"}
