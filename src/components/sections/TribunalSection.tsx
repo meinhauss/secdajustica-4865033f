@@ -480,8 +480,7 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
 
   const registrarVotoRelatorMutation = useMutation({
     mutationFn: async () => {
-      if (!decisaoFund || decisaoFund === "<p></p>") throw new Error("Informe a fundamentação.");
-      if (!decisaoDisp || decisaoDisp === "<p></p>") throw new Error("Informe o dispositivo.");
+            if (!decisaoFund || decisaoFund === "<p></p>") throw new Error("Informe o voto integral.");
       const { error } = await supabase.from("votos_apelacao").insert({
         apelacao_id: apelacaoId,
         desembargador_id: user!.id,
