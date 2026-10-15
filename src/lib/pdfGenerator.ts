@@ -546,10 +546,10 @@ export function generateProcessoPDF(params: {
         doc.setFont("helvetica", "normal");
         doc.setTextColor(50);
         y = addWrappedText(doc, `Tipo: ${ap.decisao_tipo || "-"} | Acordao: ${ap.numero_acordao || "-"}`, MARGIN + 2, y, CONTENT_W - 4, 3.5);
-        y = addWrappedText(doc, ap.decisao_fundamentacao, MARGIN + 2, y, CONTENT_W - 4, 3.5);
-        if (ap.decisao_dispositivo) {
-          y = addWrappedText(doc, `Dispositivo: ${ap.decisao_dispositivo}`, MARGIN + 2, y, CONTENT_W - 4, 3.5);
-        }
+                const textoDecisao = [ap.decisao_fundamentacao, ap.decisao_dispositivo]
+          .filter((texto, index, campos) => texto?.trim() && campos.findIndex((campo) => campo?.trim() === texto.trim()) === index)
+          .join("\n\n");
+        y = renderRichText(doc, textoDecisao || "-", MARGIN + 2, y, CONTENT_W - 4, 3.5, 8);
       }
       y = drawLightSeparator(doc, y + 2);
     }
