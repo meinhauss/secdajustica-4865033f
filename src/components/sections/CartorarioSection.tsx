@@ -21,7 +21,8 @@ import {
 } from "lucide-react";
 import { generateCartorioPDF, imageToBase64 } from "@/lib/pdfGenerator";
 import { isValidPublicUrl } from "@/lib/sanitize";
-import { uploadArquivoAnexo } from "@/lib/r2Files";
+import { abrirArquivoR2, uploadArquivoAnexo } from "@/lib/r2Files";
+import FileUploadZone from "@/components/sections/FileUploadZone";
 import logoCartorio from "@/assets/logo-cartorio-sp.png";
 
 /* ─── Types ─── */
@@ -356,41 +357,22 @@ function PersonInput({ label, entries, onChange }: {
 }
 
 /* ─── Links Input Component ─── */
-function LinksInput({ label, links, onChange }: {
+function LinksInput({ label, links, onChange, files, onFilesSelected, onRemoveFile, disabled = false }: {
   label: string;
   links: string[];
   onChange: (links: string[]) => void;
+  files: File[];
+  onFilesSelected: (files: File[]) => void;
+  onRemoveFile: (index: number) => void;
+  disabled?: boolean;
 }) {
-    const [input, setInput] = useState("");
-  const [uploading, setUploading] = useState(false);
-
-  const uploadFile = async (file?: File) => {
-    if (!file) return;
-    if (file.size > 20 * 1024 * 1024 || (file.type !== "application/pdf" && !file.type.startsWith("image/"))) {
-      toast({ title: "Arquivo inválido", description: "Envie um PDF ou uma imagem de até 20 MB.", variant: "destructive" });
-      return;
-    }
-    setUploading(true);
-    try {
-      const url = await uploadArquivoAnexo(file, "cartorio");
-      onChange([...links, url]);
-      toast({ title: "Arquivo anexado com sucesso" });
-    } catch (error) {
-      toast({ title: "Falha no envio", description: (error as Error).message, variant: "destructive" });
-    } finally {
-      setUploading(false);
-    }
-  };
+  const [input, setInput] = useState("");
 
   const addLink = () => {
     const url = input.trim();
     if (!url) return;
-    if (!isValidPublicUrl(url)) {
-      toast({
-        title: "Link inválido",
-        description: "Cole um link público começando com https:// (ex.: Google Drive, Discord). Caminhos locais (file:///, C:\\...) não são acessíveis a outros usuários.",
-        variant: "destructive",
-      });
+    if (!isValidPublicUrl(url) || !url.startsWith("https://")) {
+      toast({ title: "Link inválido", description: "Informe um link externo começando com https://.", variant: "destructive" });
       return;
     }
     onChange([...links, url]);
@@ -398,42 +380,34 @@ function LinksInput({ label, links, onChange }: {
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <Label>{label}</Label>
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <Link className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addLink(); } }}
-            onBlur={addLink}
-            placeholder="https://..."
-            className="pl-10"
-          />
+      <FileUploadZone files={files} onFilesSelected={onFilesSelected} onRemoveFile={onRemoveFile} disabled={disabled} />
+      <div className="space-y-2">
+        <Label>Links externos</Label>
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Link className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addLink(); } }} placeholder="https://..." className="pl-10" disabled={disabled} />
+          </div>
+          <Button type="button" size="sm" variant="outline" onClick={addLink} disabled={disabled || !input.trim()}>
+            <Plus className="h-4 w-4 mr-1" /> Adicionar link externo
+          </Button>
         </div>
-                <Button type="button" size="sm" variant="outline" onClick={addLink} disabled={!input.trim()}>
-          <Plus className="h-4 w-4" />
-        </Button>
-        <label className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-input px-3 text-sm hover:bg-muted" title="Enviar arquivo do computador">
-          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 16V4m0 0L7 9m5-5 5 5M5 14v5h14v-5" /></svg>
-          {uploading ? "Enviando" : "Upload"}
-          <input type="file" accept="application/pdf,image/*" className="hidden" disabled={uploading} onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ""; void uploadFile(file); }} />
-        </label>
+        {links.length > 0 && (
+          <div className="space-y-1">
+            {links.map((url, i) => (
+              <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/60 border border-border text-xs">
+                <Link className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                <a href={url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate flex-1">{url}</a>
+                <button type="button" className="ml-auto text-muted-foreground hover:text-destructive flex-shrink-0" onClick={() => onChange(links.filter((_, j) => j !== i))} disabled={disabled}>
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-      {links.length > 0 && (
-        <div className="space-y-1">
-          {links.map((url, i) => (
-            <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/60 border border-border text-xs">
-              <Link className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-              <a href={url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate flex-1">{url}</a>
-              <button type="button" className="ml-auto text-muted-foreground hover:text-destructive flex-shrink-0" onClick={() => onChange(links.filter((_, j) => j !== i))}>
-                <X className="h-3 w-3" />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
@@ -531,7 +505,11 @@ export default function CartorarioSection() {
   const [formEnvolvidos, setFormEnvolvidos] = useState<PersonEntry[]>([]);
   const [formDescricao, setFormDescricao] = useState("");
   const [formObservacoes, setFormObservacoes] = useState("");
-  const [formLinks, setFormLinks] = useState<string[]>([]);
+    const [formLinks, setFormLinks] = useState<string[]>([]);
+  const [formFiles, setFormFiles] = useState<File[]>([]);
+  const [emitFiles, setEmitFiles] = useState<File[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState("");
   const { run: runAI, loading: aiLoading } = useAI();
 
   const gerarTextoPadrao = async () => {
@@ -572,8 +550,10 @@ REGRAS OBRIGATÓRIAS:
     setFormRequerentes([]);
     setFormEnvolvidos([]);
     setFormDescricao("");
-    setFormObservacoes("");
+        setFormObservacoes("");
     setFormLinks([]);
+    setFormFiles([]);
+    setUploadProgress("");
   };
 
   const fieldConfig = getFieldConfig(formTipo);
@@ -592,9 +572,25 @@ REGRAS OBRIGATÓRIAS:
       return;
     }
 
+        setSubmitting(true);
+    const uploadedUrls: string[] = [];
+    try {
+      for (const [index, file] of formFiles.entries()) {
+        setUploadProgress(`Enviando arquivo ${index + 1} de ${formFiles.length}...`);
+        uploadedUrls.push(await uploadArquivoAnexo(file, "cartorio"));
+      }
+    } catch (error) {
+      toast({ title: "Falha no envio do anexo", description: (error as Error).message, variant: "destructive" });
+      setSubmitting(false);
+      setUploadProgress("");
+      return;
+    }
+
+    setUploadProgress("Gravando registro...");
     const requerenteNome = JSON.stringify(formRequerentes);
     const partesEnvolvidas = formEnvolvidos.length > 0 ? JSON.stringify(formEnvolvidos) : null;
-    const documentoUrl = formLinks.length > 0 ? JSON.stringify(formLinks) : null;
+    const documentoLinks = [...formLinks, ...uploadedUrls];
+    const documentoUrl = documentoLinks.length > 0 ? JSON.stringify(documentoLinks) : null;
     const primaryId = formRequerentes[0]?.id_personagem || null;
 
     // Determine initial status and observacoes
@@ -672,8 +668,10 @@ REGRAS OBRIGATÓRIAS:
 
     const { error } = await supabase.from("registros_cartorio").insert(insertData);
 
-    if (error) {
+        if (error) {
       toast({ title: "Erro ao solicitar", description: error.message, variant: "destructive" });
+      setSubmitting(false);
+      setUploadProgress("");
       return;
     }
 
@@ -689,22 +687,47 @@ REGRAS OBRIGATÓRIAS:
     } else {
       toast({ title: "Solicitação registrada com sucesso" });
     }
+        setSubmitting(false);
+    setUploadProgress("");
     setShowNovoRegistro(false);
     resetForm();
     fetchRegistros();
   };
 
-  const handleUpdateStatus = async (id: string, status: string) => {
+    const handleUpdateStatus = async (id: string, status: string) => {
     const updateData: any = { status };
     if (status === "emitido") {
+      setSubmitting(true);
+      const uploadedUrls: string[] = [];
+      try {
+        for (const [index, file] of emitFiles.entries()) {
+          setUploadProgress(`Enviando arquivo ${index + 1} de ${emitFiles.length}...`);
+          uploadedUrls.push(await uploadArquivoAnexo(file, "cartorio"));
+        }
+      } catch (error) {
+        toast({ title: "Falha no envio do anexo", description: (error as Error).message, variant: "destructive" });
+        setSubmitting(false);
+        setUploadProgress("");
+        return;
+      }
       updateData.emitido_por = user?.id;
       updateData.emitido_por_nome = profile?.nome_completo || "Servidor";
-      if (emitirLinks.length > 0) {
+      const newLinks = [...emitirLinks, ...uploadedUrls];
+      if (newLinks.length > 0) {
         const existing = parseLinks(showDetalhes?.documento_url || null);
-        updateData.documento_url = JSON.stringify([...existing, ...emitirLinks]);
+        updateData.documento_url = JSON.stringify([...existing, ...newLinks]);
       }
+      setUploadProgress("Gravando registro...");
     }
-    await supabase.from("registros_cartorio").update(updateData).eq("id", id);
+    const { error } = await supabase.from("registros_cartorio").update(updateData).eq("id", id);
+    if (error) {
+      toast({ title: "Erro ao atualizar registro", description: error.message, variant: "destructive" });
+      setSubmitting(false);
+      setUploadProgress("");
+      return;
+    }
+    setSubmitting(false);
+    setUploadProgress("");
     toast({ title: `Status atualizado para: ${statusLabel(status)}` });
     setEmitirLinks([]);
     fetchRegistros();
@@ -1104,15 +1127,19 @@ REGRAS OBRIGATÓRIAS:
                 </div>
               )}
 
-              <LinksInput
-                label="Links / Documentos Anexos"
+                            <LinksInput
+                label="Documentos Anexos"
                 links={formLinks}
                 onChange={setFormLinks}
+                files={formFiles}
+                onFilesSelected={(files) => setFormFiles((current) => [...current, ...files])}
+                onRemoveFile={(index) => setFormFiles((current) => current.filter((_, i) => i !== index))}
+                disabled={submitting}
               />
 
-              <Button className="w-full" onClick={handleSolicitar}>
-                <Stamp className="h-4 w-4 mr-1" />
-                {fieldConfig.autoEmit ? "Emitir Certidão" : fieldConfig.confirmByParties ? "Registrar Procuração" : "Solicitar Documento"}
+              <Button className="w-full" onClick={handleSolicitar} disabled={submitting}>
+                {submitting ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Stamp className="h-4 w-4 mr-1" />}
+                {submitting ? uploadProgress || "Enviando..." : fieldConfig.autoEmit ? "Emitir Certidão" : fieldConfig.confirmByParties ? "Registrar Procuração" : "Solicitar Documento"}
               </Button>
             </div>
           </div>
@@ -1272,12 +1299,16 @@ REGRAS OBRIGATÓRIAS:
                     <div>
                       <p className="text-xs text-muted-foreground mb-1">Documentos Anexos</p>
                       <div className="space-y-1">
-                        {links.map((url, i) => (
-                          <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/60 border border-border text-xs text-primary hover:underline">
-                            <ExternalLink className="h-3 w-3 flex-shrink-0" />
-                            <span className="truncate">{url}</span>
-                          </a>
-                        ))}
+                                                {links.map((url, i) => {
+                          const isR2 = url.startsWith("r2://");
+                          const fileName = url.split("/").pop()?.replace(/^\d+-/, "") || "Documento anexado";
+                          return (
+                            <button key={i} type="button" onClick={() => isR2 ? void abrirArquivoR2(url) : window.open(url, "_blank", "noopener,noreferrer")} className="flex w-full items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/60 border border-border text-xs text-primary hover:underline text-left">
+                              <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                              <span className="truncate">{isR2 ? fileName : url}</span>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   );
@@ -1307,10 +1338,14 @@ REGRAS OBRIGATÓRIAS:
                 {/* Ações do cartorário — only for non-auto types */}
                 {isCartorario && showDetalhes.status !== "emitido" && showDetalhes.status !== "recusado" && showDetalhes.status !== "aguardando_confirmacao" && (
                   <div className="space-y-3 pt-2 border-t border-border">
-                    <LinksInput
-                      label="Anexar Links ao Emitir"
+                                        <LinksInput
+                      label="Anexos ao Emitir"
                       links={emitirLinks}
                       onChange={setEmitirLinks}
+                      files={emitFiles}
+                      onFilesSelected={(files) => setEmitFiles((current) => [...current, ...files])}
+                      onRemoveFile={(index) => setEmitFiles((current) => current.filter((_, i) => i !== index))}
+                      disabled={submitting}
                     />
                     <div className="flex gap-2">
                       {showDetalhes.status === "solicitado" && (
