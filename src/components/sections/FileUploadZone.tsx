@@ -94,10 +94,10 @@ export default function FileUploadZone({ processoId, onUploaded, onRemove }: Fil
           onClick={() => inputRef.current?.click()}
           onDragOver={(event) => { event.preventDefault(); setDragging(true); }}
           onDragLeave={() => setDragging(false)}
-          onDrop={(event) => {
+                    onDrop={(event) => {
             event.preventDefault();
             setDragging(false);
-            void upload(event.dataTransfer.files?.[0]);
+            void upload(event.dataTransfer.files);
           }}
           className={`flex min-h-32 w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-5 text-center transition-colors ${dragging ? "border-primary bg-primary/10" : "border-primary/40 bg-primary/5 hover:border-primary hover:bg-primary/10"} ${sending ? "cursor-wait opacity-80" : "cursor-pointer"}`}
         >
