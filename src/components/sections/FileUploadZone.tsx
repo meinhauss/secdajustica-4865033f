@@ -33,9 +33,19 @@ export default function FileUploadZone({ files, disabled = false, onFilesSelecte
       validFiles.push(file);
     }
 
-    if (validFiles.length) {
-      onFilesSelected(validFiles);
-      toast.success(`${validFiles.length} arquivo(s) adicionado(s) à fila local.`);
+        const existingKeys = new Set(files.map((file) => `${file.name}:${file.size}`));
+    const newFiles = validFiles.filter((file) => {
+      const key = `${file.name}:${file.size}`;
+      if (existingKeys.has(key)) return false;
+      existingKeys.add(key);
+      return true;
+    });
+
+    if (newFiles.length) {
+      onFilesSelected(newFiles);
+      toast.success(`${newFiles.length} arquivo(s) adicionado(s) à fila local.`);
+    } else if (validFiles.length) {
+      toast.info("Os arquivos selecionados já estão na fila.");
     }
   };
 
