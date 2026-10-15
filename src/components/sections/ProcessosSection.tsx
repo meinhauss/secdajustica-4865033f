@@ -1114,7 +1114,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   });
 
   const createAtoCartorio = useMutation({
-    mutationFn: async (ato: { tipo: string; titulo: string; conteudo: string; anexo_urls?: string[] }) => {
+    mutationFn: async (ato: { tipo: string; titulo: string; conteudo: string; anexo_urls?: string[]; arquivos?: File[] }) => {
       const autorNome = "Escrevente Técnico Judiciário Abel Haus";
       const { error } = await supabase.from("atos_judiciais").insert({
         processo_id: processoId, tipo: ato.tipo, titulo: ato.titulo, conteudo: ato.conteudo,
