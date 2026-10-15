@@ -812,27 +812,36 @@ function TabOuvidoria() {
 
   const removeLink = (i: number) => setLinks(links.filter((_, idx) => idx !== i));
 
-  const handleEnviar = async () => {
+    const handleEnviar = async () => {
     if (!descricao.trim()) {
       toast.error("Descreva os fatos da denúncia.");
       return;
     }
     setEnviando(true);
     try {
+      const urlsR2: string[] = [];
+      for (let index = 0; index < arquivosPendentes.length; index += 1) {
+        setStatusEnvio(`Enviando arquivo ${index + 1} de ${arquivosPendentes.length}...`);
+        urlsR2.push(await uploadArquivoAnexo(arquivosPendentes[index], "ouvidoria"));
+      }
+
+      setStatusEnvio("Gravando denúncia...");
       const { error } = await supabase.from("denuncias_ouvidoria" as any).insert({
         nome_denunciante: nome.trim() || "Anônimo",
         contato_denunciante: contato.trim() || null,
         descricao: descricao.trim(),
         envolvidos: envolvidos.length > 0 ? envolvidos : [],
-        links: links.length > 0 ? links : [],
+        links: [...links, ...urlsR2],
       } as any);
       if (error) throw error;
+      setArquivosPendentes([]);
       toast.success("Denúncia enviada com sucesso! O Ministério Público irá analisar.");
       setEnviado(true);
     } catch (err: any) {
-      toast.error(err.message || "Erro ao enviar denúncia.");
+      toast.error(err.message || "Erro ao enviar denúncia. Seus arquivos continuam na fila para nova tentativa.");
     } finally {
       setEnviando(false);
+      setStatusEnvio("");
     }
   };
 
