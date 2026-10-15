@@ -575,9 +575,10 @@ export function generateProcessoPDF(params: {
       y += 4;
       doc.setFontSize(8);
       doc.setTextColor(50);
-      y = addWrappedText(doc, `Fundamentacao: ${emb.fundamentacao}`, MARGIN + 2, y, CONTENT_W - 4, 3.5);
-      y += 1;
-      y = addWrappedText(doc, `Pedido: ${emb.pedido}`, MARGIN + 2, y, CONTENT_W - 4, 3.5);
+            const textoEmbargos = [emb.fundamentacao, emb.pedido]
+        .filter((texto, index, campos) => texto?.trim() && campos.findIndex((campo) => campo?.trim() === texto.trim()) === index)
+        .join("\n\n");
+      y = renderRichText(doc, textoEmbargos || "-", MARGIN + 2, y, CONTENT_W - 4, 3.5, 8);
       if (emb.decisao) {
         y += 1;
         doc.setFont("helvetica", "bold");
