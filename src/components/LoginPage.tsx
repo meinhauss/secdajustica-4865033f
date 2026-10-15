@@ -799,9 +799,14 @@ function TabOuvidoria() {
 
   const removeEnvolvido = (i: number) => setEnvolvidos(envolvidos.filter((_, idx) => idx !== i));
 
-  const addLink = () => {
-    if (!novoLink.trim()) return;
-    setLinks([...links, novoLink.trim()]);
+    const addLink = () => {
+    const url = novoLink.trim();
+    if (!url) return;
+    if (!/^https:\/\//i.test(url)) {
+      toast.error("Informe um link externo iniciado por https://.");
+      return;
+    }
+    setLinks([...links, url]);
     setNovoLink("");
   };
 
