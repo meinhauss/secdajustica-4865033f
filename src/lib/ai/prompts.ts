@@ -74,9 +74,19 @@ Devolva APENAS o texto da ementa.`;
     rascunhoAtual?: string;
     instrucao?: string;
   }) => {
-    const isSentCompleta = ctx.tipoAto === "sentenca" || ctx.tipoAto === "sentenca_completa" || ctx.tipoAto === "sentenca_absolutoria" || ctx.tipoAto === "sentenca_condenatoria" || ctx.tipoAto === "acordao";
-    const escopo = isSentCompleta
+        const tipoContexto = `${ctx.tipoAto} ${ctx.tituloAto || ""}`.toLowerCase();
+    const isSentenca = ["sentenca", "sentença"].some((tipo) => tipoContexto.includes(tipo));
+    const isApelacao = tipoContexto.includes("recurso_apelacao") || tipoContexto.includes("apelação");
+    const isEmbargos = tipoContexto.includes("embargos_declaracao") || tipoContexto.includes("embargos de declaração");
+    const isVotoOuAcordao = tipoContexto.includes("voto") || tipoContexto.includes("acordao") || tipoContexto.includes("acórdão");
+    const escopo = isSentenca
       ? `\n\nESCOPO OBRIGATÓRIO: Gere a SENTENÇA COMO PEÇA ÚNICA E INTEGRADA — texto corrido, sem separar em seções rotuladas "FUNDAMENTAÇÃO" e "DISPOSITIVO". Comece com breve relatório (2–4 linhas), siga com análise jurídica dos fatos, teses e provas com dispositivos legais aplicáveis, e termine com a parte decisória iniciada por "ISTO POSTO," (condenações, honorários, custas, determinações). NÃO inclua ementa. NÃO inclua cabeçalho, comarca, nº do processo, partes qualificadas, data ou assinatura (isso é preenchido pelo sistema). Use parágrafos <p>…</p> contínuos, sem títulos em <strong>MAIÚSCULAS</strong> quebrando o fluxo.`
+      : isApelacao
+      ? `\n\nESCOPO OBRIGATÓRIO: Redija a APELAÇÃO COMO PEÇA ÚNICA E CONTÍNUA, incluindo admissibilidade quando pertinente, síntese dos fatos, impugnação específica dos fundamentos da sentença, razões jurídicas e pedidos recursais claros no mesmo fluxo. Não crie campos ou seções separadas de "FUNDAMENTAÇÃO" e "PEDIDOS"; encerre a própria peça com os requerimentos, inclusive o pedido de reforma ou anulação que decorra do contexto. Não invente teses, fatos ou pedidos não sustentados pelos dados fornecidos.`
+      : isEmbargos
+      ? `\n\nESCOPO OBRIGATÓRIO: Redija os EMBARGOS DE DECLARAÇÃO COMO PEÇA ÚNICA E CONTÍNUA. Identifique e demonstre o vício indicado (omissão, contradição ou obscuridade, conforme o contexto), exponha sua relevância e conclua na mesma peça com o pedido de saneamento e, somente se fundamentado no contexto, eventual efeito modificativo. Não separe "FUNDAMENTAÇÃO" e "PEDIDOS" em blocos distintos e não presuma qual vício foi selecionado.`
+      : isVotoOuAcordao
+      ? `\n\nESCOPO OBRIGATÓRIO: Redija o VOTO/ACÓRDÃO como peça única e contínua, com relatório sucinto quando cabível, análise dos argumentos e provas relevantes e conclusão decisória integrada ao texto, iniciada por "ISTO POSTO," ou fórmula equivalente. Não separe fundamentação e dispositivo em campos ou blocos independentes. Preserve o sentido da decisão selecionada e não invente fatos, votos ou resultado colegiado.`
       : "";
     return `Gere o texto do ato judicial abaixo em português, tom formal, técnico, pronto para ser publicado. NÃO invente fatos, nomes, valores, artigos ou jurisprudência que não estejam no contexto. Use os dados fornecidos (partes, advogados, OAB, juiz) SEMPRE que estiverem presentes; NUNCA escreva placeholders como [nome do autor], [OAB] etc. quando o dado estiver no contexto.
 
@@ -195,11 +205,7 @@ ${(ctx.movimentacoes || []).slice(0, 15).map((m, i) => `${i + 1}. [${m.tipo}] ${
 
 export const PROMPTS_EXTRA = {
   minutaJudicial: (ctx: ProcCtx & { tipo: "sentenca" | "decisao"; tese?: string; instrucao?: string; extenso?: boolean }) =>
-    `Gere a minuta de ${ctx.tipo === "sentenca" ? "SENTENÇA" : "DECISÃO INTERLOCUTÓRIA"} em português formal, com estrutura clássica:
-
-I – RELATÓRIO
-II – FUNDAMENTAÇÃO
-III – DISPOSITIVO
+        `Gere a minuta de ${ctx.tipo === "sentenca" ? "SENTENÇA" : "DECISÃO INTERLOCUTÓRIA"} em português formal como peça única e contínua. Integre relatório sucinto, análise jurídica e conclusão decisória no mesmo fluxo, sem separar o conteúdo em blocos rotulados de relatório, fundamentação ou dispositivo; encerre com a decisão apropriada ao contexto.
 
 ${ctx.extenso
   ? "Elabore de forma DETALHADA e EXTENSA, com fundamentação aprofundada."
@@ -267,14 +273,11 @@ Devolva APENAS o texto do documento, sem markdown de código.`;
       embargos_declaracao: "EMBARGOS DE DECLARAÇÃO",
       agravo: "AGRAVO DE INSTRUMENTO",
     };
-    return `Gere ${titulo[ctx.tipo]} em português formal, como advogado(a) subscritor(a). Estrutura clássica pertinente à peça:
-- Endereçamento ao Juízo/Tribunal competente
-- Qualificação das partes (use dados do contexto; [colchetes] para faltantes)
-- Dos fatos
-- Do direito (fundamentação jurídica com dispositivos aplicáveis)
-- Dos pedidos (rol claro e específico)
-- Valor da causa quando cabível
-- Fecho (Nestes termos, pede deferimento — Local, data — OAB)
+        const pecaContinua = ctx.tipo === "recurso_apelacao" || ctx.tipo === "embargos_declaracao";
+    return `Gere ${titulo[ctx.tipo]} em português formal, como advogado(a) subscritor(a). ${pecaContinua
+      ? "Redija como peça integral e contínua, reunindo fatos, fundamentos e pedidos no mesmo texto, sem separar fundamentação e pedidos em campos ou blocos independentes. Na apelação, formule razões de reforma ou anulação; nos embargos, trate o vício indicado e conclua com pedido de saneamento, sem presumir informações ausentes."
+      : "Estruture a peça conforme sua finalidade, com endereçamento ao Juízo/Tribunal competente, qualificação das partes, exposição dos fatos e do direito, pedidos claros, valor da causa quando cabível e fecho apropriado."}
+Use dados do contexto; indique lacunas com [colchetes].
 
 ${ctx.extenso
   ? "Elabore de forma DETALHADA e EXTENSA, com fundamentação aprofundada."
