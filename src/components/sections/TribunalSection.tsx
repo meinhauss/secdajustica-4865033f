@@ -487,8 +487,8 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
         desembargador_nome: profile?.nome_completo || "Relator",
         tipo: "relator",
         decisao_tipo: decisaoTipo,
-        fundamentacao: decisaoFund,
-        dispositivo: decisaoDisp,
+                fundamentacao: decisaoFund,
+        dispositivo: " ",
       });
       if (error) throw error;
       if (apelacao?.processo_id) {
