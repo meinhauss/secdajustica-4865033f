@@ -1,69 +1,47 @@
 import { useRef, useState } from "react";
-import { CheckCircle, CloudUpload, Loader2, Upload, X } from "lucide-react";
+import { CloudUpload, FileText, Image as ImageIcon, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { uploadArquivoProcesso } from "@/lib/r2Files";
 import { toast } from "sonner";
 
 type FileUploadZoneProps = {
-  processoId: string;
-  onUploaded: (url: string, name: string) => void;
-  onRemove: (url: string) => void;
+  files: File[];
+  disabled?: boolean;
+  onFilesSelected: (files: File[]) => void;
+  onRemoveFile: (index: number) => void;
 };
 
-export default function FileUploadZone({ processoId, onUploaded, onRemove }: FileUploadZoneProps) {
+export default function FileUploadZone({ files, disabled = false, onFilesSelected, onRemoveFile }: FileUploadZoneProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [sending, setSending] = useState(false);
-  const [progress, setProgress] = useState("");
   const [dragging, setDragging] = useState(false);
-  const [uploaded, setUploaded] = useState<{ url: string; name: string }[]>([]);
-  const [error, setError] = useState("");
 
-  const upload = async (files?: FileList | File[]) => {
-    const selectedFiles = Array.from(files || []);
-    if (!selectedFiles.length) return;
+  const handleFiles = (filesList?: FileList | File[] | null) => {
+    if (disabled || !filesList) return;
+    const selected = Array.from(filesList);
+    const validFiles: File[] = [];
 
-    const validFiles = selectedFiles.filter((file) => {
+    for (const file of selected) {
       if (file.size > 20 * 1024 * 1024) {
-        toast.error(`${file.name}: excede o limite de 20 MB.`);
-        return false;
+        toast.error(`"${file.name}" excede o limite máximo de 20 MB.`);
+        continue;
       }
-      if (file.type !== "application/pdf" && !file.type.startsWith("image/")) {
-        toast.error(`${file.name}: envie um PDF ou uma imagem.`);
-        return false;
+      const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+      const isImage = ["image/png", "image/jpeg"].includes(file.type) || /\.(png|jpe?g)$/i.test(file.name);
+      if (!isPdf && !isImage) {
+        toast.error(`"${file.name}" não é suportado. Envie apenas PDF, PNG ou JPG.`);
+        continue;
       }
-      return true;
-    });
-    if (!validFiles.length) return;
-
-    setError("");
-    setSending(true);
-    setProgress(`Enviando 0 de ${validFiles.length} arquivos...`);
-    let completed = 0;
-    let failed = 0;
-    for (const file of validFiles) {
-      try {
-        const url = await uploadArquivoProcesso(file, processoId);
-        onUploaded(url, file.name);
-        setUploaded((prev) => [...prev, { url, name: file.name }]);
-        completed += 1;
-      } catch (err) {
-        failed += 1;
-        toast.error(`${file.name}: ${(err as Error).message || "não foi possível enviar."}`);
-      }
-      setProgress(`Enviando ${completed + failed} de ${validFiles.length} arquivos...`);
+      validFiles.push(file);
     }
-    setSending(false);
-    setProgress(completed ? `${completed} arquivo(s) enviado(s) com sucesso.` : "");
-    if (completed) toast.success(`${completed} arquivo(s) enviado(s) com sucesso.`);
-    if (!completed && failed) setError("Nenhum arquivo pôde ser enviado.");
+
+    if (validFiles.length) {
+      onFilesSelected(validFiles);
+      toast.success(`${validFiles.length} arquivo(s) adicionado(s) à fila local.`);
+    }
   };
 
-  const remove = (url: string) => {
-    onRemove(url);
-    setUploaded((prev) => prev.filter((item) => item.url !== url));
-    setError("");
-    setProgress("");
-  };
+  const formatSize = (size: number) => size >= 1024 * 1024
+    ? `${(size / (1024 * 1024)).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} MB`
+    : `${Math.max(1, Math.round(size / 1024))} KB`;
 
   return (
     <div className="space-y-2">
@@ -71,59 +49,51 @@ export default function FileUploadZone({ processoId, onUploaded, onRemove }: Fil
         ref={inputRef}
         type="file"
         multiple
-        accept="application/pdf,image/png,image/jpeg,image/*"
+        accept="application/pdf,image/png,image/jpeg"
         className="hidden"
-        disabled={sending}
+        disabled={disabled}
         onChange={(event) => {
-          const files = event.target.files;
+          handleFiles(event.target.files);
           event.target.value = "";
-          void upload(files || undefined);
         }}
       />
-      {uploaded.map((item) => (
-        <div
-          key={item.url}
-          className="flex items-center gap-3 rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300"
-        >
-          <CheckCircle className="h-5 w-5 shrink-0" />
-          <span className="min-w-0 flex-1 truncate text-sm font-medium">Anexado: {item.name}</span>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="shrink-0 text-emerald-800 hover:text-destructive dark:text-emerald-300"
-            onClick={() => remove(item.url)}
-          >
-            <X className="mr-1 h-4 w-4" /> Remover
-          </Button>
-        </div>
-      ))}
       <button
         type="button"
-        disabled={sending}
+        disabled={disabled}
         onClick={() => inputRef.current?.click()}
-        onDragOver={(event) => { event.preventDefault(); setDragging(true); }}
+        onDragOver={(event) => { event.preventDefault(); if (!disabled) setDragging(true); }}
         onDragLeave={() => setDragging(false)}
         onDrop={(event) => {
           event.preventDefault();
           setDragging(false);
-          void upload(event.dataTransfer.files);
+          handleFiles(event.dataTransfer.files);
         }}
-        className={`flex min-h-32 w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-5 text-center transition-colors ${dragging ? "border-primary bg-primary/10" : "border-primary/40 bg-primary/5 hover:border-primary hover:bg-primary/10"} ${sending ? "cursor-wait opacity-80" : "cursor-pointer"}`}
+        className={`flex min-h-28 w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-4 text-center transition-colors ${dragging ? "border-primary bg-primary/10" : "border-primary/40 bg-primary/5 hover:border-primary hover:bg-primary/10"} ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
       >
-        {sending ? <Loader2 className="h-7 w-7 animate-spin text-primary" /> : <CloudUpload className="h-8 w-8 text-primary" />}
-        <span className="text-sm font-semibold text-foreground">
-          {sending
-            ? progress
-            : uploaded.length
-              ? "Anexar outro arquivo — clique ou arraste"
-              : "Clique ou arraste arquivos do computador — Recomendado"}
-        </span>
-        <span className="text-xs text-muted-foreground">PDF, PNG ou JPG • até 20 MB</span>
-        {!sending && <span className="inline-flex items-center gap-1 text-xs font-medium text-primary"><Upload className="h-3.5 w-3.5" /> Selecionar arquivo</span>}
+        <CloudUpload className="h-7 w-7 text-primary" />
+        <span className="text-sm font-semibold text-foreground">Clique ou arraste arquivos do computador</span>
+        <span className="text-xs text-muted-foreground">PDF, PNG ou JPG até 20 MB • O envio ocorre ao Registrar</span>
+        <span className="inline-flex items-center gap-1 text-xs font-medium text-primary"><Upload className="h-3.5 w-3.5" /> Selecionar do computador</span>
       </button>
-      {progress && !sending && <p className="text-center text-xs text-emerald-700 dark:text-emerald-400">{progress}</p>}
-      {error && <p role="alert" className="text-xs text-destructive">{error}</p>}
+      {files.length > 0 && (
+        <ul className="space-y-1.5" aria-label="Arquivos pendentes de envio">
+          {files.map((file, index) => {
+            const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+            const Icon = isPdf ? FileText : ImageIcon;
+            return (
+              <li key={`${file.name}-${file.lastModified}-${index}`} className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-xs">
+                <Icon className="h-4 w-4 shrink-0 text-institutional" />
+                <span className="min-w-0 flex-1 truncate font-medium">{file.name}</span>
+                <span className="shrink-0 text-muted-foreground">{formatSize(file.size)}</span>
+                <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">Pendente de envio</span>
+                <Button type="button" variant="ghost" size="icon" className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive" aria-label={`Remover ${file.name} da fila`} disabled={disabled} onClick={() => onRemoveFile(index)}>
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 }
