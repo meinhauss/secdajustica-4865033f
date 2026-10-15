@@ -73,7 +73,15 @@ Deno.serve(async (req) => {
         semana_inicio: semanaInicio,
         semana_fim: semanaFim,
       }));
-      await supabase.from("ranking_destaques").insert(rows);
+            const { error: deleteWeekError } = await supabase
+        .from("ranking_destaques")
+        .delete()
+        .eq("tipo_ranking", r.tipo)
+        .eq("semana_inicio", semanaInicio);
+      if (deleteWeekError) throw deleteWeekError;
+
+      const { error: insertError } = await supabase.from("ranking_destaques").insert(rows);
+      if (insertError) throw insertError;
       results.push(`${r.tipo}: top ${rows.length} salvos`);
     }
 
