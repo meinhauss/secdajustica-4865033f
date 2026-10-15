@@ -2244,7 +2244,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         <TabsContent value="timeline" className="mt-4 space-y-4">
           <div className="flex flex-wrap gap-2">
             {canAddMovimentacao && <AddMovimentacao roles={roles} processo={processo} juizNome={juizProfile?.nome_completo} userNome={profile?.nome_completo} onAdd={(tipo, desc) => addMovimentacao.mutate({ tipo, descricao: desc })} />}
-            {isJudicialReadOnly && <AddAtoCartorio onAdd={(ato) => createAtoCartorio.mutate(ato)} isPending={createAtoCartorio.isPending} />}
+                        {isJudicialReadOnly && <AddAtoCartorio processoId={processoId} onAdd={(ato) => createAtoCartorio.mutate(ato)} isPending={createAtoCartorio.isPending} />}
           </div>
           {isSentenciado && !prazoApelacaoExpirado && (
             <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-xl p-4 text-sm text-green-800 dark:text-green-300 flex items-center gap-2">
@@ -3744,12 +3744,31 @@ function AddCertidao({ onAdd, isPending }: { onAdd: (cert: { tipo: string; conte
   );
 }
 
-function AddAtoCartorio({ onAdd, isPending }: { onAdd: (ato: { tipo: string; titulo: string; conteudo: string; anexo_urls?: string[] }) => void; isPending: boolean }) {
+function AddAtoCartorio({ processoId, onAdd, isPending }: { processoId: string; onAdd: (ato: { tipo: string; titulo: string; conteudo: string; anexo_urls?: string[] }) => void; isPending: boolean }) {
   const [open, setOpen] = useState(false);
   const [tipo, setTipo] = useState("juntada");
   const [titulo, setTitulo] = useState("");
   const [conteudo, setConteudo] = useState("");
   const [anexoUrls, setAnexoUrls] = useState<string[]>([""]);
+  const [uploadingAnexo, setUploadingAnexo] = useState(false);
+
+  const handleUploadAnexo = async (file?: File) => {
+    if (!file) return;
+    if (file.size > 20 * 1024 * 1024 || (file.type !== "application/pdf" && !file.type.startsWith("image/"))) {
+      toast.error("Envie um PDF ou uma imagem de até 20 MB.");
+      return;
+    }
+    setUploadingAnexo(true);
+    try {
+      const url = await uploadArquivoProcesso(file, processoId);
+      setAnexoUrls((prev) => [...prev.filter((item) => item.trim()), url, ""]);
+      toast.success("Arquivo anexado.");
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setUploadingAnexo(false);
+    }
+  };
 
   const handleAddLink = () => setAnexoUrls(prev => [...prev, ""]);
   const handleRemoveLink = (idx: number) => setAnexoUrls(prev => prev.filter((_, i) => i !== idx));
@@ -3766,7 +3785,7 @@ function AddAtoCartorio({ onAdd, isPending }: { onAdd: (ato: { tipo: string; tit
         <form onSubmit={(e) => {
           e.preventDefault();
           const validUrls = anexoUrls.filter(u => u.trim());
-          const invalid = validUrls.find(u => !isValidPublicUrl(u));
+                    const invalid = validUrls.find(u => !u.startsWith("r2://") && !isValidPublicUrl(u));
           if (invalid) {
             toast.error(`Link inválido: "${invalid.slice(0, 40)}...". Use um link público (https://...). Caminhos locais como file:/// ou C:\\ não são acessíveis.`);
             return;
@@ -3798,9 +3817,13 @@ function AddAtoCartorio({ onAdd, isPending }: { onAdd: (ato: { tipo: string; tit
                 )}
               </div>
             ))}
-            <Button type="button" variant="outline" size="sm" className="rounded-xl text-xs" onClick={handleAddLink}>
+                        <Button type="button" variant="outline" size="sm" className="rounded-xl text-xs" onClick={handleAddLink}>
               + Adicionar outro link
             </Button>
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-primary/40 bg-primary/5 px-3 py-2 text-xs font-medium text-primary hover:bg-primary/10">
+              {uploadingAnexo ? "Enviando arquivo..." : "Enviar arquivo do computador (PDF/imagem, até 20 MB)"}
+              <input type="file" accept="application/pdf,image/*" className="hidden" disabled={uploadingAnexo} onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ""; void handleUploadAnexo(file); }} />
+            </label>
           </div>
           <Button type="submit" disabled={isPending} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
             {isPending ? "Registrando..." : "Registrar Ato do Cartório"}

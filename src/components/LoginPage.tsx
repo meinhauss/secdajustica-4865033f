@@ -26,6 +26,7 @@ import logoDefensoriaAsset from "@/assets/logo-defensoria-sp.jpg.asset.json";
 const logoDefensoria = logoDefensoriaAsset.url;
 import { toast } from "sonner";
 import { formatTelefoneIngame } from "@/lib/formatPhone";
+import { uploadArquivoAnexo } from "@/lib/r2Files";
 
 type Tab = "inicio" | "institucional" | "transparencia" | "concursos" | "login" | "credencial" | "ouvidoria" | "unisp";
 
@@ -779,7 +780,8 @@ function TabOuvidoria() {
   const [contato, setContato] = useState("");
   const [descricao, setDescricao] = useState("");
   const [envolvidos, setEnvolvidos] = useState<{ nome: string; funcao: string }[]>([]);
-  const [links, setLinks] = useState<string[]>([]);
+    const [links, setLinks] = useState<string[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<{ url: string; name: string }[]>([]);
   const [novoEnvolvidoNome, setNovoEnvolvidoNome] = useState("");
   const [novoEnvolvidoFuncao, setNovoEnvolvidoFuncao] = useState("");
   const [novoLink, setNovoLink] = useState("");
@@ -839,7 +841,7 @@ function TabOuvidoria() {
             Sua denúncia foi registrada com sucesso e será analisada pelo Ministério Público. 
             O sigilo da sua identidade será preservado conforme a legislação vigente.
           </p>
-          <Button onClick={() => { setEnviado(false); setDescricao(""); setEnvolvidos([]); setLinks([]); setNome(""); setContato(""); }}
+          <Button onClick={() => { setEnviado(false); setDescricao(""); setEnvolvidos([]); setLinks([]); setUploadedFiles([]); setNome(""); setContato(""); }}
             variant="outline" className="rounded-xl">
             Enviar Nova Denúncia
           </Button>
@@ -921,10 +923,40 @@ function TabOuvidoria() {
             className="bg-card rounded-xl border border-border p-6 space-y-4">
             <h3 className="font-display text-base font-semibold text-foreground">Links de Provas e Anexos</h3>
             <p className="text-xs text-muted-foreground">Adicione links para documentos, fotos, vídeos ou outros materiais que comprovem a denúncia.</p>
-            <div className="flex gap-2">
+                        <div className="flex gap-2">
               <Input placeholder="https://drive.google.com/..." value={novoLink} onChange={e => setNovoLink(e.target.value)} className="flex-1" />
               <Button onClick={addLink} size="sm" variant="outline" className="rounded-lg">Adicionar</Button>
             </div>
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-primary/40 bg-primary/5 px-4 py-3 text-sm font-medium text-primary hover:bg-primary/10">
+              Enviar foto ou documento do computador (PDF/imagem, até 20 MB)
+              <input type="file" accept="application/pdf,image/*" className="hidden" onChange={async (event) => {
+                const file = event.target.files?.[0];
+                event.target.value = "";
+                if (!file) return;
+                if (file.size > 20 * 1024 * 1024 || (file.type !== "application/pdf" && !file.type.startsWith("image/"))) {
+                  toast.error("Envie um PDF ou uma imagem de até 20 MB.");
+                  return;
+                }
+                try {
+                  const url = await uploadArquivoAnexo(file, "ouvidoria");
+                  setLinks((prev) => [...prev, url]);
+                  setUploadedFiles((prev) => [...prev, { url, name: file.name }]);
+                  toast.success("Arquivo anexado à denúncia.");
+                } catch (error) {
+                  toast.error((error as Error).message || "Falha no envio do arquivo.");
+                }
+              }} />
+            </label>
+            {uploadedFiles.length > 0 && (
+              <div className="space-y-2">
+                {uploadedFiles.map((file) => (
+                  <div key={file.url} className="flex items-center gap-2 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
+                    <span className="min-w-0 flex-1 truncate font-medium">{file.name}</span>
+                    <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold dark:bg-emerald-900">✓ Anexado</span>
+                  </div>
+                ))}
+              </div>
+            )}
             {links.length > 0 && (
               <div className="space-y-2">
                 {links.map((l, i) => (
