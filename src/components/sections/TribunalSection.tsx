@@ -972,8 +972,8 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium text-foreground">Fundamentação</label>
-              <RichTextEditor value={decisaoFund} onChange={setDecisaoFund} placeholder="Fundamentação jurídica do voto..." minHeight="180px" className="mt-1" />
+                            <label className="text-sm font-medium text-foreground">Voto do Relator (Peça Integral)</label>
+              <RichTextEditor value={decisaoFund} onChange={setDecisaoFund} placeholder="Redija o relatório sucinto, fundamentação e dispositivo iniciado por 'ISTO POSTO,'..." minHeight="300px" className="mt-1" />
             </div>
             
             <Button onClick={() => registrarVotoRelatorMutation.mutate()} disabled={registrarVotoRelatorMutation.isPending} className="w-full gap-2">
