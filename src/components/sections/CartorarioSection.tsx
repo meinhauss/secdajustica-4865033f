@@ -357,41 +357,22 @@ function PersonInput({ label, entries, onChange }: {
 }
 
 /* ─── Links Input Component ─── */
-function LinksInput({ label, links, onChange }: {
+function LinksInput({ label, links, onChange, files, onFilesSelected, onRemoveFile, disabled = false }: {
   label: string;
   links: string[];
   onChange: (links: string[]) => void;
+  files: File[];
+  onFilesSelected: (files: File[]) => void;
+  onRemoveFile: (index: number) => void;
+  disabled?: boolean;
 }) {
-    const [input, setInput] = useState("");
-  const [uploading, setUploading] = useState(false);
-
-  const uploadFile = async (file?: File) => {
-    if (!file) return;
-    if (file.size > 20 * 1024 * 1024 || (file.type !== "application/pdf" && !file.type.startsWith("image/"))) {
-      toast({ title: "Arquivo inválido", description: "Envie um PDF ou uma imagem de até 20 MB.", variant: "destructive" });
-      return;
-    }
-    setUploading(true);
-    try {
-      const url = await uploadArquivoAnexo(file, "cartorio");
-      onChange([...links, url]);
-      toast({ title: "Arquivo anexado com sucesso" });
-    } catch (error) {
-      toast({ title: "Falha no envio", description: (error as Error).message, variant: "destructive" });
-    } finally {
-      setUploading(false);
-    }
-  };
+  const [input, setInput] = useState("");
 
   const addLink = () => {
     const url = input.trim();
     if (!url) return;
-    if (!isValidPublicUrl(url)) {
-      toast({
-        title: "Link inválido",
-        description: "Cole um link público começando com https:// (ex.: Google Drive, Discord). Caminhos locais (file:///, C:\\...) não são acessíveis a outros usuários.",
-        variant: "destructive",
-      });
+    if (!isValidPublicUrl(url) || !url.startsWith("https://")) {
+      toast({ title: "Link inválido", description: "Informe um link externo começando com https://.", variant: "destructive" });
       return;
     }
     onChange([...links, url]);
@@ -399,42 +380,34 @@ function LinksInput({ label, links, onChange }: {
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <Label>{label}</Label>
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <Link className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addLink(); } }}
-            onBlur={addLink}
-            placeholder="https://..."
-            className="pl-10"
-          />
+      <FileUploadZone files={files} onFilesSelected={onFilesSelected} onRemoveFile={onRemoveFile} disabled={disabled} />
+      <div className="space-y-2">
+        <Label>Links externos</Label>
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Link className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addLink(); } }} placeholder="https://..." className="pl-10" disabled={disabled} />
+          </div>
+          <Button type="button" size="sm" variant="outline" onClick={addLink} disabled={disabled || !input.trim()}>
+            <Plus className="h-4 w-4 mr-1" /> Adicionar link externo
+          </Button>
         </div>
-                <Button type="button" size="sm" variant="outline" onClick={addLink} disabled={!input.trim()}>
-          <Plus className="h-4 w-4" />
-        </Button>
-        <label className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-input px-3 text-sm hover:bg-muted" title="Enviar arquivo do computador">
-          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 16V4m0 0L7 9m5-5 5 5M5 14v5h14v-5" /></svg>
-          {uploading ? "Enviando" : "Upload"}
-          <input type="file" accept="application/pdf,image/*" className="hidden" disabled={uploading} onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ""; void uploadFile(file); }} />
-        </label>
+        {links.length > 0 && (
+          <div className="space-y-1">
+            {links.map((url, i) => (
+              <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/60 border border-border text-xs">
+                <Link className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                <a href={url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate flex-1">{url}</a>
+                <button type="button" className="ml-auto text-muted-foreground hover:text-destructive flex-shrink-0" onClick={() => onChange(links.filter((_, j) => j !== i))} disabled={disabled}>
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-      {links.length > 0 && (
-        <div className="space-y-1">
-          {links.map((url, i) => (
-            <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/60 border border-border text-xs">
-              <Link className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-              <a href={url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate flex-1">{url}</a>
-              <button type="button" className="ml-auto text-muted-foreground hover:text-destructive flex-shrink-0" onClick={() => onChange(links.filter((_, j) => j !== i))}>
-                <X className="h-3 w-3" />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
