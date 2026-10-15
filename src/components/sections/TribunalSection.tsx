@@ -545,7 +545,7 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
           desc = `${profile?.nome_completo || "Desembargador(a)"} acompanhou o voto do Relator na apelação ${apelacao.numero_acordao}.`;
           if (vRessalvas && vRessalvas !== "<p></p>") desc += `\n\nRessalvas:\n${vRessalvas}`;
         } else {
-          desc = `Voto divergente proferido por ${profile?.nome_completo || "Desembargador(a)"} na apelação ${apelacao.numero_acordao}: ${DECISAO_LABELS[vDecisao] || vDecisao}.\n\nFundamentação:\n${vFund}\n\nDispositivo:\n${vDisp}`;
+                    desc = `Voto divergente proferido por ${profile?.nome_completo || "Desembargador(a)"} na apelação ${apelacao.numero_acordao}: ${DECISAO_LABELS[vDecisao] || vDecisao}.\n\n${vFund}`;
         }
         await supabase.from("movimentacoes").insert({
           processo_id: apelacao.processo_id,
