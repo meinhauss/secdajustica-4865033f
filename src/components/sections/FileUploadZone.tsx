@@ -102,8 +102,8 @@ export default function FileUploadZone({ processoId, onUploaded, onRemove }: Fil
           className={`flex min-h-32 w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-5 text-center transition-colors ${dragging ? "border-primary bg-primary/10" : "border-primary/40 bg-primary/5 hover:border-primary hover:bg-primary/10"} ${sending ? "cursor-wait opacity-80" : "cursor-pointer"}`}
         >
           {sending ? <Loader2 className="h-7 w-7 animate-spin text-primary" /> : <CloudUpload className="h-8 w-8 text-primary" />}
-          <span className="text-sm font-semibold text-foreground">
-            {sending ? "Enviando arquivo…" : "Clique ou arraste um arquivo do computador — Recomendado"}
+                    <span className="text-sm font-semibold text-foreground">
+            {sending ? progress : "Clique ou arraste arquivos do computador — Recomendado"}
           </span>
           <span className="text-xs text-muted-foreground">PDF, PNG ou JPG • até 20 MB</span>
           {!sending && <span className="inline-flex items-center gap-1 text-xs font-medium text-primary"><Upload className="h-3.5 w-3.5" /> Selecionar arquivo</span>}
