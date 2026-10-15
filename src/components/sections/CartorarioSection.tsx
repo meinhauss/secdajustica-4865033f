@@ -1104,15 +1104,19 @@ REGRAS OBRIGATÓRIAS:
                 </div>
               )}
 
-              <LinksInput
-                label="Links / Documentos Anexos"
+                            <LinksInput
+                label="Documentos Anexos"
                 links={formLinks}
                 onChange={setFormLinks}
+                files={formFiles}
+                onFilesSelected={(files) => setFormFiles((current) => [...current, ...files])}
+                onRemoveFile={(index) => setFormFiles((current) => current.filter((_, i) => i !== index))}
+                disabled={submitting}
               />
 
-              <Button className="w-full" onClick={handleSolicitar}>
-                <Stamp className="h-4 w-4 mr-1" />
-                {fieldConfig.autoEmit ? "Emitir Certidão" : fieldConfig.confirmByParties ? "Registrar Procuração" : "Solicitar Documento"}
+              <Button className="w-full" onClick={handleSolicitar} disabled={submitting}>
+                {submitting ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Stamp className="h-4 w-4 mr-1" />}
+                {submitting ? uploadProgress || "Enviando..." : fieldConfig.autoEmit ? "Emitir Certidão" : fieldConfig.confirmByParties ? "Registrar Procuração" : "Solicitar Documento"}
               </Button>
             </div>
           </div>
