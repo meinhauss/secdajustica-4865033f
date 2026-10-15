@@ -1673,8 +1673,8 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         embargante_id: user?.id,
         embargante_nome: profile?.nome_completo || "Embargante",
         tipo: embargosForm.tipo,
-        fundamentacao: embargosForm.fundamentacao,
-        pedido: embargosForm.pedido,
+                fundamentacao: embargosForm.fundamentacao,
+        pedido: "Constante na peça recursal",
       } as any);
       if (error) throw error;
       const tipoLabel = embargosForm.tipo === "omissao" ? "omissão" : embargosForm.tipo === "contradicao" ? "contradição" : "obscuridade";
