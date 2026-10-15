@@ -74,9 +74,9 @@ export default function FileUploadZone({ processoId, onUploaded, onRemove }: Fil
         className="hidden"
         disabled={sending}
         onChange={(event) => {
-          const file = event.target.files?.[0];
+                    const files = event.target.files;
           event.target.value = "";
-          void upload(file);
+          void upload(files || undefined);
         }}
       />
       {uploaded ? (
