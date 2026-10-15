@@ -68,7 +68,8 @@ export default function FileUploadZone({ processoId, onUploaded, onRemove }: Fil
     <div className="space-y-2">
       <input
         ref={inputRef}
-        type="file"
+                type="file"
+        multiple
         accept="application/pdf,image/png,image/jpeg,image/*"
         className="hidden"
         disabled={sending}
