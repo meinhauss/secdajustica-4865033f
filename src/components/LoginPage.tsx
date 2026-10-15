@@ -950,7 +950,7 @@ function TabOuvidoria() {
 
           <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
             <Button onClick={handleEnviar} disabled={enviando || !descricao.trim()} className="w-full h-12 rounded-xl bg-gold hover:bg-gold-light text-institutional-dark font-semibold text-base">
-              {enviando ? "Enviando..." : "Enviar Denúncia"}
+                            {enviando ? statusEnvio || "Enviando..." : "Enviar Denúncia"}
             </Button>
           </motion.div>
         </div>
