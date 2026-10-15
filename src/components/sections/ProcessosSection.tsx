@@ -3324,10 +3324,11 @@ function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles
 
                         {processo?.id && (
               <div className="space-y-2">
-                <FileUploadZone
-                  processoId={processo.id}
-                  onUploaded={(url, name) => setAnexos((prev) => [...prev, { nome: name, url }])}
-                  onRemove={(url) => setAnexos((prev) => prev.filter((anexo) => anexo.url !== url))}
+                                <FileUploadZone
+                  files={arquivosPendentes}
+                  disabled={isSubmitting}
+                  onFilesSelected={(files) => setArquivosPendentes((prev) => [...prev, ...files])}
+                  onRemoveFile={(index) => setArquivosPendentes((prev) => prev.filter((_, fileIndex) => fileIndex !== index))}
                 />
                 <p className="text-center text-xs text-muted-foreground">Ou se preferir, cole um link externo</p>
               </div>
