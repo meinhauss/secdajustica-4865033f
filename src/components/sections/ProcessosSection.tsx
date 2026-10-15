@@ -3371,7 +3371,9 @@ function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles
                                                                                     
           </div>
 
-          <Button type="submit" className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">Registrar</Button>
+                    <Button type="submit" disabled={isSubmitting} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
+            {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{uploadProgress || "Registrando..."}</> : "Registrar"}
+          </Button>
         </form>
       </DialogContent>
     </Dialog>
