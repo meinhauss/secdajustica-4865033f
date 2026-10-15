@@ -1586,18 +1586,18 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const [apelacaoForm, setApelacaoForm] = useState({ sentenca_id: "", apelante_tipo: "reu", fundamentacao: "", pedido: "" });
   const interporApelacao = useMutation({
     mutationFn: async () => {
-      if (!apelacaoForm.sentenca_id || !apelacaoForm.fundamentacao || !apelacaoForm.pedido) throw new Error("Preencha todos os campos.");
+            if (!apelacaoForm.sentenca_id || !apelacaoForm.fundamentacao || apelacaoForm.fundamentacao === "<p></p>") throw new Error("Selecione a sentença e redija a peça integral.");
       const { error } = await supabase.from("apelacoes").insert({
         processo_id: processoId,
         sentenca_id: apelacaoForm.sentenca_id,
         apelante_tipo: apelacaoForm.apelante_tipo,
         apelante_nome: profile?.nome_completo || "Apelante",
         apelante_id: user?.id,
-        fundamentacao: apelacaoForm.fundamentacao,
-        pedido: apelacaoForm.pedido,
+                fundamentacao: apelacaoForm.fundamentacao,
+        pedido: "Constante nas razões recursais",
       } as any);
       if (error) throw error;
-      await addMovimentacao.mutateAsync({ tipo: "apelacao", descricao: `RECURSO DE APELAÇÃO interposto por ${profile?.nome_completo || "Apelante"} (${apelacaoForm.apelante_tipo === "reu" ? "Réu" : apelacaoForm.apelante_tipo === "autor" ? "Autor" : "Ambas as partes"}).` });
+      await addMovimentacao.mutateAsync({ tipo: "apelacao", descricao: `RECURSO DE APELAÇÃO interposto por ${profile?.nome_completo || "Apelante"} (${apelacaoForm.apelante_tipo === "reu" ? "Réu" : apelacaoForm.apelante_tipo === "autor" ? "Autor" : "Ambas as partes"}).\n\n${apelacaoForm.fundamentacao}` });
       // Notificar desembargadores sobre novo recurso
       const { data: desembs } = await supabase.from("user_roles").select("user_id").eq("role", "desembargador" as any);
       const notifs = (desembs || []).map((d: any) => ({
@@ -1666,15 +1666,15 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const [embargosForm, setEmbargosForm] = useState({ sentenca_id: "", tipo: "omissao", fundamentacao: "", pedido: "" });
   const oporEmbargos = useMutation({
     mutationFn: async () => {
-      if (!embargosForm.sentenca_id || !embargosForm.fundamentacao || !embargosForm.pedido) throw new Error("Preencha todos os campos.");
+            if (!embargosForm.sentenca_id || !embargosForm.fundamentacao || embargosForm.fundamentacao === "<p></p>") throw new Error("Selecione a sentença e redija a petição integral.");
       const { error } = await supabase.from("embargos_declaracao").insert({
         processo_id: processoId,
         sentenca_id: embargosForm.sentenca_id,
         embargante_id: user?.id,
         embargante_nome: profile?.nome_completo || "Embargante",
         tipo: embargosForm.tipo,
-        fundamentacao: embargosForm.fundamentacao,
-        pedido: embargosForm.pedido,
+                fundamentacao: embargosForm.fundamentacao,
+        pedido: "Constante na peça recursal",
       } as any);
       if (error) throw error;
       const tipoLabel = embargosForm.tipo === "omissao" ? "omissão" : embargosForm.tipo === "contradicao" ? "contradição" : "obscuridade";
@@ -2791,33 +2791,19 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                         </SelectContent>
                       </Select>
                     </div>
-                    <div>
+                                        <div className="space-y-2">
                       <div className="flex items-center justify-between mb-1">
-                        <label className="text-sm font-medium text-foreground">Fundamentação do Recurso</label>
+                        <label className="text-sm font-medium text-foreground">Razões da Apelação e Pedidos (Peça Integral)</label>
                         <AISugerirDespacho
                           tipoAto="recurso_apelacao"
-                          tituloAto="Fundamentação da apelação"
+                          tituloAto="Recurso de Apelação (Peça Completa)"
                           rascunhoAtual={apelacaoForm.fundamentacao}
-                          processo={processo}
+                          processo={{ ...processo, sentencaRecorrida: sentencasProc?.find((s: any) => s.id === apelacaoForm.sentenca_id) }}
                           movimentacoes={movimentacoes || []}
                           onInsert={(h) => setApelacaoForm((f) => ({ ...f, fundamentacao: appendAiHtml(f.fundamentacao, h) }))}
                         />
                       </div>
-                      <RichTextEditor value={apelacaoForm.fundamentacao} onChange={(html) => setApelacaoForm({ ...apelacaoForm, fundamentacao: html })} placeholder="Razões da apelação e fundamentos jurídicos..." minHeight="200px" className="mt-1" />
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="text-sm font-medium text-foreground">Pedido</label>
-                        <AISugerirDespacho
-                          tipoAto="recurso_apelacao"
-                          tituloAto="Pedido da apelação"
-                          rascunhoAtual={apelacaoForm.pedido}
-                          processo={processo}
-                          movimentacoes={movimentacoes || []}
-                          onInsert={(h) => setApelacaoForm((f) => ({ ...f, pedido: appendAiHtml(f.pedido, h) }))}
-                        />
-                      </div>
-                      <RichTextEditor value={apelacaoForm.pedido} onChange={(html) => setApelacaoForm({ ...apelacaoForm, pedido: html })} placeholder="O que se requer ao Tribunal..." minHeight="140px" className="mt-1" />
+                      <RichTextEditor value={apelacaoForm.fundamentacao} onChange={(html) => setApelacaoForm({ ...apelacaoForm, fundamentacao: html })} placeholder="Redija as razões recursais e os pedidos de reforma em peça única..." minHeight="320px" className="mt-1" />
                     </div>
                     <Button type="submit" disabled={interporApelacao.isPending} className="w-full gap-2">
                       <Scale className="h-4 w-4" /> Interpor Apelação
@@ -2938,33 +2924,19 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                         </SelectContent>
                       </Select>
                     </div>
-                    <div>
+                                        <div className="space-y-2">
                       <div className="flex items-center justify-between mb-1">
-                        <label className="text-sm font-medium text-foreground">Fundamentação</label>
+                        <label className="text-sm font-medium text-foreground">Petição de Embargos de Declaração (Peça Integral)</label>
                         <AISugerirDespacho
                           tipoAto="embargos_declaracao"
-                          tituloAto="Fundamentação dos embargos"
-                          rascunhoAtual={embargosForm.fundamentacao}
+                          tituloAto={`Embargos de Declaração (${embargosForm.tipo})`}
+                          rascunhoAtual={`${embargosForm.tipo}: ${embargosForm.fundamentacao}`}
                           processo={processo}
                           movimentacoes={movimentacoes || []}
                           onInsert={(h) => setEmbargosForm((f) => ({ ...f, fundamentacao: appendAiHtml(f.fundamentacao, h) }))}
                         />
                       </div>
-                      <RichTextEditor value={embargosForm.fundamentacao} onChange={(html) => setEmbargosForm({ ...embargosForm, fundamentacao: html })} placeholder="Indique o ponto omisso, contraditório ou obscuro da sentença..." minHeight="200px" className="mt-1" />
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="text-sm font-medium text-foreground">Pedido</label>
-                        <AISugerirDespacho
-                          tipoAto="embargos_declaracao"
-                          tituloAto="Pedido dos embargos"
-                          rascunhoAtual={embargosForm.pedido}
-                          processo={processo}
-                          movimentacoes={movimentacoes || []}
-                          onInsert={(h) => setEmbargosForm((f) => ({ ...f, pedido: appendAiHtml(f.pedido, h) }))}
-                        />
-                      </div>
-                      <RichTextEditor value={embargosForm.pedido} onChange={(html) => setEmbargosForm({ ...embargosForm, pedido: html })} placeholder="O que se requer ao Juízo..." minHeight="140px" className="mt-1" />
+                      <RichTextEditor value={embargosForm.fundamentacao} onChange={(html) => setEmbargosForm({ ...embargosForm, fundamentacao: html })} placeholder="Demonstre o ponto omisso, contraditório ou obscuro e formule o pedido de saneamento/efeitos infringentes..." minHeight="280px" className="mt-1" />
                     </div>
                     <Button type="submit" disabled={oporEmbargos.isPending} className="w-full gap-2">
                       <FileText className="h-4 w-4" /> Opor Embargos
