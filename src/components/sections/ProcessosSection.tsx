@@ -3798,9 +3798,13 @@ function AddAtoCartorio({ onAdd, isPending }: { onAdd: (ato: { tipo: string; tit
                 )}
               </div>
             ))}
-            <Button type="button" variant="outline" size="sm" className="rounded-xl text-xs" onClick={handleAddLink}>
+                        <Button type="button" variant="outline" size="sm" className="rounded-xl text-xs" onClick={handleAddLink}>
               + Adicionar outro link
             </Button>
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-primary/40 bg-primary/5 px-3 py-2 text-xs font-medium text-primary hover:bg-primary/10">
+              {uploadingAnexo ? "Enviando arquivo..." : "Enviar arquivo do computador (PDF/imagem, até 20 MB)"}
+              <input type="file" accept="application/pdf,image/*" className="hidden" disabled={uploadingAnexo} onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ""; void handleUploadAnexo(file); }} />
+            </label>
           </div>
           <Button type="submit" disabled={isPending} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
             {isPending ? "Registrando..." : "Registrar Ato do Cartório"}
