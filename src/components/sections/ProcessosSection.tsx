@@ -3436,20 +3436,41 @@ function AddAto({ onAdd, processo, movimentacoes }: { onAdd: (ato: { tipo: strin
   );
 }
 
-function UploadDoc({ onUpload, isPending }: { onUpload: (link: string, nome: string, tipo: string) => void; isPending: boolean }) {
+function UploadDoc({ onUpload, isPending, processoId }: { onUpload: (link: string, nome: string, tipo: string) => void; isPending: boolean; processoId?: string }) {
   const [open, setOpen] = useState(false);
   const [link, setLink] = useState("");
   const [nome, setNome] = useState("");
   const [tipo, setTipo] = useState("peticao");
   const [showInstrucoes, setShowInstrucoes] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [sending, setSending] = useState(false);
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    let finalLink = link.trim();
+    if (file) {
+      if (!processoId) return;
+      setSending(true);
+      try {
+        finalLink = await uploadArquivoProcesso(file, processoId);
+      } catch (err) {
+        toast.error((err as Error).message);
+        setSending(false);
+        return;
+      }
+      setSending(false);
+    }
+    if (!finalLink) return;
+    onUpload(finalLink, nome || file?.name || "Documento", tipo);
+    setOpen(false); setLink(""); setNome(""); setFile(null);
+  };
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="rounded-xl"><Upload className="h-4 w-4 mr-2" /> Juntar Documento</Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader><DialogTitle>Juntar Documento por Link</DialogTitle></DialogHeader>
-        <form onSubmit={(e) => { e.preventDefault(); if (link.trim()) { onUpload(link.trim(), nome, tipo); setOpen(false); setLink(""); setNome(""); } }} className="space-y-3 mt-3">
+        <DialogHeader><DialogTitle>Juntar Documento</DialogTitle></DialogHeader>
+        <form onSubmit={submit} className="space-y-3 mt-3">
           <Select value={tipo} onValueChange={setTipo}>
             <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -3462,8 +3483,15 @@ function UploadDoc({ onUpload, isPending }: { onUpload: (link: string, nome: str
               <SelectItem value="outros">Outros</SelectItem>
             </SelectContent>
           </Select>
-          <Input placeholder="Nome do documento" value={nome} onChange={(e) => setNome(e.target.value)} required className="rounded-xl" />
-          <Input placeholder="Cole o link do Google Drive ou Google Docs" value={link} onChange={(e) => setLink(e.target.value)} required className="rounded-xl" />
+          <Input placeholder="Nome do documento" value={nome} onChange={(e) => setNome(e.target.value)} className="rounded-xl" />
+          {processoId && (
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-foreground">Enviar arquivo (PDF ou imagem, até 20 MB)</label>
+              <Input type="file" accept="application/pdf,image/*,text/plain" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="rounded-xl" />
+              <p className="text-[11px] text-muted-foreground">Ou cole um link abaixo.</p>
+            </div>
+          )}
+          <Input placeholder="Cole o link do Google Drive ou Google Docs" value={link} onChange={(e) => setLink(e.target.value)} disabled={!!file} className="rounded-xl" />
           
           <button type="button" onClick={() => setShowInstrucoes(!showInstrucoes)} className="text-xs text-primary hover:underline flex items-center gap-1">
             <FileText className="h-3 w-3" />

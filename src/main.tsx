@@ -8,8 +8,10 @@ import "@fontsource/fira-sans/600.css";
 import "@fontsource/fira-sans/700.css";
 import "./index.css";
 import { installAnalistaInterceptor } from "./lib/analistaInterceptor";
+import { installR2LinkHandler } from "./lib/r2Files";
 
 installAnalistaInterceptor();
+installR2LinkHandler();
 
 
 // Initialize theme as early as possible to avoid flash
