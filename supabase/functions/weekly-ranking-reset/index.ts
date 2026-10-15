@@ -51,7 +51,13 @@ Deno.serve(async (req) => {
         results.push(`${r.tipo}: error - ${error.message}`);
         continue;
       }
-      const list = ((data as any[]) || []).filter((x) => Number(x.score) > 0).slice(0, 3);
+            const uniqueByUser = new Map<string, any>();
+      for (const item of ((data as any[]) || []).filter((x) => Number(x.score) > 0)) {
+        if (!item.user_id) continue;
+        const current = uniqueByUser.get(item.user_id);
+        if (!current || Number(item.score) > Number(current.score)) uniqueByUser.set(item.user_id, item);
+      }
+      const list = Array.from(uniqueByUser.values()).slice(0, 3);
       if (list.length === 0) {
         results.push(`${r.tipo}: nenhum destaque (sem pontuação)`);
         continue;
