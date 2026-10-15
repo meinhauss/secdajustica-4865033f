@@ -27,10 +27,28 @@ import { ListSkeleton } from "@/components/ui/list-skeleton";
 import { useGlobalShortcuts, SHORTCUTS_LIST } from "@/hooks/useGlobalShortcuts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
+// Recarrega a página uma vez se um arquivo antigo não existir mais após nova publicação
+function lazyWithReload<T extends React.ComponentType<any>>(factory: () => Promise<{ default: T }>) {
+  return lazy(async () => {
+    try {
+      const mod = await factory();
+      sessionStorage.removeItem("chunk-reload");
+      return mod;
+    } catch (err) {
+      if (!sessionStorage.getItem("chunk-reload")) {
+        sessionStorage.setItem("chunk-reload", "1");
+        window.location.reload();
+        return new Promise<{ default: T }>(() => {});
+      }
+      throw err;
+    }
+  });
+}
+
 // Seções pesadas — carregadas sob demanda
-const TribunalSection = lazy(() => import("@/components/sections/TribunalSection"));
-const CartorarioSection = lazy(() => import("@/components/sections/CartorarioSection"));
-const EstatisticasSection = lazy(() => import("@/components/sections/EstatisticasSection"));
+const TribunalSection = lazyWithReload(() => import("@/components/sections/TribunalSection"));
+const CartorarioSection = lazyWithReload(() => import("@/components/sections/CartorarioSection"));
+const EstatisticasSection = lazyWithReload(() => import("@/components/sections/EstatisticasSection"));
 
 const LazyFallback = () => (
   <div className="py-6">
