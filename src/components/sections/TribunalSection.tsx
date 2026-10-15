@@ -480,23 +480,22 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
 
   const registrarVotoRelatorMutation = useMutation({
     mutationFn: async () => {
-      if (!decisaoFund || decisaoFund === "<p></p>") throw new Error("Informe a fundamentação.");
-      if (!decisaoDisp || decisaoDisp === "<p></p>") throw new Error("Informe o dispositivo.");
+            if (!decisaoFund || decisaoFund === "<p></p>") throw new Error("Informe o voto integral.");
       const { error } = await supabase.from("votos_apelacao").insert({
         apelacao_id: apelacaoId,
         desembargador_id: user!.id,
         desembargador_nome: profile?.nome_completo || "Relator",
         tipo: "relator",
         decisao_tipo: decisaoTipo,
-        fundamentacao: decisaoFund,
-        dispositivo: decisaoDisp,
+                fundamentacao: decisaoFund,
+        dispositivo: " ",
       });
       if (error) throw error;
       if (apelacao?.processo_id) {
         await supabase.from("movimentacoes").insert({
           processo_id: apelacao.processo_id,
           tipo: "voto_relator",
-          descricao: `Voto do Relator ${profile?.nome_completo || ""} na apelação ${apelacao.numero_acordao}: ${DECISAO_LABELS[decisaoTipo] || decisaoTipo}.\n\nFundamentação:\n${decisaoFund}\n\nDispositivo:\n${decisaoDisp}`,
+                    descricao: `Voto do Relator ${profile?.nome_completo || ""} na apelação ${apelacao.numero_acordao}: ${DECISAO_LABELS[decisaoTipo] || decisaoTipo}.\n\n${decisaoFund}`,
           autor_id: user!.id,
         });
       }
@@ -531,11 +530,10 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
         payload.decisao_tipo = votoRelator.decisao_tipo;
         if (vRessalvas && vRessalvas !== "<p></p>") payload.ressalvas = vRessalvas;
       } else {
-        if (!vFund || vFund === "<p></p>") throw new Error("Informe a fundamentação.");
-        if (!vDisp || vDisp === "<p></p>") throw new Error("Informe o dispositivo.");
+                if (!vFund || vFund === "<p></p>") throw new Error("Informe o voto integral.");
         payload.decisao_tipo = vDecisao;
         payload.fundamentacao = vFund;
-        payload.dispositivo = vDisp;
+        payload.dispositivo = " ";
       }
       const { error } = await supabase.from("votos_apelacao").insert(payload);
       if (error) throw error;
@@ -545,7 +543,7 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
           desc = `${profile?.nome_completo || "Desembargador(a)"} acompanhou o voto do Relator na apelação ${apelacao.numero_acordao}.`;
           if (vRessalvas && vRessalvas !== "<p></p>") desc += `\n\nRessalvas:\n${vRessalvas}`;
         } else {
-          desc = `Voto divergente proferido por ${profile?.nome_completo || "Desembargador(a)"} na apelação ${apelacao.numero_acordao}: ${DECISAO_LABELS[vDecisao] || vDecisao}.\n\nFundamentação:\n${vFund}\n\nDispositivo:\n${vDisp}`;
+                    desc = `Voto divergente proferido por ${profile?.nome_completo || "Desembargador(a)"} na apelação ${apelacao.numero_acordao}: ${DECISAO_LABELS[vDecisao] || vDecisao}.\n\n${vFund}`;
         }
         await supabase.from("movimentacoes").insert({
           processo_id: apelacao.processo_id,
@@ -789,10 +787,12 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
                       <h5 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Fundamentação</h5>
                       <RichTextView html={v.fundamentacao} className="text-sm" />
                     </div>
-                    <div className="mt-2">
-                      <h5 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Dispositivo</h5>
-                      <RichTextView html={v.dispositivo} className="text-sm" />
-                    </div>
+                                        {v.dispositivo?.trim() && (
+                      <div className="mt-2">
+                        <h5 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Dispositivo</h5>
+                        <RichTextView html={v.dispositivo} className="text-sm" />
+                      </div>
+                    )}
                   </>
                 )}
                 {v.tipo === "acompanha" && v.ressalvas && (
@@ -819,10 +819,12 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Fundamentação</h4>
                 <RichTextView html={apelacao.decisao_fundamentacao} className="text-sm mt-1" />
               </div>
-              <div>
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Dispositivo</h4>
-                <RichTextView html={apelacao.decisao_dispositivo} className="text-sm mt-1" />
-              </div>
+                            {apelacao.decisao_dispositivo?.trim() && (
+                <div>
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Dispositivo</h4>
+                  <RichTextView html={apelacao.decisao_dispositivo} className="text-sm mt-1" />
+                </div>
+              )}
               {apelacao.data_julgamento && (
                 <p className="text-xs text-muted-foreground">Julgado em: {format(new Date(apelacao.data_julgamento), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
               )}
@@ -972,13 +974,10 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium text-foreground">Fundamentação</label>
-              <RichTextEditor value={decisaoFund} onChange={setDecisaoFund} placeholder="Fundamentação jurídica do voto..." minHeight="180px" className="mt-1" />
+                            <label className="text-sm font-medium text-foreground">Voto do Relator (Peça Integral)</label>
+              <RichTextEditor value={decisaoFund} onChange={setDecisaoFund} placeholder="Redija o relatório sucinto, fundamentação e dispositivo iniciado por 'ISTO POSTO,'..." minHeight="300px" className="mt-1" />
             </div>
-            <div>
-              <label className="text-sm font-medium text-foreground">Dispositivo</label>
-              <RichTextEditor value={decisaoDisp} onChange={setDecisaoDisp} placeholder="Parte dispositiva do voto..." minHeight="120px" className="mt-1" />
-            </div>
+            
             <Button onClick={() => registrarVotoRelatorMutation.mutate()} disabled={registrarVotoRelatorMutation.isPending} className="w-full gap-2">
               <Gavel className="h-4 w-4" /> Registrar Voto
             </Button>
@@ -1017,13 +1016,10 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
                   </Select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-foreground">Fundamentação</label>
-                  <RichTextEditor value={vFund} onChange={setVFund} placeholder="Fundamentação do seu voto..." minHeight="160px" className="mt-1" />
+                                    <label className="text-sm font-medium text-foreground">Voto Divergente (Peça Integral)</label>
+                  <RichTextEditor value={vFund} onChange={setVFund} placeholder="Redija seu voto próprio com fundamentação e dispositivo iniciado por 'ISTO POSTO,'..." minHeight="280px" className="mt-1" />
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-foreground">Dispositivo</label>
-                  <RichTextEditor value={vDisp} onChange={setVDisp} placeholder="Parte dispositiva..." minHeight="100px" className="mt-1" />
-                </div>
+                
               </>
             )}
 
