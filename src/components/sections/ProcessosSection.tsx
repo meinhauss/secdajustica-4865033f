@@ -285,8 +285,19 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
 
   const isCidadao = roles.length === 0 || (roles.length === 1 && roles[0] === "cidadao");
 
-  const [autores, setAutores] = useState<ParteEntry[]>([]);
+    const [autores, setAutores] = useState<ParteEntry[]>([]);
   const [reus, setReus] = useState<ParteEntry[]>([]);
+  const [atuarCausaPropria, setAtuarCausaPropria] = useState(false);
+  const normalizarNomeParte = (nome?: string) => (nome || "").trim().toLocaleLowerCase("pt-BR");
+  const coincideComAdvogado = (parte: ParteEntry) => Boolean(
+    (profile?.id_personagem && parte.id_personagem?.trim() === profile.id_personagem.trim()) ||
+    (profile?.nome_completo && normalizarNomeParte(parte.nome) === normalizarNomeParte(profile.nome_completo))
+  );
+  const partesDoAdvogado = roles.includes("advogado") ? [
+    ...autores.filter(coincideComAdvogado).map((parte) => ({ lado: "autor" as const, nome: parte.nome })),
+    ...reus.filter(coincideComAdvogado).map((parte) => ({ lado: "reu" as const, nome: parte.nome })),
+  ] : [];
+  const autorCoincideComAdvogado = autores.some(coincideComAdvogado);
 
   const [form, setForm] = useState({
     classe: "civil", assunto: "", descricao: "", vara: "1ª Vara Cível", valor_causa: "", sigilo: "publico",
@@ -415,8 +426,31 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
         relator_id: relatorId,
         pedido: null,
       };
-      const { error } = await supabase.from("processos").insert(insertPayload);
+            const { error } = await supabase.from("processos").insert(insertPayload);
       if (error) throw error;
+
+      const partesParaHabilitar = atuarCausaPropria ? partesDoAdvogado : autorCoincideComAdvogado ? partesDoAdvogado.filter((parte) => parte.lado === "autor") : [];
+      if (partesParaHabilitar.length > 0 && user?.id) {
+        const { data: carteira } = await supabase.from("carteiras_oab").select("numero_oab").eq("user_id", user.id).maybeSingle();
+        const advogadoNome = `${profile?.nome_completo || "Advogado"}${carteira?.numero_oab ? ` (OAB nº ${carteira.numero_oab})` : profile?.oab_numero ? ` (OAB nº ${profile.oab_numero})` : ""}`;
+        const { error: habilitacaoError } = await supabase.from("procuracoes").insert(partesParaHabilitar.map(({ lado, nome }) => ({
+          processo_id: processoId,
+          advogado_id: user.id,
+          advogado_nome: advogadoNome,
+          parte: `${lado}:${nome}`,
+          documento_url: "Em Causa Própria (Art. 103 do CPC)",
+          status: "ativa",
+        })));
+        if (habilitacaoError) throw habilitacaoError;
+        const qualificacao = partesParaHabilitar.map(({ lado }) => lado === "autor" ? "AUTOR" : "RÉU").join(" e ");
+        const { error: movimentacaoError } = await supabase.from("movimentacoes").insert({
+          processo_id: processoId,
+          tipo: "habilitacao",
+          descricao: `HABILITAÇÃO EM CAUSA PRÓPRIA — O(A) Dr(a). ${advogadoNome} habilitou-se nos autos postulando em causa própria na qualidade de ${qualificacao}, nos termos do Art. 103, parágrafo único do CPC.`,
+          autor_id: user.id,
+        });
+        if (movimentacaoError) throw movimentacaoError;
+      }
 
       const isSigiloso = form.sigilo === "segredo_justica" || form.sigilo === "sigilo_absoluto";
       if (user?.id && (isCidadao || isSigiloso)) {
