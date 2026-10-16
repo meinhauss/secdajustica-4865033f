@@ -285,8 +285,19 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
 
   const isCidadao = roles.length === 0 || (roles.length === 1 && roles[0] === "cidadao");
 
-  const [autores, setAutores] = useState<ParteEntry[]>([]);
+    const [autores, setAutores] = useState<ParteEntry[]>([]);
   const [reus, setReus] = useState<ParteEntry[]>([]);
+  const [atuarCausaPropria, setAtuarCausaPropria] = useState(false);
+  const normalizarNomeParte = (nome?: string) => (nome || "").trim().toLocaleLowerCase("pt-BR");
+  const coincideComAdvogado = (parte: ParteEntry) => Boolean(
+    (profile?.id_personagem && parte.id_personagem?.trim() === profile.id_personagem.trim()) ||
+    (profile?.nome_completo && normalizarNomeParte(parte.nome) === normalizarNomeParte(profile.nome_completo))
+  );
+  const partesDoAdvogado = roles.includes("advogado") ? [
+    ...autores.filter(coincideComAdvogado).map((parte) => ({ lado: "autor" as const, nome: parte.nome })),
+    ...reus.filter(coincideComAdvogado).map((parte) => ({ lado: "reu" as const, nome: parte.nome })),
+  ] : [];
+  const autorCoincideComAdvogado = autores.some(coincideComAdvogado);
 
   const [form, setForm] = useState({
     classe: "civil", assunto: "", descricao: "", vara: "1ª Vara Cível", valor_causa: "", sigilo: "publico",
