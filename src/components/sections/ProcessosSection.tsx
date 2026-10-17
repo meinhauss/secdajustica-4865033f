@@ -623,6 +623,25 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
                 </>
               )}
 
+                            {roles.includes("advogado") && partesDoAdvogado.length > 0 && (
+                <label className="flex items-start gap-3 rounded-xl border border-institutional/30 bg-institutional/5 p-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="mt-1 rounded"
+                    checked={atuarCausaPropria || autorCoincideComAdvogado}
+                    disabled={autorCoincideComAdvogado}
+                    onChange={(e) => setAtuarCausaPropria(e.target.checked)}
+                  />
+                  <span className="space-y-1">
+                    <span className="block text-sm font-semibold text-foreground">Atuar em Causa Própria</span>
+                    <span className="block text-xs text-muted-foreground">
+                      {autorCoincideComAdvogado
+                        ? "Sua habilitação como advogado da parte autora será registrada automaticamente."
+                        : `Habilitar-se como advogado da parte: ${partesDoAdvogado.map((parte) => `${parte.lado === "autor" ? "autor" : "réu"} ${parte.nome}`).join(", ")}.`}
+                    </span>
+                  </span>
+                </label>
+              )}
               <Select value={form.sigilo} onValueChange={(v) => setForm({ ...form, sigilo: v })}>
                 <SelectTrigger className="rounded-xl"><SelectValue placeholder="Nível de Sigilo" /></SelectTrigger>
                 <SelectContent>
