@@ -1534,6 +1534,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   // After sentencing, no new movimentações — only appeals are allowed (except oficial de justiça)
   const isSentenciado = processo?.status === "sentenciado";
   const isArquivado = processo?.status === "arquivado";
+    const advogadoEmCausaPropria = isAdvogado && procuracoes?.some((p: any) => p.advogado_id === user?.id && p.status === "ativa" && p.documento_url === "Em Causa Própria (Art. 103 do CPC)");
   const canAddMovimentacao = isOficialJustica || (!isSentenciado && !isArquivado && (isJudicial || (isMagistradoOrDesembargador && (processo?.juiz_id === user?.id || processo?.relator_id === user?.id)) || (isAdvogado && advogadoTemProcuracao) || institucionalInteressado));
 
   const manifestarInteresse = useMutation({
