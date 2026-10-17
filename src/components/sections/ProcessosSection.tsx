@@ -1082,6 +1082,40 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const minhasProcuracoes = procuracoes?.filter((p: any) => p.advogado_id === user?.id && p.status === "ativa") || [];
   const partesJaRepresentadas = minhasProcuracoes.map((p: any) => p.parte);
 
+    const habilitarCausaPropria = useMutation({
+    mutationFn: async () => {
+      if (!isAdvogado || !user?.id || partesProprias.length === 0) throw new Error("Apenas advogado que figure como parte pode se habilitar em causa própria.");
+      const partesDisponiveis = partesProprias.filter(({ key }) => !partesJaRepresentadas.includes(key));
+      if (partesDisponiveis.length === 0) throw new Error("Você já está habilitado(a) nas partes em que figura.");
+      const { data: carteira } = await supabase.from("carteiras_oab").select("numero_oab").eq("user_id", user.id).maybeSingle();
+      const advogadoNome = `${profile?.nome_completo || "Advogado"}${carteira?.numero_oab ? ` (OAB nº ${carteira.numero_oab})` : profile?.oab_numero ? ` (OAB nº ${profile.oab_numero})` : ""}`;
+      const { error } = await supabase.from("procuracoes").insert(partesDisponiveis.map(({ key }) => ({
+        processo_id: processoId,
+        advogado_id: user.id,
+        advogado_nome: advogadoNome,
+        parte: key,
+        documento_url: "Em Causa Própria (Art. 103 do CPC)",
+        status: "ativa",
+      })));
+      if (error) throw error;
+      const qualificacao = partesDisponiveis.map(({ lado }) => lado === "autor" ? "AUTOR" : "RÉU").join(" e ");
+      const { error: movError } = await supabase.from("movimentacoes").insert({
+        processo_id: processoId,
+        tipo: "habilitacao",
+        descricao: `HABILITAÇÃO EM CAUSA PRÓPRIA — O(A) Dr(a). ${advogadoNome} habilitou-se nos autos postulando em causa própria na qualidade de ${qualificacao}, nos termos do Art. 103, parágrafo único do CPC.`,
+        autor_id: user.id,
+      });
+      if (movError) throw movError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["procuracoes", processoId] });
+      queryClient.invalidateQueries({ queryKey: ["movimentacoes", processoId] });
+      queryClient.invalidateQueries({ queryKey: ["meus-processos"] });
+      toast.success("Habilitação em causa própria registrada!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
   const juntarProcuracao = useMutation({
     mutationFn: async () => {
       if (!procForm.cartorio_id) throw new Error("Selecione a procuração emitida pelo Cartório.");
