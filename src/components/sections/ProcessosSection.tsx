@@ -946,8 +946,13 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   );
 
   // Parse individual parties from processo for procuração selection
-  const partesAutor = processo ? parsePartesFromString(processo.autor_nome) : [];
+    const partesAutor = processo ? parsePartesFromString(processo.autor_nome) : [];
   const partesReu = processo ? parsePartesFromString(processo.reu_nome) : [];
+  const normalizarNomeParte = (nome?: string) => (nome || "").trim().toLocaleLowerCase("pt-BR");
+  const partesProprias = isAdvogado ? [
+    ...partesAutor.filter((p) => (profile?.id_personagem && p.id_personagem?.trim() === profile.id_personagem.trim()) || (profile?.nome_completo && normalizarNomeParte(p.nome) === normalizarNomeParte(profile.nome_completo))).map((p) => ({ lado: "autor" as const, nome: p.nome, key: `autor:${p.nome}` })),
+    ...partesReu.filter((p) => (profile?.id_personagem && p.id_personagem?.trim() === profile.id_personagem.trim()) || (profile?.nome_completo && normalizarNomeParte(p.nome) === normalizarNomeParte(profile.nome_completo))).map((p) => ({ lado: "reu" as const, nome: p.nome, key: `reu:${p.nome}` })),
+  ] : [];
 
   // canAddMovimentacao is computed after jaInteressado below
 
