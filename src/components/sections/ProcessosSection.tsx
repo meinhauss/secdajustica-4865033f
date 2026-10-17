@@ -623,6 +623,25 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
                 </>
               )}
 
+                            {roles.includes("advogado") && partesDoAdvogado.length > 0 && (
+                <label className="flex items-start gap-3 rounded-xl border border-institutional/30 bg-institutional/5 p-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="mt-1 rounded"
+                    checked={atuarCausaPropria || autorCoincideComAdvogado}
+                    disabled={autorCoincideComAdvogado}
+                    onChange={(e) => setAtuarCausaPropria(e.target.checked)}
+                  />
+                  <span className="space-y-1">
+                    <span className="block text-sm font-semibold text-foreground">Atuar em Causa Própria</span>
+                    <span className="block text-xs text-muted-foreground">
+                      {autorCoincideComAdvogado
+                        ? "Sua habilitação como advogado da parte autora será registrada automaticamente."
+                        : `Habilitar-se como advogado da parte: ${partesDoAdvogado.map((parte) => `${parte.lado === "autor" ? "autor" : "réu"} ${parte.nome}`).join(", ")}.`}
+                    </span>
+                  </span>
+                </label>
+              )}
               <Select value={form.sigilo} onValueChange={(v) => setForm({ ...form, sigilo: v })}>
                 <SelectTrigger className="rounded-xl"><SelectValue placeholder="Nível de Sigilo" /></SelectTrigger>
                 <SelectContent>
@@ -927,8 +946,13 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   );
 
   // Parse individual parties from processo for procuração selection
-  const partesAutor = processo ? parsePartesFromString(processo.autor_nome) : [];
+    const partesAutor = processo ? parsePartesFromString(processo.autor_nome) : [];
   const partesReu = processo ? parsePartesFromString(processo.reu_nome) : [];
+  const normalizarNomeParte = (nome?: string) => (nome || "").trim().toLocaleLowerCase("pt-BR");
+  const partesProprias = isAdvogado ? [
+    ...partesAutor.filter((p) => (profile?.id_personagem && p.id_personagem?.trim() === profile.id_personagem.trim()) || (profile?.nome_completo && normalizarNomeParte(p.nome) === normalizarNomeParte(profile.nome_completo))).map((p) => ({ lado: "autor" as const, nome: p.nome, key: `autor:${p.nome}` })),
+    ...partesReu.filter((p) => (profile?.id_personagem && p.id_personagem?.trim() === profile.id_personagem.trim()) || (profile?.nome_completo && normalizarNomeParte(p.nome) === normalizarNomeParte(profile.nome_completo))).map((p) => ({ lado: "reu" as const, nome: p.nome, key: `reu:${p.nome}` })),
+  ] : [];
 
   // canAddMovimentacao is computed after jaInteressado below
 
@@ -1057,6 +1081,40 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   // Get parties this lawyer already represents actively
   const minhasProcuracoes = procuracoes?.filter((p: any) => p.advogado_id === user?.id && p.status === "ativa") || [];
   const partesJaRepresentadas = minhasProcuracoes.map((p: any) => p.parte);
+
+    const habilitarCausaPropria = useMutation({
+    mutationFn: async () => {
+      if (!isAdvogado || !user?.id || partesProprias.length === 0) throw new Error("Apenas advogado que figure como parte pode se habilitar em causa própria.");
+      const partesDisponiveis = partesProprias.filter(({ key }) => !partesJaRepresentadas.includes(key));
+      if (partesDisponiveis.length === 0) throw new Error("Você já está habilitado(a) nas partes em que figura.");
+      const { data: carteira } = await supabase.from("carteiras_oab").select("numero_oab").eq("user_id", user.id).maybeSingle();
+      const advogadoNome = `${profile?.nome_completo || "Advogado"}${carteira?.numero_oab ? ` (OAB nº ${carteira.numero_oab})` : profile?.oab_numero ? ` (OAB nº ${profile.oab_numero})` : ""}`;
+      const { error } = await supabase.from("procuracoes").insert(partesDisponiveis.map(({ key }) => ({
+        processo_id: processoId,
+        advogado_id: user.id,
+        advogado_nome: advogadoNome,
+        parte: key,
+        documento_url: "Em Causa Própria (Art. 103 do CPC)",
+        status: "ativa",
+      })));
+      if (error) throw error;
+      const qualificacao = partesDisponiveis.map(({ lado }) => lado === "autor" ? "AUTOR" : "RÉU").join(" e ");
+      const { error: movError } = await supabase.from("movimentacoes").insert({
+        processo_id: processoId,
+        tipo: "habilitacao",
+        descricao: `HABILITAÇÃO EM CAUSA PRÓPRIA — O(A) Dr(a). ${advogadoNome} habilitou-se nos autos postulando em causa própria na qualidade de ${qualificacao}, nos termos do Art. 103, parágrafo único do CPC.`,
+        autor_id: user.id,
+      });
+      if (movError) throw movError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["procuracoes", processoId] });
+      queryClient.invalidateQueries({ queryKey: ["movimentacoes", processoId] });
+      queryClient.invalidateQueries({ queryKey: ["meus-processos"] });
+      toast.success("Habilitação em causa própria registrada!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
 
   const juntarProcuracao = useMutation({
     mutationFn: async () => {
@@ -1476,7 +1534,8 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   // After sentencing, no new movimentações — only appeals are allowed (except oficial de justiça)
   const isSentenciado = processo?.status === "sentenciado";
   const isArquivado = processo?.status === "arquivado";
-  const canAddMovimentacao = isOficialJustica || (!isSentenciado && !isArquivado && (isJudicial || (isMagistradoOrDesembargador && (processo?.juiz_id === user?.id || processo?.relator_id === user?.id)) || (isAdvogado && advogadoTemProcuracao) || institucionalInteressado));
+      const advogadoEmCausaPropria = isAdvogado && procuracoes?.some((p: any) => p.advogado_id === user?.id && p.status === "ativa" && p.documento_url === "Em Causa Própria (Art. 103 do CPC)");
+  const canAddMovimentacao = isOficialJustica || (!isSentenciado && !isArquivado && (isJudicial || (isMagistradoOrDesembargador && (processo?.juiz_id === user?.id || processo?.relator_id === user?.id)) || ((isAdvogado && advogadoTemProcuracao) || advogadoEmCausaPropria) || institucionalInteressado));
 
   const manifestarInteresse = useMutation({
     mutationFn: async () => {
@@ -1958,6 +2017,11 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><UserCheck className="h-4 w-4 text-institutional" /> Advogados Constituídos</h3>
           <div className="flex gap-2">
+                        {isAdvogado && partesProprias.some(({ key }) => !partesJaRepresentadas.includes(key)) && (
+              <Button size="sm" className="rounded-lg text-xs bg-institutional hover:bg-institutional-light text-gold-light" onClick={() => habilitarCausaPropria.mutate()} disabled={habilitarCausaPropria.isPending}>
+                <ShieldCheck className="h-3 w-3 mr-1" /> {habilitarCausaPropria.isPending ? "Habilitando..." : "Habilitar-se em Causa Própria"}
+              </Button>
+            )}
             {isAdvogado && (
               <Button size="sm" variant="outline" className="rounded-lg text-xs" onClick={() => setShowProcuracao(true)}>
                 <ShieldCheck className="h-3 w-3 mr-1" /> Juntar Procuração
