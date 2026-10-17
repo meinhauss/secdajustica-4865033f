@@ -421,7 +421,8 @@ export function generateProcessoPDF(params: {
       doc.text(`- ${name}`, MARGIN + 2, y);
       doc.setFont("helvetica", "normal");
       const labelParte = p.parte === "autor" ? "Autor" : "Reu";
-      doc.text(sanitize(` | ${labelParte} | ${p.status}`), MARGIN + 2 + doc.getTextWidth(`- ${name}`), y);
+            const identificacaoPropria = p.documento_url === "Em Causa Própria (Art. 103 do CPC)" ? " | Atuação em causa própria (Art. 103, parágrafo único, do CPC)" : "";
+      doc.text(sanitize(` | ${labelParte} | ${p.status}${identificacaoPropria}`), MARGIN + 2 + doc.getTextWidth(`- ${name}`), y);
       y += 5;
     }
   }
