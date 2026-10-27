@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { ListSkeleton } from "@/components/ui/list-skeleton";
 import { motion, AnimatePresence } from "framer-motion";
@@ -1605,6 +1605,21 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     const deadline = new Date(new Date(latestSentenca.created_at).getTime() + 3 * 24 * 60 * 60 * 1000);
     return new Date() > deadline;
   })();
+
+  // Certificação automática de trânsito em julgado quando o prazo recursal expira sem recurso
+  const transitoCertificadoRef = useRef(false);
+  useEffect(() => {
+    if (!isSentenciado || !prazoApelacaoExpirado || transitoCertificadoRef.current) return;
+    if ((apelacoesProc?.length ?? 0) > 0) return;
+    transitoCertificadoRef.current = true;
+    supabase.rpc("certificar_transito_se_expirado" as any, { p_processo_id: processoId }).then(({ data, error }) => {
+      if (!error && data) {
+        queryClient.invalidateQueries({ queryKey: ["processo", processoId] });
+        queryClient.invalidateQueries({ queryKey: ["movimentacoes", processoId] });
+        queryClient.invalidateQueries({ queryKey: ["processos"] });
+      }
+    });
+  }, [isSentenciado, prazoApelacaoExpirado, apelacoesProc?.length, processoId, queryClient]);
 
   // Renúncias de prazo recursal sobre a última sentença
   const { data: renunciasProc } = useQuery({
