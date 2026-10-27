@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.certificar_transito_se_expirado(uuid) FROM anon, public;
