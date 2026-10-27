@@ -2223,6 +2223,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      certificar_transito_se_expirado: {
+        Args: { p_processo_id: string }
+        Returns: boolean
+      }
       cleanup_cargo_historico: { Args: never; Returns: number }
       cleanup_ranking_destaques: { Args: never; Returns: number }
       cleanup_read_notifications: { Args: never; Returns: number }
