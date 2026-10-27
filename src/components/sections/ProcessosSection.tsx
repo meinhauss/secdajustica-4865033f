@@ -3831,7 +3831,7 @@ function AddCertidao({ onAdd, isPending }: { onAdd: (cert: { tipo: string; conte
   );
 }
 
-function AddAtoCartorio({ processoId, onAdd, isPending }: { processoId: string; onAdd: (ato: { tipo: string; titulo: string; conteudo: string; anexo_urls?: string[] }) => void; isPending: boolean }) {
+function AddAtoCartorio({ processoId, onAdd, isPending }: { processoId: string; onAdd: (ato: { tipo: string; titulo: string; conteudo: string; anexo_urls?: string[]; arquivos?: File[] }) => void; isPending: boolean }) {
   const [open, setOpen] = useState(false);
   const [tipo, setTipo] = useState("juntada");
   const [titulo, setTitulo] = useState("");
