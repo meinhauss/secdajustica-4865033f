@@ -18,6 +18,9 @@ const ProcessosSection = lazy(() => import("@/components/sections/ProcessosSecti
 const MeusProcessosSection = lazy(() => import("@/components/sections/MeusProcessosSection"));
 const ConsultaPublicaSection = lazy(() => import("@/components/sections/ConsultaPublicaSection"));
 const MagistradoSection = lazy(() => import("@/components/sections/MagistradoSection"));
+const TribunalSection = lazy(() => import("@/components/sections/TribunalSection"));
+const EstatisticasSection = lazy(() => import("@/components/sections/EstatisticasSection"));
+const CartorarioSection = lazy(() => import("@/components/sections/CartorarioSection"));
 const JurisprudenciaSection = lazy(() => import("@/components/sections/JurisprudenciaSection"));
 const MPSection = lazy(() => import("@/components/sections/MPSection"));
 const AudienciasSection = lazy(() => import("@/components/sections/AudienciasSection"));
@@ -52,7 +55,8 @@ const Index = () => {
   const navigate = useNavigate();
 
   // Deriva a seção ativa da URL; fallback para dashboard se inválida ou ausente
-  const activeSection = urlSection && VALID_SECTIONS.has(urlSection) ? urlSection : "dashboard";
+  const normalizedSection = urlSection?.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const activeSection = normalizedSection && VALID_SECTIONS.has(normalizedSection) ? normalizedSection : "dashboard";
 
   // Navegação centralizada: atualiza URL e limpa processo aberto se necessário
   const setActiveSection = (section: string) => {

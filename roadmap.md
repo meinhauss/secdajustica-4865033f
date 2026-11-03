@@ -1,4 +1,5 @@
 # Correções da Triagem Penal
+- [x] Restaurar carregamento de Cartório, Tribunal e Estatísticas, aceitar /cartório e corrigir erros existentes da prévia; quatro testes de navegação passaram e página pública carregou sem erros. Operações autenticadas não verificáveis na conexão externa.
 - [x] Trocar ícone por grade no menu, título e botão.
 - [x] Formatar cards, cópia e PDF sem HTML ou JSON visíveis.
 - [x] Corrigir erro de compilação existente e verificar sete testes, cards e as duas páginas do PDF com dados fictícios.
