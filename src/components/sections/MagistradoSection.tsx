@@ -908,6 +908,29 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
           descricao: `INTIMAÇÃO DE ${pessoaIntForm.nome.toUpperCase()}\n\nPrazo: ${pessoaIntForm.prazo} horas\n\n${pessoaIntForm.conteudo}`,
           autor_id: user!.id,
         });
+
+        // Publica no DJEM marcando o intimado (a DM já sai pela notificação automática).
+        const { data: profDj } = await supabase
+          .from("profiles")
+          .select("discord_user_id, discord")
+          .eq("user_id", destinatarioUserId)
+          .maybeSingle();
+        const manualId = pessoaIntForm.discord_id.trim();
+        const djId = /^[0-9]{17,20}$/.test(manualId)
+          ? manualId
+          : profDj?.discord_user_id || (profDj?.discord && /^[0-9]{17,20}$/.test(profDj.discord) ? profDj.discord : null);
+        if (djId) {
+          await supabase.functions.invoke("discord-djem", {
+            body: {
+              discord_user_id: djId,
+              destinatario_nome: pessoaIntForm.nome,
+              processo_numero: processo?.numero || "",
+              prazo: pessoaIntForm.prazo,
+              conteudo: pessoaIntForm.conteudo,
+              enviar_dm: false,
+            },
+          }).catch(() => null);
+        }
         return { modo: "cadastrado" as const };
       }
 
@@ -956,12 +979,15 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         `<i>O não atendimento desta intimação no prazo poderá acarretar as consequências legais previstas, inclusive revelia, preclusão ou expedição de mandado.</i>`,
       ].join("\n");
 
-      await supabase.functions.invoke("discord-notify", {
+      await supabase.functions.invoke("discord-djem", {
         body: {
           discord_user_id: discordId,
-          titulo: `Intimação Judicial — Processo ${processo?.numero || ""}`,
-          mensagem: mensagemDM,
-          tipo: "intimacao",
+          destinatario_nome: pessoaIntForm.nome,
+          processo_numero: processo?.numero || "",
+          prazo: pessoaIntForm.prazo,
+          conteudo: pessoaIntForm.conteudo,
+          titulo_dm: `Intimação Judicial — Processo ${processo?.numero || ""}`,
+          mensagem_dm: mensagemDM,
           link_secao: CADASTRO_URL,
         },
       });
