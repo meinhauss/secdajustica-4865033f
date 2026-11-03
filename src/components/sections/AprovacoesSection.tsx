@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CheckCircle2, XCircle, ClipboardCheck, Link2, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
+import { sanitizeRichHtml } from "@/lib/sanitize";
 
 const db = supabase as any;
 
@@ -251,7 +252,7 @@ export default function AprovacoesSection() {
                     <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{rotuloCampo(k)}</p>
                     <div
                       className="text-sm text-foreground bg-muted/40 rounded-lg p-3 prose prose-sm dark:prose-invert max-w-none break-words [&_p]:my-1"
-                      dangerouslySetInnerHTML={{ __html: v }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(v) }}
                     />
                   </div>
                 ))}
