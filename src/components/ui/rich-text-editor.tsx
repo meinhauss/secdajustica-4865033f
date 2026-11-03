@@ -329,11 +329,18 @@ export interface RichTextViewProps {
 const URL_REGEX = /(https?:\/\/[^\s<>"')]+)/g;
 
 function linkifyPlain(text: string): string {
-  const escaped = text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-  return escaped.replace(URL_REGEX, (url) => `<a href="${url}">${url}</a>`);
+  // Preserva quebras de linha do texto puro convertendo \n em <p>,
+  // evitando que relatos da ouvidoria apareçam embaralhados sem espaçamento.
+  const lines = text.split(/\r?\n/);
+  const paragraphs = lines.map((line) => {
+    const escaped = line
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(URL_REGEX, (url) => `<a href="${url}">${url}</a>`);
+    return `<p>${escaped || "&nbsp;"}</p>`;
+  });
+  return paragraphs.join("");
 }
 
 function linkifyHtml(html: string): string {

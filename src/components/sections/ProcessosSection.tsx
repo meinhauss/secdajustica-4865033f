@@ -2623,7 +2623,21 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         {/* CERTIDÕES */}
         {(isOficialJustica || isJudicialReadOnly) && (
           <TabsContent value="certidoes" className="mt-4 space-y-4">
-            {isOficialJustica && <AddCertidao onAdd={(cert) => createCertidao.mutate(cert)} isPending={createCertidao.isPending} />}
+            {/* Resumo integrado de diligências: conta automaticamente eventos do fluxo */}
+            <DiligenciasSummary movimentacoes={movimentacoes || []} />
+            {isOficialJustica && (
+              <AddCertidao
+                onAdd={(cert) => createCertidao.mutate(cert)}
+                isPending={createCertidao.isPending}
+                processoContext={{
+                  numero: processo?.numero,
+                  autorNome: formatPartesShort(processo?.autor_nome || ""),
+                  reuNome: formatPartesShort(processo?.reu_nome || ""),
+                  comarca: processo?.comarca || "São José dos Campos",
+                  oficialNome: profile?.nome_completo,
+                }}
+              />
+            )}
             {!certidoes?.length ? (
               <p className="text-center py-8 text-sm text-muted-foreground">Nenhuma certidão juntada neste processo.</p>
             ) : (
@@ -3575,6 +3589,52 @@ function AddAudiencia({ onAdd }: { onAdd: (a: { tipo: string; data_hora: string;
   );
 }
 
+/** Tipos de movimentação que contam como diligência no fluxo de eventos */
+const DILIGENCIA_TIPOS = new Set([
+  "diligencia",
+  "cumprimento_mandado",
+  "mandado_cumprido",
+  "mandado_devolvido",
+  "certidao_oficial",
+]);
+
+/**
+ * Resumo integrado de diligências: lê as movimentações do processo e exibe
+ * o total de diligências realizadas, evitando digitação manual duplicada.
+ */
+function DiligenciasSummary({ movimentacoes }: { movimentacoes: any[] }) {
+  const diligencias = movimentacoes.filter((m: any) => DILIGENCIA_TIPOS.has(m.tipo));
+  if (diligencias.length === 0) return null;
+
+  const porTipo = diligencias.reduce<Record<string, number>>((acc, m: any) => {
+    acc[m.tipo] = (acc[m.tipo] || 0) + 1;
+    return acc;
+  }, {});
+
+  return (
+    <div className="bg-card rounded-xl p-4 border border-border shadow-institutional">
+      <div className="flex items-center gap-2 mb-3">
+        <ClipboardList className="h-4 w-4 text-institutional" />
+        <h4 className="text-sm font-semibold text-foreground">Resumo de Diligências</h4>
+        <span className="ml-auto text-xs font-bold text-gold-dark bg-gold/10 px-2 py-0.5 rounded-full">
+          {diligencias.length} {diligencias.length === 1 ? "diligência" : "diligências"}
+        </span>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+        {Object.entries(porTipo).map(([tipo, count]) => (
+          <div key={tipo} className="flex items-center justify-between bg-secondary/30 rounded-lg px-3 py-1.5">
+            <span className="text-muted-foreground capitalize">{tipo.replace(/_/g, " ")}</span>
+            <span className="font-semibold text-foreground">{count}</span>
+          </div>
+        ))}
+      </div>
+      <p className="text-[10px] text-muted-foreground mt-2">
+        Contagem automática baseada no histórico de movimentações do processo.
+      </p>
+    </div>
+  );
+}
+
 const CERTIDAO_TIPOS = [
   { value: "cumprimento_mandado", label: "Certidão de Cumprimento de Mandado" },
   { value: "citacao", label: "Certidão de Citação" },
@@ -3597,14 +3657,37 @@ const CERTIDAO_TEMPLATES: Record<string, string> = {
   outra: `CERTIDÃO\n\nCertifico e dou fé que [conteúdo da certidão].\n\nO referido é verdade. Dou fé.\n\n[Comarca], [data].\n\n[Nome do Oficial de Justiça]\nOficial de Justiça`,
 };
 
-function AddCertidao({ onAdd, isPending }: { onAdd: (cert: { tipo: string; conteudo: string }) => void; isPending: boolean }) {
+/** Dados do processo usados para preencher automaticamente os templates de certidão */
+type CertidaoProcessoContext = {
+  numero?: string;
+  autorNome?: string;
+  reuNome?: string;
+  comarca?: string;
+  oficialNome?: string;
+};
+
+/** Substitui placeholders [campo] no template pelos dados reais do processo */
+function preencherTemplateCertidao(template: string, ctx: CertidaoProcessoContext): string {
+  const hoje = format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+  return template
+    .replace(/\[data\]/g, hoje)
+    .replace(/\[Comarca\]/g, ctx.comarca || "[Comarca]")
+    .replace(/\[nome da parte\]/g, ctx.reuNome || ctx.autorNome || "[nome da parte]")
+    .replace(/\[nome do citando\]/g, ctx.reuNome || "[nome do citando]")
+    .replace(/\[nome do intimando\]/g, ctx.reuNome || ctx.autorNome || "[nome do intimando]")
+    .replace(/\[endereço\]/g, "[endereço]")
+    .replace(/\[Nome do Oficial de Justiça\]/g, ctx.oficialNome || "[Nome do Oficial de Justiça]")
+    .replace(/\[número\]/g, ctx.numero || "[número]");
+}
+
+function AddCertidao({ onAdd, isPending, processoContext }: { onAdd: (cert: { tipo: string; conteudo: string }) => void; isPending: boolean; processoContext?: CertidaoProcessoContext }) {
   const [open, setOpen] = useState(false);
   const [tipo, setTipo] = useState("cumprimento_mandado");
-  const [conteudo, setConteudo] = useState(CERTIDAO_TEMPLATES["cumprimento_mandado"]);
+  const [conteudo, setConteudo] = useState(() => preencherTemplateCertidao(CERTIDAO_TEMPLATES["cumprimento_mandado"], processoContext || {}));
 
   const handleTipoChange = (newTipo: string) => {
     setTipo(newTipo);
-    setConteudo(CERTIDAO_TEMPLATES[newTipo] || "");
+    setConteudo(preencherTemplateCertidao(CERTIDAO_TEMPLATES[newTipo] || "", processoContext || {}));
   };
 
   return (
