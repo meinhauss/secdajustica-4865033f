@@ -5,7 +5,7 @@ import { useTheme } from "@/hooks/useTheme";
 import {
   Scale, Gavel, BookOpen, FileText, Users, BarChart3,
   LogOut, Menu, X, Home, Briefcase, Calendar, Crown, GraduationCap, Stamp, ClipboardList, UsersRound,
-  Sun, Moon, FileStack, IdCard, ChevronDown
+  Sun, Moon, FileStack, IdCard, ChevronDown, Newspaper
 } from "lucide-react";
 import AlgemaIcon from "@/components/icons/AlgemaIcon";
 import logoSjc from "@/assets/logo-sjc.jpg";
@@ -51,6 +51,7 @@ const menuItems: MenuItem[] = [
   { id: "oab", label: "Portal OAB", icon: Briefcase, category: "Instituições", roles: ["admin", "advogado", "presidente_oab", "bacharel_direito"] },
   { id: "cartorio", label: "Cartório Civil", icon: Stamp, category: "Instituições", roles: ["admin", "oficial_justica", "magistrado", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado", "advogado", "presidente_tribunal", "desembargador", "cidadao", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal", "delegado", "corregedor", "gaeco", "chefe_gaeco", "hospital", "detran"] },
   { id: "jurados", label: "Tribunal do Júri", icon: UsersRound, category: "Instituições", roles: ["admin", "presidente_tribunal", "magistrado", "desembargador", "cidadao", "advogado", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado", "oficial_justica", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal", "delegado", "corregedor", "gaeco", "chefe_gaeco", "hospital", "detran"] },
+  { id: "djem", label: "DJEM", icon: Newspaper, category: "Instituições", roles: ["admin", "magistrado", "desembargador", "presidente_tribunal", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "oficial_justica"] },
 
   // Segurança
   { id: "tco", label: "TCO", icon: ClipboardList, category: "Segurança", roles: ["admin", "policia_civil", "policia_militar", "policia_federal", "delegado", "corregedor", "gaeco", "chefe_gaeco"] },
