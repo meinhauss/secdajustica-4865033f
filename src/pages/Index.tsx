@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,49 +7,30 @@ import { useAuth } from "@/hooks/useAuth";
 import LoginPage from "@/components/LoginPage";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardHome from "@/components/sections/DashboardHome";
-import ProcessosSection from "@/components/sections/ProcessosSection";
-import MeusProcessosSection from "@/components/sections/MeusProcessosSection";
-import ConsultaPublicaSection from "@/components/sections/ConsultaPublicaSection";
-import MagistradoSection from "@/components/sections/MagistradoSection";
-import JurisprudenciaSection from "@/components/sections/JurisprudenciaSection";
-import MPSection from "@/components/sections/MPSection";
-import AudienciasSection from "@/components/sections/AudienciasSection";
-import OABSection from "@/components/sections/OABSection";
-import UsuariosSection from "@/components/sections/UsuariosSection";
-import AprovacoesSection from "@/components/sections/AprovacoesSection";
-import CargosSection from "@/components/sections/CargosSection";
-import ConcursosSection from "@/components/sections/ConcursosSection";
-import MeuPerfilSection from "@/components/sections/MeuPerfilSection";
-import TCOSection from "@/components/sections/TCOSection";
-import TriagemBOSection from "@/components/sections/TriagemBOSection";
-import JuradosSection from "@/components/sections/JuradosSection";
-import ModelosSection from "@/components/sections/ModelosSection";
 import { ListSkeleton } from "@/components/ui/list-skeleton";
-import { useGlobalShortcuts, SHORTCUTS_LIST } from "@/hooks/useGlobalShortcuts";
+import { useKeyboardNavigation, SHORTCUTS_LIST } from "@/hooks/useKeyboardNavigation";
+import { AVATAR_REQUIRED_ROLES, hasAnyRole } from "@/lib/roles";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-// Recarrega a página uma vez se um arquivo antigo não existir mais após nova publicação
-function lazyWithReload<T extends React.ComponentType<any>>(factory: () => Promise<{ default: T }>) {
-  return lazy(async () => {
-    try {
-      const mod = await factory();
-      sessionStorage.removeItem("chunk-reload");
-      return mod;
-    } catch (err) {
-      if (!sessionStorage.getItem("chunk-reload")) {
-        sessionStorage.setItem("chunk-reload", "1");
-        window.location.reload();
-        return new Promise<{ default: T }>(() => {});
-      }
-      throw err;
-    }
-  });
-}
-
-// Seções pesadas — carregadas sob demanda
-const TribunalSection = lazyWithReload(() => import("@/components/sections/TribunalSection"));
-const CartorarioSection = lazyWithReload(() => import("@/components/sections/CartorarioSection"));
-const EstatisticasSection = lazyWithReload(() => import("@/components/sections/EstatisticasSection"));
+// Seções carregadas sob demanda — apenas DashboardHome é eager
+const ProcessosSection = lazy(() => import("@/components/sections/ProcessosSection"));
+const MeusProcessosSection = lazy(() => import("@/components/sections/MeusProcessosSection"));
+const ConsultaPublicaSection = lazy(() => import("@/components/sections/ConsultaPublicaSection"));
+const MagistradoSection = lazy(() => import("@/components/sections/MagistradoSection"));
+const JurisprudenciaSection = lazy(() => import("@/components/sections/JurisprudenciaSection"));
+const MPSection = lazy(() => import("@/components/sections/MPSection"));
+const AudienciasSection = lazy(() => import("@/components/sections/AudienciasSection"));
+const OABSection = lazy(() => import("@/components/sections/OABSection"));
+const UsuariosSection = lazy(() => import("@/components/sections/UsuariosSection"));
+const AprovacoesSection = lazy(() => import("@/components/sections/AprovacoesSection"));
+const CargosSection = lazy(() => import("@/components/sections/CargosSection"));
+const ConcursosSection = lazy(() => import("@/components/sections/ConcursosSection"));
+const MeuPerfilSection = lazy(() => import("@/components/sections/MeuPerfilSection"));
+const TCOSection = lazy(() => import("@/components/sections/TCOSection"));
+const TriagemBOSection = lazy(() => import("@/components/sections/TriagemBOSection"));
+const JuradosSection = lazy(() => import("@/components/sections/JuradosSection"));
+const ModelosSection = lazy(() => import("@/components/sections/ModelosSection"));
 
 const LazyFallback = () => (
   <div className="py-6">
@@ -56,15 +38,42 @@ const LazyFallback = () => (
   </div>
 );
 
+// Seções válidas para validação de rotas
+const VALID_SECTIONS = new Set([
+  "dashboard", "meu-perfil", "processos", "meus-processos", "consulta",
+  "magistrado", "tribunal", "jurisprudencia", "mp", "audiencias", "oab",
+  "cargos", "usuarios", "aprovacoes", "estatisticas", "concursos",
+  "cartorio", "tco", "triagem-bo", "jurados", "modelos",
+]);
+
 const Index = () => {
   const { user, loading, profile, roles } = useAuth();
-  const [activeSection, setActiveSection] = useState("dashboard");
-  const [openProcessoId, setOpenProcessoId] = useState<string | null>(null);
+  const { section: urlSection, subId } = useParams<{ section?: string; subId?: string }>();
+  const navigate = useNavigate();
+
+  // Deriva a seção ativa da URL; fallback para dashboard se inválida ou ausente
+  const activeSection = urlSection && VALID_SECTIONS.has(urlSection) ? urlSection : "dashboard";
+
+  // Navegação centralizada: atualiza URL e limpa processo aberto se necessário
+  const setActiveSection = (section: string) => {
+    if (section === activeSection) return;
+    navigate(section === "dashboard" ? "/" : `/${section}`, { replace: false });
+  };
+
+  const [openProcessoId, setOpenProcessoId] = useState<string | null>(subId || null);
   const [helpOpen, setHelpOpen] = useState(false);
   const [avatarReminderOpen, setAvatarReminderOpen] = useState(false);
 
-  useGlobalShortcuts((section) => {
-    if (section !== "processos") setOpenProcessoId(null);
+  // Sincroniza openProcessoId quando a URL muda (ex: back/forward do navegador)
+  useEffect(() => {
+    if (activeSection === "processos" && subId) {
+      setOpenProcessoId(subId);
+    } else if (activeSection !== "processos") {
+      setOpenProcessoId(null);
+    }
+  }, [activeSection, subId]);
+
+  useKeyboardNavigation((section) => {
     setActiveSection(section);
   });
 
@@ -100,15 +109,10 @@ const Index = () => {
     };
   }, []);
 
-  // Aviso de foto de perfil para advogados+
+  // Aviso de foto de perfil para roles que exigem
   useEffect(() => {
     if (!user || !profile || profile.avatar_url) return;
-    const advogadoPlus = new Set([
-      "advogado", "magistrado", "desembargador", "presidente_tribunal",
-      "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado",
-      "delegado", "presidente_oab", "bacharel_direito", "admin",
-    ]);
-    if (!roles.some((r) => advogadoPlus.has(r))) return;
+    if (!hasAnyRole(roles, ...AVATAR_REQUIRED_ROLES)) return;
     const key = `avatar-reminder-${user.id}`;
     if (sessionStorage.getItem(key)) return;
     sessionStorage.setItem(key, "1");
@@ -164,30 +168,45 @@ const Index = () => {
 
 
   const renderSection = () => {
-    switch (activeSection) {
-      case "dashboard": return <DashboardHome onNavigate={setActiveSection} />;
-      case "meu-perfil": return <MeuPerfilSection />;
-      case "processos": return <ProcessosSection initialProcessoId={openProcessoId} />;
-      case "meus-processos": return <MeusProcessosSection onOpenProcesso={(id) => { setOpenProcessoId(id); setActiveSection("processos"); }} />;
-      case "consulta": return <ConsultaPublicaSection />;
-      case "magistrado": return <MagistradoSection />;
-      case "tribunal": return <Suspense fallback={<LazyFallback />}><TribunalSection onOpenProcesso={(id) => { setOpenProcessoId(id); setActiveSection("processos"); }} /></Suspense>;
-      case "jurisprudencia": return <JurisprudenciaSection />;
-      case "mp": return <MPSection />;
-      case "audiencias": return <AudienciasSection />;
-      case "oab": return <OABSection />;
-      case "cargos": return <CargosSection />;
-      case "usuarios": return <UsuariosSection />;
-      case "aprovacoes": return <AprovacoesSection />;
-      case "estatisticas": return <Suspense fallback={<LazyFallback />}><EstatisticasSection /></Suspense>;
-      case "concursos": return <ConcursosSection />;
-      case "cartorio": return <Suspense fallback={<LazyFallback />}><CartorarioSection /></Suspense>;
-            case "tco": return <TCOSection />;
-      case "triagem-bo": return <TriagemBOSection onNavigate={setActiveSection} />;
-      case "jurados": return <JuradosSection onOpenProcesso={(id) => { setOpenProcessoId(id); setActiveSection("processos"); }} />;
-      case "modelos": return <ModelosSection />;
-      default: return <DashboardHome />;
+    const content = (() => {
+      switch (activeSection) {
+        case "dashboard": return <DashboardHome onNavigate={setActiveSection} />;
+        case "meu-perfil": return <MeuPerfilSection />;
+        case "processos": return <ProcessosSection initialProcessoId={openProcessoId} />;
+        case "meus-processos": return <MeusProcessosSection onOpenProcesso={(id) => { setOpenProcessoId(id); setActiveSection("processos"); }} />;
+        case "consulta": return <ConsultaPublicaSection />;
+        case "magistrado": return <MagistradoSection />;
+        case "tribunal": return <TribunalSection onOpenProcesso={(id) => { setOpenProcessoId(id); setActiveSection("processos"); }} />;
+        case "jurisprudencia": return <JurisprudenciaSection />;
+        case "mp": return <MPSection />;
+        case "audiencias": return <AudienciasSection />;
+        case "oab": return <OABSection />;
+        case "cargos": return <CargosSection />;
+        case "usuarios": return <UsuariosSection />;
+        case "aprovacoes": return <AprovacoesSection />;
+        case "estatisticas": return <EstatisticasSection />;
+        case "concursos": return <ConcursosSection />;
+        case "cartorio": return <CartorarioSection />;
+        case "tco": return <TCOSection />;
+        case "triagem-bo": return <TriagemBOSection onNavigate={setActiveSection} />;
+        case "jurados": return <JuradosSection onOpenProcesso={(id) => { setOpenProcessoId(id); setActiveSection("processos"); }} />;
+        case "modelos": return <ModelosSection />;
+        default: return <DashboardHome />;
+      }
+    })();
+
+    // DashboardHome é eager — não precisa de Suspense
+    if (activeSection === "dashboard") {
+      return <ErrorBoundary>{content}</ErrorBoundary>;
     }
+
+    return (
+      <ErrorBoundary>
+        <Suspense fallback={<LazyFallback />}>
+          {content}
+        </Suspense>
+      </ErrorBoundary>
+    );
   };
 
   return (

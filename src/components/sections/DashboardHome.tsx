@@ -9,8 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import forumSuzano from "@/assets/forum-suzano.png.asset.json";
 import AIResumoSemanal from "@/components/AIResumoSemanal";
-
-const JUDICIAL_ROLES = ["admin", "magistrado", "presidente_tribunal", "desembargador", "ministerio_publico", "advogado", "procurador_estado", "delegado"];
+import { JUDICIAL_ROLES, hasAnyRole } from "@/lib/roles";
 
 interface DashboardHomeProps {
   onNavigate?: (section: string) => void;
@@ -19,39 +18,41 @@ interface DashboardHomeProps {
 export default function DashboardHome({ onNavigate }: DashboardHomeProps) {
   const { profile, roles } = useAuth();
 
-  const isJudicial = roles.some((r) => JUDICIAL_ROLES.includes(r));
-  const isAdmin = roles.includes("admin");
-  const isAdvogado = roles.includes("advogado");
-  const isMagistrado = roles.includes("magistrado") || roles.includes("desembargador") || roles.includes("presidente_tribunal");
-  const isMP = roles.includes("ministerio_publico");
+  const isJudicial = hasAnyRole(roles, ...JUDICIAL_ROLES);
+  const isAdmin = hasAnyRole(roles, "admin");
+  const isAdvogado = hasAnyRole(roles, "advogado");
+  const isMagistrado = hasAnyRole(roles, "magistrado", "desembargador", "presidente_tribunal");
+  const isMP = hasAnyRole(roles, "ministerio_publico");
 
-  const { data: processosCount } = useQuery({
-    queryKey: ["dash-processos"], queryFn: async () => {
-      const { count } = await supabase.from("processos").select("*", { count: "exact", head: true });
-      return count || 0;
-    }, enabled: isJudicial || isAdmin,
+  // Query agregada: dispara todas as contagens em paralelo num único useQuery,
+  // reduzindo de 4 round-trips sequenciais para 1 batch paralelo ao Supabase.
+  const needsStats = isJudicial || isAdmin;
+  const { data: statsData } = useQuery({
+    queryKey: ["dash-stats-aggregated"],
+    queryFn: async () => {
+      const [processosRes, conclusosRes, audienciasRes, intimacoesRes] = await Promise.all([
+        supabase.from("processos").select("*", { count: "exact", head: true }),
+        (isMagistrado || isAdmin)
+          ? supabase.from("processos").select("*", { count: "exact", head: true }).eq("status", "concluso")
+          : Promise.resolve({ count: null }),
+        supabase.from("audiencias").select("*", { count: "exact", head: true }).eq("status", "agendada"),
+        supabase.from("intimacoes").select("*", { count: "exact", head: true }).eq("status", "pendente"),
+      ]);
+      return {
+        processos: processosRes.count || 0,
+        conclusos: conclusosRes.count || 0,
+        audiencias: audienciasRes.count || 0,
+        intimacoes: intimacoesRes.count || 0,
+      };
+    },
+    enabled: needsStats,
+    staleTime: 30_000, // cache por 30s para evitar refetch excessivo
   });
 
-  const { data: processosConclusos } = useQuery({
-    queryKey: ["dash-conclusos"], queryFn: async () => {
-      const { count } = await supabase.from("processos").select("*", { count: "exact", head: true }).eq("status", "concluso");
-      return count || 0;
-    }, enabled: isMagistrado || isAdmin,
-  });
-
-  const { data: audienciasCount } = useQuery({
-    queryKey: ["dash-audiencias"], queryFn: async () => {
-      const { count } = await supabase.from("audiencias").select("*", { count: "exact", head: true }).eq("status", "agendada");
-      return count || 0;
-    }, enabled: isJudicial || isAdmin,
-  });
-
-  const { data: intimacoesPendentes } = useQuery({
-    queryKey: ["dash-intimacoes"], queryFn: async () => {
-      const { count } = await supabase.from("intimacoes").select("*", { count: "exact", head: true }).eq("status", "pendente");
-      return count || 0;
-    }, enabled: isJudicial || isAdmin,
-  });
+  const processosCount = statsData?.processos ?? 0;
+  const processosConclusos = statsData?.conclusos ?? 0;
+  const audienciasCount = statsData?.audiencias ?? 0;
+  const intimacoesPendentes = statsData?.intimacoes ?? 0;
 
 
   const nav = (s: string) => onNavigate?.(s);

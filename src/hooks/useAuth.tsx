@@ -2,13 +2,14 @@ import { useState, useEffect, createContext, useContext } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { setAnalistaMode } from "@/lib/analistaInterceptor";
 import type { User, Session } from "@supabase/supabase-js";
+import type { Profile } from "@/types/profile";
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
   roles: string[];
-  profile: any;
+  profile: Profile | null;
   signUp: (email: string, password: string, nomeCompleto: string, extra?: { discord?: string; id_personagem?: string; telefone_ingame?: string }) => Promise<any>;
   signIn: (email: string, password: string) => Promise<any>;
   signOut: () => Promise<void>;
@@ -22,7 +23,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [roles, setRoles] = useState<string[]>([]);
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
 
   const fetchUserData = async (userId: string) => {
     const [rolesRes, profileRes] = await Promise.all([
