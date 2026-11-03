@@ -2231,7 +2231,9 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             const usedDocIds = new Set<string>();
 
             // Types that already have dedicated timeline entries (atos, sentenças, audiências, etc.)
-            const duplicatedMovTypes = new Set(["despacho", "sentenca", "audiencia_designada", "mandado_expedido", "intimacao", "certidao_oficial", "procuracao", "juntada", "ato_ordinatorio"]);
+            // "ato_judicial" é adicionado porque createAto já insere uma movimentação-resumo;
+            // sem isso, o mesmo ato apareceria duas vezes (como ato + como movimentação genérica).
+            const duplicatedMovTypes = new Set(["despacho", "sentenca", "audiencia_designada", "mandado_expedido", "intimacao", "certidao_oficial", "procuracao", "juntada", "ato_ordinatorio", "ato_judicial"]);
 
             // Movimentações — attach related documents, skip types rendered by dedicated sections
             movimentacoes?.forEach(m => {
@@ -3349,14 +3351,27 @@ function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles
 function AddAto({ onAdd, processo, movimentacoes }: { onAdd: (ato: { tipo: string; titulo: string; conteudo: string }) => void; processo?: any; movimentacoes?: any[] }) {
   const [open, setOpen] = useState(false);
   const [tipo, setTipo] = useState("despacho");
-  const [titulo, setTitulo] = useState("");
-  const [conteudo, setConteudo] = useState("");
+  const [titulo, setTitulo] = useState("Despacho");
+  const [conteudo, setConteudo] = useState(ATO_TEMPLATES.despacho || "");
 
   const loadTemplate = (t: string) => {
     setTipo(t);
     setConteudo(ATO_TEMPLATES[t] || "");
     setTitulo(ATO_TIPOS.find((a) => a.value === t)?.label || t);
   };
+
+  // Garante que o template correto seja carregado ao abrir o diálogo
+  useEffect(() => {
+    if (open) {
+      setConteudo(ATO_TEMPLATES[tipo] || "");
+      setTitulo(ATO_TIPOS.find((a) => a.value === tipo)?.label || tipo);
+    } else {
+      // Reseta para despacho ao fechar para evitar estado residual
+      setTipo("despacho");
+      setTitulo("Despacho");
+      setConteudo(ATO_TEMPLATES.despacho || "");
+    }
+  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
