@@ -18,6 +18,10 @@ const ProcessosSection = lazy(() => import("@/components/sections/ProcessosSecti
 const MeusProcessosSection = lazy(() => import("@/components/sections/MeusProcessosSection"));
 const ConsultaPublicaSection = lazy(() => import("@/components/sections/ConsultaPublicaSection"));
 const MagistradoSection = lazy(() => import("@/components/sections/MagistradoSection"));
+const TribunalSection = lazy(() => import("@/components/sections/TribunalSection"));
+const EstatisticasSection = lazy(() => import("@/components/sections/EstatisticasSection"));
+const CartorarioSection = lazy(() => import("@/components/sections/CartorarioSection"));
+const DJEMSection = lazy(() => import("@/components/sections/DJEMSection"));
 const JurisprudenciaSection = lazy(() => import("@/components/sections/JurisprudenciaSection"));
 const MPSection = lazy(() => import("@/components/sections/MPSection"));
 const AudienciasSection = lazy(() => import("@/components/sections/AudienciasSection"));
@@ -43,7 +47,7 @@ const VALID_SECTIONS = new Set([
   "dashboard", "meu-perfil", "processos", "meus-processos", "consulta",
   "magistrado", "tribunal", "jurisprudencia", "mp", "audiencias", "oab",
   "cargos", "usuarios", "aprovacoes", "estatisticas", "concursos",
-  "cartorio", "tco", "triagem-bo", "jurados", "modelos",
+  "cartorio", "tco", "triagem-bo", "jurados", "modelos", "djem",
 ]);
 
 const Index = () => {
@@ -52,7 +56,8 @@ const Index = () => {
   const navigate = useNavigate();
 
   // Deriva a seção ativa da URL; fallback para dashboard se inválida ou ausente
-  const activeSection = urlSection && VALID_SECTIONS.has(urlSection) ? urlSection : "dashboard";
+  const normalizedSection = urlSection?.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const activeSection = normalizedSection && VALID_SECTIONS.has(normalizedSection) ? normalizedSection : "dashboard";
 
   // Navegação centralizada: atualiza URL e limpa processo aberto se necessário
   const setActiveSection = (section: string) => {
@@ -191,6 +196,7 @@ const Index = () => {
         case "triagem-bo": return <TriagemBOSection onNavigate={setActiveSection} />;
         case "jurados": return <JuradosSection onOpenProcesso={(id) => { setOpenProcessoId(id); setActiveSection("processos"); }} />;
         case "modelos": return <ModelosSection />;
+        case "djem": return <DJEMSection />;
         default: return <DashboardHome />;
       }
     })();
