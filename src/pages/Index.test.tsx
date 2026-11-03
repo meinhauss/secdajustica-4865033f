@@ -19,7 +19,6 @@ vi.mock("@/hooks/useAuth", () => ({
 }));
 vi.mock("@/hooks/useKeyboardNavigation", () => ({ useKeyboardNavigation: vi.fn(), SHORTCUTS_LIST: [] }));
 vi.mock("@/components/LoginPage", () => ({ default: () => null }));
-vi.mock("@/components/DashboardHome", () => ({ default: () => null }));
 vi.mock("@/components/sections/DashboardHome", () => ({ default: () => null }));
 vi.mock("@/components/DashboardLayout", () => ({ default: ({ children }: { children: React.ReactNode }) => children }));
 vi.mock("@/components/sections/CartorarioSection", () => ({ default: sections.cartorio }));
