@@ -10,6 +10,9 @@ export interface PrazoAutomatico {
   descricao: string;
 }
 
+// Apenas atos judiciais e determinações do juízo geram prazo automático.
+// Petições, contestações e manifestações das partes NÃO abrem prazo —
+// o prazo só começa quando o juiz despacha/decide ou quando há intimação formal.
 export const PRAZOS_AUTOMATICOS: Record<string, PrazoAutomatico> = {
   citacao: { horas: 72, descricao: "Prazo para apresentação de defesa" },
   intimacao: { horas: 72, descricao: "Prazo para manifestação" },
@@ -19,12 +22,6 @@ export const PRAZOS_AUTOMATICOS: Record<string, PrazoAutomatico> = {
   conclusao: { horas: 24, descricao: "Prazo para decisão" },
   denuncia: { horas: 72, descricao: "Prazo para resposta à acusação" },
   parecer_mp: { horas: 72, descricao: "Prazo para vista das partes" },
-  manifestacao_mp: { horas: 72, descricao: "Prazo para réplica" },
-  peticao: { horas: 72, descricao: "Prazo para manifestação da parte contrária" },
-  contestacao: { horas: 72, descricao: "Prazo para réplica" },
-  recurso: { horas: 72, descricao: "Prazo para contrarrazões" },
-  recurso_mp: { horas: 72, descricao: "Prazo para contrarrazões" },
-  alegacoes_finais: { horas: 72, descricao: "Prazo para alegações finais da parte contrária" },
   mandado: { horas: 72, descricao: "Prazo para cumprimento do mandado" },
   alvara: { horas: 24, descricao: "Prazo para expedição/retirada" },
   cumprimento_mandado: { horas: 24, descricao: "Prazo para juntada aos autos" },
