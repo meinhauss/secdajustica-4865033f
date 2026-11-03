@@ -5,17 +5,16 @@ import { useTheme } from "@/hooks/useTheme";
 import {
   Scale, Gavel, BookOpen, FileText, Users, BarChart3,
   LogOut, Menu, X, Home, Briefcase, Calendar, Crown, GraduationCap, Stamp, ClipboardList, UsersRound,
-      Sun, Moon, FileStack, IdCard
-  } from "lucide-react";
+  Sun, Moon, FileStack, IdCard, ChevronDown
+} from "lucide-react";
 import AlgemaIcon from "@/components/icons/AlgemaIcon";
 import logoSjc from "@/assets/logo-sjc.jpg";
-import logoMpsp from "@/assets/logo-mpsp.png";
-import logoOabsp from "@/assets/logo-oabsp.png";
 import NotificationBell from "@/components/NotificationBell";
 import CommandPalette, { type PaletteItem } from "@/components/CommandPalette";
 import AIChatbotInstitucional from "@/components/AIChatbotInstitucional";
 import { CURRENT_VERSION } from "@/lib/version";
-
+import { getPrimaryRoleLabel, hasAnyRole } from "@/lib/roles";
+import { getShortcutForSection } from "@/hooks/useKeyboardNavigation";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -24,90 +23,85 @@ interface DashboardLayoutProps {
   onNavigateToProcesso?: (processoId: string) => void;
 }
 
-const menuItems = [
-  { id: "dashboard", label: "Painel Geral", icon: Home, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal", "delegado", "corregedor", "gaeco", "chefe_gaeco", "hospital", "detran", "analista"] },
-  { id: "meu-perfil", label: "Meu Perfil", icon: Users, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal", "delegado", "corregedor", "gaeco", "chefe_gaeco", "hospital", "detran", "analista"] },
-  { id: "processos", label: "Consulta de Processos", icon: FileText, roles: ["admin", "magistrado", "desembargador", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado", "advogado", "oficial_justica", "delegado", "corregedor", "chefe_gaeco", "analista"] },
-  { id: "meus-processos", label: "Meus Processos", icon: FileText, roles: ["advogado", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado", "oficial_justica", "cidadao", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal", "delegado", "corregedor", "gaeco", "chefe_gaeco", "hospital", "detran", "admin", "magistrado", "desembargador", "presidente_tribunal"] },
-  { id: "magistrado", label: "Portal do Juiz", icon: Gavel, roles: ["admin", "magistrado", "presidente_tribunal", "desembargador", "analista"] },
-  { id: "tribunal", label: "Tribunal de Justiça", icon: Scale, roles: ["admin", "desembargador", "presidente_tribunal", "magistrado"] },
-  { id: "mp", label: "Ministério Público", icon: Scale, roles: ["admin", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto"] },
-  
-  { id: "oab", label: "Portal OAB", icon: Briefcase, roles: ["admin", "advogado", "presidente_oab", "bacharel_direito"] },
-  { id: "audiencias", label: "Audiências", icon: Calendar, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado", "advogado", "presidente_tribunal", "desembargador", "delegado", "corregedor", "chefe_gaeco"] },
-  { id: "jurisprudencia", label: "Jurisprudência", icon: BookOpen, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado", "advogado", "presidente_tribunal", "desembargador", "presidente_oab", "chefe_gaeco"] },
-  { id: "consulta", label: "Consulta de Credenciais", icon: IdCard, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado", "oficial_justica", "advogado", "presidente_tribunal", "desembargador", "presidente_oab", "delegado", "corregedor", "chefe_gaeco"] },
-  { id: "concursos", label: "Concursos", icon: GraduationCap, roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal", "delegado", "corregedor", "gaeco", "chefe_gaeco", "hospital", "detran"] },
-  { id: "cartorio", label: "Cartório Civil", icon: Stamp, roles: ["admin", "oficial_justica", "magistrado", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado", "advogado", "presidente_tribunal", "desembargador", "cidadao", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal", "delegado", "corregedor", "gaeco", "chefe_gaeco", "hospital", "detran"] },
-    { id: "tco", label: "TCO", icon: ClipboardList, roles: ["admin", "policia_civil", "policia_militar", "policia_federal", "delegado", "corregedor", "gaeco", "chefe_gaeco"] },
-    { id: "triagem-bo", label: "Triagem Penal", icon: AlgemaIcon, roles: ["admin", "policia_civil", "policia_militar", "policia_federal", "delegado", "corregedor", "gaeco", "chefe_gaeco"] },
-  { id: "jurados", label: "Tribunal do Júri", icon: UsersRound, roles: ["admin", "presidente_tribunal", "magistrado", "desembargador", "cidadao", "advogado", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado", "oficial_justica", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal", "delegado", "corregedor", "gaeco", "chefe_gaeco", "hospital", "detran"] },
-  { id: "modelos", label: "Modelos", icon: FileStack, roles: ["admin", "magistrado", "desembargador", "presidente_tribunal", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado", "advogado", "bacharel_direito", "presidente_oab", "oficial_justica", "policia_civil", "policia_militar", "policia_federal", "delegado", "corregedor", "gaeco", "chefe_gaeco"] },
-  { id: "aprovacoes", label: "Aprovações", icon: ClipboardList, roles: ["admin", "analista", "magistrado", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado", "desembargador", "presidente_tribunal", "defensor_publico", "defensor_publico_geral", "delegado", "corregedor", "chefe_gaeco", "oficial_justica", "presidente_oab", "advogado", "gaeco", "policia_civil", "policia_militar", "policia_federal", "hospital", "detran"] },
-  { id: "cargos", label: "Cargos e Hierarquia", icon: Crown, roles: ["admin"] },
-  { id: "usuarios", label: "Usuários", icon: Users, roles: ["admin", "delegado", "corregedor", "chefe_gaeco", "presidente_tribunal", "desembargador", "magistrado", "procurador_geral", "procurador_geral_adjunto", "ministerio_publico", "defensor_publico_geral", "defensor_publico", "procurador_estado", "presidente_oab"] },
-  { id: "estatisticas", label: "Estatísticas", icon: BarChart3, roles: ["admin", "magistrado", "presidente_tribunal"] },
+type MenuItem = {
+  id: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  roles: string[];
+  category: string;
+};
+
+const menuItems: MenuItem[] = [
+  // Geral
+  { id: "dashboard", label: "Painel Geral", icon: Home, category: "Geral", roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal", "delegado", "corregedor", "gaeco", "chefe_gaeco", "hospital", "detran", "analista"] },
+  { id: "meu-perfil", label: "Meu Perfil", icon: Users, category: "Geral", roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal", "delegado", "corregedor", "gaeco", "chefe_gaeco", "hospital", "detran", "analista"] },
+
+  // Judicial
+  { id: "processos", label: "Consulta de Processos", icon: FileText, category: "Judicial", roles: ["admin", "magistrado", "desembargador", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado", "advogado", "oficial_justica", "delegado", "corregedor", "chefe_gaeco", "analista"] },
+  { id: "meus-processos", label: "Meus Processos", icon: FileText, category: "Judicial", roles: ["advogado", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado", "oficial_justica", "cidadao", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal", "delegado", "corregedor", "gaeco", "chefe_gaeco", "hospital", "detran", "admin", "magistrado", "desembargador", "presidente_tribunal"] },
+  { id: "audiencias", label: "Audiências", icon: Calendar, category: "Judicial", roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado", "advogado", "presidente_tribunal", "desembargador", "delegado", "corregedor", "chefe_gaeco"] },
+  { id: "jurisprudencia", label: "Jurisprudência", icon: BookOpen, category: "Judicial", roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado", "advogado", "presidente_tribunal", "desembargador", "presidente_oab", "chefe_gaeco"] },
+  { id: "modelos", label: "Modelos", icon: FileStack, category: "Judicial", roles: ["admin", "magistrado", "desembargador", "presidente_tribunal", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado", "advogado", "bacharel_direito", "presidente_oab", "oficial_justica", "policia_civil", "policia_militar", "policia_federal", "delegado", "corregedor", "gaeco", "chefe_gaeco"] },
+  { id: "aprovacoes", label: "Aprovações", icon: ClipboardList, category: "Judicial", roles: ["admin", "analista", "magistrado", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado", "desembargador", "presidente_tribunal", "defensor_publico", "defensor_publico_geral", "delegado", "corregedor", "chefe_gaeco", "oficial_justica", "presidente_oab", "advogado", "gaeco", "policia_civil", "policia_militar", "policia_federal", "hospital", "detran"] },
+
+  // Instituições
+  { id: "magistrado", label: "Portal do Juiz", icon: Gavel, category: "Instituições", roles: ["admin", "magistrado", "presidente_tribunal", "desembargador", "analista"] },
+  { id: "tribunal", label: "Tribunal de Justiça", icon: Scale, category: "Instituições", roles: ["admin", "desembargador", "presidente_tribunal", "magistrado"] },
+  { id: "mp", label: "Ministério Público", icon: Scale, category: "Instituições", roles: ["admin", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto"] },
+  { id: "oab", label: "Portal OAB", icon: Briefcase, category: "Instituições", roles: ["admin", "advogado", "presidente_oab", "bacharel_direito"] },
+  { id: "cartorio", label: "Cartório Civil", icon: Stamp, category: "Instituições", roles: ["admin", "oficial_justica", "magistrado", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado", "advogado", "presidente_tribunal", "desembargador", "cidadao", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal", "delegado", "corregedor", "gaeco", "chefe_gaeco", "hospital", "detran"] },
+  { id: "jurados", label: "Tribunal do Júri", icon: UsersRound, category: "Instituições", roles: ["admin", "presidente_tribunal", "magistrado", "desembargador", "cidadao", "advogado", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado", "oficial_justica", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal", "delegado", "corregedor", "gaeco", "chefe_gaeco", "hospital", "detran"] },
+
+  // Segurança
+  { id: "tco", label: "TCO", icon: ClipboardList, category: "Segurança", roles: ["admin", "policia_civil", "policia_militar", "policia_federal", "delegado", "corregedor", "gaeco", "chefe_gaeco"] },
+  { id: "triagem-bo", label: "Triagem Penal", icon: AlgemaIcon, category: "Segurança", roles: ["admin", "policia_civil", "policia_militar", "policia_federal", "delegado", "corregedor", "gaeco", "chefe_gaeco"] },
+
+  // Cidadão
+  { id: "consulta", label: "Consulta de Credenciais", icon: IdCard, category: "Cidadão", roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado", "oficial_justica", "advogado", "presidente_tribunal", "desembargador", "presidente_oab", "delegado", "corregedor", "chefe_gaeco"] },
+  { id: "concursos", label: "Concursos", icon: GraduationCap, category: "Cidadão", roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal", "delegado", "corregedor", "gaeco", "chefe_gaeco", "hospital", "detran"] },
+
+  // Admin
+  { id: "estatisticas", label: "Estatísticas", icon: BarChart3, category: "Admin", roles: ["admin", "magistrado", "presidente_tribunal"] },
+  { id: "usuarios", label: "Usuários", icon: Users, category: "Admin", roles: ["admin", "delegado", "corregedor", "chefe_gaeco", "presidente_tribunal", "desembargador", "magistrado", "procurador_geral", "procurador_geral_adjunto", "ministerio_publico", "defensor_publico_geral", "defensor_publico", "procurador_estado", "presidente_oab"] },
+  { id: "cargos", label: "Cargos e Hierarquia", icon: Crown, category: "Admin", roles: ["admin"] },
 ];
+
+/** Ordem fixa das categorias na sidebar */
+const CATEGORY_ORDER = ["Geral", "Judicial", "Instituições", "Segurança", "Cidadão", "Admin"];
 
 export default function DashboardLayout({ children, activeSection, onSectionChange, onNavigateToProcesso }: DashboardLayoutProps) {
   const { signOut, profile, roles } = useAuth();
   const { theme, toggle: toggleTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
 
   const filteredItems = roles.length === 0
     ? []
     : menuItems.filter((item) => item.roles.some((r) => roles.includes(r)));
 
-  const shortcuts: Record<string, string> = {
-    dashboard: "g d",
-    processos: "g p",
-    "meus-processos": "g m",
-    audiencias: "g a",
-    "meu-perfil": "g u",
-    tribunal: "g t",
-    oab: "g o",
-    cartorio: "g c",
-    tco: "g x",
-    concursos: "g n",
+  // Agrupa itens filtrados por categoria, respeitando a ordem definida
+  const groupedItems = CATEGORY_ORDER
+    .map((cat) => ({
+      category: cat,
+      items: filteredItems.filter((i) => i.category === cat),
+    }))
+    .filter((g) => g.items.length > 0);
+
+  const toggleCategory = (cat: string) => {
+    setCollapsedCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(cat)) next.delete(cat);
+      else next.add(cat);
+      return next;
+    });
   };
+
   const paletteItems: PaletteItem[] = filteredItems.map((i) => ({
     id: i.id,
     label: i.label,
     icon: i.icon,
-    shortcut: shortcuts[i.id],
+    shortcut: getShortcutForSection(i.id),
   }));
-
-  const getRoleLabel = (role: string) => {
-    const labels: Record<string, string> = {
-      admin: "Administrador",
-      presidente_tribunal: "Presidente do Tribunal",
-      desembargador: "Desembargador(a)",
-      magistrado: "Juiz(a) de Direito",
-      gaeco: "GAECO",
-      chefe_gaeco: "Chefe GAECO",
-      corregedor: "Corregedor(a)",
-      ministerio_publico: "Promotor(a)",
-      procurador_geral: "Procurador(a)-Geral",
-      procurador_geral_adjunto: "Procurador(a)-Geral Adjunto(a)",
-      oficial_justica: "Oficial de Justiça",
-      presidente_oab: "Presidente da OAB",
-      advogado: "Advogado(a)",
-      bacharel_direito: "Bacharel em Direito",
-      cidadao: "Cidadão",
-      delegado: "Delegado(a)",
-      policia_civil: "Polícia Civil",
-      policia_militar: "Polícia Militar",
-      policia_federal: "Polícia Federal",
-      hospital: "Hospital",
-      detran: "DETRAN",
-      procurador_estado: "Procurador(a) Geral do Estado",
-      defensor_publico_geral: "Defensor(a) Público(a)-Geral",
-      defensor_publico: "Defensor(a) Público(a)",
-      analista: "Analista",
-      investigador: "Investigador(a)",
-    };
-    return labels[role] || role;
-  };
 
   return (
     <div className="min-h-dvh flex bg-background">
@@ -118,6 +112,7 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
             className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-40 lg:hidden"
             onClick={() => setSidebarOpen(false)}
           />
@@ -152,29 +147,57 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
             {profile?.nome_completo || "Usuário"}
           </p>
           <p className="text-xs text-gold/70 mt-0.5">
-            {roles.map(getRoleLabel).join(", ") || "Cidadão"}
+            {getPrimaryRoleLabel(roles)}
           </p>
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
-          {filteredItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => {
-                onSectionChange(item.id);
-                setSidebarOpen(false);
-              }}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${
-                activeSection === item.id
-                  ? "bg-sidebar-accent text-gold font-medium"
-                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
-              }`}
-            >
-              <item.icon className="h-4 w-4 flex-shrink-0" />
-              {item.label}
-            </button>
-          ))}
+        {/* Nav agrupado por categorias colapsáveis */}
+        <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-1">
+          {groupedItems.map((group) => {
+            const isCollapsed = collapsedCategories.has(group.category);
+            return (
+              <div key={group.category}>
+                <button
+                  onClick={() => toggleCategory(group.category)}
+                  className="w-full flex items-center justify-between px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/50 hover:text-sidebar-foreground/80 transition-colors"
+                >
+                  {group.category}
+                  <ChevronDown
+                    className={`h-3 w-3 transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`}
+                  />
+                </button>
+                <AnimatePresence>
+                  {!isCollapsed && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden space-y-0.5"
+                    >
+                      {group.items.map((item) => (
+                        <button
+                          key={item.id}
+                          onClick={() => {
+                            onSectionChange(item.id);
+                            setSidebarOpen(false);
+                          }}
+                          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${
+                            activeSection === item.id
+                              ? "bg-sidebar-accent text-gold font-medium"
+                              : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                          }`}
+                        >
+                          <item.icon className="h-4 w-4 flex-shrink-0" />
+                          {item.label}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
         </nav>
 
         {/* Logout */}
@@ -220,13 +243,13 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
           </div>
         </header>
 
-        {/* Content */}
+        {/* Content — transição leve apenas na troca de seção */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto min-w-0 pb-44 lg:pb-8">
           <motion.div
             key={activeSection}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
             className="min-w-0 max-w-full"
           >
             {children}
@@ -246,12 +269,13 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
       {/* Mobile bottom tab bar */}
       <MobileBottomNav
         items={filteredItems}
+        roles={roles}
         activeSection={activeSection}
         onSectionChange={onSectionChange}
         onOpenMenu={() => setSidebarOpen(true)}
       />
 
-      {/* Command palette global — ⌘K / Ctrl+K + sequências "g <letra>" */}
+      {/* Command palette global */}
       <CommandPalette items={paletteItems} onSelect={onSectionChange} />
 
       {/* Vade MeCum — assistente flutuante global */}
@@ -260,26 +284,47 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
         onNavigate={(id) => onSectionChange(id)}
         activeSection={activeSection}
       />
-
-
     </div>
   );
 }
 
 // ============ Mobile Bottom Nav ============
+/** Prioridades de tabs mobile por grupo de roles */
+const MOBILE_PRIORITIES_BY_ROLE: Record<string, string[]> = {
+  policial: ["triagem-bo", "tco", "dashboard", "meus-processos"],
+  judicial: ["dashboard", "processos", "meus-processos", "audiencias"],
+  advogado: ["dashboard", "meus-processos", "oab", "audiencias"],
+  mp: ["dashboard", "mp", "processos", "audiencias"],
+  cidadao: ["dashboard", "consulta", "concursos", "meus-processos"],
+  admin: ["dashboard", "processos", "usuarios", "estatisticas"],
+};
+
+const DEFAULT_MOBILE_PRIORITY = ["dashboard", "meus-processos", "processos", "audiencias"];
+
+function getMobilePriority(roles: string[]): string[] {
+  if (hasAnyRole(roles, "policia_civil", "policia_militar", "policia_federal", "delegado")) return MOBILE_PRIORITIES_BY_ROLE.policial;
+  if (hasAnyRole(roles, "magistrado", "desembargador", "presidente_tribunal")) return MOBILE_PRIORITIES_BY_ROLE.judicial;
+  if (hasAnyRole(roles, "advogado", "bacharel_direito", "presidente_oab")) return MOBILE_PRIORITIES_BY_ROLE.advogado;
+  if (hasAnyRole(roles, "ministerio_publico", "procurador_geral", "procurador_geral_adjunto")) return MOBILE_PRIORITIES_BY_ROLE.mp;
+  if (hasAnyRole(roles, "admin")) return MOBILE_PRIORITIES_BY_ROLE.admin;
+  if (hasAnyRole(roles, "cidadao")) return MOBILE_PRIORITIES_BY_ROLE.cidadao;
+  return DEFAULT_MOBILE_PRIORITY;
+}
+
 function MobileBottomNav({
   items,
+  roles,
   activeSection,
   onSectionChange,
   onOpenMenu,
 }: {
   items: { id: string; label: string; icon: any }[];
+  roles: string[];
   activeSection: string;
   onSectionChange: (s: string) => void;
   onOpenMenu: () => void;
 }) {
-  // Prioritize the 4 most useful shortcuts if present, fallback to first items
-  const priority = ["dashboard", "meus-processos", "processos", "cartorio", "audiencias", "meu-perfil"];
+  const priority = getMobilePriority(roles);
   const primary = priority
     .map((id) => items.find((i) => i.id === id))
     .filter(Boolean)

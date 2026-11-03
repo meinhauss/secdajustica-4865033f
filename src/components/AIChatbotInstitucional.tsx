@@ -15,6 +15,7 @@ import { subscribeTips, dismissTip, clearTips, type AssistenteTip } from "@/lib/
 import { useAssistenteAdvogado } from "@/hooks/useAssistenteAdvogado";
 import { useAssistenteMagistrado } from "@/hooks/useAssistenteMagistrado";
 import { supabase } from "@/integrations/supabase/client";
+import { getPrimaryRole } from "@/lib/roles";
 
 export interface ChatbotDestino {
   id: string;
@@ -77,15 +78,7 @@ export default function AIChatbotInstitucional({
 }: Props) {
 
   const { profile, user, roles } = useAuth();
-  const ROLE_PRIORITY = [
-    "admin", "presidente_tribunal", "desembargador", "magistrado",
-    "procurador_geral", "procurador_geral_adjunto", "ministerio_publico", "procurador_estado",
-    "presidente_oab", "advogado", "bacharel_direito",
-    "chefe_gaeco", "gaeco", "delegado",
-    "policia_federal", "policia_civil", "policia_militar",
-    "oficial_justica", "hospital", "detran", "cidadao",
-  ];
-  const primaryRole = ROLE_PRIORITY.find((r) => roles?.includes(r)) || roles?.[0] || "cidadao";
+  const primaryRole = getPrimaryRole(roles);
   const storageKey = `vademecum:chat:${user?.id || "guest"}`;
   const greetKey = `vademecum:greeted:${user?.id || "guest"}`;
 

@@ -25,6 +25,8 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/:section" element={<Index />} />
+            <Route path="/:section/:subId" element={<Index />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/codigo-penal" element={<CodigoPenal />} />
             <Route path="/calculadora" element={<Calculadora />} />
