@@ -55,7 +55,8 @@ const Index = () => {
   const navigate = useNavigate();
 
   // Deriva a seção ativa da URL; fallback para dashboard se inválida ou ausente
-  const activeSection = urlSection && VALID_SECTIONS.has(urlSection) ? urlSection : "dashboard";
+  const normalizedSection = urlSection?.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const activeSection = normalizedSection && VALID_SECTIONS.has(normalizedSection) ? normalizedSection : "dashboard";
 
   // Navegação centralizada: atualiza URL e limpa processo aberto se necessário
   const setActiveSection = (section: string) => {
