@@ -13,11 +13,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Plus, FileText, Search, Eye, User, ArrowLeft, Clock, Gavel,
+  Plus, FileText, Search, User, ArrowLeft, Gavel,
   Upload, Calendar, AlertTriangle, CheckCircle, PenTool, History,
   File, Scale, Timer, ChevronRight, X, ExternalLink, ScrollText,
-        ShieldCheck, ShieldOff, UserCheck, Lock, Trash2, Download, Edit, Stamp, XCircle, Star, Image as ImageIcon,
-  ArrowRightLeft, Loader2, ClipboardList
+  ShieldCheck, ShieldOff, UserCheck, Lock, Trash2, Download, Edit, Stamp, XCircle, Star,
+  Loader2, ClipboardList
 } from "lucide-react";
 import { generateProcessoPDF, generateMovimentacaoPDF, imageToBase64 } from "@/lib/pdfGenerator";
 import logoTjsp from "@/assets/tjsp-logo.png";
@@ -50,18 +50,6 @@ import { MultiPartyInput, parsePartesFromString, formatPartesDisplay, formatPart
 import { formatCurrency, parseCurrencyToNumber, STATUS_CONFIG, ATO_TIPOS, ATO_TEMPLATES, CLASSE_VARA_MAP, CLASSES_ORIGINARIAS, ORGAOS_JULGADORES, InfoCard } from "@/components/processos/constants.tsx";
 
 /* ─── Profile Lookup Hook ─── */
-function useProfileLookup() {
-  const [result, setResult] = useState<{ nome_completo: string; id_personagem: string } | null>(null);
-  const lookup = async (idPersonagem: string) => {
-    setResult(null);
-    if (!idPersonagem) return null;
-    const { data } = await supabase.from("profiles").select("nome_completo, id_personagem").eq("id_personagem", idPersonagem).maybeSingle();
-    if (data) setResult({ nome_completo: data.nome_completo, id_personagem: data.id_personagem || "" });
-    return data;
-  };
-  return { result, lookup, clear: () => setResult(null) };
-}
-
 /* ═══════════════════════════════════════════ */
 /*  MAIN COMPONENT                             */
 /* ═══════════════════════════════════════════ */
@@ -2236,7 +2224,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             // Types that already have dedicated timeline entries (atos, sentenças, audiências, etc.)
             // "ato_judicial" é adicionado porque createAto já insere uma movimentação-resumo;
             // sem isso, o mesmo ato apareceria duas vezes (como ato + como movimentação genérica).
-            const duplicatedMovTypes = new Set(["despacho", "sentenca", "audiencia_designada", "mandado_expedido", "intimacao", "certidao_oficial", "procuracao", "juntada", "ato_ordinatorio", "ato_judicial"]);
+            const duplicatedMovTypes = new Set(["despacho", "audiencia_designada", "mandado_expedido", "intimacao", "certidao_oficial", "procuracao", "juntada", "ato_ordinatorio", "ato_judicial"]);
 
             // Movimentações — attach related documents, skip types rendered by dedicated sections
             movimentacoes?.forEach(m => {
@@ -3403,141 +3391,6 @@ function AddAto({ onAdd, processo, movimentacoes }: { onAdd: (ato: { tipo: strin
           </div>
           <RichTextEditor placeholder="Conteúdo do ato judicial..." value={conteudo} onChange={setConteudo} minHeight="280px" />
           <Button type="submit" className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">Registrar Ato</Button>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function UploadDoc({ onUpload, isPending, processoId }: { onUpload: (link: string, nome: string, tipo: string) => void; isPending: boolean; processoId?: string }) {
-  const [open, setOpen] = useState(false);
-  const [link, setLink] = useState("");
-  const [nome, setNome] = useState("");
-  const [tipo, setTipo] = useState("peticao");
-  const [showInstrucoes, setShowInstrucoes] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
-  const [sending, setSending] = useState(false);
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    let finalLink = link.trim();
-    if (file) {
-      if (!processoId) return;
-      setSending(true);
-      try {
-        finalLink = await uploadArquivoProcesso(file, processoId);
-      } catch (err) {
-        toast.error((err as Error).message);
-        setSending(false);
-        return;
-      }
-      setSending(false);
-    }
-    if (!finalLink) return;
-    onUpload(finalLink, nome || file?.name || "Documento", tipo);
-    setOpen(false); setLink(""); setNome(""); setFile(null);
-  };
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="rounded-xl"><Upload className="h-4 w-4 mr-2" /> Juntar Documento</Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader><DialogTitle>Juntar Documento</DialogTitle></DialogHeader>
-        <form onSubmit={submit} className="space-y-3 mt-3">
-          <Select value={tipo} onValueChange={setTipo}>
-            <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="peticao">Petição</SelectItem>
-              <SelectItem value="contestacao">Contestação</SelectItem>
-              <SelectItem value="laudo">Laudo</SelectItem>
-              <SelectItem value="prova">Prova</SelectItem>
-              <SelectItem value="procuracao">Procuração</SelectItem>
-              <SelectItem value="certidao">Certidão</SelectItem>
-              <SelectItem value="outros">Outros</SelectItem>
-            </SelectContent>
-          </Select>
-          <Input placeholder="Nome do documento" value={nome} onChange={(e) => setNome(e.target.value)} className="rounded-xl" />
-                    {processoId && (
-            <div className="space-y-2">
-              {file ? (
-                <div className="flex items-center gap-3 rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
-                  <CheckCircle className="h-5 w-5 shrink-0" />
-                  <span className="min-w-0 flex-1 truncate text-sm font-medium">Arquivo selecionado: {file.name}</span>
-                  <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={() => setFile(null)}>Trocar</Button>
-                  <Button type="button" variant="ghost" size="icon" className="shrink-0" aria-label="Remover arquivo selecionado" onClick={() => setFile(null)}><X className="h-4 w-4" /></Button>
-                </div>
-              ) : (
-                <label className="flex min-h-36 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 p-5 text-center transition-colors hover:border-primary hover:bg-primary/10">
-                  <Upload className="h-8 w-8 text-primary" />
-                  <span className="text-sm font-semibold text-foreground">Clique para selecionar um arquivo do computador — Recomendado</span>
-                  <span className="text-xs text-muted-foreground">PDF, PNG ou JPG • até 20 MB</span>
-                  <Input type="file" accept="application/pdf,image/*" className="hidden" onChange={(e) => {
-                    const selected = e.target.files?.[0] ?? null;
-                    if (selected && selected.size > 20 * 1024 * 1024) {
-                      toast.error("O arquivo excede o limite de 20 MB.");
-                      e.target.value = "";
-                      return;
-                    }
-                    if (selected && selected.type !== "application/pdf" && !selected.type.startsWith("image/")) {
-                      toast.error("Envie um PDF ou uma imagem.");
-                      e.target.value = "";
-                      return;
-                    }
-                    setFile(selected);
-                  }} />
-                </label>
-              )}
-              <p className="text-center text-xs text-muted-foreground">Ou se preferir, cole um link externo</p>
-            </div>
-          )}
-          <Input placeholder="Cole o link do Google Drive ou Google Docs" value={link} onChange={(e) => setLink(e.target.value)} disabled={!!file} className="rounded-xl" />
-          
-          <button type="button" onClick={() => setShowInstrucoes(!showInstrucoes)} className="text-xs text-primary hover:underline flex items-center gap-1">
-            <FileText className="h-3 w-3" />
-            {showInstrucoes ? "Ocultar instruções" : "Como compartilhar arquivos?"}
-          </button>
-
-          {showInstrucoes && (
-            <div className="bg-muted/50 rounded-xl p-4 text-xs text-muted-foreground space-y-3 border border-border">
-              <p className="font-semibold text-foreground text-sm">📋 Como enviar documentos por link</p>
-              
-              <div className="space-y-1">
-                <p className="font-medium text-foreground">Google Drive (arquivos/pastas):</p>
-                <ol className="list-decimal list-inside space-y-0.5 pl-1">
-                  <li>Acesse <span className="font-medium">drive.google.com</span></li>
-                  <li>Faça upload do arquivo ou crie uma pasta</li>
-                  <li>Clique com botão direito no arquivo → <strong>"Compartilhar"</strong></li>
-                  <li>Em "Acesso geral", selecione <strong>"Qualquer pessoa com o link"</strong></li>
-                  <li>Clique em <strong>"Copiar link"</strong> e cole no campo acima</li>
-                </ol>
-              </div>
-
-              <div className="space-y-1">
-                <p className="font-medium text-foreground">Google Docs (documentos de texto):</p>
-                <ol className="list-decimal list-inside space-y-0.5 pl-1">
-                  <li>Abra o documento no Google Docs</li>
-                  <li>Clique em <strong>"Compartilhar"</strong> (canto superior direito)</li>
-                  <li>Em "Acesso geral", selecione <strong>"Qualquer pessoa com o link"</strong></li>
-                  <li>Defina como <strong>"Leitor"</strong> (recomendado)</li>
-                  <li>Clique em <strong>"Copiar link"</strong> e cole no campo acima</li>
-                </ol>
-              </div>
-
-              <div className="bg-destructive/10 rounded-lg p-2 border border-destructive/20">
-                <p className="text-destructive font-medium">⚠️ Importante: Libere o acesso ANTES de colar o link!</p>
-                <p className="mt-0.5">Se o link não estiver acessível, o documento não poderá ser visualizado.</p>
-              </div>
-
-              <a href="https://www.youtube.com/watch?v=KGCdxnkyjoc" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline font-medium">
-                🎬 Tutorial em vídeo: Como fazer upload no Google Drive
-                <ExternalLink className="h-3 w-3" />
-              </a>
-            </div>
-          )}
-
-          <Button type="submit" disabled={isPending || sending || (!link.trim() && !file)} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
-            {sending ? "Enviando arquivo..." : isPending ? "Salvando..." : "Juntar Documento"}
-          </Button>
         </form>
       </DialogContent>
     </Dialog>
