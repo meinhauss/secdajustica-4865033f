@@ -17,7 +17,7 @@ import {
   Upload, Calendar, AlertTriangle, CheckCircle, PenTool, History,
   File, Scale, Timer, ChevronRight, X, ExternalLink, ScrollText,
         ShieldCheck, ShieldOff, UserCheck, Lock, Trash2, Download, Edit, Stamp, XCircle, Star, Image as ImageIcon,
-  ArrowRightLeft, Loader2
+  ArrowRightLeft, Loader2, ClipboardList
 } from "lucide-react";
 import { generateProcessoPDF, generateMovimentacaoPDF, imageToBase64 } from "@/lib/pdfGenerator";
 import logoTjsp from "@/assets/tjsp-logo.png";
@@ -164,10 +164,12 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
       const procuracaoIds = new Set((procuracoes || []).map(p => p.processo_id));
 
       return (data || []).filter(p => {
-        // Verificar se é parte (autor ou réu) pelo id_personagem
+        // Verificar se é parte (autor ou réu) pelo id_personagem — comparação exata via parsePartesFromString
         if (idPersonagem) {
-          const isAutor = p.autor_nome?.includes(idPersonagem);
-          const isReu = p.reu_nome?.includes(idPersonagem);
+          const autores = parsePartesFromString(p.autor_nome);
+          const reus = parsePartesFromString(p.reu_nome);
+          const isAutor = autores.some((a: any) => a.id_personagem === idPersonagem);
+          const isReu = reus.some((r: any) => r.id_personagem === idPersonagem);
           if (isAutor || isReu) return true;
         }
         // Verificar se é interessado ou tem procuração
@@ -1170,11 +1172,12 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
 
   const createPrazo = useMutation({
     mutationFn: async (prazo: { descricao: string; tipo: string; dias_uteis: number }) => {
+      const dataInicio = new Date();
       const dataFim = new Date();
       dataFim.setHours(dataFim.getHours() + prazo.dias_uteis);
       const { error } = await supabase.from("prazos_processuais").insert({
         processo_id: processoId, descricao: prazo.descricao, tipo: prazo.tipo,
-        dias_uteis: prazo.dias_uteis, data_fim: dataFim.toISOString(), responsavel_id: user?.id,
+        dias_uteis: prazo.dias_uteis, data_inicio: dataInicio.toISOString(), data_fim: dataFim.toISOString(), responsavel_id: user?.id,
       });
       if (error) throw error;
       await addMovimentacao.mutateAsync({ tipo: "prazo", descricao: `Prazo definido: ${prazo.descricao} (${prazo.dias_uteis} horas)` });
