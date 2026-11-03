@@ -4,6 +4,7 @@
 export interface Profile {
   user_id: string;
   nome_completo: string;
+  oab_numero?: string | null;
   email?: string;
   avatar_url?: string | null;
   discord?: string;

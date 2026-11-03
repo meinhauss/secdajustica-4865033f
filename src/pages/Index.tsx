@@ -18,6 +18,9 @@ const ProcessosSection = lazy(() => import("@/components/sections/ProcessosSecti
 const MeusProcessosSection = lazy(() => import("@/components/sections/MeusProcessosSection"));
 const ConsultaPublicaSection = lazy(() => import("@/components/sections/ConsultaPublicaSection"));
 const MagistradoSection = lazy(() => import("@/components/sections/MagistradoSection"));
+const TribunalSection = lazy(() => import("@/components/sections/TribunalSection"));
+const EstatisticasSection = lazy(() => import("@/components/sections/EstatisticasSection"));
+const CartorarioSection = lazy(() => import("@/components/sections/CartorarioSection"));
 const JurisprudenciaSection = lazy(() => import("@/components/sections/JurisprudenciaSection"));
 const MPSection = lazy(() => import("@/components/sections/MPSection"));
 const AudienciasSection = lazy(() => import("@/components/sections/AudienciasSection"));

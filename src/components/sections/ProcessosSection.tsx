@@ -17,7 +17,7 @@ import {
   Upload, Calendar, AlertTriangle, CheckCircle, PenTool, History,
   File, Scale, Timer, ChevronRight, X, ExternalLink, ScrollText,
         ShieldCheck, ShieldOff, UserCheck, Lock, Trash2, Download, Edit, Stamp, XCircle, Star, Image as ImageIcon,
-  ArrowRightLeft, Loader2
+  ArrowRightLeft, Loader2, ClipboardList
 } from "lucide-react";
 import { generateProcessoPDF, generateMovimentacaoPDF, imageToBase64 } from "@/lib/pdfGenerator";
 import logoTjsp from "@/assets/tjsp-logo.png";
@@ -2635,7 +2635,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                   numero: processo?.numero,
                   autorNome: formatPartesShort(processo?.autor_nome || ""),
                   reuNome: formatPartesShort(processo?.reu_nome || ""),
-                  comarca: processo?.comarca || "São José dos Campos",
+                  comarca: "São José dos Campos",
                   oficialNome: profile?.nome_completo,
                 }}
               />
@@ -2930,15 +2930,6 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
 /* ═══════════════════════════════════════════ */
 /*  SUB-COMPONENTS                             */
 /* ═══════════════════════════════════════════ */
-
-function InfoCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="bg-card rounded-xl p-3 border border-border">
-      <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{label}</p>
-      <p className="text-sm font-medium text-foreground truncate">{value}</p>
-    </div>
-  );
-}
 
 function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles: string[]; onAdd: (tipo: string, desc: string) => void; processo?: any; juizNome?: string | null; userNome?: string | null }) {
   const [open, setOpen] = useState(false);
