@@ -96,8 +96,8 @@ export default function DJEMSection() {
           </div>
           <div className="flex items-center justify-between rounded-md border p-3">
             <div>
-              <p className="text-sm font-medium">Marcar o cargo no Discord</p>
-              <p className="text-xs text-muted-foreground">Notifica todos os membros do cargo oficial.</p>
+              <p className="text-sm font-medium">Marcar cargo "CIDADÃO"?</p>
+              <p className="text-xs text-muted-foreground">Notifica todos os membros da cidade.</p>
             </div>
             <Switch checked={marcar} onCheckedChange={setMarcar} />
           </div>
