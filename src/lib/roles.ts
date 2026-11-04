@@ -94,12 +94,32 @@ export function hasAnyRole(userRoles: string[], ...allowed: Role[]): boolean {
   return allowed.some((r) => userRoles.includes(r));
 }
 
-/** Retorna o label legível da primeira role do usuário, ou fallback */
+/** Retorna os cargos do usuário combinados (ignora "Cidadão" se houver outro cargo) */
 export function getPrimaryRoleLabel(userRoles: string[]): string {
-  for (const r of userRoles) {
-    if (r in ROLE_LABELS) return ROLE_LABELS[r as Role];
+  const known = userRoles.filter((r): r is Role => r in ROLE_LABELS && r !== "cidadao");
+  if (!known.length) return "Cidadão";
+  const order = (r: Role) => {
+    const i = ROLE_PRIORITY.indexOf(r);
+    return i === -1 ? 999 : i;
+  };
+  const sorted = [...new Set(known)].sort((a, b) => order(a) - order(b));
+  const corpos: Record<string, string> = {
+    policia_civil: "da Polícia Civil",
+    policia_militar: "da Polícia Militar",
+    policia_federal: "da Polícia Federal",
+  };
+  const labels: string[] = [];
+  const consumed = new Set<Role>();
+  if (sorted.includes("corregedor")) {
+    const inst = sorted.filter((r) => r in corpos);
+    if (inst.length) {
+      labels.push(`Corregedor(a) ${inst.map((r) => corpos[r]).join(" e ")}`);
+      consumed.add("corregedor");
+      inst.forEach((r) => consumed.add(r));
+    }
   }
-  return "Cidadão";
+  for (const r of sorted) if (!consumed.has(r)) labels.push(ROLE_LABELS[r]);
+  return labels.join(" / ");
 }
 
 /** Prioridade de roles para exibição (primeira match vence) */

@@ -147,7 +147,7 @@ export default function DashboardLayout({ children, activeSection, onSectionChan
           <p className="text-sm font-medium text-sidebar-foreground truncate">
             {profile?.nome_completo || "Usuário"}
           </p>
-          <p className="text-xs text-gold/70 mt-0.5">
+          <p className="text-xs text-gold/70 mt-0.5 break-words">
             {getPrimaryRoleLabel(roles)}
           </p>
         </div>
