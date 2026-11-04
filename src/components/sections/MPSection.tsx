@@ -63,7 +63,7 @@ function MPDashboard({ onSelectOuvidoria }: { onSelectOuvidoria: (id: string) =>
       <div>
         <h2 className="font-display text-2xl font-bold text-foreground">Portal do Ministério Público</h2>
         <p className="text-sm text-muted-foreground">Ouvidoria e ranking de promotores</p>
-        <div className="mt-3"><RelatorioAtividadeIA instituicao="Ministério Público" allowedRoles={["admin","procurador_geral","procurador_geral_adjunto","ministerio_publico"]} /></div>
+        <div className="mt-3"><RelatorioAtividadeIA subordinateRoles={["ministerio_publico","gaeco","chefe_gaeco","procurador_geral_adjunto"]} instituicao="Ministério Público" allowedRoles={["admin","procurador_geral","procurador_geral_adjunto"]} /></div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

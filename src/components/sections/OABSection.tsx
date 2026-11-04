@@ -469,7 +469,7 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
         <Input placeholder="Buscar advogado por nome, OAB ou ID..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10 rounded-xl" />
       </div>
 
-      <RelatorioAtividadeIA instituicao="Defensoria Pública" allowedRoles={["admin","defensor_publico_geral"]} />
+      <RelatorioAtividadeIA subordinateRoles={["defensor_publico"]} instituicao="Defensoria Pública" allowedRoles={["admin","defensor_publico_geral"]} />
       {/* Tabs */}
       <Tabs defaultValue="advogados" className="w-full">
         <TabsList className="w-full justify-start rounded-xl bg-secondary/50 p-1 h-auto gap-1 flex-wrap">
