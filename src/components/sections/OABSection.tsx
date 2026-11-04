@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import RelatorioAtividadeIA from "@/components/RelatorioAtividadeIA";
 import { PodiumDestaque } from "@/components/PodiumDestaque";
 
 /* ─── Status configs ─── */
@@ -468,6 +469,7 @@ function OABDashboard({ isAdmin, isBacharel }: { isAdmin: boolean; isBacharel: b
         <Input placeholder="Buscar advogado por nome, OAB ou ID..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10 rounded-xl" />
       </div>
 
+      <RelatorioAtividadeIA instituicao="Defensoria Pública" allowedRoles={["admin","defensor_publico_geral"]} />
       {/* Tabs */}
       <Tabs defaultValue="advogados" className="w-full">
         <TabsList className="w-full justify-start rounded-xl bg-secondary/50 p-1 h-auto gap-1 flex-wrap">

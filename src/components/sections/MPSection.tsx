@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { PodiumDestaque } from "@/components/PodiumDestaque";
+import RelatorioAtividadeIA from "@/components/RelatorioAtividadeIA";
 import AISugerirDespacho from "@/components/AISugerirDespacho";
 import { appendAiHtml } from "@/lib/ai/insertHtml";
 
@@ -62,6 +63,7 @@ function MPDashboard({ onSelectOuvidoria }: { onSelectOuvidoria: (id: string) =>
       <div>
         <h2 className="font-display text-2xl font-bold text-foreground">Portal do Ministério Público</h2>
         <p className="text-sm text-muted-foreground">Ouvidoria e ranking de promotores</p>
+        <div className="mt-3"><RelatorioAtividadeIA instituicao="Ministério Público" allowedRoles={["admin","procurador_geral","procurador_geral_adjunto","ministerio_publico"]} /></div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

@@ -17,6 +17,7 @@ import {
   BookOpen, AlertTriangle, Scroll, Megaphone, Star, History as HistoryIcon,
   ExternalLink, PenTool
 } from "lucide-react";
+import RelatorioAtividadeIA from "@/components/RelatorioAtividadeIA";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -701,6 +702,7 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
         </div>
       )}
 
+      <RelatorioAtividadeIA instituicao="Tribunal de Justiça" allowedRoles={["admin","desembargador","presidente_tribunal"]} />
       <Tabs defaultValue="recurso" className="w-full">
         <TabsList className="w-full justify-start rounded-xl bg-secondary/50 p-1 h-auto gap-1 flex-wrap">
           <TabsTrigger value="recurso" className="rounded-lg text-xs"><FileText className="h-3 w-3 mr-1" /> Recurso</TabsTrigger>
