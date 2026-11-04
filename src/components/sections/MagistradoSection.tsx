@@ -746,16 +746,18 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   });
 
   // ── MANDADO ──
-  const [mandadoForm, setMandadoForm] = useState({ tipos: [] as string[], destinatarios: [{ id: "", nome: "" }] as { id: string; nome: string }[], descricao: "" });
+  type MandadoDest = { id: string; nome: string; discord_id: string };
+  const emptyDest = (): MandadoDest => ({ id: "", nome: "", discord_id: "" });
+  const [mandadoForm, setMandadoForm] = useState({ tipos: [] as string[], destinatarios: [emptyDest()], descricao: "", publicarDjem: false });
   const toggleMandadoTipo = (val: string) => {
     setMandadoForm(f => ({
       ...f,
       tipos: f.tipos.includes(val) ? f.tipos.filter(t => t !== val) : [...f.tipos, val],
     }));
   };
-  const addDestinatario = () => setMandadoForm(f => ({ ...f, destinatarios: [...f.destinatarios, { id: "", nome: "" }] }));
+  const addDestinatario = () => setMandadoForm(f => ({ ...f, destinatarios: [...f.destinatarios, emptyDest()] }));
   const removeDestinatario = (idx: number) => setMandadoForm(f => ({ ...f, destinatarios: f.destinatarios.filter((_, i) => i !== idx) }));
-  const updateDestinatario = (idx: number, field: "id" | "nome", value: string) => {
+  const updateDestinatario = (idx: number, field: keyof MandadoDest, value: string) => {
     setMandadoForm(f => {
       const dest = [...f.destinatarios];
       dest[idx] = { ...dest[idx], [field]: value };
@@ -768,6 +770,26 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
       const validDest = mandadoForm.destinatarios.filter(d => d.nome.trim());
       if (validDest.length === 0 || !mandadoForm.descricao) throw new Error("Preencha todos os campos.");
       if (mandadoForm.tipos.length === 0) throw new Error("Selecione pelo menos um tipo de mandado.");
+      const isDiscordId = (v?: string | null) => !!v && /^[0-9]{17,20}$/.test(v);
+
+      // Resolve cadastro de cada destinatário
+      const resolved = await Promise.all(validDest.map(async (d) => {
+        let prof: any = null;
+        if (d.id.trim()) {
+          const { data } = await supabase.from("profiles").select("user_id, nome_completo, discord_user_id, discord").eq("id_personagem", d.id.trim()).maybeSingle();
+          prof = data;
+        }
+        if (!prof) {
+          const { data } = await supabase.from("profiles").select("user_id, nome_completo, discord_user_id, discord").ilike("nome_completo", d.nome.trim()).limit(1).maybeSingle();
+          prof = data;
+        }
+        const manual = d.discord_id.trim();
+        const discordId = isDiscordId(manual) ? manual : (prof?.discord_user_id || (isDiscordId(prof?.discord) ? prof.discord : null));
+        if (!prof && !discordId) throw new Error(`"${d.nome}" não é cadastrado: informe o Discord ID (17 a 20 dígitos).`);
+        if (manual && !isDiscordId(manual)) throw new Error(`Discord ID inválido para "${d.nome}".`);
+        return { ...d, userId: prof?.user_id as string | undefined, discordId };
+      }));
+
       const tipoStr = mandadoForm.tipos.join("+");
       const tipoLabel = mandadoForm.tipos.map(t => MANDADO_TIPOS.find(mt => mt.value === t)?.label || t).join(" + ");
       const allNames = validDest.map(d => d.nome).join(", ");
@@ -783,16 +805,58 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
       await supabase.from("movimentacoes").insert({
         processo_id: processoId,
         tipo: "mandado_expedido",
-        descricao: `MANDADO DE ${tipoLabel.toUpperCase()}\n\nDestinatário(s): ${allNames}\n\n${mandadoForm.descricao}`,
+        descricao: `MANDADO DE ${tipoLabel.toUpperCase()}\n\nDestinatário(s): ${allNames}${mandadoForm.publicarDjem ? "\n\nPublicado no DJEM." : ""}\n\n${mandadoForm.descricao}`,
         autor_id: user!.id,
       });
+
+      const CADASTRO_URL = "https://secdajustica.lovable.app/";
+      const DISCORD_JURIDICO = "https://discord.gg/xmydYrYBKd";
+      let falhas = 0;
+      for (const d of resolved) {
+        const naoCadastrado = !d.userId;
+        if (!d.discordId || (!naoCadastrado && !mandadoForm.publicarDjem)) continue;
+        const mensagemDM = naoCadastrado ? [
+          `Você é destinatário(a) de <b>${tipoLabel}</b> expedido em processo judicial perante a Comarca de São Paulo/SP (TJSP).`,
+          ``,
+          `<b>Processo nº ${processo?.numero || "-"}</b>`,
+          ``,
+          `<b>Teor:</b>`,
+          mandadoForm.descricao,
+          ``,
+          `<b>⚠️ Como acompanhar o processo:</b>`,
+          `1️⃣ Cadastre-se no Sistema Judicial: ${CADASTRO_URL}`,
+          `   Use o mesmo nome e ID de personagem${d.id.trim() ? ` (${d.id.trim()})` : ""} e informe este Discord ID no cadastro para ser vinculado aos autos.`,
+          `2️⃣ Após o cadastro, acesse "Meus Processos" para ver o processo e as intimações.`,
+          `3️⃣ Constitua advogado(a) pelo Discord Jurídico: ${DISCORD_JURIDICO}`,
+          ``,
+          `<i>O não atendimento poderá acarretar as consequências legais previstas, inclusive revelia, preclusão ou condução coercitiva.</i>`,
+        ].join("\n") : undefined;
+        const { error: fnErr } = await supabase.functions.invoke("discord-djem", {
+          body: {
+            discord_user_id: d.discordId,
+            destinatario_nome: d.nome,
+            processo_numero: processo?.numero || "",
+            prazo: "",
+            conteudo: mandadoForm.descricao,
+            publicar_djem: mandadoForm.publicarDjem,
+            titulo_ato: tipoLabel,
+            enviar_dm: naoCadastrado,
+            titulo_dm: `${tipoLabel} — Processo ${processo?.numero || ""}`,
+            mensagem_dm: mensagemDM,
+            link_secao: CADASTRO_URL,
+          },
+        });
+        if (fnErr) falhas++;
+      }
+      return { falhas };
     },
-    onSuccess: () => {
+    onSuccess: (res) => {
       invalidateAll();
       setActiveAction("none");
-      setMandadoForm({ tipos: [], destinatarios: [{ id: "", nome: "" }], descricao: "" });
+      setMandadoForm({ tipos: [], destinatarios: [emptyDest()], descricao: "", publicarDjem: false });
       mandadoLookup.clear();
-      toast.success("Mandado(s) expedido(s)!");
+      if (res?.falhas) toast.warning(`Mandado(s) expedido(s), mas ${res.falhas} envio(s) ao Discord falharam.`);
+      else toast.success("Mandado(s) expedido(s)!");
     },
     onError: (err: any) => toast.error(err.message),
   });
@@ -1488,9 +1552,6 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             <Button onClick={() => setActiveAction("intimar_cargo")} variant="outline" className="rounded-xl">
               <Megaphone className="h-4 w-4 mr-2" /> Intimar Cargo
             </Button>
-            <Button onClick={() => setActiveAction("intimar_pessoa")} variant="outline" className="rounded-xl">
-              <UserPlus className="h-4 w-4 mr-2" /> Intimar Pessoa
-            </Button>
             <Button onClick={() => setActiveAction("ato_cartorio")} variant="outline" className="rounded-xl">
               <FileText className="h-4 w-4 mr-2" /> Atos do Cartório
             </Button>
@@ -1609,6 +1670,16 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
                   }} disabled={!dest.nome.trim()}>
                     <Search className="h-3 w-3 mr-1" /> Buscar por Nome
                   </Button>
+                  <Input
+                    placeholder="Discord ID (obrigatório se não cadastrado — 17 a 20 dígitos)"
+                    value={dest.discord_id}
+                    onChange={(e) => updateDestinatario(idx, "discord_id", e.target.value.replace(/\D/g, ""))}
+                    className="rounded-xl"
+                    inputMode="numeric"
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    Não cadastrados recebem no privado do Discord o mandado e orientações para se cadastrar no sistema.
+                  </p>
                 </div>
               ))}
             </div>
@@ -1617,6 +1688,11 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               <ModeloPicker context={modeloCtx} onInsert={(t) => setMandadoForm(f => ({ ...f, descricao: appendHtml(f.descricao, textoToHtml(t)) }))} />
             </div>
             <RichTextEditor placeholder="Descrição e determinações do mandado..." value={mandadoForm.descricao} onChange={(html) => setMandadoForm({ ...mandadoForm, descricao: html })} minHeight="140px" />
+            <label className="flex items-center gap-2 cursor-pointer rounded-xl border border-border bg-muted/30 px-3 py-2 text-sm">
+              <Checkbox checked={mandadoForm.publicarDjem} onCheckedChange={(v) => setMandadoForm(f => ({ ...f, publicarDjem: !!v }))} />
+              <span className="font-medium">Publicar no DJEM?</span>
+              <span className="text-xs text-muted-foreground">Publica no Diário marcando os destinatários com Discord ID.</span>
+            </label>
             <Button type="submit" disabled={expedirMandado.isPending} className="rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
               {expedirMandado.isPending ? "Processando..." : "Expedir Mandado"}
             </Button>
@@ -1661,122 +1737,6 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
             />
             <Button type="submit" disabled={intimarCargo.isPending} className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light">
               {intimarCargo.isPending ? "Processando..." : "Expedir Intimação ao Cargo"}
-            </Button>
-          </form>
-        </ActionCard>
-      )}
-
-      {/* INTIMAR PESSOA FORM */}
-      {activeAction === "intimar_pessoa" && (
-        <ActionCard title="Intimar Pessoa" icon={UserPlus} onCancel={() => setActiveAction("none")}>
-          <div className="bg-accent/30 rounded-lg p-3 mb-4 border border-accent/50 space-y-1">
-            <p className="text-xs text-muted-foreground">
-              <User className="h-3 w-3 inline mr-1" />
-              Se o intimado <b>já for cadastrado</b>, informe o ID do Personagem e clique em <i>Buscar</i>. A intimação seguirá pelo fluxo normal (notificação + DM automática).
-            </p>
-            <p className="text-xs text-muted-foreground">
-              <Send className="h-3 w-3 inline mr-1" />
-              Se <b>não for cadastrado</b>, informe o Discord ID do intimado. Uma DM oficial será enviada com instruções de cadastro e link do Discord Jurídico.
-              Quando ele se cadastrar com o mesmo ID de Personagem, uma movimentação será registrada no processo.
-            </p>
-          </div>
-          <form onSubmit={(e) => { e.preventDefault(); intimarPessoa.mutate(); }} className="space-y-3">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">ID do Personagem</label>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Ex: 12345"
-                    value={pessoaIntForm.id_personagem}
-                    onChange={(e) => setPessoaIntForm(f => ({ ...f, id_personagem: e.target.value }))}
-                    className="rounded-xl"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="rounded-xl"
-                    onClick={async () => {
-                      const data = await pessoaLookup.lookup(pessoaIntForm.id_personagem.trim());
-                      if (data) {
-                        setPessoaIntForm(f => ({ ...f, nome: data.nome_completo, forcarAvulso: false }));
-                        toast.success("Usuário cadastrado localizado.");
-                      } else {
-                        setPessoaIntForm(f => ({ ...f, forcarAvulso: true }));
-                        toast.warning("Usuário não cadastrado. Informe o Discord ID abaixo.");
-                      }
-                    }}
-                    disabled={!pessoaIntForm.id_personagem.trim()}
-                  >
-                    <Search className="h-4 w-4 mr-1" /> Buscar
-                  </Button>
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Nome do intimado</label>
-                <Input
-                  placeholder="Nome completo"
-                  value={pessoaIntForm.nome}
-                  onChange={(e) => setPessoaIntForm(f => ({ ...f, nome: e.target.value }))}
-                  className="rounded-xl"
-                  required
-                />
-              </div>
-            </div>
-
-            {(pessoaIntForm.forcarAvulso || (!pessoaLookup.result && pessoaIntForm.id_personagem.trim() === "")) && (
-              <div className="space-y-1.5 p-3 rounded-xl border border-dashed border-orange-400/50 bg-orange-50/40 dark:bg-orange-950/20">
-                <label className="text-xs font-medium text-orange-800 dark:text-orange-200 flex items-center gap-1">
-                  <AlertTriangle className="h-3 w-3" /> Intimado não cadastrado — Discord ID obrigatório
-                </label>
-                <Input
-                  placeholder="Discord ID (17 a 20 dígitos)"
-                  value={pessoaIntForm.discord_id}
-                  onChange={(e) => setPessoaIntForm(f => ({ ...f, discord_id: e.target.value }))}
-                  className="rounded-xl"
-                  inputMode="numeric"
-                  pattern="[0-9]{17,20}"
-                />
-                <p className="text-[11px] text-muted-foreground">
-                  Ative o <i>Modo Desenvolvedor</i> no Discord, clique no usuário e escolha <i>Copiar ID</i>.
-                </p>
-              </div>
-            )}
-
-            <div className="flex justify-end gap-2 flex-wrap">
-              <AISugerirDespacho
-                tipoAto="intimacao"
-                tituloAto="Intimação pessoal"
-                rascunhoAtual={pessoaIntForm.conteudo}
-                processo={processo}
-                movimentacoes={movs}
-                onInsert={(h) => setPessoaIntForm(f => ({ ...f, conteudo: appendAiHtml(f.conteudo, h) }))}
-              />
-              <ModeloPicker
-                context={modeloCtx}
-                onInsert={(t) => setPessoaIntForm(f => ({ ...f, conteudo: appendHtml(f.conteudo, textoToHtml(t)) }))}
-              />
-            </div>
-            <RichTextEditor
-              placeholder="Teor da intimação..."
-              value={pessoaIntForm.conteudo}
-              onChange={(html) => setPessoaIntForm(f => ({ ...f, conteudo: html }))}
-              minHeight="160px"
-            />
-            <Input
-              type="number"
-              placeholder="Prazo (horas)"
-              value={pessoaIntForm.prazo}
-              onChange={(e) => setPessoaIntForm(f => ({ ...f, prazo: e.target.value }))}
-              min="1"
-              className="rounded-xl"
-              required
-            />
-            <Button
-              type="submit"
-              disabled={intimarPessoa.isPending}
-              className="w-full rounded-xl bg-institutional hover:bg-institutional-light text-gold-light"
-            >
-              {intimarPessoa.isPending ? "Processando..." : "Expedir Intimação"}
             </Button>
           </form>
         </ActionCard>

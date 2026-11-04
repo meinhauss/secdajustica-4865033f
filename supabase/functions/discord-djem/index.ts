@@ -43,16 +43,21 @@ Deno.serve(async (req) => {
       footer: { text: "Publicação oficial • Sistema Judicial" },
       timestamp: new Date().toISOString(),
     };
-    const pub = await discordFetchComRetry(`/channels/${CHANNEL_ID}/messages`, BOT_TOKEN, {
-      method: "POST",
-      body: JSON.stringify({
-        content: `<@${discordId}>, fica V. Sa. **INTIMADO(A)** nos autos do processo nº ${numero}.`,
-        embeds: [embed],
-        allowed_mentions: { users: [discordId] },
-      }),
-    });
-    const publicado = pub.ok;
-    const pubErro = pub.ok ? null : (await pub.text().catch(() => "")).slice(0, 200);
+    let publicado = false;
+    let pubErro: string | null = null;
+    if (b.publicar_djem !== false) {
+      const pub = await discordFetchComRetry(`/channels/${CHANNEL_ID}/messages`, BOT_TOKEN, {
+        method: "POST",
+        body: JSON.stringify({
+          content: `<@${discordId}>, fica V. Sa. **INTIMADO(A)** nos autos do processo nº ${numero}.`,
+          embeds: [embed],
+          allowed_mentions: { users: [discordId] },
+        }),
+      });
+      publicado = pub.ok;
+      pubErro = pub.ok ? null : (await pub.text().catch(() => "")).slice(0, 200);
+      if (!publicado) console.error("DJEM falhou:", pubErro);
+    }
 
     let dm: unknown = null;
     if (b.enviar_dm !== false) {
@@ -63,7 +68,6 @@ Deno.serve(async (req) => {
         link_secao: b.link_secao || null,
       });
     }
-    if (!publicado) console.error("DJEM falhou:", pubErro);
     return json({ publicado, erro_publicacao: pubErro, dm });
   } catch (e: any) {
     console.error("discord-djem erro:", e);
