@@ -48,7 +48,7 @@ export default function RelatorioAtividadeIA({ allowedRoles, instituicao, subord
     setTexto("");
     try {
       const ids = alvo === "todos" ? subs.map((s) => s.id) : [alvo];
-      if (!ids.length) throw new Error("Nenhum subordinado encontrado");
+      if (!ids.length) throw new Error("Nenhum servidor encontrado");
       const nomes = Object.fromEntries(subs.map((s) => [s.id, s.nome]));
       const { data: movs, error } = await supabase
         .from("movimentacoes")
@@ -71,13 +71,13 @@ export default function RelatorioAtividadeIA({ allowedRoles, instituicao, subord
         .map((m) => `- ${format(new Date(m.created_at), "dd/MM/yyyy")} | ${nomes[m.autor_id]} | ${m.processos?.numero || "s/ nº"} | ${m.tipo}: ${strip(m.descricao).slice(0, 160)}`)
         .join("\n");
 
-      const prompt = `Redija um RELATÓRIO DE FISCALIZAÇÃO DA ATIVIDADE DOS SUBORDINADOS, formal, em português, elaborado por ${profile?.nome_completo || "chefia"} (chefia da ${instituicao}), sobre ${alvo === "todos" ? "todos os membros subordinados" : nomes[alvo]}, referente ao período de ${format(new Date(inicio + "T12:00"), "dd/MM/yyyy")} a ${format(new Date(fim + "T12:00"), "dd/MM/yyyy")}.
+      const prompt = `Redija um RELATÓRIO DE FISCALIZAÇÃO DA ATIVIDADE DOS SERVIDORES, formal, em português, elaborado por ${profile?.nome_completo || "chefia"} (chefia da ${instituicao}), sobre ${alvo === "todos" ? "todos os servidores" : nomes[alvo]}, referente ao período de ${format(new Date(inicio + "T12:00"), "dd/MM/yyyy")} a ${format(new Date(fim + "T12:00"), "dd/MM/yyyy")}.
 Use APENAS os dados abaixo; não invente atos, números ou processos. Se não houver registros, declare isso.
-Estrutura: 1. Identificação; 2. Resumo quantitativo por membro (inclua quem não teve nenhum ato); 3. Principais atuações de cada membro; 4. Análise de produtividade (destaque membros inativos ou com baixa atividade); 5. Conclusão e recomendações.
+Estrutura: 1. Identificação; 2. Resumo quantitativo por servidor (inclua quem não teve nenhum ato); 3. Principais atuações de cada servidor; 4. Análise de produtividade (destaque servidores inativos ou com baixa atividade); 5. Conclusão e recomendações.
 Texto corrido, sem HTML, sem markdown com asteriscos.
 
 Total de atos: ${lista.length}
-Por membro: ${JSON.stringify(porAgente)}
+Por servidor: ${JSON.stringify(porAgente)}
 Por tipo: ${JSON.stringify(porTipo)}
 Registros:
 ${linhas || "(nenhum)"}`;
@@ -119,9 +119,9 @@ ${linhas || "(nenhum)"}`;
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle>Relatório de Atividade — {instituicao}</DialogTitle></DialogHeader>
-        <label className="text-xs text-muted-foreground">Subordinado
+        <label className="text-xs text-muted-foreground">Servidor
           <select value={alvo} onChange={(e) => setAlvo(e.target.value)} className="mt-1 w-full h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground">
-            <option value="todos">Todos os subordinados ({subs.length})</option>
+            <option value="todos">Todos os servidores ({subs.length})</option>
             {subs.map((s) => <option key={s.id} value={s.id}>{s.nome}</option>)}
           </select>
         </label>

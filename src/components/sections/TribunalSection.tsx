@@ -702,7 +702,7 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
         </div>
       )}
 
-      <RelatorioAtividadeIA subordinateRoles={["magistrado","oficial_justica","desembargador"]} instituicao="Tribunal de Justiça" allowedRoles={["admin","desembargador","presidente_tribunal"]} />
+      <RelatorioAtividadeIA subordinateRoles={["magistrado"]} instituicao="Tribunal de Justiça" allowedRoles={["admin","desembargador","presidente_tribunal"]} />
       <Tabs defaultValue="recurso" className="w-full">
         <TabsList className="w-full justify-start rounded-xl bg-secondary/50 p-1 h-auto gap-1 flex-wrap">
           <TabsTrigger value="recurso" className="rounded-lg text-xs"><FileText className="h-3 w-3 mr-1" /> Recurso</TabsTrigger>
