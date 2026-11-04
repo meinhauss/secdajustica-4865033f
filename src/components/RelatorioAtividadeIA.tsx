@@ -36,8 +36,8 @@ export default function RelatorioAtividadeIA({ allowedRoles, instituicao, subord
       const { data: rs } = await supabase.from("user_roles").select("user_id").in("role", subordinateRoles as any);
       const ids = [...new Set((rs || []).map((r: any) => r.user_id))].filter((id) => id !== user.id);
       if (!ids.length) return setSubs([]);
-      const { data: ps } = await supabase.from("profiles").select("id, nome_completo").in("id", ids);
-      setSubs(((ps || []) as any[]).map((p) => ({ id: p.id, nome: p.nome_completo || "Sem nome" })).sort((a, b) => a.nome.localeCompare(b.nome)));
+      const { data: ps } = await supabase.from("profiles").select("user_id, nome_completo").in("user_id", ids);
+      setSubs(((ps || []) as any[]).map((p) => ({ id: p.user_id, nome: p.nome_completo || "Sem nome" })).sort((a, b) => a.nome.localeCompare(b.nome)));
     })();
   }, [open, user?.id, subordinateRoles.join(",")]);
 
