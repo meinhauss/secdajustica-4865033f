@@ -340,7 +340,7 @@ function OuvidoriaDetail({ denunciaId, onBack }: { denunciaId: string; onBack: (
               <div key={i} className="flex items-center gap-3 py-2 border-b border-border last:border-0">
                 <AlertTriangle className="h-4 w-4 text-gold-dark flex-shrink-0" />
                 <div>
-                  <p className="text-sm font-medium text-foreground">{e.nome}</p>
+                  <p className="text-sm font-medium text-foreground">{e.nome}{e.id_personagem && <span className="text-xs text-muted-foreground ml-1">(RG {e.id_personagem})</span>}</p>
                   {e.funcao && <p className="text-xs text-muted-foreground">Função/Cargo: {e.funcao}</p>}
                 </div>
               </div>

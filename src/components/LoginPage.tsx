@@ -781,7 +781,8 @@ function TabOuvidoria() {
   const [nome, setNome] = useState("");
   const [contato, setContato] = useState("");
   const [descricao, setDescricao] = useState("");
-  const [envolvidos, setEnvolvidos] = useState<{ nome: string; funcao: string }[]>([]);
+  const [envolvidos, setEnvolvidos] = useState<{ nome: string; funcao: string; id_personagem?: string }[]>([]);
+  const [novoEnvolvidoRg, setNovoEnvolvidoRg] = useState("");
       const [links, setLinks] = useState<string[]>([]);
   const [arquivosPendentes, setArquivosPendentes] = useState<File[]>([]);
   const [novoEnvolvidoNome, setNovoEnvolvidoNome] = useState("");
@@ -808,9 +809,19 @@ function TabOuvidoria() {
 
   const addEnvolvido = () => {
     if (!novoEnvolvidoNome.trim()) return;
-    setEnvolvidos([...envolvidos, { nome: novoEnvolvidoNome.trim(), funcao: novoEnvolvidoFuncao.trim() }]);
+    setEnvolvidos([...envolvidos, { nome: novoEnvolvidoNome.trim(), funcao: novoEnvolvidoFuncao.trim(), id_personagem: novoEnvolvidoRg.trim() || undefined }]);
     setNovoEnvolvidoNome("");
+    setNovoEnvolvidoRg("");
     setNovoEnvolvidoFuncao("");
+  };
+
+  const addMembroEnvolvido = () => {
+    if (!membro) return;
+    const rg = rgDenunciado.trim();
+    if (envolvidos.some(e => e.id_personagem && e.id_personagem === rg)) { toast.info("Este membro já está nos envolvidos."); return; }
+    const funcao = membro.cargos.map(c => ROLE_LABELS[c as keyof typeof ROLE_LABELS] || c).join(" / ");
+    setEnvolvidos([...envolvidos, { nome: membro.nome, funcao, id_personagem: rg }]);
+    toast.success("Membro adicionado aos envolvidos.");
   };
 
   const removeEnvolvido = (i: number) => setEnvolvidos(envolvidos.filter((_, idx) => idx !== i));
@@ -936,9 +947,12 @@ function TabOuvidoria() {
                   <Button onClick={buscarMembro} size="sm" variant="outline" className="rounded-lg" disabled={buscandoMembro}>{buscandoMembro ? "Buscando..." : "Buscar"}</Button>
                 </div>
                 {membro && (
-                  <div className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm">
-                    <p className="font-medium text-foreground">{membro.nome}</p>
-                    <p className="text-xs text-muted-foreground">{membro.cargos.map(c => ROLE_LABELS[c as keyof typeof ROLE_LABELS] || c).join(" / ")} • {({ tj: "Tribunal de Justiça", mp: "Ministério Público", dp: "Defensoria Pública", oab: "OAB" } as Record<string, string>)[membro.orgao]}</p>
+                  <div className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-foreground">{membro.nome}</p>
+                      <p className="text-xs text-muted-foreground">{membro.cargos.map(c => ROLE_LABELS[c as keyof typeof ROLE_LABELS] || c).join(" / ")} • {({ tj: "Tribunal de Justiça", mp: "Ministério Público", dp: "Defensoria Pública", oab: "OAB" } as Record<string, string>)[membro.orgao]}</p>
+                    </div>
+                    <Button size="sm" variant="outline" className="rounded-lg" onClick={addMembroEnvolvido}>Adicionar</Button>
                   </div>
                 )}
                 <label className="flex items-center gap-3 cursor-pointer text-sm text-foreground">
@@ -965,7 +979,8 @@ function TabOuvidoria() {
             className="bg-card rounded-xl border border-border p-6 space-y-4">
             <h3 className="font-display text-base font-semibold text-foreground">Envolvidos</h3>
             <p className="text-xs text-muted-foreground">Identifique as pessoas envolvidas nos fatos (nome e função/cargo se souber).</p>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Input placeholder="RG (opcional)" value={novoEnvolvidoRg} onChange={e => setNovoEnvolvidoRg(e.target.value)} className="sm:w-32" />
               <Input placeholder="Nome" value={novoEnvolvidoNome} onChange={e => setNovoEnvolvidoNome(e.target.value)} className="flex-1" />
               <Input placeholder="Função/Cargo (opcional)" value={novoEnvolvidoFuncao} onChange={e => setNovoEnvolvidoFuncao(e.target.value)} className="flex-1" />
               <Button onClick={addEnvolvido} size="sm" variant="outline" className="rounded-lg">Adicionar</Button>
@@ -976,6 +991,7 @@ function TabOuvidoria() {
                   <div key={i} className="flex items-center gap-2 bg-secondary/50 rounded-lg px-3 py-2 text-sm">
                     <Users className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                     <span className="font-medium text-foreground">{e.nome}</span>
+                    {e.id_personagem && <span className="text-xs text-muted-foreground">(RG {e.id_personagem})</span>}
                     {e.funcao && <span className="text-muted-foreground">— {e.funcao}</span>}
                     <button onClick={() => removeEnvolvido(i)} className="ml-auto text-destructive hover:text-destructive/80 text-xs font-medium">Remover</button>
                   </div>
