@@ -609,32 +609,71 @@ export type Database = {
       denuncias_ouvidoria: {
         Row: {
           contato_denunciante: string | null
+          contra_membro: boolean
+          corregedoria_atualizado_em: string | null
+          corregedoria_decisao: string | null
+          corregedoria_motivo: string | null
+          corregedoria_responsavel_id: string | null
+          corregedoria_status: string | null
           created_at: string
+          denunciado_cargos: string[] | null
+          denunciado_id_personagem: string | null
+          denunciado_nome: string | null
+          denunciado_user_id: string | null
           descricao: string
+          encaminhada_mp: boolean
           envolvidos: Json | null
           id: string
+          indicio_crime: boolean
           links: Json | null
           nome_denunciante: string | null
+          orgao_corregedoria: string | null
           status: string
         }
         Insert: {
           contato_denunciante?: string | null
+          contra_membro?: boolean
+          corregedoria_atualizado_em?: string | null
+          corregedoria_decisao?: string | null
+          corregedoria_motivo?: string | null
+          corregedoria_responsavel_id?: string | null
+          corregedoria_status?: string | null
           created_at?: string
+          denunciado_cargos?: string[] | null
+          denunciado_id_personagem?: string | null
+          denunciado_nome?: string | null
+          denunciado_user_id?: string | null
           descricao: string
+          encaminhada_mp?: boolean
           envolvidos?: Json | null
           id?: string
+          indicio_crime?: boolean
           links?: Json | null
           nome_denunciante?: string | null
+          orgao_corregedoria?: string | null
           status?: string
         }
         Update: {
           contato_denunciante?: string | null
+          contra_membro?: boolean
+          corregedoria_atualizado_em?: string | null
+          corregedoria_decisao?: string | null
+          corregedoria_motivo?: string | null
+          corregedoria_responsavel_id?: string | null
+          corregedoria_status?: string | null
           created_at?: string
+          denunciado_cargos?: string[] | null
+          denunciado_id_personagem?: string | null
+          denunciado_nome?: string | null
+          denunciado_user_id?: string | null
           descricao?: string
+          encaminhada_mp?: boolean
           envolvidos?: Json | null
           id?: string
+          indicio_crime?: boolean
           links?: Json | null
           nome_denunciante?: string | null
+          orgao_corregedoria?: string | null
           status?: string
         }
         Relationships: []
@@ -2212,6 +2251,14 @@ export type Database = {
     Functions: {
       admin_remove_role: { Args: { p_role_id: string }; Returns: undefined }
       analista_tabelas_aprovacao: { Args: { _uid: string }; Returns: string[] }
+      buscar_membro_juridico: {
+        Args: { _id_personagem: string }
+        Returns: {
+          cargos: string[]
+          nome: string
+          orgao: string
+        }[]
+      }
       can_view_processo: {
         Args: {
           _advogado_autor_id: string
@@ -2231,6 +2278,10 @@ export type Database = {
       cleanup_ranking_destaques: { Args: never; Returns: number }
       cleanup_read_notifications: { Args: never; Returns: number }
       corregedor_instituicoes: { Args: { _uid: string }; Returns: string[] }
+      decidir_corregedoria: {
+        Args: { _acao: string; _id: string; _texto: string }
+        Returns: undefined
+      }
       delegado_assign_police_role: {
         Args: {
           p_role: Database["public"]["Enums"]["user_role"]
@@ -2308,8 +2359,13 @@ export type Database = {
         }
         Returns: string
       }
+      orgao_do_membro: { Args: { _uid: string }; Returns: string }
       pode_atuar_processo: {
         Args: { _processo_id: string; _uid: string }
+        Returns: boolean
+      }
+      pode_corregedoria: {
+        Args: { _orgao: string; _uid: string }
         Returns: boolean
       }
       pode_gerir_concurso_defensoria: {

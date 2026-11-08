@@ -6,7 +6,7 @@ import { DISCORD_API } from "../_shared/discord.ts";
 const BOT_TOKEN = Deno.env.get("DISCORD_BOT_TOKEN");
 const CHANNEL_ID = Deno.env.get("DISCORD_DJEM_CHANNEL_ID") || "1498832038424346644";
 const ROLE_ID = "1219213571754561537";
-const PERMITIDOS = ["admin", "magistrado", "desembargador", "presidente_tribunal", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "oficial_justica"];
+const PERMITIDOS = ["admin", "magistrado", "desembargador", "presidente_tribunal", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "oficial_justica", "presidente_oab", "defensor_publico_geral"];
 const MAX_IMG = 8 * 1024 * 1024;
 
 const json = (body: unknown, status = 200) =>

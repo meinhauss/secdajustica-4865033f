@@ -1,3 +1,4 @@
+import { ROLE_LABELS } from "@/lib/roles";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
@@ -789,6 +790,21 @@ function TabOuvidoria() {
   const [enviando, setEnviando] = useState(false);
   const [statusEnvio, setStatusEnvio] = useState("");
   const [enviado, setEnviado] = useState(false);
+  const [contraMembro, setContraMembro] = useState(false);
+  const [rgDenunciado, setRgDenunciado] = useState("");
+  const [membro, setMembro] = useState<{ nome: string; cargos: string[]; orgao: string } | null>(null);
+  const [buscandoMembro, setBuscandoMembro] = useState(false);
+  const [indicioCrime, setIndicioCrime] = useState(false);
+
+  const buscarMembro = async () => {
+    if (!rgDenunciado.trim()) return;
+    setBuscandoMembro(true); setMembro(null);
+    const { data, error } = await (supabase.rpc as any)("buscar_membro_juridico", { _id_personagem: rgDenunciado.trim() });
+    setBuscandoMembro(false);
+    const row = Array.isArray(data) ? data[0] : null;
+    if (error || !row) { toast.error("Nenhum membro do sistema de justiça encontrado com esse RG."); return; }
+    setMembro(row);
+  };
 
   const addEnvolvido = () => {
     if (!novoEnvolvidoNome.trim()) return;
@@ -817,6 +833,10 @@ function TabOuvidoria() {
       toast.error("Descreva os fatos da denúncia.");
       return;
     }
+    if (contraMembro && !membro) {
+      toast.error("Busque e confirme o membro denunciado pelo RG.");
+      return;
+    }
     setEnviando(true);
     try {
       const urlsR2: string[] = [];
@@ -832,6 +852,9 @@ function TabOuvidoria() {
         descricao: descricao.trim(),
         envolvidos: envolvidos.length > 0 ? envolvidos : [],
         links: [...links, ...urlsR2],
+        contra_membro: contraMembro,
+        denunciado_id_personagem: contraMembro ? rgDenunciado.trim() : null,
+        indicio_crime: contraMembro ? indicioCrime : false,
       } as any);
       if (error) throw error;
       setArquivosPendentes([]);
@@ -857,7 +880,7 @@ function TabOuvidoria() {
             Sua denúncia foi registrada com sucesso e será analisada pelo Ministério Público. 
             O sigilo da sua identidade será preservado conforme a legislação vigente.
           </p>
-                    <Button onClick={() => { setEnviado(false); setDescricao(""); setEnvolvidos([]); setLinks([]); setArquivosPendentes([]); setNome(""); setContato(""); }}
+                    <Button onClick={() => { setEnviado(false); setDescricao(""); setEnvolvidos([]); setLinks([]); setArquivosPendentes([]); setNome(""); setContato(""); setContraMembro(false); setRgDenunciado(""); setMembro(null); setIndicioCrime(false); }}
             variant="outline" className="rounded-xl">
             Enviar Nova Denúncia
           </Button>
@@ -899,6 +922,32 @@ function TabOuvidoria() {
               </div>
             </div>
           </motion.div>
+
+          <div className="bg-card rounded-xl border border-border p-6 space-y-4">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" checked={contraMembro} onChange={e => { setContraMembro(e.target.checked); setMembro(null); }} className="h-4 w-4 accent-primary" />
+              <span className="font-display text-base font-semibold text-foreground">A denúncia é contra membro do sistema de justiça?</span>
+            </label>
+            <p className="text-xs text-muted-foreground">Juízes, desembargadores, oficiais de justiça, promotores, defensores públicos e advogados. A denúncia vai para a Corregedoria do órgão.</p>
+            {contraMembro && (
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <Input placeholder="RG (ID) do denunciado" value={rgDenunciado} onChange={e => { setRgDenunciado(e.target.value); setMembro(null); }} className="flex-1" />
+                  <Button onClick={buscarMembro} size="sm" variant="outline" className="rounded-lg" disabled={buscandoMembro}>{buscandoMembro ? "Buscando..." : "Buscar"}</Button>
+                </div>
+                {membro && (
+                  <div className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm">
+                    <p className="font-medium text-foreground">{membro.nome}</p>
+                    <p className="text-xs text-muted-foreground">{membro.cargos.map(c => ROLE_LABELS[c as keyof typeof ROLE_LABELS] || c).join(" / ")} • {({ tj: "Tribunal de Justiça", mp: "Ministério Público", dp: "Defensoria Pública", oab: "OAB" } as Record<string, string>)[membro.orgao]}</p>
+                  </div>
+                )}
+                <label className="flex items-center gap-3 cursor-pointer text-sm text-foreground">
+                  <input type="checkbox" checked={indicioCrime} onChange={e => setIndicioCrime(e.target.checked)} className="h-4 w-4 accent-primary" />
+                  Você avalia que houve crime? (a denúncia também será enviada ao Ministério Público)
+                </label>
+              </div>
+            )}
+          </div>
 
           <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
             className="bg-card rounded-xl border border-border p-6 space-y-4">

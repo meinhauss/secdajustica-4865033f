@@ -22,6 +22,7 @@ const TribunalSection = lazy(() => import("@/components/sections/TribunalSection
 const EstatisticasSection = lazy(() => import("@/components/sections/EstatisticasSection"));
 const CartorarioSection = lazy(() => import("@/components/sections/CartorarioSection"));
 const DJEMSection = lazy(() => import("@/components/sections/DJEMSection"));
+const CorregedoriaSection = lazy(() => import("@/components/sections/CorregedoriaSection"));
 const JurisprudenciaSection = lazy(() => import("@/components/sections/JurisprudenciaSection"));
 const MPSection = lazy(() => import("@/components/sections/MPSection"));
 const AudienciasSection = lazy(() => import("@/components/sections/AudienciasSection"));
@@ -47,7 +48,7 @@ const VALID_SECTIONS = new Set([
   "dashboard", "meu-perfil", "processos", "meus-processos", "consulta",
   "magistrado", "tribunal", "jurisprudencia", "mp", "audiencias", "oab",
   "cargos", "usuarios", "aprovacoes", "estatisticas", "concursos",
-  "cartorio", "tco", "triagem-bo", "jurados", "modelos", "djem",
+  "cartorio", "tco", "triagem-bo", "jurados", "modelos", "djem", "corregedoria",
 ]);
 
 const Index = () => {
@@ -197,6 +198,7 @@ const Index = () => {
         case "jurados": return <JuradosSection onOpenProcesso={(id) => { setOpenProcessoId(id); setActiveSection("processos"); }} />;
         case "modelos": return <ModelosSection />;
         case "djem": return <DJEMSection />;
+        case "corregedoria": return <CorregedoriaSection />;
         default: return <DashboardHome />;
       }
     })();
