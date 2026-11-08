@@ -2312,6 +2312,10 @@ export type Database = {
         Args: { _processo_id: string; _uid: string }
         Returns: boolean
       }
+      pode_gerir_concurso_defensoria: {
+        Args: { _concurso_id: string }
+        Returns: boolean
+      }
       pode_outorgar: {
         Args: { _cargo: Database["public"]["Enums"]["user_role"]; _uid: string }
         Returns: boolean

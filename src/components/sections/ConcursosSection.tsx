@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { canDPGManageConcurso } from "@/lib/concursosPermissions";
 
 const CONCURSO_STATUS: Record<string, { label: string; color: string }> = {
   rascunho: { label: "Rascunho", color: "bg-muted text-muted-foreground" },
@@ -129,7 +130,8 @@ export default function ConcursosSection() {
 
   useAutoStatusUpdate();
 
-  const isAdmin = roles.some((r) => ["admin", "presidente_tribunal", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "chefe_gaeco"].includes(r));
+  const isDPG = canDPGManageConcurso(roles, "Defensor Público");
+  const isAdmin = isDPG || roles.some((r) => ["admin", "presidente_tribunal", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "chefe_gaeco"].includes(r));
   const isPresidenteTribunal = roles.includes("presidente_tribunal");
   const isMP = roles.some((r) => ["ministerio_publico", "procurador_geral", "procurador_geral_adjunto"].includes(r));
   const isChefeGaeco = roles.includes("chefe_gaeco");
@@ -145,13 +147,13 @@ export default function ConcursosSection() {
     return <ProvaAnterior concursoId={selectedId} onBack={() => { setView("list"); setSelectedId(null); }} />;
   }
 
-  return <ConcursosDashboard isAdmin={isAdmin} isPresidenteTribunal={isPresidenteTribunal} isMP={isMP} isFullAdmin={isFullAdmin} isChefeGaeco={isChefeGaeco} onSelect={(id) => { setSelectedId(id); setView("detail"); }} onViewHistorico={(id) => { setSelectedId(id); setView("historico"); }} />;
+  return <ConcursosDashboard isAdmin={isAdmin} isPresidenteTribunal={isPresidenteTribunal} isMP={isMP} isFullAdmin={isFullAdmin} isChefeGaeco={isChefeGaeco} isDPG={isDPG} onSelect={(id) => { setSelectedId(id); setView("detail"); }} onViewHistorico={(id) => { setSelectedId(id); setView("historico"); }} />;
 }
 
 /* ═══════════════════════════════════════════ */
 /*  DASHBOARD                                  */
 /* ═══════════════════════════════════════════ */
-function ConcursosDashboard({ isAdmin, isPresidenteTribunal, isMP, isFullAdmin, isChefeGaeco, onSelect, onViewHistorico }: { isAdmin: boolean; isPresidenteTribunal: boolean; isMP: boolean; isFullAdmin: boolean; isChefeGaeco: boolean; onSelect: (id: string) => void; onViewHistorico: (id: string) => void }) {
+function ConcursosDashboard({ isAdmin, isPresidenteTribunal, isMP, isFullAdmin, isChefeGaeco, isDPG, onSelect, onViewHistorico }: { isAdmin: boolean; isPresidenteTribunal: boolean; isMP: boolean; isFullAdmin: boolean; isChefeGaeco: boolean; isDPG: boolean; onSelect: (id: string) => void; onViewHistorico: (id: string) => void }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -176,7 +178,11 @@ function ConcursosDashboard({ isAdmin, isPresidenteTribunal, isMP, isFullAdmin, 
     },
   });
 
-  const availableCargos = isFullAdmin ? CARGOS_JURIDICOS : isMP ? CARGOS_MP : isPresidenteTribunal ? CARGOS_TJ : isChefeGaeco ? CARGOS_TJ : CARGOS_JURIDICOS;
+  const availableCargos = isFullAdmin ? CARGOS_JURIDICOS : [...new Set([
+    ...(isMP ? CARGOS_MP : []),
+    ...(isPresidenteTribunal || isChefeGaeco ? CARGOS_TJ : []),
+    ...(isDPG ? ["Defensor Público"] : []),
+  ])];
 
   const [form, setForm] = useState({
     titulo: "", cargo: availableCargos[0] || "Juiz de Direito", vagas: "1", requisitos: "", conteudo_programatico: "",
@@ -187,6 +193,8 @@ function ConcursosDashboard({ isAdmin, isPresidenteTribunal, isMP, isFullAdmin, 
   const criarConcurso = useMutation({
     mutationFn: async () => {
       if (!form.titulo || !form.cargo) throw new Error("Título e cargo obrigatórios.");
+      if (!user) throw new Error("Faça login para criar um concurso.");
+      if (!availableCargos.includes(form.cargo)) throw new Error("Sem permissão para criar concurso deste cargo.");
       const { error } = await supabase.from("concursos").insert({
         titulo: form.titulo,
         cargo: form.cargo,
@@ -200,7 +208,7 @@ function ConcursosDashboard({ isAdmin, isPresidenteTribunal, isMP, isFullAdmin, 
         data_inicio_prova: form.data_inicio_prova ? new Date(form.data_inicio_prova).toISOString() : null,
         data_fim_prova: form.data_fim_prova ? new Date(form.data_fim_prova).toISOString() : null,
         data_resultado: form.data_resultado ? new Date(form.data_resultado).toISOString() : null,
-        criado_por: user!.id,
+        criado_por: user.id,
         status: "rascunho",
         tempo_prova_minutos: parseInt(form.tempo_prova_minutos) || 60,
       } as any);
@@ -348,7 +356,7 @@ function ConcursosDashboard({ isAdmin, isPresidenteTribunal, isMP, isFullAdmin, 
 /*  CONCURSO DETAIL                            */
 /* ═══════════════════════════════════════════ */
 function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isMP, isFullAdmin, isChefeGaeco, onStartProva }: { concursoId: string; onBack: () => void; isAdmin: boolean; isPresidenteTribunal: boolean; isMP: boolean; isFullAdmin: boolean; isChefeGaeco: boolean; onStartProva: () => void }) {
-  const { user, profile } = useAuth();
+  const { user, profile, roles } = useAuth();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("edital");
   const [openQuestao, setOpenQuestao] = useState(false);
@@ -412,6 +420,7 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
   const canManage = (() => {
     if (isFullAdmin) return true;
     if (!concurso) return false;
+    if (canDPGManageConcurso(roles, concurso.cargo)) return true;
     const cargoMP = CARGOS_MP.includes(concurso.cargo);
     const cargoTJ = CARGOS_TJ.includes(concurso.cargo);
     if (isMP && cargoMP) return true;
@@ -729,17 +738,32 @@ function ConcursoDetail({ concursoId, onBack, isAdmin, isPresidenteTribunal, isM
         "Delegado": "delegado",
         "GAECO": "gaeco",
         "Chefe GAECO": "chefe_gaeco",
+        "Defensor Público": "defensor_publico",
       };
       const role = cargoRoleMap[concurso?.cargo] || null;
       if (role) {
-        await supabase.from("user_roles").insert({ user_id: insc.user_id, role: role as any }).select();
+        if (role === "defensor_publico" && canDPGManageConcurso(roles, concurso?.cargo)) {
+          const { data: existingRole, error: lookupError } = await supabase.from("user_roles")
+            .select("id").eq("user_id", insc.user_id).eq("role", "defensor_publico").limit(1);
+          if (lookupError) throw lookupError;
+          if (!existingRole?.length) {
+            const { error } = await supabase.rpc("delegado_assign_police_role", {
+              p_user_id: insc.user_id, p_role: "defensor_publico",
+            });
+            if (error) throw error;
+          }
+        } else {
+        const { error: roleError } = await supabase.from("user_roles").insert({ user_id: insc.user_id, role: role as any }).select();
+        if (roleError) throw roleError;
         await supabase.from("cargo_historico").insert({
           user_id: insc.user_id, role: role as any, tipo: "nomeacao",
           data_inicio: new Date().toISOString(), nomeado_por: user!.id,
           observacoes: `Nomeado via concurso: ${concurso?.titulo}`,
         });
+        }
       }
-      await supabase.from("inscricoes_concurso").update({ status: "nomeado" } as any).eq("id", inscricaoId);
+      const { error: nomeacaoError } = await supabase.from("inscricoes_concurso").update({ status: "nomeado" } as any).eq("id", inscricaoId);
+      if (nomeacaoError) throw nomeacaoError;
 
       // Descobre nome do responsável pelo concurso
       let responsavelNome = "o responsável pelo concurso";

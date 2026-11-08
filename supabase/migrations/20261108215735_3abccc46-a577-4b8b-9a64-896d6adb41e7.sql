@@ -1,0 +1,1 @@
+ALTER FUNCTION public.pode_gerir_concurso_defensoria(uuid) SECURITY INVOKER;

@@ -59,7 +59,7 @@ const menuItems: MenuItem[] = [
 
   // Cidadão
   { id: "consulta", label: "Consulta de Credenciais", icon: IdCard, category: "Cidadão", roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado", "oficial_justica", "advogado", "presidente_tribunal", "desembargador", "presidente_oab", "delegado", "corregedor", "chefe_gaeco"] },
-  { id: "concursos", label: "Concursos", icon: GraduationCap, category: "Cidadão", roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal", "delegado", "corregedor", "gaeco", "chefe_gaeco", "hospital", "detran"] },
+  { id: "concursos", label: "Concursos", icon: GraduationCap, category: "Cidadão", roles: ["admin", "magistrado", "ministerio_publico", "procurador_geral", "procurador_geral_adjunto", "procurador_estado", "oficial_justica", "advogado", "cidadao", "presidente_tribunal", "desembargador", "presidente_oab", "bacharel_direito", "policia_civil", "policia_militar", "policia_federal", "delegado", "corregedor", "gaeco", "chefe_gaeco", "hospital", "detran", "defensor_publico_geral"] },
 
   // Admin
   { id: "estatisticas", label: "Estatísticas", icon: BarChart3, category: "Admin", roles: ["admin", "magistrado", "presidente_tribunal"] },
