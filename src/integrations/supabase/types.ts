@@ -606,6 +606,44 @@ export type Database = {
         }
         Relationships: []
       }
+      corregedoria_movimentacoes: {
+        Row: {
+          autor_id: string | null
+          autor_nome: string | null
+          created_at: string
+          denuncia_id: string
+          id: string
+          texto: string
+          tipo: string
+        }
+        Insert: {
+          autor_id?: string | null
+          autor_nome?: string | null
+          created_at?: string
+          denuncia_id: string
+          id?: string
+          texto: string
+          tipo: string
+        }
+        Update: {
+          autor_id?: string | null
+          autor_nome?: string | null
+          created_at?: string
+          denuncia_id?: string
+          id?: string
+          texto?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "corregedoria_movimentacoes_denuncia_id_fkey"
+            columns: ["denuncia_id"]
+            isOneToOne: false
+            referencedRelation: "denuncias_ouvidoria"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       denuncias_ouvidoria: {
         Row: {
           contato_denunciante: string | null
@@ -616,6 +654,9 @@ export type Database = {
           corregedoria_responsavel_id: string | null
           corregedoria_status: string | null
           created_at: string
+          defesa_em: string | null
+          defesa_prazo: string | null
+          defesa_texto: string | null
           denunciado_cargos: string[] | null
           denunciado_id_personagem: string | null
           denunciado_nome: string | null
@@ -639,6 +680,9 @@ export type Database = {
           corregedoria_responsavel_id?: string | null
           corregedoria_status?: string | null
           created_at?: string
+          defesa_em?: string | null
+          defesa_prazo?: string | null
+          defesa_texto?: string | null
           denunciado_cargos?: string[] | null
           denunciado_id_personagem?: string | null
           denunciado_nome?: string | null
@@ -662,6 +706,9 @@ export type Database = {
           corregedoria_responsavel_id?: string | null
           corregedoria_status?: string | null
           created_at?: string
+          defesa_em?: string | null
+          defesa_prazo?: string | null
+          defesa_texto?: string | null
           denunciado_cargos?: string[] | null
           denunciado_id_personagem?: string | null
           denunciado_nome?: string | null
@@ -2251,6 +2298,10 @@ export type Database = {
     Functions: {
       admin_remove_role: { Args: { p_role_id: string }; Returns: undefined }
       analista_tabelas_aprovacao: { Args: { _uid: string }; Returns: string[] }
+      apresentar_defesa_corregedoria: {
+        Args: { _id: string; _texto: string }
+        Returns: undefined
+      }
       buscar_membro_juridico: {
         Args: { _id_personagem: string }
         Returns: {
@@ -2278,8 +2329,22 @@ export type Database = {
       cleanup_ranking_destaques: { Args: never; Returns: number }
       cleanup_read_notifications: { Args: never; Returns: number }
       corregedor_instituicoes: { Args: { _uid: string }; Returns: string[] }
+      corregedoria_registrar: {
+        Args: {
+          _d: Database["public"]["Tables"]["denuncias_ouvidoria"]["Row"]
+          _texto: string
+          _tipo: string
+          _titulo: string
+        }
+        Returns: undefined
+      }
       decidir_corregedoria: {
-        Args: { _acao: string; _id: string; _texto: string }
+        Args: {
+          _acao: string
+          _id: string
+          _prazo_dias?: number
+          _texto: string
+        }
         Returns: undefined
       }
       delegado_assign_police_role: {
@@ -2336,6 +2401,21 @@ export type Database = {
       marcar_intimacoes_lidas: {
         Args: { _processo_id: string }
         Returns: number
+      }
+      minhas_representacoes: {
+        Args: never
+        Returns: {
+          corregedoria_decisao: string
+          corregedoria_motivo: string
+          corregedoria_status: string
+          created_at: string
+          defesa_em: string
+          defesa_prazo: string
+          defesa_texto: string
+          descricao: string
+          id: string
+          orgao_corregedoria: string
+        }[]
       }
       notificar_audiencia: { Args: { _audiencia_id: string }; Returns: number }
       notificar_lembrete_prova_concurso: { Args: never; Returns: undefined }
