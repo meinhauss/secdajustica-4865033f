@@ -2456,6 +2456,10 @@ export type Database = {
         Args: { _cargo: Database["public"]["Enums"]["user_role"]; _uid: string }
         Returns: boolean
       }
+      pode_ver_corregedoria: {
+        Args: { _denuncia_id: string; _uid: string }
+        Returns: boolean
+      }
       redistribuir_por_suspeicao: {
         Args: { _justificativa: string; _processo_id: string }
         Returns: string
