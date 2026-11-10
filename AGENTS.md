@@ -1,5 +1,5 @@
 # Architecture rules
-- Defensoria competition controls use a role-and-career permission check mirrored by database policies, so DPG access never authorizes competitions of other institutions.
+- Institutional competition controls (DPG → Defensor Público, Desembargador → Analista Judiciário) use a role-and-career permission check mirrored by database policies, so chiefs never manage competitions of other careers.
 - Dashboard URL section keys are normalized for diacritics before validation, so accented links resolve to the existing canonical section without duplicating pages.
 - Triagem Penal cards, clipboard and PDF use one shared structured-result formatter so escaping and field labels remain consistent across outputs.
 - Triagem Penal results use a dedicated presentation component with decision summaries and expandable reasoning, keeping visual changes separate from analysis and export logic.

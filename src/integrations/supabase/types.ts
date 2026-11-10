@@ -2448,6 +2448,10 @@ export type Database = {
         Args: { _orgao: string; _uid: string }
         Returns: boolean
       }
+      pode_gerir_concurso_analista: {
+        Args: { _concurso_id: string }
+        Returns: boolean
+      }
       pode_gerir_concurso_defensoria: {
         Args: { _concurso_id: string }
         Returns: boolean
