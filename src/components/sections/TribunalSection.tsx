@@ -1189,7 +1189,7 @@ function OriginarioTribunalDetail({ processoId, onBack }: { processoId: string; 
         {processo.descricao && (
           <div className="mt-4 pt-4 border-t border-border">
             <p className="text-muted-foreground text-[10px] uppercase tracking-wider font-semibold mb-1">Petição Inicial / Síntese</p>
-            <p className="text-sm text-foreground whitespace-pre-wrap">{processo.descricao}</p>
+            <RichTextView html={processo.descricao} className="text-sm text-foreground" />
           </div>
         )}
       </div>

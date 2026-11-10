@@ -405,7 +405,7 @@ export function generateProcessoPDF(params: {
     doc.setFont("helvetica", "normal");
     doc.setTextColor(50);
     doc.setFontSize(8);
-    y = addWrappedText(doc, processo.descricao, MARGIN + 2, y, CONTENT_W - 4, 3.8);
+    y = renderRichText(doc, processo.descricao, MARGIN + 2, y, CONTENT_W - 4, 3.8, 8);
   }
 
   // ─── PROCURAÇÕES ───

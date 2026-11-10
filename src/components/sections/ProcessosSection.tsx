@@ -1794,7 +1794,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               {processo.descricao && (
                 <div className="mt-3">
                   <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Síntese dos Fatos</p>
-                  <p className="text-sm text-foreground whitespace-pre-wrap mt-1">{processo.descricao}</p>
+                  <RichTextView html={processo.descricao} className="text-sm text-foreground mt-1" />
                 </div>
               )}
             </div>
@@ -1804,7 +1804,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
               <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Informações Adicionais</h3>
               <div>
                 <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Síntese dos Fatos</p>
-                <p className="text-sm text-foreground whitespace-pre-wrap mt-1">{processo.descricao}</p>
+                <RichTextView html={processo.descricao} className="text-sm text-foreground mt-1" />
               </div>
             </div>
           )}
