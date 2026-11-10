@@ -18,6 +18,7 @@ import {
   ExternalLink, PenTool
 } from "lucide-react";
 import RelatorioAtividadeIA from "@/components/RelatorioAtividadeIA";
+import RecursosSegundoGrau from "@/components/tribunal/RecursosSegundoGrau";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -1057,6 +1058,7 @@ function ApelacaoDetail({ apelacaoId, onBack }: { apelacaoId: string; onBack: ()
           </div>
         </DialogContent>
       </Dialog>
+      <RecursosSegundoGrau processoId={apelacao.processo_id} apelacaoId={apelacaoId} relatorId={apelacao.desembargador_id} />
     </div>
   );
 }
@@ -1280,6 +1282,7 @@ function OriginarioTribunalDetail({ processoId, onBack }: { processoId: string; 
           </div>
         </DialogContent>
       </Dialog>
+      <RecursosSegundoGrau processoId={processoId} relatorId={(processo as any)?.relator_id} />
     </div>
   );
 }

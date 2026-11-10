@@ -1932,6 +1932,81 @@ export type Database = {
         }
         Relationships: []
       }
+      recursos_segundo_grau: {
+        Row: {
+          apelacao_id: string | null
+          created_at: string
+          decidido_em: string | null
+          decidido_por: string | null
+          decidido_por_nome: string | null
+          decisao: string | null
+          decisao_impugnada: string
+          id: string
+          peca: string
+          processo_id: string
+          recorrente_id: string
+          recorrente_nome: string
+          resultado: string | null
+          status: string
+          tipo: string
+          updated_at: string
+          vicio: string | null
+        }
+        Insert: {
+          apelacao_id?: string | null
+          created_at?: string
+          decidido_em?: string | null
+          decidido_por?: string | null
+          decidido_por_nome?: string | null
+          decisao?: string | null
+          decisao_impugnada: string
+          id?: string
+          peca: string
+          processo_id: string
+          recorrente_id: string
+          recorrente_nome: string
+          resultado?: string | null
+          status?: string
+          tipo: string
+          updated_at?: string
+          vicio?: string | null
+        }
+        Update: {
+          apelacao_id?: string | null
+          created_at?: string
+          decidido_em?: string | null
+          decidido_por?: string | null
+          decidido_por_nome?: string | null
+          decisao?: string | null
+          decisao_impugnada?: string
+          id?: string
+          peca?: string
+          processo_id?: string
+          recorrente_id?: string
+          recorrente_nome?: string
+          resultado?: string | null
+          status?: string
+          tipo?: string
+          updated_at?: string
+          vicio?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recursos_segundo_grau_apelacao_id_fkey"
+            columns: ["apelacao_id"]
+            isOneToOne: false
+            referencedRelation: "apelacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recursos_segundo_grau_processo_id_fkey"
+            columns: ["processo_id"]
+            isOneToOne: false
+            referencedRelation: "processos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       registros_cartorio: {
         Row: {
           created_at: string
