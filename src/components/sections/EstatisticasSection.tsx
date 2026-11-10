@@ -181,7 +181,7 @@ const CHANGELOG: { version: string; date: string; changes: string[] }[] = [
       "Audiências: agendamento com alertas em tempo real e finalização com registro de ata ('Realizada')",
       "Distribuição/sorteio automático com lock FOR UPDATE e ordenação por carga de trabalho; status 'Recesso' remove magistrado do sorteio",
       "Oficial de Justiça pode registrar movimentações em qualquer fase do processo",
-      "PGE (nível 11): novas permissões atuando como custos legis",
+      "PGE (nível 11): novas permissões atuando na representação da Fazenda Pública",
       "Ouvidoria pública do MP: portal para denúncias anônimas ou identificadas",
       "Limpeza de notificações: exclusão global por administradores e cron de 24h removendo alertas lidos",
       "Estatísticas gerais da comarca restritas a usuários autenticados",

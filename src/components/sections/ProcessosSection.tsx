@@ -1338,7 +1338,10 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const manifestarInteresse = useMutation({
     mutationFn: async () => {
       if (!userOrgao) throw new Error("Seu cargo não permite manifestar-se como interessado.");
-      const qualificacao = (roles.includes("ministerio_publico") || roles.includes("procurador_geral") || roles.includes("procurador_geral_adjunto") || roles.includes("procurador_estado")) && processo?.classe !== "criminal" ? "custos legis" : "interessado";
+      const isMembroMP = roles.includes("ministerio_publico") || roles.includes("procurador_geral") || roles.includes("procurador_geral_adjunto");
+      const qualificacao = isMembroMP && processo?.classe !== "criminal" ? "custos legis"
+        : roles.includes("procurador_estado") ? "Fazenda Pública"
+        : "interessado";
       const { error } = await supabase.from("interessados_processo").insert({
         processo_id: processoId, user_id: user?.id, orgao: userOrgao, qualificacao,
       } as any);
