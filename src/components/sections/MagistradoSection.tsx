@@ -68,7 +68,7 @@ const MANDADO_TIPOS = [
 ];
 
 const AUDIENCIA_TIPOS = [
-  "instrução", "julgamento", "conciliação", "custódia", "justificação", "admonitória"
+  "instrução", "julgamento", "conciliação", "custódia", "justificação", "admonitória", "sessão de julgamento", "sessão de julgamento virtual", "sessão de julgamento presencial"
 ];
 
 const SIGILO_LABELS: Record<string, string> = {
@@ -732,7 +732,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
       await supabase.from("movimentacoes").insert({
         processo_id: processoId,
         tipo: "audiencia_designada",
-        descricao: `Audiência de ${audForm.tipo} designada para ${format(new Date(audForm.data_hora), "dd/MM/yyyy HH:mm", { locale: ptBR })}.`,
+        descricao: `${audForm.tipo.startsWith("sessão") ? audForm.tipo.charAt(0).toUpperCase() + audForm.tipo.slice(1) : `Audiência de ${audForm.tipo}`} designada para ${format(new Date(audForm.data_hora), "dd/MM/yyyy HH:mm", { locale: ptBR })}.`,
         autor_id: user!.id,
       });
     },

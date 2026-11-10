@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from "sonner";
 import { PersonLookupInput } from "@/components/PersonLookupInput";
 
-const TIPOS_AUDIENCIA = ["instrução", "conciliação", "julgamento", "custódia", "justificação", "admonitória"];
+const TIPOS_AUDIENCIA = ["instrução", "conciliação", "julgamento", "custódia", "justificação", "admonitória", "sessão de julgamento", "sessão de julgamento virtual", "sessão de julgamento presencial"];
 const TIPOS_ENVOLVIDO = ["participante", "testemunha", "perito", "outro"];
 const DECISOES_CUSTODIA = [
   { value: "relaxamento", label: "Relaxamento da prisão (ilegal)" },

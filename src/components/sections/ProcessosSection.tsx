@@ -1181,7 +1181,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     mutationFn: async (aud: { tipo: string; data_hora: string; local: string }) => {
       const { error } = await supabase.from("audiencias").insert({ processo_id: processoId, ...aud });
       if (error) throw error;
-      await addMovimentacao.mutateAsync({ tipo: "audiencia", descricao: `Audiência de ${aud.tipo} designada para ${format(new Date(aud.data_hora), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}` });
+      await addMovimentacao.mutateAsync({ tipo: "audiencia", descricao: `${aud.tipo.startsWith("sessão") ? aud.tipo.charAt(0).toUpperCase() + aud.tipo.slice(1) : `Audiência de ${aud.tipo}`} designada para ${format(new Date(aud.data_hora), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}` });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["audiencias-processo", processoId] });
@@ -2596,7 +2596,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
 
         {/* AUDIÊNCIAS */}
         <TabsContent value="audiencias" className="mt-4 space-y-4">
-          {isJudicial && <AddAudiencia onAdd={(a) => scheduleAudiencia.mutate(a)} />}
+          {(isJudicial || (isMagistradoOrDesembargador && processo?.relator_id === user?.id)) && <AddAudiencia onAdd={(a) => scheduleAudiencia.mutate(a)} />}
           {!audiencias?.length ? (
             <p className="text-center py-8 text-sm text-muted-foreground">Nenhuma audiência agendada.</p>
           ) : (
@@ -3432,10 +3432,10 @@ function AddAudiencia({ onAdd }: { onAdd: (a: { tipo: string; data_hora: string;
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="rounded-xl"><Calendar className="h-4 w-4 mr-2" /> Agendar Audiência</Button>
+        <Button variant="outline" className="rounded-xl"><Calendar className="h-4 w-4 mr-2" /> Agendar Audiência / Sessão</Button>
       </DialogTrigger>
       <DialogContent>
-        <DialogHeader><DialogTitle>Agendar Audiência</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>Agendar Audiência ou Sessão</DialogTitle></DialogHeader>
         <form onSubmit={(e) => { e.preventDefault(); onAdd({ tipo, data_hora: new Date(dataHora).toISOString(), local }); setOpen(false); }} className="space-y-3 mt-3">
           <Select value={tipo} onValueChange={setTipo}>
             <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
@@ -3444,6 +3444,9 @@ function AddAudiencia({ onAdd }: { onAdd: (a: { tipo: string; data_hora: string;
               <SelectItem value="conciliação">Conciliação</SelectItem>
               <SelectItem value="custódia">Custódia</SelectItem>
               <SelectItem value="justificação">Justificação</SelectItem>
+              <SelectItem value="sessão de julgamento">Sessão de Julgamento (Câmara/Turma)</SelectItem>
+              <SelectItem value="sessão de julgamento virtual">Sessão de Julgamento Virtual</SelectItem>
+              <SelectItem value="sessão de julgamento presencial">Sessão de Julgamento Presencial</SelectItem>
             </SelectContent>
           </Select>
           <Input type="datetime-local" value={dataHora} onChange={(e) => setDataHora(e.target.value)} required className="rounded-xl" />
