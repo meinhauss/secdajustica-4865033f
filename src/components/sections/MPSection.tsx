@@ -268,7 +268,7 @@ function OuvidoriaDetail({ denunciaId, onBack }: { denunciaId: string; onBack: (
       queryClient.invalidateQueries({ queryKey: ["ouvidoria-detail", denunciaId] });
       queryClient.invalidateQueries({ queryKey: ["mp-denuncias-ouvidoria"] });
       setActiveAction("none");
-      setDenForm({ resumo: "", fundamentacao: "", tipificacao: "" });
+      setDenForm({ resumo: "", fundamentacao: "", tipificacao: "", sigilo: "publico" });
       toast.success("Denúncia oferecida e processo criminal distribuído!");
     },
     onError: (err: any) => toast.error(err.message),
