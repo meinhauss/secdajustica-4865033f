@@ -61,7 +61,7 @@ export default function MeusProcessosSection({ onOpenProcesso }: MeusProcessosSe
   const [batchDesc, setBatchDesc] = useState("");
   const [batchSaving, setBatchSaving] = useState(false);
 
-  const podeLote = roles.some((r) => ["admin", "presidente_tribunal", "ministerio_publico", "advogado"].includes(r));
+  const podeLote = roles.some((r) => ["admin", "presidente_tribunal", "ministerio_publico", "advogado", "defensor_publico", "defensor_publico_geral", "procurador_estado"].includes(r));
 
   const { data: meusProcessos, isLoading } = useQuery({
     queryKey: ["meus-processos", user?.id],

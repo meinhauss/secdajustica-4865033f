@@ -11,7 +11,7 @@ import { emitTip } from "@/lib/assistente/bus";
 const LS_SEEN = "assistente_adv_seen";
 const POLL_MS = 90_000;
 
-const ROLES_ADVOGADO = ["advogado", "presidente_oab", "bacharel_direito"];
+const ROLES_ADVOGADO = ["advogado", "defensor_publico", "defensor_publico_geral", "procurador_estado", "presidente_oab", "bacharel_direito"];
 
 function getSeen(): Record<string, true> {
   try { return JSON.parse(window.localStorage.getItem(LS_SEEN) || "{}"); } catch { return {}; }

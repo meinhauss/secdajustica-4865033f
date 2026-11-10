@@ -1,3 +1,4 @@
+import { isAdvogadoLike } from "@/lib/roles";
 import { useState, useEffect, useRef } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { ListSkeleton } from "@/components/ui/list-skeleton";
@@ -87,7 +88,7 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
     (profile?.id_personagem && parte.id_personagem?.trim() === profile.id_personagem.trim()) ||
     (profile?.nome_completo && normalizarNomeParte(parte.nome) === normalizarNomeParte(profile.nome_completo))
   );
-  const partesDoAdvogado = roles.includes("advogado") ? [
+  const partesDoAdvogado = isAdvogadoLike(roles) ? [
     ...autores.filter(coincideComAdvogado).map((parte) => ({ lado: "autor" as const, nome: parte.nome })),
     ...reus.filter(coincideComAdvogado).map((parte) => ({ lado: "reu" as const, nome: parte.nome })),
   ] : [];
@@ -254,7 +255,7 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
         const { error: interessadoError } = await supabase.from("interessados_processo").insert({
           processo_id: processoId,
           user_id: user.id,
-          orgao: policial ? "Polícia" : roles.includes("advogado") ? "Advocacia" : "Parte Interessada",
+          orgao: policial ? "Polícia" : isAdvogadoLike(roles) ? "Advocacia" : "Parte Interessada",
           qualificacao: "interessado",
         } as any);
         if (interessadoError) throw interessadoError;
@@ -419,7 +420,7 @@ function ProcessosList({ onSelect }: { onSelect: (id: string) => void }) {
                 </>
               )}
 
-                            {roles.includes("advogado") && partesDoAdvogado.length > 0 && (
+                            {isAdvogadoLike(roles) && partesDoAdvogado.length > 0 && (
                 <label className="flex items-start gap-3 rounded-xl border border-institutional/30 bg-institutional/5 p-3 cursor-pointer">
                   <input
                     type="checkbox"
@@ -682,7 +683,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   const isMagistradoOrDesembargador = roles.some((r) => ["magistrado", "desembargador"].includes(r));
   const isPresidenteTribunal = roles.includes("presidente_tribunal");
   const isMP = roles.includes("ministerio_publico");
-  const isAdvogado = roles.includes("advogado");
+  const isAdvogado = isAdvogadoLike(roles);
   const isOficialJustica = roles.includes("oficial_justica");
   const isPolicia = roles.some(r => ["policia_civil", "policia_militar", "policia_federal"].includes(r));
   const isHospital = roles.includes("hospital");
@@ -2940,7 +2941,7 @@ function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles
 
   const isJudicial = roles.some((r) => ["admin", "presidente_tribunal"].includes(r));
   const isMP = roles.includes("ministerio_publico");
-  const isAdvogado = roles.includes("advogado");
+  const isAdvogado = isAdvogadoLike(roles);
   const isOficialJustica = roles.includes("oficial_justica");
   const isPolicia = roles.some(r => ["policia_civil", "policia_militar", "policia_federal"].includes(r));
   const isHospital = roles.includes("hospital");

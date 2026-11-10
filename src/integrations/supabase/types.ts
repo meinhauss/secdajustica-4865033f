@@ -2384,6 +2384,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_advogado_like: { Args: { _uid: string }; Returns: boolean }
       is_analista: { Args: { _uid: string }; Returns: boolean }
       is_involved_cartorio: {
         Args: {

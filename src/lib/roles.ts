@@ -90,6 +90,12 @@ export const ROLE_LABELS: Record<Role, string> = {
 };
 
 /** Verifica se o usuário possui alguma das roles permitidas */
+/** Cargos com capacidade postulatória equiparada à advocacia. */
+export const ADVOGADO_LIKE_ROLES = ["advogado", "defensor_publico", "defensor_publico_geral", "procurador_estado"] as const;
+export function isAdvogadoLike(userRoles: string[]): boolean {
+  return userRoles.some((r) => (ADVOGADO_LIKE_ROLES as readonly string[]).includes(r));
+}
+
 export function hasAnyRole(userRoles: string[], ...allowed: Role[]): boolean {
   return allowed.some((r) => userRoles.includes(r));
 }

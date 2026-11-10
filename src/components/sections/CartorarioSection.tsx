@@ -1,3 +1,4 @@
+import { isAdvogadoLike } from "@/lib/roles";
 import { useState, useEffect } from "react";
 import { useAI } from "@/hooks/useAI";
 import { Sparkles, Loader2 } from "lucide-react";
@@ -488,7 +489,7 @@ export default function CartorarioSection() {
   const { user, profile, roles } = useAuth();
   const isAdmin = roles.includes("admin");
   const isCartorario = isAdmin || roles.includes("oficial_justica");
-  const canSolicitar = isAdmin || isCartorario || roles.includes("advogado");
+  const canSolicitar = isAdmin || isCartorario || isAdvogadoLike(roles);
 
   const [tab, setTab] = useState("painel");
   const [registros, setRegistros] = useState<Registro[]>([]);
