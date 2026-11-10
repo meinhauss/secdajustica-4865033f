@@ -234,7 +234,7 @@ function OuvidoriaDetail({ denunciaId, onBack }: { denunciaId: string; onBack: (
   });
 
   // ── OFERECER DENÚNCIA (cria processo criminal direto) ──
-  const [denForm, setDenForm] = useState({ resumo: "", fundamentacao: "", tipificacao: "" });
+  const [denForm, setDenForm] = useState({ resumo: "", fundamentacao: "", tipificacao: "", sigilo: "publico" });
   const oferecerDenuncia = useMutation({
     mutationFn: async () => {
       if (!denForm.resumo || !denForm.fundamentacao) throw new Error("Preencha resumo e fundamentação.");
@@ -251,7 +251,7 @@ function OuvidoriaDetail({ denunciaId, onBack }: { denunciaId: string; onBack: (
         autor_nome: JSON.stringify([{ name: "Ministério Público", id_personagem: null }]),
         reu_nome: JSON.stringify(reuArr),
         descricao: denForm.resumo,
-        sigilo: "segredo_justica",
+        sigilo: denForm.sigilo,
         juiz_id: juizId,
       } as any).select("id, numero").single();
       if (procErr) throw procErr;
@@ -392,6 +392,13 @@ function OuvidoriaDetail({ denunciaId, onBack }: { denunciaId: string; onBack: (
           <p className="text-xs text-muted-foreground mb-3">Será criado um processo criminal em segredo de justiça, com sorteio automático de magistrado.</p>
           <form onSubmit={(e) => { e.preventDefault(); oferecerDenuncia.mutate(); }} className="space-y-4">
             <Input placeholder="Tipificação penal (ex: Art. 155, CP — Furto)" value={denForm.tipificacao} onChange={(e) => setDenForm({ ...denForm, tipificacao: e.target.value })} className="rounded-xl" />
+            <div className="space-y-1">
+              <select value={denForm.sigilo} onChange={(e) => setDenForm({ ...denForm, sigilo: e.target.value })} className="w-full h-10 rounded-xl border border-input bg-background px-3 text-sm">
+                <option value="publico">Público (regra do processo penal)</option>
+                <option value="segredo_justica">Segredo de Justiça (Maria da Penha, crimes sexuais, vítima menor)</option>
+              </select>
+              <p className="text-xs text-muted-foreground">O processo penal é público. Use segredo de justiça apenas nas hipóteses legais.</p>
+            </div>
             <RichTextEditor placeholder="Resumo da denúncia..." value={denForm.resumo} onChange={(html) => setDenForm({ ...denForm, resumo: html })} minHeight="100px" />
             <div className="flex justify-end">
               <AISugerirDespacho
