@@ -746,7 +746,8 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
     const partesAutor = processo ? parsePartesFromString(processo.autor_nome) : [];
   const partesReu = processo ? parsePartesFromString(processo.reu_nome) : [];
   const normalizarNomeParte = (nome?: string) => (nome || "").trim().toLocaleLowerCase("pt-BR");
-  const partesProprias = isAdvogado ? [
+  const podeCausaPropria = isAdvogado || isMagistradoOrDesembargador || isPresidenteTribunal;
+  const partesProprias = podeCausaPropria ? [
     ...partesAutor.filter((p) => (profile?.id_personagem && p.id_personagem?.trim() === profile.id_personagem.trim()) || (profile?.nome_completo && normalizarNomeParte(p.nome) === normalizarNomeParte(profile.nome_completo))).map((p) => ({ lado: "autor" as const, nome: p.nome, key: `autor:${p.nome}` })),
     ...partesReu.filter((p) => (profile?.id_personagem && p.id_personagem?.trim() === profile.id_personagem.trim()) || (profile?.nome_completo && normalizarNomeParte(p.nome) === normalizarNomeParte(profile.nome_completo))).map((p) => ({ lado: "reu" as const, nome: p.nome, key: `reu:${p.nome}` })),
   ] : [];
@@ -881,7 +882,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
 
     const habilitarCausaPropria = useMutation({
     mutationFn: async () => {
-      if (!isAdvogado || !user?.id || partesProprias.length === 0) throw new Error("Apenas advogado que figure como parte pode se habilitar em causa própria.");
+      if (!podeCausaPropria || !user?.id || partesProprias.length === 0) throw new Error("Apenas advogado ou membro do Judiciário que figure como parte pode se habilitar em causa própria.");
       const partesDisponiveis = partesProprias.filter(({ key }) => !partesJaRepresentadas.includes(key));
       if (partesDisponiveis.length === 0) throw new Error("Você já está habilitado(a) nas partes em que figura.");
       const { data: carteira } = await supabase.from("carteiras_oab").select("numero_oab").eq("user_id", user.id).maybeSingle();
@@ -1332,7 +1333,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
   // After sentencing, no new movimentações — only appeals are allowed (except oficial de justiça)
   const isSentenciado = processo?.status === "sentenciado";
   const isArquivado = processo?.status === "arquivado";
-      const advogadoEmCausaPropria = isAdvogado && procuracoes?.some((p: any) => p.advogado_id === user?.id && p.status === "ativa" && p.documento_url === "Em Causa Própria (Art. 103 do CPC)");
+      const advogadoEmCausaPropria = podeCausaPropria && procuracoes?.some((p: any) => p.advogado_id === user?.id && p.status === "ativa" && p.documento_url === "Em Causa Própria (Art. 103 do CPC)");
   const canAddMovimentacao = isOficialJustica || (!isSentenciado && !isArquivado && (isJudicial || (isMagistradoOrDesembargador && (processo?.juiz_id === user?.id || processo?.relator_id === user?.id)) || ((isAdvogado && advogadoTemProcuracao) || advogadoEmCausaPropria) || institucionalInteressado));
 
   const manifestarInteresse = useMutation({
@@ -1833,7 +1834,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><UserCheck className="h-4 w-4 text-institutional" /> Advogados Constituídos</h3>
           <div className="flex gap-2">
-                        {isAdvogado && partesProprias.some(({ key }) => !partesJaRepresentadas.includes(key)) && (
+                        {podeCausaPropria && partesProprias.some(({ key }) => !partesJaRepresentadas.includes(key)) && (
               <Button size="sm" className="rounded-lg text-xs bg-institutional hover:bg-institutional-light text-gold-light" onClick={() => habilitarCausaPropria.mutate()} disabled={habilitarCausaPropria.isPending}>
                 <ShieldCheck className="h-3 w-3 mr-1" /> {habilitarCausaPropria.isPending ? "Habilitando..." : "Habilitar-se em Causa Própria"}
               </Button>
@@ -2160,7 +2161,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
         {/* TIMELINE — unified view */}
         <TabsContent value="timeline" className="mt-4 space-y-4">
           <div className="flex flex-wrap gap-2">
-            {canAddMovimentacao && <AddMovimentacao roles={roles} processo={processo} juizNome={juizProfile?.nome_completo} userNome={profile?.nome_completo} onAdd={(tipo, desc) => addMovimentacao.mutateAsync({ tipo, descricao: desc }).then(() => undefined)} />}
+            {canAddMovimentacao && <AddMovimentacao roles={roles} causaPropria={!!advogadoEmCausaPropria} processo={processo} juizNome={juizProfile?.nome_completo} userNome={profile?.nome_completo} onAdd={(tipo, desc) => addMovimentacao.mutateAsync({ tipo, descricao: desc }).then(() => undefined)} />}
                         {isJudicialReadOnly && <AddAtoCartorio processoId={processoId} onAdd={(ato) => createAtoCartorio.mutateAsync(ato).then(() => undefined)} isPending={createAtoCartorio.isPending} />}
           </div>
           {isSentenciado && !prazoApelacaoExpirado && (
@@ -2926,7 +2927,7 @@ function ProcessoDetail({ processoId, onBack }: { processoId: string; onBack: ()
 /*  SUB-COMPONENTS                             */
 /* ═══════════════════════════════════════════ */
 
-function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles: string[]; onAdd: (tipo: string, desc: string) => void; processo?: any; juizNome?: string | null; userNome?: string | null }) {
+function AddMovimentacao({ roles, causaPropria, onAdd, processo, juizNome, userNome }: { roles: string[]; causaPropria?: boolean; onAdd: (tipo: string, desc: string) => void; processo?: any; juizNome?: string | null; userNome?: string | null }) {
   const [open, setOpen] = useState(false);
     const [anexos, setAnexos] = useState<{ nome: string; url: string }[]>([]);
   const [arquivosPendentes, setArquivosPendentes] = useState<File[]>([]);
@@ -2975,7 +2976,7 @@ function AddMovimentacao({ roles, onAdd, processo, juizNome, userNome }: { roles
       { value: "recurso_mp", label: "Recurso (MP)" },
     );
   }
-  if (isAdvogado) {
+  if (isAdvogado || causaPropria) {
     tiposPermitidos.push(
       { value: "peticao", label: "Petição" },
       { value: "contestacao", label: "Contestação" },
