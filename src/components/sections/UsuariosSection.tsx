@@ -220,7 +220,9 @@ export default function UsuariosSection() {
       ) : (
         <div className="space-y-2">
           {filtered.map((p) => {
-            const userRoles = allRoles?.filter((r) => r.user_id === p.user_id) || [];
+            const allUserRoles = allRoles?.filter((r) => r.user_id === p.user_id) || [];
+            // Oculta o selo "Administrador" quando o usuário tem outro cargo institucional
+            const userRoles = allUserRoles.length > 1 ? allUserRoles.filter((r) => r.role !== "admin") : allUserRoles;
             return (
               <div key={p.id} className="bg-card rounded-xl p-4 border border-border shadow-institutional">
                 <div className="flex items-center justify-between flex-wrap gap-3">

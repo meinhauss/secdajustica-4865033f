@@ -176,7 +176,7 @@ export default function CorregedoriaSection() {
           <CardContent className="p-5 space-y-3">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-semibold text-foreground">{d.denunciado_nome}</span>
-              <span className="text-xs text-muted-foreground">{(d.denunciado_cargos || []).map((c: string) => ROLE_LABELS[c as keyof typeof ROLE_LABELS] || c).join(" / ")}</span>
+              <span className="text-xs text-muted-foreground">{(() => { const cs: string[] = d.denunciado_cargos || []; const vis = cs.length > 1 ? cs.filter((c) => c !== "admin") : cs; return vis.map((c) => ROLE_LABELS[c as keyof typeof ROLE_LABELS] || c).join(" / "); })()}</span>
               <Badge variant="outline">{ORGAOS[d.orgao_corregedoria]}</Badge>
               <Badge>{STATUS[d.corregedoria_status] || d.corregedoria_status}</Badge>
               {d.encaminhada_mp && <Badge variant="destructive">Enviada ao MP</Badge>}

@@ -100,10 +100,13 @@ export function hasAnyRole(userRoles: string[], ...allowed: Role[]): boolean {
   return allowed.some((r) => userRoles.includes(r));
 }
 
-/** Retorna os cargos do usuário combinados (ignora "Cidadão" se houver outro cargo) */
+/** Retorna os cargos do usuário combinados (ignora "Cidadão" e "Administrador" se houver outro cargo) */
 export function getPrimaryRoleLabel(userRoles: string[]): string {
-  const known = userRoles.filter((r): r is Role => r in ROLE_LABELS && r !== "cidadao");
-  if (!known.length) return "Cidadão";
+  const known = userRoles.filter((r): r is Role => r in ROLE_LABELS && r !== "cidadao" && r !== "admin");
+  if (!known.length) {
+    if (userRoles.includes("admin")) return ROLE_LABELS.admin;
+    return "Cidadão";
+  }
   const order = (r: Role) => {
     const i = ROLE_PRIORITY.indexOf(r);
     return i === -1 ? 999 : i;
@@ -128,13 +131,13 @@ export function getPrimaryRoleLabel(userRoles: string[]): string {
   return labels.join(" / ");
 }
 
-/** Prioridade de roles para exibição (primeira match vence) */
+/** Prioridade de roles para exibição (primeira match vence; "admin" só aparece se for o único cargo) */
 export const ROLE_PRIORITY: Role[] = [
-  "admin", "presidente_tribunal", "desembargador", "magistrado",
+  "presidente_tribunal", "desembargador", "magistrado",
   "procurador_geral", "procurador_geral_adjunto", "ministerio_publico",
   "procurador_estado", "presidente_oab", "advogado", "bacharel_direito",
   "chefe_gaeco", "gaeco", "delegado", "policia_federal", "policia_civil",
-  "policia_militar", "oficial_justica", "hospital", "detran", "cidadao",
+  "policia_militar", "oficial_justica", "hospital", "detran", "admin", "cidadao",
 ];
 
 /** Retorna a role primária do usuário segundo a prioridade */

@@ -819,7 +819,8 @@ function TabOuvidoria() {
     if (!membro) return;
     const rg = rgDenunciado.trim();
     if (envolvidos.some(e => e.id_personagem && e.id_personagem === rg)) { toast.info("Este membro já está nos envolvidos."); return; }
-    const funcao = membro.cargos.map(c => ROLE_LABELS[c as keyof typeof ROLE_LABELS] || c).join(" / ");
+    const cargosVisiveis = membro.cargos.length > 1 ? membro.cargos.filter(c => c !== "admin") : membro.cargos;
+    const funcao = cargosVisiveis.map(c => ROLE_LABELS[c as keyof typeof ROLE_LABELS] || c).join(" / ");
     setEnvolvidos([...envolvidos, { nome: membro.nome, funcao, id_personagem: rg }]);
     toast.success("Membro adicionado aos envolvidos.");
   };
@@ -950,7 +951,7 @@ function TabOuvidoria() {
                   <div className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm flex items-center gap-3">
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-foreground">{membro.nome}</p>
-                      <p className="text-xs text-muted-foreground">{membro.cargos.map(c => ROLE_LABELS[c as keyof typeof ROLE_LABELS] || c).join(" / ")} • {({ tj: "Tribunal de Justiça", mp: "Ministério Público", dp: "Defensoria Pública", oab: "OAB" } as Record<string, string>)[membro.orgao]}</p>
+                      <p className="text-xs text-muted-foreground">{(membro.cargos.length > 1 ? membro.cargos.filter(c => c !== "admin") : membro.cargos).map(c => ROLE_LABELS[c as keyof typeof ROLE_LABELS] || c).join(" / ")} • {({ tj: "Tribunal de Justiça", mp: "Ministério Público", dp: "Defensoria Pública", oab: "OAB" } as Record<string, string>)[membro.orgao]}</p>
                     </div>
                     <Button size="sm" variant="outline" className="rounded-lg" onClick={addMembroEnvolvido}>Adicionar</Button>
                   </div>
